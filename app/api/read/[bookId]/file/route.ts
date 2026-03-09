@@ -1,0 +1,48 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { resolveReadAccess } from "../_access";
+
+type RouteProps = { params: Promise<{ bookId: string }> };
+
+function contentTypeFrom(fileType: "epub" | "pdf") {
+  return fileType === "pdf" ? "application/pdf" : "application/epub+zip";
+}
+
+export async function GET(_request: Request, { params }: RouteProps) {
+  const { bookId } = await params;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Connectez-vous pour lire ce livre." }, { status: 401 });
+  }
+
+  const access = await resolveReadAccess(bookId, user.id);
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: access.status });
+  }
+
+  const { data: signedData, error: signedError } = await supabase.storage.from("books").createSignedUrl(access.filePath, 60);
+  if (signedError || !signedData?.signedUrl) {
+    return NextResponse.json({ error: "Impossible de charger le fichier." }, { status: 500 });
+  }
+
+  const fileRes = await fetch(signedData.signedUrl);
+  if (!fileRes.ok) {
+    return NextResponse.json({ error: "Lecture indisponible." }, { status: 500 });
+  }
+
+  const buffer = await fileRes.arrayBuffer();
+  const extension = access.fileType === "pdf" ? "pdf" : "epub";
+
+  return new NextResponse(buffer, {
+    headers: {
+      "Content-Type": contentTypeFrom(access.fileType),
+      "Content-Disposition": `inline; filename="book.${extension}"`,
+      "Cache-Control": "private, max-age=60",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
+}

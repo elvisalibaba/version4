@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f7fb;
+  --foreground: #0f172a;
+  --hb-night-950: #081120;
+  --hb-night-900: #0f1b33;
+  --hb-night-800: #172646;
+  --hb-surface: rgba(255, 255, 255, 0.72);
+  --hb-surface-strong: rgba(255, 255, 255, 0.9);
+  --hb-border: rgba(15, 27, 51, 0.12);
+  --hb-text: #0f1b33;
+  --hb-muted: #5f6b85;
+  --hb-primary: #cf5b67;
+  --hb-primary-strong: #b93d4a;
+  --hb-primary-soft: rgba(207, 91, 103, 0.14);
+  --hb-shadow: 0 20px 50px rgba(8, 17, 32, 0.08);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(207, 91, 103, 0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(23, 38, 70, 0.16), transparent 24%),
+    linear-gradient(180deg, #f7f9fd 0%, #eef3fa 100%);
+  color: var(--hb-text);
+  font-family: var(--font-inter), sans-serif;
+}
+
+::selection {
+  background: rgba(207, 91, 103, 0.18);
+}
+
+.ios-shell {
+  position: relative;
+}
+
+.ios-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(207, 91, 103, 0.12), transparent 22%),
+    radial-gradient(circle at 90% 10%, rgba(15, 27, 51, 0.08), transparent 20%);
+}
+
+.ios-page {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 80rem;
+  padding: 1.5rem 1rem 0;
+}
+
+.ios-surface {
+  border: 1px solid var(--hb-border);
+  background: var(--hb-surface);
+  backdrop-filter: blur(24px);
+  box-shadow: var(--hb-shadow);
+}
+
+.ios-surface-strong {
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.74)),
+    linear-gradient(135deg, rgba(207, 91, 103, 0.08), rgba(23, 38, 70, 0.08));
+  backdrop-filter: blur(26px);
+  box-shadow: var(--hb-shadow);
+}
+
+.ios-hero {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(140deg, rgba(8, 17, 32, 0.96), rgba(15, 27, 51, 0.94) 55%, rgba(94, 32, 45, 0.88)),
+    radial-gradient(circle at top right, rgba(207, 91, 103, 0.22), transparent 30%);
+  box-shadow: 0 30px 60px rgba(8, 17, 32, 0.22);
+}
+
+.ios-title {
+  color: var(--hb-night-900);
+  letter-spacing: -0.03em;
+}
+
+.ios-muted {
+  color: var(--hb-muted);
+}
+
+.ios-kicker {
+  color: var(--hb-primary-strong);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.ios-input,
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+select,
+textarea {
+  border: 1px solid rgba(15, 27, 51, 0.08);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--hb-text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.ios-input:focus,
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: rgba(185, 61, 74, 0.35);
+  box-shadow:
+    0 0 0 4px rgba(207, 91, 103, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.ios-button-primary {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, #d76a75, #ba414d);
+  color: white;
+  box-shadow: 0 14px 32px rgba(185, 61, 74, 0.24);
+}
+
+.ios-button-primary:hover {
+  background: linear-gradient(180deg, #df7480, #c04854);
+}
+
+.ios-button-secondary {
+  border: 1px solid rgba(15, 27, 51, 0.1);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--hb-night-900);
+  backdrop-filter: blur(16px);
+}
+
+.ios-button-secondary:hover {
+  border-color: rgba(185, 61, 74, 0.24);
+  color: var(--hb-primary-strong);
+}
+
+.ios-chip {
+  border: 1px solid rgba(15, 27, 51, 0.08);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--hb-night-800);
+  backdrop-filter: blur(12px);
+}
+
+.ios-danger {
+  background: rgba(207, 91, 103, 0.1);
+  color: var(--hb-primary-strong);
+}
+
+.ios-success {
+  background: rgba(17, 94, 89, 0.08);
+  color: #0f766e;
+}
+
+.ios-card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.ios-card-hover:hover {
+  transform: translateY(-2px);
+  border-color: rgba(185, 61, 74, 0.18);
+  box-shadow: 0 26px 42px rgba(8, 17, 32, 0.12);
+}
