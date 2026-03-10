@@ -57,7 +57,8 @@ export async function resolveReadAccess(bookId: string, userId: string): Promise
       return { ok: false, status: 403, error: "Achat requis pour lire ce livre." };
     }
   } else {
-    await supabase.from("library").upsert({ user_id: userId, book_id: bookId }, { onConflict: "user_id,book_id" });
+    const libraryEntry = { user_id: userId, book_id: bookId } as Database["public"]["Tables"]["library"]["Insert"];
+    await supabase.from("library").upsert(libraryEntry, { onConflict: "user_id,book_id" });
   }
 
   const secureFilePath = ebookFormat?.file_url ?? book.file_url;
