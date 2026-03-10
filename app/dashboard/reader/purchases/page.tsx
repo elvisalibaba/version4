@@ -2,6 +2,26 @@ import Link from "next/link";
 import { ArrowRight, CreditCard, Gem, Receipt, ShoppingBag, Sparkles, Wallet } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/types/database";
+
+type OrderWithItems = {
+  id: string;
+  total_price: number;
+  payment_status: string;
+  created_at: string;
+  order_items:
+    | { price: number; books: { id: string; title: string; cover_url: string | null; categories: string[] } | { id: string; title: string; cover_url: string | null; categories: string[] }[] | null }[]
+    | null;
+};
+
+type LibraryEntry = {
+  book_id: string;
+  purchased_at: string;
+  books:
+    | { id: string; title: string; price: number; cover_url: string | null; categories: string[] }
+    | { id: string; title: string; price: number; cover_url: string | null; categories: string[] }[]
+    | null;
+};
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("fr-FR", {
@@ -19,16 +39,21 @@ export default async function ReaderPurchasesPage() {
     supabase
       .from("orders")
       .select("id, total_price, payment_status, created_at, order_items(price, books:book_id(id, title, cover_url, categories))")
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .returns<OrderWithItems[]>(),
     supabase
       .from("library")
       .select("book_id, purchased_at, books:book_id(id, title, price, cover_url, categories)")
-      .order("purchased_at", { ascending: false }),
+      .order("purchased_at", { ascending: false })
+      .returns<LibraryEntry[]>(),
   ]);
 
-  const paidOrders = (orders ?? []).filter((order) => order.payment_status === "paid");
+  const orderRows = (orders ?? []) as OrderWithItems[];
+  const libraryRows = (library ?? []) as LibraryEntry[];
+
+  const paidOrders = orderRows.filter((order) => order.payment_status === "paid");
   const totalSpent = paidOrders.reduce((sum, order) => sum + order.total_price, 0);
-  const freeClaims = (library ?? []).filter((item) => {
+  const freeClaims = libraryRows.filter((item) => {
     const book = Array.isArray(item.books) ? item.books[0] : item.books;
     return (book?.price ?? 0) <= 0;
   });

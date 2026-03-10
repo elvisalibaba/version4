@@ -2,6 +2,20 @@ import Link from "next/link";
 import { BookOpen, CircleDollarSign, Library, PlusCircle, Sparkles, TrendingUp, Users } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/types/database";
+
+type AuthorBookLite = Pick<Database["public"]["Tables"]["books"]["Row"], "id" | "title" | "status" | "created_at" | "price" | "author_id">;
+type OrderItemWithRelations = {
+  price: number;
+  books: { author_id: string }[] | { author_id: string } | null;
+  orders: { payment_status: string }[] | { payment_status: string } | null;
+};
+type AcquisitionRow = {
+  user_id: string;
+  purchased_at: string;
+  books: { id: string; title: string; price: number; author_id: string }[] | { id: string; title: string; price: number; author_id: string } | null;
+  profiles: { name: string | null; email: string }[] | { name: string | null; email: string } | null;
+};
 
 export default async function AuthorDashboardPage() {
   const profile = await requireRole(["author"]);
@@ -12,15 +26,18 @@ export default async function AuthorDashboardPage() {
       .from("books")
       .select("id, title, status, created_at, price")
       .eq("author_id", profile.id)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .returns<AuthorBookLite[]>(),
     supabase
       .from("order_items")
       .select("price, books:book_id(author_id), orders:order_id(payment_status)")
-      .order("id", { ascending: false }),
+      .order("id", { ascending: false })
+      .returns<OrderItemWithRelations[]>(),
     supabase
       .from("library")
       .select("user_id, purchased_at, books:book_id(id, title, price, author_id), profiles:user_id(name, email)")
-      .order("purchased_at", { ascending: false }),
+      .order("purchased_at", { ascending: false })
+      .returns<AcquisitionRow[]>(),
   ]);
 
   const ownPaidSales =

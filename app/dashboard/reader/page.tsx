@@ -2,6 +2,18 @@ import Link from "next/link";
 import { BookOpen, LibraryBig, Receipt, Sparkles, Star, Clock3, ArrowRight } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/types/database";
+
+type LibraryPreview = {
+  book_id: string;
+  purchased_at: string;
+  books:
+    | { id: string; title: string; categories: string[]; cover_url: string | null; rating_avg: number | null }
+    | { id: string; title: string; categories: string[]; cover_url: string | null; rating_avg: number | null }[]
+    | null;
+};
+
+type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("fr-FR", {
@@ -19,18 +31,26 @@ export default async function ReaderDashboardPage() {
     supabase
       .from("library")
       .select("book_id, purchased_at, books:book_id(id, title, categories, cover_url, rating_avg)")
-      .order("purchased_at", { ascending: false }),
-    supabase.from("orders").select("id, total_price, payment_status, created_at").order("created_at", { ascending: false }),
+      .order("purchased_at", { ascending: false })
+      .returns<LibraryPreview[]>(),
+    supabase
+      .from("orders")
+      .select("id, total_price, payment_status, created_at")
+      .order("created_at", { ascending: false })
+      .returns<OrderRow[]>(),
   ]);
 
-  const totalBooks = library?.length ?? 0;
-  const paidOrders = orders?.filter((order) => order.payment_status === "paid") ?? [];
+  const libraryItems = (library ?? []) as LibraryPreview[];
+  const orderRows = (orders ?? []) as OrderRow[];
+
+  const totalBooks = libraryItems.length;
+  const paidOrders = orderRows.filter((order) => order.payment_status === "paid");
   const totalSpent = paidOrders.reduce((sum, order) => sum + order.total_price, 0);
   const averageTicket = paidOrders.length > 0 ? totalSpent / paidOrders.length : 0;
-  const recentBooks = library?.slice(0, 3) ?? [];
+  const recentBooks = libraryItems.slice(0, 3);
 
   const categoryCounts = new Map<string, number>();
-  for (const item of library ?? []) {
+  for (const item of libraryItems) {
     const book = Array.isArray(item.books) ? item.books[0] : item.books;
     for (const category of book?.categories ?? []) {
       categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
@@ -39,8 +59,8 @@ export default async function ReaderDashboardPage() {
 
   const favoriteCategory =
     [...categoryCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "A explorer";
-  const lastPurchaseDate = library?.[0]?.purchased_at
-    ? new Date(library[0].purchased_at).toLocaleDateString("fr-FR", {
+  const lastPurchaseDate = libraryItems[0]?.purchased_at
+    ? new Date(libraryItems[0].purchased_at).toLocaleDateString("fr-FR", {
         day: "numeric",
         month: "long",
         year: "numeric",

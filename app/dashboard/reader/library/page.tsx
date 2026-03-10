@@ -2,6 +2,16 @@ import Link from "next/link";
 import { ArrowRight, BookOpen, Compass, Gem, LibraryBig, Sparkles, Star } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/types/database";
+
+type LibraryEntry = {
+  book_id: string;
+  purchased_at: string;
+  books:
+    | { id: string; title: string; description: string | null; cover_url: string | null; price: number; categories: string[]; rating_avg: number | null }
+    | { id: string; title: string; description: string | null; cover_url: string | null; price: number; categories: string[]; rating_avg: number | null }[]
+    | null;
+};
 
 export default async function ReaderLibraryPage() {
   const profile = await requireRole(["reader"]);
@@ -10,9 +20,10 @@ export default async function ReaderLibraryPage() {
   const { data: library } = await supabase
     .from("library")
     .select("book_id, purchased_at, books:book_id(id, title, description, cover_url, price, categories, rating_avg)")
-    .order("purchased_at", { ascending: false });
+    .order("purchased_at", { ascending: false })
+    .returns<LibraryEntry[]>();
 
-  const items = library ?? [];
+  const items = (library ?? []) as LibraryEntry[];
   const totalBooks = items.length;
   const freeBooks = items.filter((item) => {
     const book = Array.isArray(item.books) ? item.books[0] : item.books;

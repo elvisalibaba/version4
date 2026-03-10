@@ -2,6 +2,14 @@ import Link from "next/link";
 import { BookOpen, CircleDollarSign, Library, PlusCircle, Sparkles } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import type { BookFormatType, Database } from "@/types/database";
+
+type AuthorBookRow = Pick<
+  Database["public"]["Tables"]["books"]["Row"],
+  "id" | "title" | "subtitle" | "status" | "created_at" | "updated_at" | "categories" | "language"
+> & {
+  book_formats: { id: string; format: BookFormatType; price: number; is_published: boolean }[] | null;
+};
 
 export default async function AuthorBooksPage() {
   const profile = await requireRole(["author"]);
@@ -11,9 +19,10 @@ export default async function AuthorBooksPage() {
     .from("books")
     .select("id, title, subtitle, status, created_at, updated_at, categories, language, book_formats(id, format, price, is_published)")
     .eq("author_id", profile.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .returns<AuthorBookRow[]>();
 
-  const books = data ?? [];
+  const books = (data ?? []) as AuthorBookRow[];
   const publishedCount = books.filter((book) => book.status === "published").length;
   const draftCount = books.filter((book) => book.status === "draft").length;
   const totalFormats = books.reduce((sum, book) => sum + (book.book_formats?.length ?? 0), 0);
