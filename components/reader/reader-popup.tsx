@@ -61,9 +61,11 @@ export function ReaderPopup({
     async function renderEpub() {
       const epub = (await import("epubjs")).default;
       if (cancelled || !mountRef.current) return;
+      const currentUrl = fileUrl;
+      if (!currentUrl) return;
 
       mountRef.current.innerHTML = "";
-      const book = epub(fileUrl);
+      const book = epub(currentUrl);
       const rendition = book.renderTo(mountRef.current, {
         width: "100%",
         height: "100%",
