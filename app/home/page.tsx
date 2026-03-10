@@ -5,14 +5,17 @@ import { CtaSection } from "@/components/home/cta-section";
 import { FeaturedAuthorsSection } from "@/components/home/featured-authors-section";
 import { HeroSection } from "@/components/home/hero-section";
 import { LibraryExtractsSection } from "@/components/home/library-extracts-section";
+import { getPublishedBooks } from "@/lib/books";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const books = await getPublishedBooks();
+
   return (
     <>
-      <HeroSection />
+      <HeroSection books={books} />
       <AboutSection />
-      <LibraryExtractsSection />
-      <FeaturedAuthorsSection />
+      <LibraryExtractsSection books={books} />
+      <FeaturedAuthorsSection books={books} />
       <BlogSection />
       <ContactSection />
       <CtaSection />

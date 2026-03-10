@@ -1,6 +1,6 @@
 export function ContactSection() {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <section id="contact" className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <div className="ios-surface-strong rounded-[2rem] p-8">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-start">
           <div className="space-y-6">
@@ -19,6 +19,7 @@ export function ContactSection() {
                 <p>contact@holistique-book.com</p>
                 <p>Immeuble 130, Avenue Kwango, Kinshasa/Gombe</p>
               </div>
+              <p className="text-xs text-slate-500">Disponible du lundi au vendredi, 9h - 18h.</p>
             </div>
           </div>
 

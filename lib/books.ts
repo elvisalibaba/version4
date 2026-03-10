@@ -138,3 +138,5 @@ export async function getBookById(bookId: string) {
     file_url: ebook?.file_url ?? book.file_url,
   };
 }
+
+export type PublishedBook = Awaited<ReturnType<typeof getPublishedBooks>>[number];
