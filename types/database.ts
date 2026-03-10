@@ -25,7 +25,29 @@ export type Database = {
           name?: string | null;
           role?: UserRole;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "books_author_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["author_id"];
+          },
+          {
+            foreignKeyName: "library_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "library";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "orders_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["user_id"];
+          },
+        ];
       };
       books: {
         Row: {
@@ -130,7 +152,36 @@ export type Database = {
           ratings_count?: number;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "books_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "book_formats_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "book_formats";
+            referencedColumns: ["book_id"];
+          },
+          {
+            foreignKeyName: "library_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "library";
+            referencedColumns: ["book_id"];
+          },
+          {
+            foreignKeyName: "order_items_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "order_items";
+            referencedColumns: ["book_id"];
+          },
+        ];
       };
       book_formats: {
         Row: {
@@ -165,7 +216,15 @@ export type Database = {
           downloadable?: boolean;
           is_published?: boolean;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "book_formats_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       orders: {
         Row: {
@@ -187,7 +246,22 @@ export type Database = {
           payment_status?: string;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "orders_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "order_items";
+            referencedColumns: ["order_id"];
+          },
+        ];
       };
       order_items: {
         Row: {
@@ -207,7 +281,22 @@ export type Database = {
           book_id?: string;
           price?: number;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "order_items_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       library: {
         Row: {
@@ -227,7 +316,22 @@ export type Database = {
           book_id?: string;
           purchased_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "library_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "library_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: Record<string, never>;
