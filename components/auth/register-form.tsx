@@ -7,7 +7,6 @@ import type { UserRole } from "@/types/database";
 
 export function RegisterForm() {
   const router = useRouter();
-  const supabase = createClient();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,6 +21,7 @@ export function RegisterForm() {
     setError(null);
     setSuccess(null);
 
+    const supabase = createClient();
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,

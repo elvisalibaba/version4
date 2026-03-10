@@ -45,7 +45,6 @@ function sanitizeFileName(fileName: string): string {
 
 export function PublishLabForm() {
   const router = useRouter();
-  const supabase = createClient();
 
   const [title, setTitle] = useState("");
   const [authorFullName, setAuthorFullName] = useState("");
@@ -113,6 +112,7 @@ export function PublishLabForm() {
     setSaving(true);
     setError(null);
 
+    const supabase = createClient();
     const { data: authData } = await supabase.auth.getUser();
     if (!authData.user) {
       setError("Session expiree. Reconnecte-toi.");
