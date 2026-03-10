@@ -8,7 +8,7 @@ export function ContactSection() {
               <p className="ios-kicker">Contact</p>
               <h2 className="ios-title mt-2 text-2xl font-bold sm:text-3xl">Discutons de votre projet d edition spirituelle</h2>
               <p className="ios-muted mt-3 max-w-xl">
-                Parlons de votre projet. Que vous ayez un manuscrit ou une idee, nous sommes la pour vous accompagner.
+                Parlons de votre projet. Manuscrit, idee ou edition transformationnelle, nous sommes la pour vous accompagner.
               </p>
             </div>
 

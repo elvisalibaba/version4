@@ -21,7 +21,7 @@ export function CtaSection() {
           </div>
           <div className="rounded-2xl border border-white/15 bg-white/10 p-5 text-sm text-slate-200">
             <p className="font-semibold text-white">Vous etes auteur ?</p>
-            <p className="mt-2">Demandez un audit de manuscrit et un plan de publication sur mesure.</p>
+            <p className="mt-2">Demandez un audit premium, un plan de transformation editoriale et une visibilite Amazon.</p>
             <Link href="/home#contact" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white">
               Demander un rendez-vous
               <span>-&gt;</span>

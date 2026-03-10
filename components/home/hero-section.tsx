@@ -21,13 +21,13 @@ export function HeroSection({ books }: HeroSectionProps) {
         <div className="relative grid gap-10 lg:grid-cols-[1.25fr_1fr] lg:items-center">
           <div className="space-y-6">
             <div className="space-y-3">
-              <p className="ios-kicker">Maison d edition & librairie africaine</p>
+              <p className="ios-kicker">Maison d edition spirituelle & transformationnelle</p>
               <h1 className="ios-title text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
-                L experience editorialle qui eleve les voix spirituelles africaines.
+                L experience editoriale premium qui eleve les voix spirituelles africaines.
               </h1>
               <p className="ios-muted max-w-xl text-base leading-relaxed sm:text-lg">
-                Nous accompagnons les auteurs, produisons des editions soignees et distribuons des livres qui nourrissent la foi,
-                la sagesse et la croissance personnelle.
+                Nous accompagnons les auteurs, produisons des editions soignees et diffusons des livres qui nourrissent la foi,
+                la sagesse et la transformation personnelle.
               </p>
             </div>
 
@@ -72,7 +72,7 @@ export function HeroSection({ books }: HeroSectionProps) {
 
             <p className="ios-muted text-sm">
               <Sparkles className="mr-1 inline h-4 w-4 text-rose-500" />
-              Selection editoriale, edition premium et diffusion internationale.
+              Selection editoriale, edition premium, diffusion internationale et publicite digitale.
             </p>
           </div>
 

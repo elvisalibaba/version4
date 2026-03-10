@@ -18,7 +18,7 @@ export function LibraryExtractsSection({ books }: LibraryExtractsSectionProps) {
           <p className="ios-kicker">Bibliotheque</p>
           <h2 className="ios-title text-2xl font-bold">La librairie Holistique Books</h2>
           <p className="ios-muted mt-2 max-w-2xl text-sm sm:text-base">
-            Une collection soignee de livres spirituels, leadership et croissance personnelle.
+            Une collection soignee de livres spirituels et transformationnels, curatee par notre comite editorial.
           </p>
         </div>
         <Link href="/books" className="text-sm font-semibold text-rose-700 hover:text-rose-800">

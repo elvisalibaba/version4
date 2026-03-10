@@ -1,4 +1,5 @@
 import { AboutSection } from "@/components/home/about-section";
+import { AuthorCatalogSection } from "@/components/home/author-catalog-section";
 import { BlogSection } from "@/components/home/blog-section";
 import { ContactSection } from "@/components/home/contact-section";
 import { CtaSection } from "@/components/home/cta-section";
@@ -16,6 +17,7 @@ export default async function HomePage() {
       <AboutSection />
       <LibraryExtractsSection books={books} />
       <FeaturedAuthorsSection books={books} />
+      <AuthorCatalogSection books={books} />
       <BlogSection />
       <ContactSection />
       <CtaSection />

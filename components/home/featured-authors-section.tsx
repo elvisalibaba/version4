@@ -45,9 +45,9 @@ export function FeaturedAuthorsSection({ books }: FeaturedAuthorsSectionProps) {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="ios-kicker">Auteurs disponibles</p>
-          <h2 className="ios-title text-2xl font-bold">Des voix spirituelles accompagnees par notre maison</h2>
+          <h2 className="ios-title text-2xl font-bold">Des voix spirituelles et transformationnelles accompagnees par notre maison</h2>
           <p className="ios-muted mt-2 max-w-2xl text-sm sm:text-base">
-            Selectionnez un auteur, decouvrez ses titres et suivez son parcours editorial.
+            Selectionnez un auteur, decouvrez ses titres et suivez son parcours editorial premium.
           </p>
         </div>
         <Link href="/books" className="text-sm font-semibold text-rose-700 hover:text-rose-800">

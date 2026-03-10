@@ -6,16 +6,17 @@ export function AboutSection() {
           <div className="space-y-4">
             <p className="ios-kicker">Notre maison d edition</p>
             <h2 className="ios-title text-2xl font-bold sm:text-3xl">
-              Une maison d edition spirituelle qui accompagne, produit et diffuse avec exigence.
+              Une maison d edition spirituelle et transformationnelle qui accompagne, produit et diffuse avec exigence.
             </h2>
             <p className="ios-muted max-w-2xl">
               Holistique Books connecte les lecteurs, auteurs et editeurs africains avec un modele hybride:
-              direction editoriale, fabrication numerique, et distribution omnicanale.
+              direction editoriale, fabrication numerique, distribution omnicanale et publicite de livres.
             </p>
             <div className="flex flex-wrap gap-3 text-sm text-slate-600">
               <span className="rounded-full bg-rose-100/70 px-3 py-1 font-semibold text-rose-700">Edition premium</span>
               <span className="rounded-full bg-slate-100 px-3 py-1 font-semibold text-slate-700">Protection des oeuvres</span>
               <span className="rounded-full bg-rose-100/70 px-3 py-1 font-semibold text-rose-700">Distribution digitale</span>
+              <span className="rounded-full bg-slate-100 px-3 py-1 font-semibold text-slate-700">Amazon & librairies</span>
             </div>
           </div>
 
