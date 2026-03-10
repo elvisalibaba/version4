@@ -1,10 +1,21 @@
 import { createClient } from "@/lib/supabase/server";
+import type { BookFormatType, Database } from "@/types/database";
 
 type FileType = "epub" | "pdf";
 
 export type ReadAccessResult =
   | { ok: true; filePath: string; fileType: FileType }
   | { ok: false; status: number; error: string };
+
+type BookWithFormats =
+  Database["public"]["Tables"]["books"]["Row"] & {
+    book_formats?: {
+      format: BookFormatType;
+      file_url: string | null;
+      price: number;
+      is_published: boolean;
+    }[];
+  };
 
 function getFileType(path: string): FileType | null {
   const lower = path.toLowerCase();
@@ -16,12 +27,16 @@ function getFileType(path: string): FileType | null {
 export async function resolveReadAccess(bookId: string, userId: string): Promise<ReadAccessResult> {
   const supabase = await createClient();
 
-  const { data: book } = await supabase
+  // SWC type checker on Vercel can sometimes lose generics; force the shape explicitly.
+  const { data } = await supabase
     .from("books")
     .select("id, file_url, price, status, book_formats!left(format, file_url, price, is_published)")
     .eq("id", bookId)
     .eq("status", "published")
+    .returns<BookWithFormats>()
     .maybeSingle();
+
+  const book = (data ?? null) as BookWithFormats | null;
 
   if (!book || book.status !== "published") {
     return { ok: false, status: 404, error: "Livre introuvable." };
