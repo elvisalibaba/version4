@@ -1,5 +1,6 @@
 import { AboutSection } from "@/components/home/about-section";
 import { BlogSection } from "@/components/home/blog-section";
+import { ContactSection } from "@/components/home/contact-section";
 import { CtaSection } from "@/components/home/cta-section";
 import { FeaturedAuthorsSection } from "@/components/home/featured-authors-section";
 import { HeroSection } from "@/components/home/hero-section";
@@ -13,6 +14,7 @@ export default function HomePage() {
       <LibraryExtractsSection />
       <FeaturedAuthorsSection />
       <BlogSection />
+      <ContactSection />
       <CtaSection />
     </>
   );
