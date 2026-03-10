@@ -25,6 +25,7 @@ export type Database = {
           name?: string | null;
           role?: UserRole;
         };
+        Relationships: [];
       };
       books: {
         Row: {
@@ -129,6 +130,7 @@ export type Database = {
           ratings_count?: number;
           updated_at?: string;
         };
+        Relationships: [];
       };
       book_formats: {
         Row: {
@@ -163,6 +165,7 @@ export type Database = {
           downloadable?: boolean;
           is_published?: boolean;
         };
+        Relationships: [];
       };
       orders: {
         Row: {
@@ -172,6 +175,19 @@ export type Database = {
           payment_status: string;
           created_at: string;
         };
+        Insert: {
+          id?: string;
+          user_id: string;
+          total_price: number;
+          payment_status: string;
+          created_at?: string;
+        };
+        Update: {
+          total_price?: number;
+          payment_status?: string;
+          created_at?: string;
+        };
+        Relationships: [];
       };
       order_items: {
         Row: {
@@ -180,6 +196,18 @@ export type Database = {
           book_id: string;
           price: number;
         };
+        Insert: {
+          id?: string;
+          order_id: string;
+          book_id: string;
+          price: number;
+        };
+        Update: {
+          order_id?: string;
+          book_id?: string;
+          price?: number;
+        };
+        Relationships: [];
       };
       library: {
         Row: {
@@ -188,7 +216,23 @@ export type Database = {
           book_id: string;
           purchased_at: string;
         };
+        Insert: {
+          id?: string;
+          user_id: string;
+          book_id: string;
+          purchased_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          book_id?: string;
+          purchased_at?: string;
+        };
+        Relationships: [];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 };
