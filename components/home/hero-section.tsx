@@ -17,8 +17,8 @@ export function HeroSection({ books }: HeroSectionProps) {
         <div className="absolute -right-16 top-10 h-56 w-56 rounded-full bg-rose-200/35 blur-3xl" />
         <div className="absolute -bottom-16 left-10 h-64 w-64 rounded-full bg-slate-200/40 blur-3xl" />
 
-        <div className="relative grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
-          <div className="space-y-6">
+        <div className="relative flex flex-col gap-8 lg:grid lg:gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+          <div className="order-2 space-y-6 lg:order-none">
             <div className="space-y-3">
               <p className="ios-kicker">Edition premium & diffusion internationale</p>
               <h1 className="ios-title text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
@@ -62,7 +62,7 @@ export function HeroSection({ books }: HeroSectionProps) {
             </p>
           </div>
 
-          <div className="space-y-6">
+          <div className="order-1 space-y-6 lg:order-none">
             <div className="ios-surface rounded-[2rem] p-4 sm:p-5">
               <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span>Dernieres parutions</span>
