@@ -92,7 +92,7 @@ export function HeroSection({ books }: HeroSectionProps) {
                             src={book.cover_signed_url}
                             alt={book.title}
                             className="h-full w-full object-cover"
-                            loading={index < latest.length ? "eager" : "lazy"}
+                            loading="lazy"
                             decoding="async"
                           />
                         ) : (
@@ -120,7 +120,6 @@ export function HeroSection({ books }: HeroSectionProps) {
                       className="h-full w-full object-cover"
                       loading="eager"
                       decoding="async"
-                      fetchPriority="high"
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center px-6 text-center text-sm font-semibold text-slate-500">
