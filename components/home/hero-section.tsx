@@ -108,7 +108,7 @@ export function HeroSection({ books }: HeroSectionProps) {
               </div>
             </div>
             <div className="relative mx-auto w-full max-w-sm">
-              <div className="absolute -right-6 -top-5 rotate-6 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700 shadow-lg">
+              <div className="absolute right-4 top-4 rotate-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700 shadow-lg">
                 Livre a l'honneur
               </div>
               <div className="relative rounded-[2.5rem] border border-white/40 bg-white/70 p-3 shadow-2xl backdrop-blur">

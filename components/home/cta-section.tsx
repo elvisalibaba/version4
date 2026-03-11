@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function CtaSection() {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
+    <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:py-6">
       <div className="ios-hero rounded-[2rem] p-8 text-white">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-center">
           <div>

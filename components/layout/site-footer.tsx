@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-8 pb-8">
+    <footer className="mt-4 pb-8">
       <div className="ios-hero mx-auto grid max-w-7xl gap-8 rounded-[2rem] px-4 py-10 text-white sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
         <div>
           <p className="text-lg font-bold">Holistique Books</p>
