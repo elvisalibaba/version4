@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f7f9;
+  --background: #f7f1e3;
   --foreground: #0f172a;
   --hb-night-950: #081120;
   --hb-night-900: #0f1b33;
@@ -33,7 +33,7 @@ html {
 
 body {
   min-height: 100vh;
-  background: #f6f7f9;
+  background: #f7f1e3;
   color: var(--hb-text);
   font-family: var(--font-inter), sans-serif;
   line-height: 1.6;

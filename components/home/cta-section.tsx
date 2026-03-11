@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function CtaSection() {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
       <div className="ios-hero rounded-[2rem] p-8 text-white">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-center">
           <div>
@@ -19,14 +19,35 @@ export function CtaSection() {
               </Link>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/15 bg-white/10 p-5 text-sm text-slate-200">
-            <p className="font-semibold text-white">Vous etes auteur ?</p>
-            <p className="mt-2">Recevez un plan d edition clair, un calendrier de publication et un accompagnement marketing.</p>
-            <Link href="/home#contact" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white">
+          <form className="rounded-2xl border border-white/15 bg-white/10 p-5 text-sm text-slate-200">
+            <p className="text-base font-semibold text-white">Vous etes auteur ?</p>
+            <p className="mt-2 text-sm text-slate-200">
+              Recevez un plan d edition clair, un calendrier de publication et un accompagnement marketing.
+            </p>
+            <div className="mt-4 grid gap-3">
+              <input
+                type="text"
+                name="authorName"
+                placeholder="Nom complet"
+                className="ios-input w-full rounded-xl px-3 py-2 text-sm"
+              />
+              <input
+                type="email"
+                name="authorEmail"
+                placeholder="Email"
+                className="ios-input w-full rounded-xl px-3 py-2 text-sm"
+              />
+              <textarea
+                name="authorMessage"
+                rows={3}
+                placeholder="Votre projet en quelques mots"
+                className="ios-input w-full rounded-xl px-3 py-2 text-sm"
+              />
+            </div>
+            <button type="submit" className="ios-button-primary mt-4 w-full rounded-xl px-4 py-2.5 text-sm font-semibold">
               Demander un rendez-vous
-              <span>-&gt;</span>
-            </Link>
-          </div>
+            </button>
+          </form>
         </div>
       </div>
     </section>
