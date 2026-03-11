@@ -1,4 +1,51 @@
 import Link from "next/link";
+import nodemailer from "nodemailer";
+
+async function sendAuthorRequest(formData: FormData) {
+  "use server";
+
+  const name = String(formData.get("authorName") ?? "").trim();
+  const email = String(formData.get("authorEmail") ?? "").trim();
+  const message = String(formData.get("authorMessage") ?? "").trim();
+  const company = String(formData.get("company") ?? "").trim();
+
+  if (company) return;
+  if (!name || !email || !message) return;
+
+  const host = process.env.SMTP_HOST;
+  const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  if (!host || !port || !user || !pass) {
+    throw new Error("SMTP configuration missing.");
+  }
+
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: { user, pass },
+  });
+
+  const to = process.env.CONTACT_TO ?? "elvisalibaba@gmail.com";
+  const from = process.env.SMTP_FROM ?? `Holistique Books <${user}>`;
+
+  const content = [
+    `Nom: ${name}`,
+    `Email: ${email}`,
+    "",
+    "Projet:",
+    message,
+  ].join("\n");
+
+  await transporter.sendMail({
+    to,
+    from,
+    subject: "Demande de rendez-vous auteur",
+    text: content,
+  });
+}
 
 export function CtaSection() {
   return (
@@ -19,29 +66,33 @@ export function CtaSection() {
               </Link>
             </div>
           </div>
-          <form className="rounded-2xl border border-white/15 bg-white/10 p-5 text-sm text-slate-200">
+          <form action={sendAuthorRequest} className="rounded-2xl border border-white/15 bg-white/10 p-5 text-sm text-slate-200">
             <p className="text-base font-semibold text-white">Vous etes auteur ?</p>
             <p className="mt-2 text-sm text-slate-200">
               Recevez un plan d edition clair, un calendrier de publication et un accompagnement marketing.
             </p>
             <div className="mt-4 grid gap-3">
+              <input type="text" name="company" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
               <input
                 type="text"
                 name="authorName"
                 placeholder="Nom complet"
                 className="ios-input w-full rounded-xl px-3 py-2 text-sm"
+                required
               />
               <input
                 type="email"
                 name="authorEmail"
                 placeholder="Email"
                 className="ios-input w-full rounded-xl px-3 py-2 text-sm"
+                required
               />
               <textarea
                 name="authorMessage"
                 rows={3}
                 placeholder="Votre projet en quelques mots"
                 className="ios-input w-full rounded-xl px-3 py-2 text-sm"
+                required
               />
             </div>
             <button type="submit" className="ios-button-primary mt-4 w-full rounded-xl px-4 py-2.5 text-sm font-semibold">
