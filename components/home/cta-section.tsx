@@ -6,16 +6,16 @@ export function CtaSection() {
       <div className="ios-hero rounded-[2rem] p-8 text-white">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-center">
           <div>
-            <h2 className="text-2xl font-bold sm:text-3xl">Pret a publier ou a enrichir votre bibliotheque ?</h2>
+            <h2 className="text-2xl font-bold sm:text-3xl">Pret a publier ou a enrichir votre librairie ?</h2>
             <p className="mt-3 max-w-2xl text-slate-300">
               Rejoignez une maison d edition moderne, ou parcourez une librairie premium soigneusement selectionnee.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/register" className="ios-button-primary rounded-full px-5 py-2.5 text-sm font-semibold">
-                Creer un compte
+                Ouvrir un compte
               </Link>
-              <Link href="/books" className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold backdrop-blur-xl hover:bg-white/15">
-                Voir la bibliotheque
+              <Link href="/librairie" className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold backdrop-blur-xl hover:bg-white/15">
+                Voir la librairie
               </Link>
             </div>
           </div>

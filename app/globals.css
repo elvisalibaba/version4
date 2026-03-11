@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f7fb;
+  --background: #f6f7f9;
   --foreground: #0f172a;
   --hb-night-950: #081120;
   --hb-night-900: #0f1b33;
   --hb-night-800: #172646;
-  --hb-surface: rgba(255, 255, 255, 0.72);
-  --hb-surface-strong: rgba(255, 255, 255, 0.9);
-  --hb-border: rgba(15, 27, 51, 0.12);
-  --hb-text: #0f1b33;
-  --hb-muted: #5f6b85;
+  --hb-surface: #ffffff;
+  --hb-surface-strong: #ffffff;
+  --hb-border: rgba(15, 27, 51, 0.08);
+  --hb-text: #0f172a;
+  --hb-muted: #475569;
   --hb-primary: #cf5b67;
   --hb-primary-strong: #b93d4a;
   --hb-primary-soft: rgba(207, 91, 103, 0.14);
@@ -33,12 +33,10 @@ html {
 
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(207, 91, 103, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(23, 38, 70, 0.16), transparent 24%),
-    linear-gradient(180deg, #f7f9fd 0%, #eef3fa 100%);
+  background: #f6f7f9;
   color: var(--hb-text);
   font-family: var(--font-inter), sans-serif;
+  line-height: 1.6;
 }
 
 ::selection {
@@ -69,17 +67,13 @@ body {
 .ios-surface {
   border: 1px solid var(--hb-border);
   background: var(--hb-surface);
-  backdrop-filter: blur(24px);
-  box-shadow: var(--hb-shadow);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
 }
 
 .ios-surface-strong {
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.74)),
-    linear-gradient(135deg, rgba(207, 91, 103, 0.08), rgba(23, 38, 70, 0.08));
-  backdrop-filter: blur(26px);
-  box-shadow: var(--hb-shadow);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  background: #ffffff;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
 }
 
 .ios-hero {
@@ -142,9 +136,8 @@ textarea:focus {
 
 .ios-button-secondary {
   border: 1px solid rgba(15, 27, 51, 0.1);
-  background: rgba(255, 255, 255, 0.7);
+  background: #ffffff;
   color: var(--hb-night-900);
-  backdrop-filter: blur(16px);
 }
 
 .ios-button-secondary:hover {
@@ -154,9 +147,8 @@ textarea:focus {
 
 .ios-chip {
   border: 1px solid rgba(15, 27, 51, 0.08);
-  background: rgba(255, 255, 255, 0.7);
+  background: #ffffff;
   color: var(--hb-night-800);
-  backdrop-filter: blur(12px);
 }
 
 .ios-danger {
@@ -182,6 +174,7 @@ textarea:focus {
 .home-mesh {
   position: relative;
   isolation: isolate;
+  overflow: hidden;
 }
 
 .home-mesh::before {
@@ -190,11 +183,11 @@ textarea:focus {
   inset: -20%;
   z-index: -1;
   background:
-    radial-gradient(circle at 20% 20%, rgba(207, 91, 103, 0.12), transparent 35%),
-    radial-gradient(circle at 80% 10%, rgba(15, 27, 51, 0.12), transparent 40%),
-    radial-gradient(circle at 70% 80%, rgba(207, 91, 103, 0.1), transparent 40%),
-    radial-gradient(circle at 10% 80%, rgba(15, 27, 51, 0.1), transparent 35%);
-  opacity: 0.8;
+    radial-gradient(circle at 20% 20%, rgba(207, 91, 103, 0.08), transparent 35%),
+    radial-gradient(circle at 80% 10%, rgba(15, 27, 51, 0.06), transparent 40%),
+    radial-gradient(circle at 70% 80%, rgba(207, 91, 103, 0.06), transparent 40%),
+    radial-gradient(circle at 10% 80%, rgba(15, 27, 51, 0.06), transparent 35%);
+  opacity: 0.45;
 }
 
 @keyframes meshShift {
@@ -252,7 +245,7 @@ textarea:focus {
   }
 
   .hb-shimmer::after {
-    animation: shimmer 5s infinite;
+    animation: shimmer 8s ease-in-out infinite;
   }
 }
 

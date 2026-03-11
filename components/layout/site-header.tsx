@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { HEADER_CATEGORY_ITEMS } from "@/lib/book-categories";
 import { ShoppingCart, UserCircle2 } from "lucide-react";
 
 export async function SiteHeader() {
@@ -71,9 +70,6 @@ export async function SiteHeader() {
                 <UserCircle2 className="h-4 w-4" />
                 Mon compte
               </Link>
-              <Link href="/books" className="font-semibold hover:text-rose-200">
-                Bibliotheque
-              </Link>
               <Link href="/cart" className="inline-flex items-center gap-1.5 font-semibold hover:text-rose-200">
                 <ShoppingCart className="h-4 w-4" />
                 Panier
@@ -92,15 +88,9 @@ export async function SiteHeader() {
               <Link href="/login" className="hover:text-rose-200">
                 Connexion
               </Link>
-              <Link href="/register" className="hover:text-rose-200">
-                Creer un compte
-              </Link>
               <Link href="/login" className="inline-flex items-center gap-1.5 hover:text-rose-200">
                 <UserCircle2 className="h-4 w-4" />
                 Compte
-              </Link>
-              <Link href="/books" className="font-semibold hover:text-rose-200">
-                Bibliotheque
               </Link>
               <Link href="/cart" className="inline-flex items-center gap-1.5 font-semibold hover:text-rose-200">
                 <ShoppingCart className="h-4 w-4" />
@@ -110,16 +100,14 @@ export async function SiteHeader() {
           )}
         </div>
       </div>
-      <nav className="mx-auto mt-3 flex max-w-7xl items-center gap-3 overflow-x-auto px-2 py-2 text-sm sm:px-3">
-        <Link href="/books" className="ios-button-secondary min-w-fit rounded-full px-4 py-2 font-semibold">
-          Parcourir
-        </Link>
-        {HEADER_CATEGORY_ITEMS.map((item) => (
-          <Link
-            key={item.value}
-            href={item.value === "all" ? "/books" : `/books?category=${encodeURIComponent(item.value)}`}
-            className="ios-chip min-w-fit rounded-full px-4 py-2 font-medium hover:text-rose-700"
-          >
+      <nav className="mx-auto mt-3 flex max-w-7xl items-center gap-3 overflow-x-auto px-2 py-2 text-sm sm:px-3 md:justify-center">
+        {[
+          { label: "NOS SERVICES", href: "/services" },
+          { label: "CONSEILS & RESSOURCES", href: "/ressources" },
+          { label: "LIBRAIRIE", href: "/librairie" },
+          { label: "QUI SOMMES-NOUS ?", href: "/qui-sommes-nous" },
+        ].map((item) => (
+          <Link key={item.href} href={item.href} className="ios-chip min-w-fit rounded-full px-4 py-2 font-semibold hover:text-rose-700">
             {item.label}
           </Link>
         ))}

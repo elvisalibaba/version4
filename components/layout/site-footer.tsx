@@ -10,8 +10,8 @@ export function SiteFooter() {
         </div>
         <div className="space-y-2 text-sm">
           <p className="font-semibold text-white">Decouvrir</p>
-          <Link href="/books" className="block text-slate-200 hover:text-rose-200">
-            Catalogue
+          <Link href="/librairie" className="block text-slate-200 hover:text-rose-200">
+            Librairie
           </Link>
           <Link href="/dashboard/author" className="block text-slate-200 hover:text-rose-200">
             Espace Auteur
@@ -19,8 +19,8 @@ export function SiteFooter() {
         </div>
         <div className="space-y-2 text-sm">
           <p className="font-semibold text-white">Entreprise</p>
-          <Link href="/home" className="block text-slate-200 hover:text-rose-200">
-            A propos
+          <Link href="/qui-sommes-nous" className="block text-slate-200 hover:text-rose-200">
+            Qui sommes-nous ?
           </Link>
           <Link href="/register" className="block text-slate-200 hover:text-rose-200">
             Ouvrir un compte
