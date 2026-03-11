@@ -102,6 +102,37 @@ export async function SiteHeader() {
               </Link>
             </div>
           )}
+          {user ? (
+            <div className="flex w-full items-center justify-between gap-3 text-xs text-white md:hidden">
+              <Link href="/dashboard" className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5">
+                <UserCircle2 className="h-4 w-4" />
+                Compte
+              </Link>
+              <Link href="/cart" className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5">
+                <ShoppingCart className="h-4 w-4" />
+                Panier
+              </Link>
+              <form action={signOut}>
+                <button
+                  type="submit"
+                  className="rounded-full border border-rose-300/20 bg-rose-400/10 px-3 py-1.5 font-semibold text-rose-100"
+                >
+                  Deconnexion
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div className="flex w-full items-center justify-between gap-3 text-xs text-white md:hidden">
+              <Link href="/login" className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5">
+                <UserCircle2 className="h-4 w-4" />
+                Compte
+              </Link>
+              <Link href="/cart" className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5">
+                <ShoppingCart className="h-4 w-4" />
+                Panier
+              </Link>
+            </div>
+          )}
         </div>
       </div>
       <nav className="mx-auto mt-3 flex max-w-7xl items-center gap-3 overflow-x-auto px-2 py-2 text-sm sm:px-3 md:justify-center">
