@@ -18,9 +18,9 @@ export function PartnersSection() {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-3">
             <p className="ios-kicker">Reseau d'edition</p>
-            <h2 className="ios-title text-3xl font-bold sm:text-4xl">Plus de 100 maisons d'edition partenaires.</h2>
+            <h2 className="ios-title text-3xl font-bold sm:text-4xl">Un reseau solide pour diffuser et vendre.</h2>
             <p className="ios-muted max-w-2xl text-sm sm:text-base">
-              Un ecosysteme solide pour faire rayonner vos livres en Afrique, en Europe et a l'international.
+              Partenaires d'impression, editeurs et distributeurs pour vous donner une vraie presence en librairie et en ligne.
             </p>
           </div>
           <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white/70 px-4 py-3 text-sm font-semibold text-slate-700">

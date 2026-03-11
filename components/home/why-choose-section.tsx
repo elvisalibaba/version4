@@ -2,20 +2,20 @@ import { BookOpen, PenLine, Quote } from "lucide-react";
 
 const highlights = [
   {
-    title: "L'accompagnement",
+    title: "Accompagnement expert",
     description:
-      "L'equipe de Holistique Books vous conseille a chaque etape de votre projet et propose un service exclusif d'agent litteraire.",
+      "Des editeurs, correcteurs et graphistes pour structurer votre manuscrit et le rendre pret a vendre.",
     icon: Quote,
   },
   {
-    title: "La liberte",
-    description: "Vous etes libre - pas de contrat ni d'exclusivite - et gardez le controle total de votre oeuvre.",
+    title: "Libertes & droits",
+    description: "Vous gardez vos droits, choisissez vos formats et pilotez votre diffusion sans exclusivite.",
     icon: BookOpen,
   },
   {
-    title: "De nombreux lecteurs",
+    title: "Portee maximale",
     description:
-      "Vous accedez a un vaste lectorat via 200 sites libraires et 500 librairies physiques et etes lu par notre comite de lecteurs.",
+      "Distribution numerique et papier, visibilite en librairies et recommandations par notre comite de lecture.",
     icon: PenLine,
   },
 ];
@@ -26,11 +26,11 @@ export function WhyChooseSection() {
       <div className="ios-surface rounded-[2.5rem] p-6 sm:p-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-3">
-            <p className="ios-kicker">Pourquoi choisir Holistique Books ?</p>
-            <h2 className="ios-title text-3xl font-bold sm:text-4xl">Une maison d'edition engagee aux cotes des auteurs.</h2>
+            <p className="ios-kicker">Pourquoi Holistique Books ?</p>
+            <h2 className="ios-title text-3xl font-bold sm:text-4xl">La rigueur d'une maison d'edition, la souplesse du digital.</h2>
             <p className="ios-muted max-w-2xl text-sm sm:text-base">
-              Une equipe editoriale experimentee, une distribution massive et des outils modernes pour publier et vendre vos livres
-              sans compromis.
+              Inspirer confiance, vendre plus, garder le controle. Nous combinons expertise editoriale, diffusion large et services
+              a la carte.
             </p>
           </div>
         </div>

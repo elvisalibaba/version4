@@ -14,10 +14,10 @@ export function AuthorTrustSection({ books }: AuthorTrustSectionProps) {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-3">
           <p className="ios-kicker">Confiance des auteurs</p>
-          <h2 className="ios-title text-3xl font-bold sm:text-4xl">Plus de 100 auteurs nous ont deja fait confiance.</h2>
+          <h2 className="ios-title text-3xl font-bold sm:text-4xl">Plus de 100 auteurs ont choisi Holistique Books.</h2>
           <p className="ios-muted max-w-2xl text-sm sm:text-base">
-            Decouvrez les 20 premiers livres publies par notre communaute. Des ouvrages soignes, distribues et mis en valeur comme
-            en librairie.
+            Decouvrez une selection de livres publies recemment. Des couvertures fortes, une qualite d'edition exigeante et une
+            mise en avant digne des meilleures plateformes.
           </p>
         </div>
         <Link href="/librairie" className="ios-button-secondary flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold">

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, Sparkles } from "lucide-react";
+import { ArrowUpRight, BookOpen, CheckCircle2, Sparkles } from "lucide-react";
 import type { PublishedBook } from "@/lib/books";
 
 type HeroSectionProps = {
@@ -10,6 +10,11 @@ export function HeroSection({ books }: HeroSectionProps) {
   const spotlight = books[0];
   const latest = books.slice(0, 5);
   const authorCount = new Set(books.map((book) => book.author_id)).size;
+  const heroPoints = [
+    "Distribution numerique et papier sur 200 librairies en ligne.",
+    "Accompagnement editorial, correction et mise en page premium.",
+    "Suivi des ventes et outils marketing pour booster vos livres.",
+  ];
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-16">
@@ -20,25 +25,34 @@ export function HeroSection({ books }: HeroSectionProps) {
         <div className="relative flex flex-col gap-8 lg:grid lg:gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <div className="order-2 space-y-6 lg:order-none">
             <div className="space-y-3">
-              <p className="ios-kicker">Edition premium & diffusion internationale</p>
+              <p className="ios-kicker">Publiez comme un pro</p>
               <h1 className="ios-title text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
-                Publier un livre, votre reve, notre metier.
+                Publiez votre livre, gardez vos droits, gagnez des lecteurs.
               </h1>
               <p className="ios-muted max-w-xl text-base leading-relaxed sm:text-lg">
-                Faites emerger votre voix avec un accompagnement editorial, une distribution large et des outils modernes pour
-                vendre vos livres partout.
+                Une maison d edition moderne inspiree des meilleurs standards pour publier, vendre et faire rayonner vos livres en
+                Afrique et a l international.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
               <Link href="/services" className="ios-button-primary flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold">
-                Decouvrir nos services
+                Commencer a publier
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
               <Link href="/librairie" className="ios-button-secondary flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold">
-                Explorer la librairie
+                Voir la librairie
                 <BookOpen className="h-4 w-4" />
               </Link>
+            </div>
+
+            <div className="space-y-2 text-sm text-slate-600">
+              {heroPoints.map((point) => (
+                <div key={point} className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 text-rose-600" />
+                  <span>{point}</span>
+                </div>
+              ))}
             </div>
 
             <div className="flex flex-wrap items-center gap-6 text-sm text-slate-600">
@@ -58,14 +72,14 @@ export function HeroSection({ books }: HeroSectionProps) {
 
             <p className="ios-muted text-sm">
               <Sparkles className="mr-1 inline h-4 w-4 text-rose-500" />
-              Des solutions sur-mesure pour publier, vendre et faire rayonner votre oeuvre.
+              Plus de 100 auteurs publies nous font confiance.
             </p>
           </div>
 
           <div className="order-1 space-y-6 lg:order-none">
             <div className="ios-surface rounded-[2rem] p-4 sm:p-5">
               <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <span>Dernieres parutions</span>
+                <span>Nouveautes</span>
                 <span>{latest.length} titres</span>
               </div>
               <div className="hb-marquee mt-4">
@@ -95,7 +109,7 @@ export function HeroSection({ books }: HeroSectionProps) {
             </div>
             <div className="relative mx-auto w-full max-w-sm">
               <div className="absolute -right-6 -top-5 rotate-6 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700 shadow-lg">
-                Collection phare
+                Livre a l'honneur
               </div>
               <div className="relative rounded-[2.5rem] border border-white/40 bg-white/70 p-3 shadow-2xl backdrop-blur">
                 <div className="hb-shimmer aspect-[4/5] w-full overflow-hidden rounded-[2rem] bg-slate-100">

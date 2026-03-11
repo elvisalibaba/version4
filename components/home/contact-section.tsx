@@ -8,7 +8,7 @@ export function ContactSection() {
               <p className="ios-kicker">Contact</p>
               <h2 className="ios-title mt-2 text-2xl font-bold sm:text-3xl">Discutons de votre projet d edition</h2>
               <p className="ios-muted mt-3 max-w-xl">
-                Parlons de votre projet. Que vous ayez un manuscrit ou une idee, nous sommes la pour vous accompagner.
+                Que vous ayez un manuscrit ou une idee, notre equipe vous guide vers la meilleure strategie de publication.
               </p>
             </div>
 
@@ -19,7 +19,7 @@ export function ContactSection() {
                 <p>contact@holistique-book.com</p>
                 <p>Immeuble 130, Avenue Kwango, Kinshasa/Gombe</p>
               </div>
-              <p className="text-xs text-slate-500">Disponible du lundi au vendredi, 9h - 18h.</p>
+              <p className="text-xs text-slate-500">Reponse moyenne sous 24h, du lundi au vendredi.</p>
             </div>
           </div>
 

@@ -8,7 +8,7 @@ const packs = [
     price: "75 €",
     oldPrice: "147 €",
     icon: Eye,
-    audience: "Les auteurs qui veulent publier leur livre a moindre cout.",
+    audience: "Ideal pour tester le marche avec un budget controle.",
   },
   {
     badge: "Le plus vendu",
@@ -17,7 +17,7 @@ const packs = [
     price: "399 €",
     oldPrice: "684 €",
     icon: BookOpen,
-    audience: "Les auteurs qui veulent distribuer largement leur ouvrage et recevoir rapidement leurs premiers exemplaires.",
+    audience: "Pour vendre largement et recevoir vos premiers exemplaires rapidement.",
   },
   {
     badge: "Pack Etoile",
@@ -26,7 +26,7 @@ const packs = [
     price: "1989 €",
     oldPrice: "2335 €",
     icon: Star,
-    audience: "Les auteurs qui veulent un accompagnement de A a Z de l'edition jusqu'a la publication.",
+    audience: "Un accompagnement complet, de l'edition a la promotion.",
   },
 ];
 
@@ -35,9 +35,9 @@ export function PacksSection() {
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
       <div className="space-y-3">
         <p className="ios-kicker">Packs de publication</p>
-        <h2 className="ios-title text-3xl font-bold sm:text-4xl">Decouvrez nos packs de publication.</h2>
+        <h2 className="ios-title text-3xl font-bold sm:text-4xl">Choisissez la formule adaptee a votre ambition.</h2>
         <p className="ios-muted max-w-2xl text-sm sm:text-base">
-          Des offres claires pour publier a votre rythme, avec la distribution la plus large du marche.
+          Des offres claires, un budget maitrise, et la possibilite de monter en gamme quand vous etes pret.
         </p>
       </div>
 
