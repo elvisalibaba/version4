@@ -44,7 +44,7 @@ export default function QuiSommesNousPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">
         {sections.map((item) => {
           const Icon = item.icon;
           return (

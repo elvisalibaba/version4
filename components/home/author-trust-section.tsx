@@ -26,7 +26,7 @@ export function AuthorTrustSection({ books }: AuthorTrustSectionProps) {
         </Link>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {showcase.map((book) => (
           <Link key={book.id} href={`/book/${book.id}`} className="ios-surface ios-card-hover rounded-3xl p-4">
             <div className="aspect-[2/3] overflow-hidden rounded-2xl bg-slate-100">

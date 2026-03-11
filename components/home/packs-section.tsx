@@ -41,7 +41,7 @@ export function PacksSection() {
         </p>
       </div>
 
-      <div className="mt-8 grid gap-4 lg:grid-cols-3">
+      <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
         {packs.map((pack) => {
           const Icon = pack.icon;
           return (

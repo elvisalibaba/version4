@@ -8,9 +8,8 @@ type HeroSectionProps = {
 
 export function HeroSection({ books }: HeroSectionProps) {
   const spotlight = books[0];
+  const latest = books.slice(0, 5);
   const authorCount = new Set(books.map((book) => book.author_id)).size;
-  const heroPhoto =
-    "https://images.unsplash.com/photo-1455885666463-1a39e08f091d?auto=format&fit=crop&w=900&q=80";
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-16">
@@ -64,19 +63,34 @@ export function HeroSection({ books }: HeroSectionProps) {
           </div>
 
           <div className="space-y-6">
-            <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white/80 shadow-sm">
-              <div className="aspect-[16/10] w-full">
-                <img
-                  src={heroPhoto}
-                  alt="Livre ouvert"
-                  className="h-full w-full object-cover"
-                  loading="eager"
-                  decoding="async"
-                  fetchPriority="high"
-                />
+            <div className="ios-surface rounded-[2rem] p-4 sm:p-5">
+              <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <span>Dernieres parutions</span>
+                <span>{latest.length} titres</span>
               </div>
-              <div className="border-t border-slate-200/80 px-4 py-3 text-xs font-semibold text-slate-600">
-                Lecture soignee, mise en page premium.
+              <div className="hb-marquee mt-4">
+                <div className="hb-marquee-track">
+                  {[...latest, ...latest].map((book, index) => (
+                    <div key={`${book.id}-${index}`} className="hb-marquee-item">
+                      <div className="aspect-[2/3] w-24 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm">
+                        {book.cover_signed_url ? (
+                          <img
+                            src={book.cover_signed_url}
+                            alt={book.title}
+                            className="h-full w-full object-cover"
+                            loading={index < latest.length ? "eager" : "lazy"}
+                            decoding="async"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center px-2 text-center text-[10px] font-semibold text-slate-500">
+                            {book.title}
+                          </div>
+                        )}
+                      </div>
+                      <p className="mt-2 max-w-[96px] truncate text-xs font-semibold text-slate-700">{book.title}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
             <div className="relative mx-auto w-full max-w-sm">

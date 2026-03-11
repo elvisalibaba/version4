@@ -1,4 +1,6 @@
 import { BookOpen, Megaphone, PenLine, Printer, Search, Star, Wand2 } from "lucide-react";
+import Link from "next/link";
+import { getPublishedBooks } from "@/lib/books";
 
 const needs = [
   { title: "Publier un livre", icon: BookOpen },
@@ -21,7 +23,10 @@ const catalogue = [
   "Services livre audio",
 ];
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const books = await getPublishedBooks();
+  const showcase = books.slice(0, 8);
+
   return (
     <section className="space-y-10">
       <div className="space-y-3">
@@ -78,6 +83,33 @@ export default function ServicesPage() {
               ))}
             </ul>
           </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="ios-kicker">Livres publies</p>
+            <h2 className="ios-title text-2xl font-bold sm:text-3xl">Exemples de publications recentes.</h2>
+          </div>
+          <Link href="/librairie" className="text-sm font-semibold text-rose-700 hover:text-rose-600">
+            Decouvrir la librairie
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
+          {showcase.map((book) => (
+            <Link key={book.id} href={`/book/${book.id}`} className="ios-surface ios-card-hover rounded-2xl p-2">
+              <div className="aspect-[2/3] overflow-hidden rounded-xl bg-slate-100">
+                {book.cover_signed_url ? (
+                  <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                ) : (
+                  <div className="flex h-full items-center justify-center px-2 text-center text-[10px] font-semibold text-slate-500">
+                    {book.title}
+                  </div>
+                )}
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </section>

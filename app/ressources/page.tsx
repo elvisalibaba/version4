@@ -33,14 +33,13 @@ export default function RessourcesPage() {
             </span>
             <h2 className="text-lg font-semibold text-slate-900">Blog</h2>
           </div>
-          <ul className="mt-5 space-y-3 text-sm text-slate-600">
+          <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-700">
             {blogTopics.map((topic) => (
-              <li key={topic} className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                {topic}
-              </li>
+              <div key={topic} className="ios-surface-strong rounded-2xl p-4">
+                <p className="text-sm font-semibold text-slate-800">{topic}</p>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
 
         <div className="ios-surface rounded-[2rem] p-6 sm:p-8">
