@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, ChevronRight, Search, Sparkles, TrendingUp } from "lucide-react";
+import { ArrowUpRight, BookOpen, ChevronRight, Search, Sparkles } from "lucide-react";
 import type { PublishedBook } from "@/lib/books";
 
 type HeroSectionProps = {
@@ -7,27 +7,26 @@ type HeroSectionProps = {
 };
 
 export function HeroSection({ books }: HeroSectionProps) {
-  const trendingBooks = books.slice(0, 6);
-  const spotlight = trendingBooks[0];
+  const spotlight = books[0];
   const authorCount = new Set(books.map((book) => book.author_id)).size;
   const categoryCount = new Set(books.flatMap((book) => book.categories ?? [])).size;
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
-      <div className="ios-surface-strong relative overflow-hidden rounded-[2.5rem] p-6 sm:p-8">
+    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-16">
+      <div className="ios-surface-strong relative overflow-hidden rounded-[2.75rem] p-6 sm:p-10">
         <div className="absolute -right-12 top-8 h-48 w-48 rounded-full bg-rose-200/30 blur-3xl" />
         <div className="absolute -bottom-12 left-12 h-56 w-56 rounded-full bg-slate-200/40 blur-3xl" />
 
-        <div className="relative grid gap-10 lg:grid-cols-[1.25fr_1fr] lg:items-center">
+        <div className="relative grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:items-center">
           <div className="space-y-6">
             <div className="space-y-3">
-              <p className="ios-kicker">Maison d edition spirituelle & transformationnelle</p>
+              <p className="ios-kicker">Maison d edition premium & transformationnelle</p>
               <h1 className="ios-title text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
-                L experience editoriale premium qui eleve les voix spirituelles africaines.
+                La plus grande bibliotheque africaine, dans votre poche.
               </h1>
               <p className="ios-muted max-w-xl text-base leading-relaxed sm:text-lg">
-                Nous accompagnons les auteurs, produisons des editions soignees et diffusons des livres qui nourrissent la foi,
-                la sagesse et la transformation personnelle.
+                Accedez instantanement a des milliers d ebooks et audiobooks d auteurs locaux.
+                Commencez a lire gratuitement, sans engagement.
               </p>
             </div>
 
@@ -70,6 +69,14 @@ export function HeroSection({ books }: HeroSectionProps) {
               </div>
             </div>
 
+            <div className="flex flex-wrap gap-2 text-xs text-slate-600">
+              {["Amazon Kindle", "Kobo", "Google Play Books", "Apple Books"].map((label) => (
+                <span key={label} className="rounded-full border border-slate-200 bg-white/70 px-3 py-1 font-semibold text-slate-700">
+                  {label}
+                </span>
+              ))}
+            </div>
+
             <p className="ios-muted text-sm">
               <Sparkles className="mr-1 inline h-4 w-4 text-rose-500" />
               Selection editoriale, edition premium, diffusion internationale et publicite digitale.
@@ -77,76 +84,42 @@ export function HeroSection({ books }: HeroSectionProps) {
           </div>
 
           <div className="space-y-6">
-            <div className="ios-surface ios-card-hover relative overflow-hidden rounded-[2rem]">
-              <div className="absolute right-4 top-4 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-slate-700">
-                Livre a la une
+            <div className="relative mx-auto w-full max-w-sm">
+              <div className="absolute -right-8 -top-6 rotate-6 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700 shadow-lg">
+                Disponible sur Amazon
               </div>
-              <div className="aspect-[3/4] w-full bg-slate-100">
-                {spotlight?.cover_signed_url ? (
-                  <img src={spotlight.cover_signed_url} alt={spotlight.title} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full items-center justify-center px-5 text-center text-sm font-semibold text-slate-500">
-                    {spotlight?.title ?? "Nouvelle parution"}
-                  </div>
-                )}
-              </div>
-              <div className="border-t border-white/40 bg-white/80 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Selection editoriale</p>
-                <p className="ios-title mt-1 text-lg font-semibold">{spotlight?.title ?? "Votre prochain bestseller"}</p>
-                <p className="text-sm text-slate-600">{spotlight?.author_name ?? "Auteur a decouvrir"}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {trendingBooks.slice(1, 4).map((book) => (
-                <Link key={book.id} href={`/book/${book.id}`} className="ios-surface ios-card-hover overflow-hidden rounded-2xl">
-                  <div className="aspect-[2/3] w-full bg-slate-100">
-                    {book.cover_signed_url ? (
-                      <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover" />
+              <div className="relative -rotate-2 rounded-[2.75rem] border border-white/30 bg-slate-950/95 p-3 shadow-2xl">
+                <div className="relative overflow-hidden rounded-[2.2rem] bg-slate-100">
+                  <div className="hb-shimmer aspect-[9/16] w-full bg-slate-100">
+                    {spotlight?.cover_signed_url ? (
+                      <img src={spotlight.cover_signed_url} alt={spotlight.title} className="h-full w-full object-cover" />
                     ) : (
-                      <div className="flex h-full items-center justify-center px-2 text-center text-xs font-semibold text-slate-500">{book.title}</div>
+                      <div className="flex h-full items-center justify-center px-6 text-center text-sm font-semibold text-slate-500">
+                        {spotlight?.title ?? "Lecture immersive"}
+                      </div>
                     )}
                   </div>
-                </Link>
-              ))}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
+                    <p className="text-xs uppercase tracking-wide text-white/70">Lecture fluide</p>
+                    <p className="text-base font-semibold">{spotlight?.title ?? "Votre prochain bestseller"}</p>
+                    <p className="text-xs text-white/80">{spotlight?.author_name ?? "Auteur local"}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-5 grid grid-cols-3 gap-3 text-center text-xs text-slate-600">
+                <div className="rounded-2xl border border-slate-200 bg-white/70 px-2 py-3">
+                  Lecture hors-ligne
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-white/70 px-2 py-3">
+                  Mobile Money
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-white/70 px-2 py-3">
+                  Support 24/7
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="mt-12">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="ios-title flex items-center gap-2 text-xl font-bold">
-            <TrendingUp className="h-5 w-5 text-rose-600" />
-            Tendances actuelles
-          </h2>
-          <Link href="/books" className="text-sm font-semibold text-rose-700 hover:underline">
-            Voir toute la bibliotheque
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {trendingBooks.map((book) => (
-            <Link key={book.id} href={`/book/${book.id}`} className="ios-surface ios-card-hover group rounded-[1.5rem] p-3">
-              <div className="aspect-[2/3] w-full overflow-hidden rounded-lg bg-slate-100">
-                {book.cover_signed_url ? (
-                  <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-                ) : (
-                  <div className="flex h-full items-center justify-center px-3 text-center text-xs font-semibold text-slate-500">{book.title}</div>
-                )}
-              </div>
-              <div className="mt-2">
-                <p className="text-xs text-slate-500">{book.author_name}</p>
-                <p className="ios-title line-clamp-1 text-sm font-semibold">{book.title}</p>
-                <div className="mt-1 flex items-center justify-between">
-                  <span className="text-xs font-medium text-rose-700">{book.price <= 0 ? "Gratuit" : `$${book.price.toFixed(2)}`}</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {trendingBooks.length === 0 && <p className="ios-muted text-sm">Aucun livre publie pour le moment.</p>}
       </div>
     </section>
   );

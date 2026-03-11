@@ -18,7 +18,7 @@ export function LibraryExtractsSection({ books }: LibraryExtractsSectionProps) {
           <p className="ios-kicker">Bibliotheque</p>
           <h2 className="ios-title text-2xl font-bold">La librairie Holistique Books</h2>
           <p className="ios-muted mt-2 max-w-2xl text-sm sm:text-base">
-            Une collection soignee de livres spirituels et transformationnels, curatee par notre comite editorial.
+            Une collection soignee de livres de transformation, selectionnee par notre comite editorial.
           </p>
         </div>
         <Link href="/books" className="text-sm font-semibold text-rose-700 hover:text-rose-800">
@@ -40,7 +40,7 @@ export function LibraryExtractsSection({ books }: LibraryExtractsSectionProps) {
         <div className="space-y-4">
           {featured.map((book) => (
             <article key={book.id} className="ios-surface ios-card-hover group overflow-hidden rounded-[2rem]">
-              <div className="relative aspect-[3/2] w-full bg-slate-100">
+              <div className="hb-shimmer relative aspect-[3/2] w-full bg-slate-100 shadow-2xl">
                 {book.cover_signed_url ? (
                   <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 ) : (
@@ -79,7 +79,7 @@ export function LibraryExtractsSection({ books }: LibraryExtractsSectionProps) {
         <div className="grid gap-4 sm:grid-cols-2">
           {gridBooks.map((book) => (
             <article key={book.id} className="ios-surface ios-card-hover group overflow-hidden rounded-[1.75rem]">
-              <div className="relative h-40 overflow-hidden bg-gradient-to-br from-slate-100 via-white to-rose-50">
+              <div className="hb-shimmer relative h-40 overflow-hidden bg-gradient-to-br from-slate-100 via-white to-rose-50 shadow-2xl">
                 {book.cover_signed_url ? (
                   <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 ) : (

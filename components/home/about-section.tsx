@@ -6,7 +6,7 @@ export function AboutSection() {
           <div className="space-y-4">
             <p className="ios-kicker">Notre maison d edition</p>
             <h2 className="ios-title text-2xl font-bold sm:text-3xl">
-              Une maison d edition spirituelle et transformationnelle qui accompagne, produit et diffuse avec exigence.
+              Une maison d edition premium et transformationnelle qui accompagne, produit et diffuse avec exigence.
             </h2>
             <p className="ios-muted max-w-2xl">
               Holistique Books connecte les lecteurs, auteurs et editeurs africains avec un modele hybride:
@@ -24,7 +24,7 @@ export function AboutSection() {
             {[
               {
                 title: "Editorial",
-                description: "Coaching, relecture, structuration des manuscrits et ligne spirituelle claire.",
+                description: "Coaching, relecture, structuration des manuscrits et ligne editoriale claire.",
               },
               {
                 title: "Production",

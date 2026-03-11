@@ -26,7 +26,7 @@ export function FeaturedAuthorsSection({ books }: FeaturedAuthorsSectionProps) {
         categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
       }
       const topCategory =
-        [...categoryCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Edition spirituelle";
+        [...categoryCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Edition premium";
       return { ...author, topCategory };
     })
     .sort((a, b) => b.count - a.count)
@@ -45,7 +45,7 @@ export function FeaturedAuthorsSection({ books }: FeaturedAuthorsSectionProps) {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="ios-kicker">Auteurs disponibles</p>
-          <h2 className="ios-title text-2xl font-bold">Des voix spirituelles et transformationnelles accompagnees par notre maison</h2>
+          <h2 className="ios-title text-2xl font-bold">Des voix transformationnelles accompagnees par notre maison</h2>
           <p className="ios-muted mt-2 max-w-2xl text-sm sm:text-base">
             Selectionnez un auteur, decouvrez ses titres et suivez son parcours editorial premium.
           </p>
@@ -74,6 +74,9 @@ export function FeaturedAuthorsSection({ books }: FeaturedAuthorsSectionProps) {
                   <h3 className="ios-title font-semibold">{author.name}</h3>
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{author.topCategory}</p>
                 </div>
+              </div>
+              <div className="mt-3 inline-flex items-center rounded-full bg-rose-100/80 px-3 py-1 text-[11px] font-semibold text-rose-700">
+                Verifie par Holistique
               </div>
               <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
                 <span>{author.count} titres disponibles</span>

@@ -26,7 +26,7 @@ export function BlogSection() {
           <p className="ios-kicker">Magazine editorial</p>
           <h2 className="ios-title text-2xl font-bold">Conseils, tendances et inspiration</h2>
           <p className="ios-muted mt-2 max-w-2xl text-sm sm:text-base">
-            Une veille editoriale premium pour aider auteurs et lecteurs a mieux comprendre le marche du livre spirituel.
+            Une veille editoriale premium pour aider auteurs et lecteurs a mieux comprendre le marche du livre africain.
           </p>
         </div>
         <span className="text-sm font-semibold text-rose-700">Nouvelles analyses chaque mois</span>

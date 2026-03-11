@@ -8,7 +8,7 @@ export function CtaSection() {
           <div>
             <h2 className="text-2xl font-bold sm:text-3xl">Pret a publier ou a enrichir votre bibliotheque ?</h2>
             <p className="mt-3 max-w-2xl text-slate-300">
-              Rejoignez une maison d edition moderne, ou parcourez une librairie spirituelle soigneusement selectionnee.
+              Rejoignez une maison d edition moderne, ou parcourez une librairie premium soigneusement selectionnee.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/register" className="ios-button-primary rounded-full px-5 py-2.5 text-sm font-semibold">

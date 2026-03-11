@@ -19,7 +19,7 @@ function pickTopCategory(categories: string[]) {
     if (!category) continue;
     counts.set(category, (counts.get(category) ?? 0) + 1);
   }
-  return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Edition spirituelle";
+  return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Edition premium";
 }
 
 export function AuthorCatalogSection({ books }: AuthorCatalogSectionProps) {
@@ -57,7 +57,7 @@ export function AuthorCatalogSection({ books }: AuthorCatalogSectionProps) {
           <p className="ios-kicker">Catalogue auteurs</p>
           <h2 className="ios-title text-2xl font-bold">Profils complets, parcours editoriaux et titres en vitrine</h2>
           <p className="ios-muted mt-2 max-w-2xl text-sm sm:text-base">
-            Une vision claire des auteurs disponibles, de leurs thematiques et de leur rayonnement editorial.
+            Une vision claire des auteurs disponibles, de leurs thematiques et de leur rayonnement editorial premium.
           </p>
         </div>
         <Link href="/books" className="text-sm font-semibold text-rose-700 hover:text-rose-800">
@@ -83,7 +83,7 @@ export function AuthorCatalogSection({ books }: AuthorCatalogSectionProps) {
           return (
             <article key={author.id} className="ios-surface ios-card-hover overflow-hidden rounded-[2rem]">
               <div className="grid gap-4 p-5 md:grid-cols-[140px_1fr]">
-                <div className="relative overflow-hidden rounded-2xl bg-slate-100">
+                <div className="hb-shimmer relative overflow-hidden rounded-2xl bg-slate-100">
                   {latestBook?.cover_signed_url ? (
                     <img src={latestBook.cover_signed_url} alt={latestBook.title} className="h-full w-full object-cover" />
                   ) : (
@@ -103,6 +103,9 @@ export function AuthorCatalogSection({ books }: AuthorCatalogSectionProps) {
                       {author.books.length} titres publies
                     </p>
                   </div>
+                  <div className="inline-flex items-center rounded-full bg-rose-100/80 px-3 py-1 text-[11px] font-semibold text-rose-700">
+                    Verifie par Holistique
+                  </div>
 
                   <div className="rounded-2xl border border-slate-200/70 bg-white/70 p-3 text-sm text-slate-700">
                     <p className="text-xs font-semibold uppercase tracking-wide text-rose-700">Dernier titre</p>
@@ -119,7 +122,7 @@ export function AuthorCatalogSection({ books }: AuthorCatalogSectionProps) {
                   <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600">
                     <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white/70 px-2.5 py-1">
                       <BookOpen className="h-3.5 w-3.5 text-rose-600" />
-                      Edition spirituelle
+                      Edition premium
                     </span>
                     <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white/70 px-2.5 py-1">
                       <Globe className="h-3.5 w-3.5 text-rose-600" />

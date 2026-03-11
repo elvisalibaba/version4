@@ -178,3 +178,89 @@ textarea:focus {
   border-color: rgba(185, 61, 74, 0.18);
   box-shadow: 0 26px 42px rgba(8, 17, 32, 0.12);
 }
+
+.home-mesh {
+  position: relative;
+  isolation: isolate;
+}
+
+.home-mesh::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(207, 91, 103, 0.12), transparent 35%),
+    radial-gradient(circle at 80% 10%, rgba(15, 27, 51, 0.12), transparent 40%),
+    radial-gradient(circle at 70% 80%, rgba(207, 91, 103, 0.1), transparent 40%),
+    radial-gradient(circle at 10% 80%, rgba(15, 27, 51, 0.1), transparent 35%);
+  opacity: 0.8;
+}
+
+@keyframes meshShift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-2%, 2%, 0);
+  }
+  100% {
+    transform: translate3d(2%, -2%, 0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-150%);
+  }
+  60% {
+    transform: translateX(150%);
+  }
+  100% {
+    transform: translateX(150%);
+  }
+}
+
+.hb-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.hb-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-150%);
+  background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.45) 50%, transparent 80%);
+  pointer-events: none;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-mesh::before {
+    animation: meshShift 28s ease-in-out infinite;
+  }
+
+  .hb-shimmer::after {
+    animation: shimmer 5s infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
