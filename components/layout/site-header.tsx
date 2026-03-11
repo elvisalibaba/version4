@@ -39,11 +39,15 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 pt-3">
       <div className="ios-hero mx-auto max-w-7xl overflow-hidden rounded-[2rem] text-white">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-2 sm:px-6">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-2 sm:flex-row sm:items-center sm:gap-4 sm:px-6">
           <Link href="/home" className="min-w-fit text-xl font-bold tracking-wide">
             Holistique Books
           </Link>
-          <form action="/books" method="get" className="flex flex-1 items-center overflow-hidden rounded-2xl border border-white/10 bg-white/90 shadow-lg shadow-slate-950/15">
+          <form
+            action="/books"
+            method="get"
+            className="flex w-full min-w-0 flex-1 items-center overflow-hidden rounded-2xl border border-white/10 bg-white/90 shadow-lg shadow-slate-950/15"
+          >
             <select name="scope" className="h-10 border-r border-slate-200/80 bg-slate-50 px-2 text-sm text-slate-800 outline-none">
               <option>Livres</option>
               <option>Auteurs</option>

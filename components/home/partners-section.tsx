@@ -29,7 +29,7 @@ export function PartnersSection() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
           {partners.map((partner) => (
             <div key={partner} className="ios-chip rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700">
               {partner}
