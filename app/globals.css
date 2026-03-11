@@ -6,8 +6,8 @@
   --hb-night-950: #081120;
   --hb-night-900: #0f1b33;
   --hb-night-800: #172646;
-  --hb-surface: #ffffff;
-  --hb-surface-strong: #ffffff;
+  --hb-surface: rgba(255, 255, 255, 0.84);
+  --hb-surface-strong: rgba(255, 255, 255, 0.92);
   --hb-border: rgba(15, 27, 51, 0.08);
   --hb-text: #0f172a;
   --hb-muted: #475569;
@@ -67,13 +67,17 @@ body {
 .ios-surface {
   border: 1px solid var(--hb-border);
   background: var(--hb-surface);
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
 }
 
 .ios-surface-strong {
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  background: #ffffff;
-  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85)),
+    linear-gradient(135deg, rgba(207, 91, 103, 0.05), rgba(15, 27, 51, 0.05));
+  backdrop-filter: blur(18px);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.1);
 }
 
 .ios-hero {
@@ -135,9 +139,10 @@ textarea:focus {
 }
 
 .ios-button-secondary {
-  border: 1px solid rgba(15, 27, 51, 0.1);
-  background: #ffffff;
+  border: 1px solid rgba(15, 27, 51, 0.12);
+  background: rgba(255, 255, 255, 0.85);
   color: var(--hb-night-900);
+  backdrop-filter: blur(12px);
 }
 
 .ios-button-secondary:hover {
@@ -146,9 +151,10 @@ textarea:focus {
 }
 
 .ios-chip {
-  border: 1px solid rgba(15, 27, 51, 0.08);
-  background: #ffffff;
+  border: 1px solid rgba(15, 27, 51, 0.1);
+  background: rgba(255, 255, 255, 0.86);
   color: var(--hb-night-800);
+  backdrop-filter: blur(10px);
 }
 
 .ios-danger {
@@ -214,6 +220,32 @@ textarea:focus {
   }
 }
 
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.hb-marquee {
+  overflow: hidden;
+  position: relative;
+}
+
+.hb-marquee-track {
+  display: flex;
+  gap: 1rem;
+  width: max-content;
+  animation: marqueeScroll 18s linear infinite;
+}
+
+.hb-marquee-item {
+  flex: 0 0 auto;
+  text-align: center;
+}
+
 .hb-shimmer {
   position: relative;
   overflow: hidden;
@@ -246,6 +278,10 @@ textarea:focus {
 
   .hb-shimmer::after {
     animation: shimmer 8s ease-in-out infinite;
+  }
+
+  .hb-marquee-track {
+    animation: marqueeScroll 18s linear infinite;
   }
 }
 
