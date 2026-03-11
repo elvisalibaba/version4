@@ -42,7 +42,7 @@ export default async function ServicesPage() {
           <div className="flex items-center gap-3">
             <span className="ios-chip rounded-full px-4 py-2 text-xs font-semibold">Selon vos besoins</span>
           </div>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <div className="mt-6 grid grid-cols-2 gap-4">
             {needs.map((need) => {
               const Icon = need.icon;
               return (
