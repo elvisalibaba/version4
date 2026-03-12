@@ -1,6 +1,7 @@
 import { BookShelfSection } from "@/components/home/book-shelf-section";
 import { BlogSection } from "@/components/home/blog-section";
 import { FlashSaleSection } from "@/components/home/flash-sale-section";
+import { FreeBooksMarqueeSection } from "@/components/home/free-books-marquee-section";
 import { HeroSection } from "@/components/home/hero-section";
 import { NewsletterSection } from "@/components/home/newsletter-section";
 import { QuoteBandSection } from "@/components/home/quote-band-section";
@@ -30,6 +31,9 @@ export default async function HomePage() {
         </Reveal>
         <Reveal delay={200}>
           <BookShelfSection title="Bestsellers" subtitle="Les titres qui dominent nos ventes." books={bestSellersFallback} />
+        </Reveal>
+        <Reveal delay={210}>
+          <FreeBooksMarqueeSection books={books} />
         </Reveal>
         <Reveal delay={220}>
           <BookShelfSection title="Bientot disponible" subtitle="A paraitre prochainement." books={comingSoonFallback} />

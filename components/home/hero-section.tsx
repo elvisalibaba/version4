@@ -1,4 +1,8 @@
+"use client";
+
+import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import type { PublishedBook } from "@/lib/books";
 
 type HeroSectionProps = {
@@ -7,13 +11,34 @@ type HeroSectionProps = {
 
 export function HeroSection({ books }: HeroSectionProps) {
   const featuredTitle = books[0]?.title ?? "Collection Coup de Coeur";
+  const heroImages = useMemo(() => ["/images/ce1.png", "/images/ce2.png", "/images/ce3.png"], []);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % heroImages.length);
+    }, 5200);
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
 
   return (
     <section className="hb-section">
       <div className="hb-section-shell">
         <div className="hb-hero-slider">
           <div className="hb-hero-media" data-image-slot="hero-main">
-            <span className="hb-hero-placeholder">Image slider principale</span>
+            {heroImages.map((src, index) => (
+              <div key={src} className={`hb-hero-slide ${index === activeIndex ? "is-active" : ""}`}>
+                <Image
+                  src={src}
+                  alt={`Visuel hero ${index + 1}`}
+                  fill
+                  priority={index === 0}
+                  sizes="(min-width: 1024px) 60vw, 100vw"
+                  className="hb-hero-image"
+                />
+              </div>
+            ))}
           </div>
           <div className="hb-hero-panel">
             <p className="hb-hero-eyebrow">Evenement</p>
@@ -25,9 +50,15 @@ export function HeroSection({ books }: HeroSectionProps) {
           </div>
         </div>
         <div className="hb-hero-dots">
-          <span className="hb-hero-dot is-active" />
-          <span className="hb-hero-dot" />
-          <span className="hb-hero-dot" />
+          {heroImages.map((_, index) => (
+            <button
+              key={`hero-dot-${index}`}
+              type="button"
+              className={`hb-hero-dot ${index === activeIndex ? "is-active" : ""}`}
+              aria-label={`Aller au visuel ${index + 1}`}
+              onClick={() => setActiveIndex(index)}
+            />
+          ))}
         </div>
       </div>
     </section>
