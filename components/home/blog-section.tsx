@@ -1,56 +1,67 @@
-const posts = [
-  {
-    title: "Comment ecrire un ebook qui se vend en Afrique",
-    excerpt: "Des etapes concretes pour transformer votre manuscrit en produit digital rentable.",
-    tag: "Edition",
-  },
-  {
-    title: "Pourquoi la lecture numerique explose au Nigeria et au Ghana",
-    excerpt: "Analyse du marche ebook et des nouveaux usages mobiles dans la region.",
-    tag: "Marche",
-  },
-  {
-    title: "5 erreurs a eviter quand vous fixez le prix d'un ebook",
-    excerpt: "Trouver le bon prix pour attirer les lecteurs sans devaluer votre travail.",
-    tag: "Prix",
-  },
-];
+import Link from "next/link";
+import { getBlogPreview } from "@/lib/blog";
 
 export function BlogSection() {
+  const posts = getBlogPreview(4);
   const [highlight, ...rest] = posts;
 
+  if (!highlight) return null;
+
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <section className="hb-section">
+      <div className="hb-section-shell">
+        <div className="hb-blog-header">
         <div>
-          <p className="ios-kicker">Magazine editorial</p>
-          <h2 className="ios-title text-2xl font-bold">Conseils, tendances et inspiration</h2>
-          <p className="ios-muted mt-2 max-w-2xl text-sm sm:text-base">
-            Une veille editoriale premium pour aider auteurs et lecteurs a mieux comprendre le marche du livre africain.
-          </p>
-        </div>
-        <span className="text-sm font-semibold text-rose-700">Nouvelles analyses chaque mois</span>
-      </div>
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-        <article className="ios-surface ios-card-hover rounded-[2rem] p-6">
-          <p className="text-xs font-semibold uppercase tracking-wide text-rose-700">{highlight.tag}</p>
-          <h3 className="ios-title mt-3 text-xl font-semibold sm:text-2xl">{highlight.title}</h3>
-          <p className="ios-muted mt-3 text-sm leading-6">{highlight.excerpt}</p>
-          <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-800">
-            Lire l article
-            <span className="text-rose-600">-&gt;</span>
+            <p className="hb-kicker">Magazine editorial</p>
+            <h2 className="hb-title text-2xl sm:text-3xl">Conseils, tendances et inspiration</h2>
+            <p className="hb-muted mt-2 max-w-2xl text-sm sm:text-base">
+              Une veille editoriale premium pour aider auteurs et lecteurs a mieux comprendre le marche du livre africain.
+            </p>
           </div>
-        </article>
+          <Link href="/blog" className="hb-link text-sm font-semibold">
+            Voir le blog
+          </Link>
+        </div>
 
-        <div className="grid gap-4">
-          {rest.map((post) => (
-            <article key={post.title} className="ios-surface ios-card-hover rounded-[1.75rem] p-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-rose-700">{post.tag}</p>
-              <h3 className="ios-title mt-2 font-semibold">{post.title}</h3>
-              <p className="ios-muted mt-2 text-sm">{post.excerpt}</p>
-            </article>
-          ))}
+        <div className="hb-blog-grid">
+          <article className="hb-blog-feature">
+            <div className="hb-blog-cover" data-image-slot={`blog-${highlight.slug}`}>
+              <span className="hb-blog-cover-label">{highlight.coverLabel}</span>
+            </div>
+            <div className="hb-blog-body">
+              <span className="hb-blog-tag">{highlight.tag}</span>
+              <h3 className="hb-title text-xl sm:text-2xl">{highlight.title}</h3>
+              <p className="hb-muted text-sm leading-6">{highlight.excerpt}</p>
+              <div className="hb-blog-meta">
+                <span>{highlight.dateLabel}</span>
+                <span className="hb-dot" />
+                <span>{highlight.readTime}</span>
+              </div>
+              <Link href={`/blog/${highlight.slug}`} className="hb-button-primary hb-blog-cta">
+                Lire l article
+              </Link>
+            </div>
+          </article>
+
+          <div className="hb-blog-list">
+            {rest.map((post) => (
+              <Link key={post.slug} href={`/blog/${post.slug}`} className="hb-blog-card">
+                <div className="hb-blog-card-cover" data-image-slot={`blog-${post.slug}`}>
+                  <span className="hb-blog-cover-label">{post.coverLabel}</span>
+                </div>
+                <div className="hb-blog-card-body">
+                  <span className="hb-blog-tag">{post.tag}</span>
+                  <h3 className="hb-blog-card-title">{post.title}</h3>
+                  <p className="hb-muted text-sm">{post.excerpt}</p>
+                  <div className="hb-blog-meta">
+                    <span>{post.dateLabel}</span>
+                    <span className="hb-dot" />
+                    <span>{post.readTime}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </section>

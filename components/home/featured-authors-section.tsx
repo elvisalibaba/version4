@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 import type { PublishedBook } from "@/lib/books";
 
 type FeaturedAuthorsSectionProps = {
@@ -41,21 +40,21 @@ export function FeaturedAuthorsSection({ books }: FeaturedAuthorsSectionProps) {
   const finalAuthors = authors.length > 0 ? authors : fallbackAuthors;
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <section className="hb-section">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-4 px-4 sm:px-6">
         <div>
-          <p className="ios-kicker">Auteurs disponibles</p>
-          <h2 className="ios-title text-2xl font-bold">Des voix transformationnelles accompagnees par notre maison</h2>
-          <p className="ios-muted mt-2 max-w-2xl text-sm sm:text-base">
-            Selectionnez un auteur, decouvrez ses titres et suivez son parcours editorial premium.
+          <p className="hb-kicker">Auteurs favoris</p>
+          <h2 className="hb-title text-2xl sm:text-3xl">Des voix que nos lecteurs suivent toute l&apos;annee.</h2>
+          <p className="hb-muted mt-2 max-w-2xl text-sm sm:text-base">
+            Explorez les auteurs, leurs univers et les categories qu&apos;ils dominent.
           </p>
         </div>
-        <Link href="/books" className="text-sm font-semibold text-rose-700 hover:text-rose-800">
-          Explorer les auteurs
+        <Link href="/books" className="hb-link text-sm font-semibold">
+          Voir tous les auteurs
         </Link>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-3 lg:grid-cols-3">
+      <div className="mx-auto mt-6 flex max-w-7xl gap-4 overflow-x-auto px-4 pb-2 sm:px-6">
         {finalAuthors.map((author) => {
           const initials = author.name
             .split(" ")
@@ -65,26 +64,11 @@ export function FeaturedAuthorsSection({ books }: FeaturedAuthorsSectionProps) {
             .toUpperCase();
 
           return (
-            <article key={author.name} className="ios-surface ios-card-hover rounded-[1.75rem] p-5">
-              <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-rose-100 to-slate-200 text-lg font-semibold text-rose-700">
-                  {initials}
-                </div>
-                <div>
-                  <h3 className="ios-title font-semibold">{author.name}</h3>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{author.topCategory}</p>
-                </div>
-              </div>
-              <div className="mt-3 inline-flex items-center rounded-full bg-rose-100/80 px-3 py-1 text-[11px] font-semibold text-rose-700">
-                Verifie par Holistique
-              </div>
-              <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
-                <span>{author.count} titres disponibles</span>
-                <span className="inline-flex items-center gap-1 text-rose-700">
-                  Profil
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </div>
+            <article key={author.name} className="hb-author-card">
+              <div className="hb-author-avatar">{initials}</div>
+              <h3 className="mt-3 text-sm font-semibold text-slate-900">{author.name}</h3>
+              <p className="text-xs text-slate-500">{author.topCategory}</p>
+              <span className="mt-3 hb-pill">{author.count} titres</span>
             </article>
           );
         })}

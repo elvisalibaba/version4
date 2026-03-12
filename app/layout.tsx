@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Fraunces, Lato } from "next/font/google";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const lato = Lato({ subsets: ["latin"], weight: ["300", "400", "700"], variable: "--font-body" });
+const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-display" });
 
 export const metadata: Metadata = {
   title: "HolisticBooks",
@@ -18,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body className={`${inter.variable} ios-shell antialiased`}>
+      <body className={`${lato.variable} ${fraunces.variable} ios-shell antialiased`}>
         <SiteHeader />
         <main className="ios-page min-h-[60vh]">{children}</main>
         <SiteFooter />

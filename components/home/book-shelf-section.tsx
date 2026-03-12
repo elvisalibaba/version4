@@ -1,48 +1,69 @@
+"use client";
+
 import Link from "next/link";
+import { useRef } from "react";
 import type { PublishedBook } from "@/lib/books";
 
 type BookShelfSectionProps = {
   title: string;
   subtitle?: string;
-  ctaLabel?: string;
-  ctaHref?: string;
   books: PublishedBook[];
 };
 
-export function BookShelfSection({ title, subtitle, ctaLabel = "Voir tout", ctaHref = "/librairie", books }: BookShelfSectionProps) {
+export function BookShelfSection({ title, subtitle, books }: BookShelfSectionProps) {
   if (books.length === 0) return null;
 
-  return (
-    <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="space-y-2">
-          <p className="ios-kicker">{title}</p>
-          {subtitle ? <h2 className="ios-title text-2xl font-bold sm:text-3xl">{subtitle}</h2> : null}
-        </div>
-        <Link href={ctaHref} className="text-sm font-semibold text-rose-700 hover:text-rose-600">
-          {ctaLabel}
-        </Link>
-      </div>
+  const scrollerRef = useRef<HTMLDivElement>(null);
 
-      <div className="mt-5 flex gap-4 overflow-x-auto pb-2 md:grid md:grid-cols-4 md:overflow-visible lg:grid-cols-6">
-        {books.map((book) => (
-          <Link
-            key={book.id}
-            href={`/book/${book.id}`}
-            className="ios-surface ios-card-hover min-w-[140px] rounded-2xl p-3 md:min-w-0"
-          >
-            <div className="aspect-[2/3] overflow-hidden rounded-xl bg-slate-100">
-              {book.cover_signed_url ? (
-                <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-              ) : (
-                <div className="flex h-full items-center justify-center px-2 text-center text-xs font-semibold text-slate-500">
-                  {book.title}
-                </div>
-              )}
+  const handleScroll = (direction: "prev" | "next") => {
+    if (!scrollerRef.current) return;
+    const amount = scrollerRef.current.clientWidth * 0.7;
+    scrollerRef.current.scrollBy({ left: direction === "next" ? amount : -amount, behavior: "smooth" });
+  };
+
+  return (
+    <section className="hb-section hb-shelf-template">
+      <div className="hb-section-shell">
+        <div className="hb-shelf-panel">
+          <div className="hb-shelf-header">
+            <div className="hb-shelf-title">
+              <span className="hb-shelf-kicker">{title}</span>
+              {subtitle ? <p className="hb-shelf-subtitle">{subtitle}</p> : null}
             </div>
-            <p className="mt-2 truncate text-xs font-semibold text-slate-700">{book.title}</p>
-          </Link>
-        ))}
+            <div className="hb-shelf-actions">
+              <span className="hb-shelf-count">{books.length} books</span>
+              <button type="button" className="hb-shelf-arrow" aria-label="Precedent" onClick={() => handleScroll("prev")}>
+                &#x2039;
+              </button>
+              <button type="button" className="hb-shelf-arrow" aria-label="Suivant" onClick={() => handleScroll("next")}>
+                &#x203A;
+              </button>
+            </div>
+          </div>
+
+          <div ref={scrollerRef} className="hb-shelf-row">
+            {books.map((book) => {
+              const priceLabel = book.price <= 0 ? "Gratuit" : `$${book.price.toFixed(2)}`;
+
+              return (
+                <Link key={book.id} href={`/book/${book.id}`} className="hb-book-tile group">
+                  <div className="hb-book-cover">
+                    {book.cover_signed_url ? (
+                      <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                    ) : (
+                      <div className="hb-book-fallback">{book.title}</div>
+                    )}
+                  </div>
+                  <div className="hb-book-overlay">
+                    <p className="hb-book-title">{book.title}</p>
+                    <span className="hb-book-price">{priceLabel}</span>
+                    <span className="hb-book-cta">Details du livre</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </section>
   );
