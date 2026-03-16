@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { trackBookEngagement } from "@/lib/book-engagement";
 import { createClient } from "@/lib/supabase/server";
 import { resolveReadAccess } from "../_access";
 
@@ -23,6 +24,16 @@ export async function GET(_request: Request, { params }: RouteProps) {
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status });
   }
+
+  await trackBookEngagement({
+    bookId,
+    eventType: "file_access",
+    source: "secure_reader_file_stream",
+    requestHeaders: _request.headers,
+    metadata: {
+      file_type: access.fileType,
+    },
+  });
 
   const { data: signedData, error: signedError } = await supabase.storage.from("books").createSignedUrl(access.filePath, 60);
   if (signedError || !signedData?.signedUrl) {

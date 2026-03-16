@@ -7,42 +7,68 @@ import { NewsletterSection } from "@/components/home/newsletter-section";
 import { QuoteBandSection } from "@/components/home/quote-band-section";
 import { Reveal } from "@/components/home/reveal";
 import { FeaturedAuthorsSection } from "@/components/home/featured-authors-section";
-import { getPublishedBooks } from "@/lib/books";
+import { TrustBar } from "@/components/home/trust-bar";
+import { getComingSoonBooks, getPublishedBooks } from "@/lib/books";
+import { getFlashSaleState } from "@/lib/flash-sales";
 
 export default async function HomePage() {
-  const books = await getPublishedBooks();
-  const newReleases = books.slice(0, 5);
-  const bestSellers = books.slice(5, 10);
-  const bestSellersFallback = bestSellers.length > 0 ? bestSellers : books.slice(0, 5);
-  const comingSoon = books.slice(10, 15);
-  const comingSoonFallback = comingSoon.length > 0 ? comingSoon : books.slice(0, 5);
+  const [books, comingSoonBooks] = await Promise.all([getPublishedBooks(), getComingSoonBooks()]);
+  const newReleases = books.filter((book) => !book.is_free).slice(0, 5);
+  const newReleasesFallback = newReleases.length > 0 ? newReleases : books.slice(0, 5);
+  const deepDiveBooks = [...books]
+    .filter((book) => !book.is_free)
+    .sort((a, b) => (b.page_count ?? 0) - (a.page_count ?? 0) || (b.published_at ?? "").localeCompare(a.published_at ?? ""))
+    .slice(0, 5);
+  const deepDiveFallback = deepDiveBooks.length > 0 ? deepDiveBooks : books.slice(0, 5);
+  const comingSoon = comingSoonBooks.slice(0, 5);
+  const flashSale = await getFlashSaleState(books);
 
   return (
     <div className="hb-fullbleed">
       <div className="home-mesh">
         <Reveal>
-          <HeroSection books={books} />
+          <HeroSection books={books} comingSoonBooks={comingSoonBooks} />
+        </Reveal>
+        <Reveal delay={80}>
+          <TrustBar />
         </Reveal>
         <Reveal delay={120}>
-          <BookShelfSection title="Nouveautes" subtitle="Nouveaux livres sortis ce mois-ci." books={newReleases} />
-        </Reveal>
-        <Reveal delay={160}>
-          <QuoteBandSection />
-        </Reveal>
-        <Reveal delay={200}>
-          <BookShelfSection title="Bestsellers" subtitle="Les titres qui dominent nos ventes." books={bestSellersFallback} />
-        </Reveal>
-        <Reveal delay={210}>
           <FreeBooksMarqueeSection books={books} />
         </Reveal>
-        <Reveal delay={220}>
-          <BookShelfSection title="Bientot disponible" subtitle="A paraitre prochainement." books={comingSoonFallback} />
+        <Reveal delay={160}>
+          <BookShelfSection
+            title="Nouveautes a ouvrir cette semaine"
+            subtitle="Des titres recents, utiles et faciles a recommander pour creer un premier declic rapidement."
+            books={newReleasesFallback}
+            size="compact"
+          />
         </Reveal>
+        <Reveal delay={200}>
+          <BookShelfSection
+            title="Pour aller plus loin"
+            subtitle="Des livres plus complets pour les lecteurs deja convaincus, prets a approfondir un sujet en profondeur."
+            books={deepDiveFallback}
+            size="compact"
+          />
+        </Reveal>
+        {comingSoon.length > 0 ? (
+          <Reveal delay={220}>
+            <BookShelfSection
+              title="Bientot disponibles"
+              subtitle="Des sorties deja prêtes a relancer l envie de lire, d acheter et de revenir sur la plateforme."
+              books={comingSoon}
+              variant="comingSoon"
+            />
+          </Reveal>
+        ) : null}
         <Reveal delay={230}>
-          <FlashSaleSection books={books} />
+          <FlashSaleSection books={flashSale.dealBooks} discountPercentage={flashSale.config.discountPercentage} />
         </Reveal>
         <Reveal delay={260}>
           <FeaturedAuthorsSection books={books} />
+        </Reveal>
+        <Reveal delay={270}>
+          <QuoteBandSection />
         </Reveal>
         <Reveal delay={280}>
           <BlogSection />

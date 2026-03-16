@@ -1,35 +1,125 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { useRouter } from "next/navigation";
+import { SubscriptionPlanSelector } from "@/components/author/subscription-plan-selector";
+import { FormSection } from "@/components/ui/form-section";
 import { BOOK_CATEGORIES } from "@/lib/book-categories";
 import { createClient } from "@/lib/supabase/client";
-import type { BookStatus } from "@/types/database";
+import type { BookFormatType, BookReviewStatus, Database } from "@/types/database";
 
 type OptionalFormat = "paperback" | "hardcover" | "audiobook";
 
 type FormatState = {
   enabled: boolean;
   price: string;
+  printingCost: string;
   stockQuantity: string;
-  publish: boolean;
 };
 
-const initialOptionalFormat: FormatState = {
-  enabled: false,
-  price: "0",
-  stockQuantity: "",
-  publish: false,
+type SubmissionIntent = "draft" | "submit";
+
+type SubscriptionPlan = Pick<
+  Database["public"]["Tables"]["subscription_plans"]["Row"],
+  "id" | "name" | "slug" | "description" | "monthly_price" | "currency_code" | "is_active"
+>;
+
+export type PublishLabInitialValues = {
+  id?: string;
+  title: string;
+  authorFullName: string;
+  subtitle: string;
+  description: string;
+  isbn: string;
+  language: string;
+  publisher: string;
+  publicationDate: string;
+  pageCount: string;
+  coAuthors: string;
+  selectedCategory: string;
+  tags: string;
+  ageRating: string;
+  edition: string;
+  seriesName: string;
+  seriesPosition: string;
+  coverAltText: string;
+  samplePages: string;
+  ebookPrice: string;
+  ebookDownloadable: boolean;
+  ebookFileSizeMb: number | null;
+  ebookStoredFileSize: number | null;
+  ebookFileFormat: string | null;
+  paperback: FormatState;
+  hardcover: FormatState;
+  audiobook: FormatState;
+  coverPath: string | null;
+  coverThumbnailUrl: string | null;
+  ebookPath: string | null;
+  samplePath: string | null;
+  isSingleSaleEnabled: boolean;
+  isSubscriptionAvailable: boolean;
+  selectedPlanIds: string[];
+  reviewStatus: BookReviewStatus;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  reviewNote: string | null;
+};
+
+type PublishLabFormProps = {
+  subscriptionPlans: SubscriptionPlan[];
+  initialValues?: Partial<PublishLabInitialValues>;
+};
+
+const initialOptionalFormat: FormatState = { enabled: false, price: "0", printingCost: "", stockQuantity: "" };
+
+const emptyInitialValues: PublishLabInitialValues = {
+  title: "",
+  authorFullName: "",
+  subtitle: "",
+  description: "",
+  isbn: "",
+  language: "fr",
+  publisher: "Holistique Books",
+  publicationDate: "",
+  pageCount: "",
+  coAuthors: "",
+  selectedCategory: "",
+  tags: "",
+  ageRating: "Tout public",
+  edition: "1ere edition",
+  seriesName: "",
+  seriesPosition: "",
+  coverAltText: "",
+  samplePages: "",
+  ebookPrice: "0",
+  ebookDownloadable: false,
+  ebookFileSizeMb: null,
+  ebookStoredFileSize: null,
+  ebookFileFormat: null,
+  paperback: initialOptionalFormat,
+  hardcover: initialOptionalFormat,
+  audiobook: initialOptionalFormat,
+  coverPath: null,
+  coverThumbnailUrl: null,
+  ebookPath: null,
+  samplePath: null,
+  isSingleSaleEnabled: true,
+  isSubscriptionAvailable: false,
+  selectedPlanIds: [],
+  reviewStatus: "draft",
+  submittedAt: null,
+  reviewedAt: null,
+  reviewNote: null,
 };
 
 function splitCsv(input: string) {
   return input
     .split(",")
-    .map((v) => v.trim())
+    .map((value) => value.trim())
     .filter(Boolean);
 }
 
-function getFileFormat(fileName: string): string {
+function getFileFormat(fileName: string) {
   const lower = fileName.toLowerCase();
   if (lower.endsWith(".epub")) return "epub";
   if (lower.endsWith(".pdf")) return "pdf";
@@ -37,47 +127,113 @@ function getFileFormat(fileName: string): string {
   return "unknown";
 }
 
-function sanitizeFileName(fileName: string): string {
+function sanitizeFileName(fileName: string) {
   const normalized = fileName.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const safe = normalized.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
   return safe.replace(/^-|-$/g, "") || "file";
 }
 
-export function PublishLabForm() {
+function isPhysicalFormat(format: BookFormatType) {
+  return format === "paperback" || format === "hardcover";
+}
+
+function getReviewStatusMeta(status: BookReviewStatus) {
+  switch (status) {
+    case "submitted":
+      return {
+        label: "Soumis a l'admin",
+        className: "border-amber-200 bg-amber-50 text-amber-800",
+      };
+    case "approved":
+      return {
+        label: "Valide par l'admin",
+        className: "border-emerald-200 bg-emerald-50 text-emerald-800",
+      };
+    case "rejected":
+      return {
+        label: "Refuse",
+        className: "border-rose-200 bg-rose-50 text-rose-800",
+      };
+    case "changes_requested":
+      return {
+        label: "Corrections demandees",
+        className: "border-violet-200 bg-violet-50 text-violet-800",
+      };
+    default:
+      return {
+        label: "Brouillon",
+        className: "border-slate-200 bg-slate-50 text-slate-700",
+      };
+  }
+}
+
+export function buildOptionalFormatState(
+  format:
+    | {
+        price: number;
+        printing_cost: number | null;
+        stock_quantity: number | null;
+      }
+    | undefined,
+): FormatState {
+  if (!format) return initialOptionalFormat;
+  return {
+    enabled: true,
+    price: String(format.price ?? 0),
+    printingCost: format.printing_cost !== null ? String(format.printing_cost) : "",
+    stockQuantity: format.stock_quantity ? String(format.stock_quantity) : "",
+  };
+}
+
+function Input({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="block text-sm font-medium text-slate-700">{label}</span>
+      <div className="mt-2">{children}</div>
+    </label>
+  );
+}
+
+export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabFormProps) {
   const router = useRouter();
+  const initial = { ...emptyInitialValues, ...initialValues };
+  const isEditMode = Boolean(initialValues?.id);
 
-  const [title, setTitle] = useState("");
-  const [authorFullName, setAuthorFullName] = useState("");
-  const [subtitle, setSubtitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [isbn, setIsbn] = useState("");
-  const [language, setLanguage] = useState("fr");
-  const [publisher, setPublisher] = useState("Holistique Books");
-  const [publicationDate, setPublicationDate] = useState("");
-  const [pageCount, setPageCount] = useState("");
-  const [coAuthors, setCoAuthors] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [tags, setTags] = useState("");
-  const [ageRating, setAgeRating] = useState("Tout public");
-  const [edition, setEdition] = useState("1ere edition");
-  const [seriesName, setSeriesName] = useState("");
-  const [seriesPosition, setSeriesPosition] = useState("");
-  const [coverAltText, setCoverAltText] = useState("");
-  const [samplePages, setSamplePages] = useState("");
-  const [status, setStatus] = useState<BookStatus>("draft");
-
-  const [ebookPrice, setEbookPrice] = useState("0");
-  const [ebookDownloadable, setEbookDownloadable] = useState(false);
-  const [ebookPublished, setEbookPublished] = useState(false);
-
-  const [paperback, setPaperback] = useState<FormatState>(initialOptionalFormat);
-  const [hardcover, setHardcover] = useState<FormatState>(initialOptionalFormat);
-  const [audiobook, setAudiobook] = useState<FormatState>(initialOptionalFormat);
-
+  const [title, setTitle] = useState(initial.title);
+  const [authorFullName, setAuthorFullName] = useState(initial.authorFullName);
+  const [subtitle, setSubtitle] = useState(initial.subtitle);
+  const [description, setDescription] = useState(initial.description);
+  const [isbn, setIsbn] = useState(initial.isbn);
+  const [language, setLanguage] = useState(initial.language);
+  const [publisher, setPublisher] = useState(initial.publisher);
+  const [publicationDate, setPublicationDate] = useState(initial.publicationDate);
+  const [pageCount, setPageCount] = useState(initial.pageCount);
+  const [coAuthors, setCoAuthors] = useState(initial.coAuthors);
+  const [selectedCategory, setSelectedCategory] = useState(initial.selectedCategory);
+  const [tags, setTags] = useState(initial.tags);
+  const [ageRating, setAgeRating] = useState(initial.ageRating);
+  const [edition, setEdition] = useState(initial.edition);
+  const [seriesName, setSeriesName] = useState(initial.seriesName);
+  const [seriesPosition, setSeriesPosition] = useState(initial.seriesPosition);
+  const [coverAltText, setCoverAltText] = useState(initial.coverAltText);
+  const [samplePages, setSamplePages] = useState(initial.samplePages);
+  const [ebookPrice, setEbookPrice] = useState(initial.ebookPrice);
+  const [ebookDownloadable, setEbookDownloadable] = useState(initial.ebookDownloadable);
+  const [paperback, setPaperback] = useState<FormatState>(initial.paperback);
+  const [hardcover, setHardcover] = useState<FormatState>(initial.hardcover);
+  const [audiobook, setAudiobook] = useState<FormatState>(initial.audiobook);
+  const [isSingleSaleEnabled, setIsSingleSaleEnabled] = useState(initial.isSingleSaleEnabled);
+  const [isSubscriptionAvailable, setIsSubscriptionAvailable] = useState(initial.isSubscriptionAvailable);
+  const [selectedPlanIds, setSelectedPlanIds] = useState<string[]>(initial.selectedPlanIds);
   const [cover, setCover] = useState<File | null>(null);
   const [ebookFile, setEbookFile] = useState<File | null>(null);
   const [sampleFile, setSampleFile] = useState<File | null>(null);
-
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,378 +242,317 @@ export function PublishLabForm() {
     return isbn.length > 0 && digits.length !== 13;
   }, [isbn]);
 
-  function toggleDefaultCategory(category: string) {
-    setSelectedCategory((prev) => (prev === category ? "" : category));
+  const reviewStatusMeta = getReviewStatusMeta(initial.reviewStatus);
+
+  async function uploadFileIfNeeded(
+    supabase: ReturnType<typeof createClient>,
+    userId: string,
+    file: File | null,
+    currentPath: string | null,
+    folder: "covers" | "files" | "samples",
+  ) {
+    if (!file) return currentPath;
+
+    const safeFileName = sanitizeFileName(file.name);
+    const now = Date.now();
+    const baseFolder = folder === "covers" ? `covers/${userId}` : folder === "samples" ? `files/${userId}/samples` : `files/${userId}`;
+    const nextPath = `${baseFolder}/${now}-${safeFileName}`;
+    const { error: uploadError } = await supabase.storage.from("books").upload(nextPath, file);
+    if (uploadError) throw new Error(uploadError.message);
+    return nextPath;
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!cover || !ebookFile) {
-      setError("Couverture et fichier ebook requis.");
-      return;
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const submitEvent = event.nativeEvent as SubmitEvent;
+    const submitter = submitEvent.submitter as HTMLButtonElement | null;
+    const intent = (submitter?.value as SubmissionIntent | undefined) ?? "draft";
+
+    if (!cover && !initial.coverPath) return setError("Couverture requise.");
+    if (!ebookFile && !initial.ebookPath) return setError("Fichier ebook requis.");
+    if (!authorFullName.trim()) return setError("Nom complet de l auteur requis.");
+    if (invalidIsbn) return setError("ISBN invalide: 13 chiffres requis.");
+    if (!selectedCategory) return setError("Selectionne une categorie principale pour ce livre.");
+    if (!isSingleSaleEnabled && !isSubscriptionAvailable) return setError("Active au moins un mode d acces.");
+    if (isSubscriptionAvailable && selectedPlanIds.length === 0) return setError("Selectionne au moins un pack d abonnement.");
+    if (paperback.enabled && paperback.printingCost && Number(paperback.printingCost) > Number(paperback.price)) {
+      return setError("Le cout d impression du broche ne peut pas depasser le prix public.");
     }
-    if (!authorFullName.trim()) {
-      setError("Nom complet de l auteur requis.");
-      return;
-    }
-    if (invalidIsbn) {
-      setError("ISBN invalide: 13 chiffres requis.");
-      return;
-    }
-    if (!selectedCategory) {
-      setError("Selectionne une categorie principale pour ce livre.");
-      return;
+    if (hardcover.enabled && hardcover.printingCost && Number(hardcover.printingCost) > Number(hardcover.price)) {
+      return setError("Le cout d impression du relie ne peut pas depasser le prix public.");
     }
 
     setSaving(true);
     setError(null);
 
-    const supabase = createClient();
-    const { data: authData } = await supabase.auth.getUser();
-    if (!authData.user) {
-      setError("Session expiree. Reconnecte-toi.");
-      setSaving(false);
-      return;
-    }
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update({ name: authorFullName.trim() })
-      .eq("id", authData.user.id);
-    if (profileError) {
-      setError(profileError.message);
-      setSaving(false);
-      return;
-    }
+      if (!user) throw new Error("Session expiree. Reconnecte-toi.");
 
-    const now = Date.now();
-    const safeCoverName = sanitizeFileName(cover.name);
-    const safeEbookName = sanitizeFileName(ebookFile.name);
-    const safeSampleName = sampleFile ? sanitizeFileName(sampleFile.name) : null;
-    const coverPath = `covers/${authData.user.id}/${now}-${safeCoverName}`;
-    const ebookPath = `files/${authData.user.id}/${now}-${safeEbookName}`;
-    const samplePath = sampleFile && safeSampleName ? `files/${authData.user.id}/samples/${now}-${safeSampleName}` : null;
+      const { error: profileError } = await supabase.from("profiles").update({ name: authorFullName.trim() }).eq("id", user.id);
+      if (profileError) throw new Error(profileError.message);
 
-    const { error: coverError } = await supabase.storage.from("books").upload(coverPath, cover);
-    if (coverError) {
-      setError(coverError.message);
-      setSaving(false);
-      return;
-    }
+      const { error: authorProfileError } = await supabase
+        .from("author_profiles")
+        .upsert({ id: user.id, display_name: authorFullName.trim() }, { onConflict: "id" });
+      if (authorProfileError) throw new Error(authorProfileError.message);
 
-    const { error: ebookError } = await supabase.storage.from("books").upload(ebookPath, ebookFile);
-    if (ebookError) {
-      setError(ebookError.message);
-      setSaving(false);
-      return;
-    }
+      const [coverPath, ebookPath, samplePath] = await Promise.all([
+        uploadFileIfNeeded(supabase, user.id, cover, initial.coverPath, "covers"),
+        uploadFileIfNeeded(supabase, user.id, ebookFile, initial.ebookPath, "files"),
+        uploadFileIfNeeded(supabase, user.id, sampleFile, initial.samplePath, "samples"),
+      ]);
 
-    if (sampleFile && samplePath) {
-      const { error: sampleError } = await supabase.storage.from("books").upload(samplePath, sampleFile);
-      if (sampleError) {
-        setError(sampleError.message);
-        setSaving(false);
-        return;
-      }
-    }
-
-    const bookPayload = {
-      title,
-      subtitle: subtitle || null,
-      description,
-      author_id: authData.user.id,
-      co_authors: splitCsv(coAuthors),
-      isbn: isbn ? isbn.replace(/[^0-9]/g, "") : null,
-      language,
-      publisher: publisher || null,
-      publication_date: publicationDate || null,
-      page_count: pageCount ? Number(pageCount) : null,
-      cover_url: coverPath,
-      cover_thumbnail_url: coverPath,
-      cover_alt_text: coverAltText || null,
-      categories: [selectedCategory],
-      tags: splitCsv(tags),
-      age_rating: ageRating || null,
-      edition: edition || null,
-      series_name: seriesName || null,
-      series_position: seriesPosition ? Number(seriesPosition) : null,
-      file_url: ebookPath,
-      file_format: getFileFormat(ebookFile.name),
-      file_size: ebookFile.size,
-      sample_url: samplePath,
-      sample_pages: samplePages ? Number(samplePages) : null,
-      price: Number(ebookPrice),
-      status,
-      published_at: status === "published" ? new Date().toISOString() : null,
-    };
-
-    const { data: insertedBook, error: bookError } = await supabase.from("books").insert(bookPayload).select("id").single();
-
-    if (bookError || !insertedBook) {
-      setError(bookError?.message ?? "Creation du livre impossible.");
-      setSaving(false);
-      return;
-    }
-
-    const formatRows = [
-      {
-        book_id: insertedBook.id,
-        format: "ebook" as const,
-        price: Number(ebookPrice),
+      const nextEbookFile = ebookFile ?? null;
+      const reviewStatus: BookReviewStatus = intent === "submit" ? "submitted" : "draft";
+      const bookPayload = {
+        title,
+        subtitle: subtitle || null,
+        description,
+        author_id: user.id,
+        co_authors: splitCsv(coAuthors),
+        isbn: isbn ? isbn.replace(/[^0-9]/g, "") : null,
+        language,
+        publisher: publisher || null,
+        publication_date: publicationDate || null,
+        page_count: pageCount ? Number(pageCount) : null,
+        cover_url: coverPath,
+        cover_thumbnail_url: coverPath ?? initial.coverThumbnailUrl ?? null,
+        cover_alt_text: coverAltText || null,
+        categories: [selectedCategory],
+        tags: splitCsv(tags),
+        age_rating: ageRating || null,
+        edition: edition || null,
+        series_name: seriesName || null,
+        series_position: seriesPosition ? Number(seriesPosition) : null,
         file_url: ebookPath,
-        stock_quantity: null,
-        file_size_mb: Math.ceil(ebookFile.size / (1024 * 1024)),
-        downloadable: ebookDownloadable,
-        is_published: ebookPublished || status === "published",
-      },
-      ...(paperback.enabled
-        ? [
-            {
-              book_id: insertedBook.id,
-              format: "paperback" as const,
-              price: Number(paperback.price),
-              file_url: null,
-              stock_quantity: paperback.stockQuantity ? Number(paperback.stockQuantity) : null,
-              file_size_mb: null,
-              downloadable: false,
-              is_published: paperback.publish,
-            },
-          ]
-        : []),
-      ...(hardcover.enabled
-        ? [
-            {
-              book_id: insertedBook.id,
-              format: "hardcover" as const,
-              price: Number(hardcover.price),
-              file_url: null,
-              stock_quantity: hardcover.stockQuantity ? Number(hardcover.stockQuantity) : null,
-              file_size_mb: null,
-              downloadable: false,
-              is_published: hardcover.publish,
-            },
-          ]
-        : []),
-      ...(audiobook.enabled
-        ? [
-            {
-              book_id: insertedBook.id,
-              format: "audiobook" as const,
-              price: Number(audiobook.price),
-              file_url: null,
-              stock_quantity: null,
-              file_size_mb: null,
-              downloadable: false,
-              is_published: audiobook.publish,
-            },
-          ]
-        : []),
-    ];
+        file_format: nextEbookFile ? getFileFormat(nextEbookFile.name) : initial.ebookFileFormat,
+        file_size: nextEbookFile ? nextEbookFile.size : initial.ebookStoredFileSize,
+        sample_url: samplePath,
+        sample_pages: samplePages ? Number(samplePages) : null,
+        price: Number(ebookPrice),
+        status: "draft" as const,
+        published_at: null,
+        is_single_sale_enabled: isSingleSaleEnabled,
+        is_subscription_available: isSubscriptionAvailable,
+        review_status: reviewStatus,
+        submitted_at: reviewStatus === "submitted" ? new Date().toISOString() : null,
+      } satisfies Database["public"]["Tables"]["books"]["Insert"];
 
-    const { error: formatError } = await supabase.from("book_formats").insert(formatRows);
-    if (formatError) {
-      setError(formatError.message);
+      let bookId = initial.id;
+
+      if (bookId) {
+        const { error: updateError } = await supabase.from("books").update(bookPayload).eq("id", bookId).eq("author_id", user.id);
+        if (updateError) throw new Error(updateError.message);
+      } else {
+        const { data: insertedBook, error: insertError } = await supabase.from("books").insert(bookPayload).select("id").single();
+        if (insertError || !insertedBook) throw new Error(insertError?.message ?? "Creation du livre impossible.");
+        bookId = insertedBook.id;
+      }
+
+      if (!bookId) throw new Error("Identifiant du livre introuvable.");
+
+      const formatRows = [
+        {
+          book_id: bookId,
+          format: "ebook" as const,
+          price: Number(ebookPrice),
+          printing_cost: null,
+          file_url: ebookPath,
+          stock_quantity: null,
+          file_size_mb: nextEbookFile ? Math.ceil(nextEbookFile.size / (1024 * 1024)) : initial.ebookFileSizeMb ?? null,
+          downloadable: ebookDownloadable,
+          is_published: false,
+        },
+        ...(paperback.enabled
+          ? [
+              {
+                book_id: bookId,
+                format: "paperback" as const,
+                price: Number(paperback.price),
+                printing_cost: paperback.printingCost ? Number(paperback.printingCost) : null,
+                file_url: null,
+                stock_quantity: null,
+                file_size_mb: null,
+                downloadable: false,
+                is_published: false,
+              },
+            ]
+          : []),
+        ...(hardcover.enabled
+          ? [
+              {
+                book_id: bookId,
+                format: "hardcover" as const,
+                price: Number(hardcover.price),
+                printing_cost: hardcover.printingCost ? Number(hardcover.printingCost) : null,
+                file_url: null,
+                stock_quantity: null,
+                file_size_mb: null,
+                downloadable: false,
+                is_published: false,
+              },
+            ]
+          : []),
+        ...(audiobook.enabled
+          ? [
+              {
+                book_id: bookId,
+                format: "audiobook" as const,
+                price: Number(audiobook.price),
+                printing_cost: null,
+                file_url: null,
+                stock_quantity: null,
+                file_size_mb: null,
+                downloadable: false,
+                is_published: false,
+              },
+            ]
+          : []),
+      ];
+
+      const { error: formatError } = await supabase.from("book_formats").upsert(formatRows, { onConflict: "book_id,format" });
+      if (formatError) throw new Error(formatError.message);
+
+      const disabledFormats: OptionalFormat[] = [];
+      if (!paperback.enabled) disabledFormats.push("paperback");
+      if (!hardcover.enabled) disabledFormats.push("hardcover");
+      if (!audiobook.enabled) disabledFormats.push("audiobook");
+      if (disabledFormats.length > 0) {
+        const { error: deleteFormatsError } = await supabase.from("book_formats").delete().eq("book_id", bookId).in("format", disabledFormats);
+        if (deleteFormatsError) throw new Error(deleteFormatsError.message);
+      }
+
+      const { error: deletePlansError } = await supabase.from("subscription_plan_books").delete().eq("book_id", bookId);
+      if (deletePlansError) throw new Error(deletePlansError.message);
+
+      if (isSubscriptionAvailable && selectedPlanIds.length > 0) {
+        const { error: insertPlansError } = await supabase
+          .from("subscription_plan_books")
+          .insert(selectedPlanIds.map((planId) => ({ book_id: bookId, plan_id: planId })));
+        if (insertPlansError) throw new Error(insertPlansError.message);
+      }
+
+      router.push("/dashboard/author/books");
+      router.refresh();
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Enregistrement impossible.");
+    } finally {
       setSaving(false);
-      return;
     }
-
-    setSaving(false);
-    router.push("/dashboard/author/books");
-    router.refresh();
   }
 
   function renderOptionalFormat(
     label: string,
     state: FormatState,
-    setter: React.Dispatch<React.SetStateAction<FormatState>>,
+    setState: Dispatch<SetStateAction<FormatState>>,
     type: OptionalFormat,
   ) {
+    const physical = isPhysicalFormat(type);
+
     return (
-      <div className="overflow-hidden rounded-2xl bg-white/80 shadow-sm backdrop-blur-sm transition-all hover:shadow-md">
-        <div className="border-b border-gray-100 bg-gray-50/50 px-5 py-4">
-          <label className="flex cursor-pointer items-center gap-3 text-base font-medium text-gray-800">
-            <input
-              type="checkbox"
-              checked={state.enabled}
-              onChange={(e) => setter((prev) => ({ ...prev, enabled: e.target.checked }))}
-              className="h-5 w-5 rounded-md border-gray-300 text-indigo-600 focus:ring-indigo-500/20"
-            />
-            {label}
-          </label>
-        </div>
-        {state.enabled && (
-          <div className="space-y-4 p-5">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div>
-                <label className="block text-xs font-medium uppercase tracking-wide text-gray-500">
-                  Prix ({type})
-                </label>
+      <div className="rounded-[1.5rem] border border-violet-100 bg-violet-50/70 p-4">
+        <label className="flex items-center gap-3 text-sm font-semibold text-slate-800">
+          <input
+            type="checkbox"
+            checked={state.enabled}
+            onChange={(event) => setState((previous) => ({ ...previous, enabled: event.target.checked }))}
+            className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+          />
+          {label}
+        </label>
+        {state.enabled ? (
+          <div className="mt-4 grid gap-4 md:grid-cols-3">
+            <Input label="Prix public propose">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={state.price}
+                onChange={(event) => setState((previous) => ({ ...previous, price: event.target.value }))}
+                className="w-full px-4 py-3.5 text-slate-900"
+              />
+            </Input>
+            {physical ? (
+              <Input label="Cout impression">
                 <input
                   type="number"
+                  min="0"
                   step="0.01"
-                  min="0"
-                  value={state.price}
-                  onChange={(e) => setter((prev) => ({ ...prev, price: e.target.value }))}
-                  className="mt-1.5 block w-full rounded-xl border-0 bg-gray-100 px-4 py-2.5 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30 sm:text-sm"
-                  placeholder="0.00"
+                  value={state.printingCost}
+                  onChange={(event) => setState((previous) => ({ ...previous, printingCost: event.target.value }))}
+                  className="w-full px-4 py-3.5 text-slate-900"
                 />
+              </Input>
+            ) : (
+              <div className="rounded-[1.2rem] border border-dashed border-violet-200 bg-white/80 px-4 py-3 text-sm text-slate-500">
+                Ce format sera aussi revu par l admin avant mise en ligne.
               </div>
-              <div>
-                <label className="block text-xs font-medium uppercase tracking-wide text-gray-500">
-                  Stock (opt.)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={state.stockQuantity}
-                  onChange={(e) => setter((prev) => ({ ...prev, stockQuantity: e.target.value }))}
-                  className="mt-1.5 block w-full rounded-xl border-0 bg-gray-100 px-4 py-2.5 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30 sm:text-sm"
-                  placeholder="Quantité"
-                />
-              </div>
-              <div className="flex items-end">
-                <label className="flex items-center gap-2 text-sm text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={state.publish}
-                    onChange={(e) => setter((prev) => ({ ...prev, publish: e.target.checked }))}
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500/20"
-                  />
-                  Publier ce format
-                </label>
-              </div>
+            )}
+            <div className="rounded-[1.2rem] border border-dashed border-violet-200 bg-white/80 px-4 py-3 text-sm text-slate-500">
+              {physical
+                ? "Le stock, la publication et la preparation des commandes papier restent geres par l admin."
+                : "Le fichier ou la diffusion finale reste valides par l admin avant publication."}
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     );
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {/* En-tête style iOS */}
-      <div className="ios-surface-strong rounded-[2rem] p-8">
-        <p className="ios-kicker">Publication</p>
-        <h1 className="ios-title text-3xl font-semibold tracking-tight">Laboratoire de publication</h1>
-        <p className="ios-muted mt-2 text-base">
-          Remplissez les métadonnées et configurez les formats de vente.
+      <div className={`rounded-[1.6rem] border px-5 py-4 text-sm ${reviewStatusMeta.className}`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] opacity-80">Workflow de revue</p>
+            <p className="mt-2 text-base font-semibold">{reviewStatusMeta.label}</p>
+          </div>
+          {initial.submittedAt ? <p className="text-xs uppercase tracking-[0.14em] opacity-80">Soumis le {new Date(initial.submittedAt).toLocaleDateString("fr-FR")}</p> : null}
+        </div>
+        <p className="mt-3 leading-6">
+          Tous les livres soumis passent maintenant par une revue admin avant publication. Les formats papier restent prepares et mis en stock uniquement par l admin.
         </p>
+        {initial.reviewNote ? (
+          <div className="mt-4 rounded-[1.2rem] bg-white/75 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Retour admin</p>
+            <p className="mt-2 text-sm text-slate-700">{initial.reviewNote}</p>
+          </div>
+        ) : null}
       </div>
 
-      {/* Section 1: Informations principales */}
-      <section className="ios-surface rounded-[2rem] p-8">
-        <h2 className="ios-title flex items-center gap-2 text-xl font-semibold">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-100 text-sm text-rose-700">
-            1
-          </span>
-          Informations principales
-        </h2>
-        <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
+      <FormSection
+        title={isEditMode ? "Metadonnees du livre" : "Metadonnees editoriales"}
+        description={isEditMode ? "Mettez a jour les informations cles du livre avant une nouvelle revue admin." : "Renseignez les informations de base qui structurent la fiche livre et le catalogue auteur."}
+      >
+        <div className="grid gap-5 md:grid-cols-2">
+          <Input label="Titre *"><input required value={title} onChange={(event) => setTitle(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="Nom complet de l auteur *"><input required value={authorFullName} onChange={(event) => setAuthorFullName(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="Sous-titre"><input value={subtitle} onChange={(event) => setSubtitle(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="ISBN (13 chiffres)"><input value={isbn} onChange={(event) => setIsbn(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="Langue *"><input required value={language} onChange={(event) => setLanguage(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="Maison d edition"><input value={publisher} onChange={(event) => setPublisher(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="Date de publication souhaitee"><input type="date" value={publicationDate} onChange={(event) => setPublicationDate(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="Nombre de pages"><input type="number" min="1" value={pageCount} onChange={(event) => setPageCount(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="Co-auteurs (separes par virgule)"><input value={coAuthors} onChange={(event) => setCoAuthors(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="Tags (separes par virgule)"><input value={tags} onChange={(event) => setTags(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="Public cible"><input value={ageRating} onChange={(event) => setAgeRating(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="Edition"><input value={edition} onChange={(event) => setEdition(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="Nom de serie"><input value={seriesName} onChange={(event) => setSeriesName(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="Position dans la serie"><input type="number" min="1" value={seriesPosition} onChange={(event) => setSeriesPosition(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700">Titre *</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="Titre du livre"
-            />
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700">Nom complet de l auteur *</label>
-            <input
-              type="text"
-              value={authorFullName}
-              onChange={(e) => setAuthorFullName(e.target.value)}
-              required
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="Ex: Marie Claire Kouame"
-            />
+            <Input label="Description / 4e de couverture *"><textarea required rows={5} value={description} onChange={(event) => setDescription(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700">Sous-titre</label>
-            <input
-              type="text"
-              value={subtitle}
-              onChange={(e) => setSubtitle(e.target.value)}
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="Sous-titre (optionnel)"
-            />
+            <Input label="Texte alternatif de la couverture"><input value={coverAltText} onChange={(event) => setCoverAltText(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700">Description / 4e de couverture *</label>
-            <textarea
-              rows={5}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="Présentation du livre..."
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">ISBN (13 chiffres)</label>
-            <input
-              type="text"
-              value={isbn}
-              onChange={(e) => setIsbn(e.target.value)}
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="9781234567890"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Langue *</label>
-            <input
-              type="text"
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              required
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="fr, en, ..."
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Maison d&apos;édition</label>
-            <input
-              type="text"
-              value={publisher}
-              onChange={(e) => setPublisher(e.target.value)}
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Date de publication</label>
-            <input
-              type="date"
-              value={publicationDate}
-              onChange={(e) => setPublicationDate(e.target.value)}
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner focus:ring-2 focus:ring-indigo-500/30"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Nombre de pages</label>
-            <input
-              type="number"
-              min="1"
-              value={pageCount}
-              onChange={(e) => setPageCount(e.target.value)}
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="200"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Co-auteurs (séparés par virgule)</label>
-            <input
-              type="text"
-              value={coAuthors}
-              onChange={(e) => setCoAuthors(e.target.value)}
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="Jean Dupont, Marie Curie"
-            />
-          </div>
-                    <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700">Categorie principale</label>
+            <span className="block text-sm font-medium text-slate-700">Categorie principale</span>
             <div className="mt-2 flex flex-wrap gap-2">
               {BOOK_CATEGORIES.map((category) => {
                 const active = selectedCategory === category;
@@ -465,239 +560,84 @@ export function PublishLabForm() {
                   <button
                     key={category}
                     type="button"
-                    onClick={() => toggleDefaultCategory(category)}
-                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                      active ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 bg-white text-slate-700 hover:border-indigo-400"
-                    }`}
+                    onClick={() => setSelectedCategory(active ? "" : category)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${active ? "border-indigo-600 bg-indigo-600 text-white" : "border-violet-200 bg-white text-slate-700"}`}
                   >
                     {category}
                   </button>
                 );
               })}
             </div>
-            <p className="mt-3 text-xs text-slate-500">Chaque livre est rattache a une seule categorie du header.</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Tags (séparés par virgule)</label>
-            <input
-              type="text"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="aventure, futur"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Public cible</label>
-            <input
-              type="text"
-              value={ageRating}
-              onChange={(e) => setAgeRating(e.target.value)}
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="Tout public, Adulte, ..."
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Édition</label>
-            <input
-              type="text"
-              value={edition}
-              onChange={(e) => setEdition(e.target.value)}
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="1ere édition"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Nom de série</label>
-            <input
-              type="text"
-              value={seriesName}
-              onChange={(e) => setSeriesName(e.target.value)}
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="Le cycle des robots"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Position dans la série</label>
-            <input
-              type="number"
-              min="1"
-              value={seriesPosition}
-              onChange={(e) => setSeriesPosition(e.target.value)}
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="1"
-            />
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700">Texte alternatif de la couverture</label>
-            <input
-              type="text"
-              value={coverAltText}
-              onChange={(e) => setCoverAltText(e.target.value)}
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="Description de l'image pour accessibilité"
-            />
           </div>
         </div>
-      </section>
+      </FormSection>
 
-      {/* Section 2: Fichiers ebook */}
-      <section className="ios-surface rounded-[2rem] p-8">
-        <h2 className="ios-title flex items-center gap-2 text-xl font-semibold">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-100 text-sm text-rose-700">
-            2
-          </span>
-          Fichiers ebook
-        </h2>
-        <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Couverture *</label>
-            <div className="mt-2 flex items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-6 transition hover:border-indigo-300">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setCover(e.target.files?.[0] ?? null)}
-                required
-                className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Fichier ebook (EPUB/PDF/MOBI) *</label>
-            <div className="mt-2 flex items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-6 transition hover:border-indigo-300">
-              <input
-                type="file"
-                accept=".epub,.pdf,.mobi,application/epub+zip,application/pdf"
-                onChange={(e) => setEbookFile(e.target.files?.[0] ?? null)}
-                required
-                className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Extrait (optionnel)</label>
-            <div className="mt-2 flex items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-6 transition hover:border-indigo-300">
-              <input
-                type="file"
-                accept=".epub,.pdf,application/epub+zip,application/pdf"
-                onChange={(e) => setSampleFile(e.target.files?.[0] ?? null)}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Nombre de pages de l&apos;extrait</label>
-            <input
-              type="number"
-              min="1"
-              value={samplePages}
-              onChange={(e) => setSamplePages(e.target.value)}
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="10"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Section 3: Formats et prix */}
-      <section className="ios-surface rounded-[2rem] p-8">
-        <h2 className="ios-title flex items-center gap-2 text-xl font-semibold">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-100 text-sm text-rose-700">
-            3
-          </span>
-          Formats et prix
-        </h2>
-        <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Prix ebook *</label>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={ebookPrice}
-              onChange={(e) => setEbookPrice(e.target.value)}
-              required
-              className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500/30"
-              placeholder="9.99"
-            />
-          </div>
-          <div className="flex items-end">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <input
-                type="checkbox"
-                checked={ebookPublished}
-                onChange={(e) => setEbookPublished(e.target.checked)}
-                className="h-5 w-5 rounded-md border-gray-300 text-indigo-600 focus:ring-indigo-500/20"
-              />
-              Ebook en vente
-            </label>
-          </div>
-          <div className="flex items-end">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <input
-                type="checkbox"
-                checked={ebookDownloadable}
-                onChange={(e) => setEbookDownloadable(e.target.checked)}
-                className="h-5 w-5 rounded-md border-gray-300 text-indigo-600 focus:ring-indigo-500/20"
-              />
-              Ebook téléchargeable
+      <FormSection
+        title="Formats & fichiers"
+        description="Chargez les assets numeriques et proposez vos editions physiques avec leur prix public et leur cout d impression."
+      >
+        <div className="grid gap-5 md:grid-cols-2">
+          <Input label={`Couverture ${isEditMode ? "(optionnel)" : "*"}`}><input type="file" accept="image/*" required={!isEditMode} onChange={(event) => setCover(event.target.files?.[0] ?? null)} className="block w-full px-4 py-3.5 text-slate-700" /></Input>
+          <Input label={`Fichier ebook ${isEditMode ? "(optionnel)" : "*"}`}><input type="file" accept=".epub,.pdf,.mobi,application/epub+zip,application/pdf" required={!isEditMode} onChange={(event) => setEbookFile(event.target.files?.[0] ?? null)} className="block w-full px-4 py-3.5 text-slate-700" /></Input>
+          <Input label="Extrait (optionnel)"><input type="file" accept=".epub,.pdf,application/epub+zip,application/pdf" onChange={(event) => setSampleFile(event.target.files?.[0] ?? null)} className="block w-full px-4 py-3.5 text-slate-700" /></Input>
+          <Input label="Nombre de pages de l extrait"><input type="number" min="1" value={samplePages} onChange={(event) => setSamplePages(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="Prix ebook *"><input type="number" min="0" step="0.01" required value={ebookPrice} onChange={(event) => setEbookPrice(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <div className="flex items-end gap-6">
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input type="checkbox" checked={ebookDownloadable} onChange={(event) => setEbookDownloadable(event.target.checked)} className="h-4 w-4 rounded border-slate-300 text-indigo-600" />
+              Ebook telechargeable apres validation admin
             </label>
           </div>
         </div>
-
-        <div className="mt-8 space-y-4">
-          {renderOptionalFormat("Paperback (broché)", paperback, setPaperback, "paperback")}
-          {renderOptionalFormat("Hardcover (relié)", hardcover, setHardcover, "hardcover")}
+        <div className="mt-5 space-y-4">
+          {renderOptionalFormat("Paperback (broche)", paperback, setPaperback, "paperback")}
+          {renderOptionalFormat("Hardcover (relie)", hardcover, setHardcover, "hardcover")}
           {renderOptionalFormat("Audiobook", audiobook, setAudiobook, "audiobook")}
         </div>
-      </section>
+      </FormSection>
 
-      {/* Section 4: Publication */}
-      <section className="ios-surface rounded-[2rem] p-8">
-        <h2 className="ios-title flex items-center gap-2 text-xl font-semibold">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-100 text-sm text-rose-700">
-            4
-          </span>
-          Publication
-        </h2>
-        <div className="mt-6 max-w-xs">
-          <label className="block text-sm font-medium text-gray-700">Statut</label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as BookStatus)}
-            className="mt-2 block w-full rounded-xl border-0 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner focus:ring-2 focus:ring-indigo-500/30"
-          >
-            <option value="draft">Brouillon</option>
-            <option value="published">Publié</option>
-            <option value="archived">Archivé</option>
-          </select>
+      <FormSection
+        title="Distribution et abonnement"
+        description="Definissez si le livre est vendu seul, inclus dans Premium ou les deux, puis rattachez-le aux bons packs."
+      >
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <label className="rounded-[1.4rem] border border-violet-100 bg-violet-50/70 px-4 py-4 text-sm text-slate-700"><input type="checkbox" checked={isSingleSaleEnabled} onChange={(event) => setIsSingleSaleEnabled(event.target.checked)} className="mr-3 h-4 w-4 rounded border-slate-300 text-indigo-600" /> Vente individuelle</label>
+          <label className="rounded-[1.4rem] border border-violet-100 bg-violet-50/70 px-4 py-4 text-sm text-slate-700"><input type="checkbox" checked={isSubscriptionAvailable} onChange={(event) => { const checked = event.target.checked; setIsSubscriptionAvailable(checked); if (!checked) setSelectedPlanIds([]); }} className="mr-3 h-4 w-4 rounded border-slate-300 text-indigo-600" /> Inclus dans abonnement Premium</label>
         </div>
-      </section>
+        <div className="mt-6">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Packs d abonnement</p>
+              <p className="text-sm text-slate-600">Choisissez les packs qui donnent acces a ce livre.</p>
+            </div>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{selectedPlanIds.length} selectionne{selectedPlanIds.length > 1 ? "s" : ""}</span>
+          </div>
+          <SubscriptionPlanSelector plans={subscriptionPlans} selectedPlanIds={selectedPlanIds} disabled={!isSubscriptionAvailable} onChange={setSelectedPlanIds} />
+        </div>
+      </FormSection>
 
-      {/* Messages d'erreur */}
-      {invalidIsbn && (
-        <div className="ios-danger rounded-2xl p-5">
-          <p className="text-sm">ISBN invalide : veuillez saisir exactement 13 chiffres.</p>
+      <FormSection
+        title="Soumission admin"
+        description="L auteur prepare la fiche, mais la publication finale et les formats papier sont revus et actives par l admin."
+      >
+        <div className="rounded-[1.5rem] border border-violet-100 bg-violet-50/70 p-4 text-sm text-slate-600">
+          Enregistrer en brouillon garde le livre hors ligne. Soumettre pour revue envoie le livre a l admin pour validation, corrections ou refus.
         </div>
-      )}
-      {error && (
-        <div className="ios-danger rounded-2xl p-5">
-          <p className="text-sm">{error}</p>
-        </div>
-      )}
+      </FormSection>
 
-      {/* Bouton de soumission */}
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={saving}
-          className="ios-button-primary inline-flex items-center rounded-full px-8 py-3 text-base font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {saving ? "Publication en cours..." : "Enregistrer dans le laboratoire"}
+      {invalidIsbn ? <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm text-red-700">ISBN invalide : veuillez saisir exactement 13 chiffres.</div> : null}
+      {error ? <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div> : null}
+
+      <div className="flex flex-wrap justify-end gap-3">
+        <button type="submit" value="draft" disabled={saving} className="cta-secondary px-8 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50">
+          {saving ? "Enregistrement..." : "Enregistrer en brouillon"}
+        </button>
+        <button type="submit" value="submit" disabled={saving} className="cta-primary px-8 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50">
+          {saving ? "Soumission..." : isEditMode ? "Soumettre les modifications a l admin" : "Soumettre le livre a l admin"}
         </button>
       </div>
     </form>
   );
 }
 
-
+export { initialOptionalFormat };

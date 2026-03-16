@@ -19,7 +19,7 @@ export default function RessourcesPage() {
     <section className="space-y-10">
       <div className="space-y-3">
         <p className="ios-kicker">Conseils & ressources</p>
-        <h1 className="ios-title text-3xl font-bold sm:text-4xl">Tout pour vous aider a reussir votre projet d'edition.</h1>
+        <h1 className="ios-title text-3xl font-bold sm:text-4xl">Tout pour vous aider a reussir votre projet d&apos;edition.</h1>
         <p className="ios-muted max-w-3xl text-sm sm:text-base">
           Articles, guides et ressources pratiques pour avancer avec methode a chaque etape de votre publication.
         </p>

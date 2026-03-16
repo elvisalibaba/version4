@@ -1,3 +1,27 @@
+import "server-only";
+
+import { readJsonFile, writeJsonFile } from "@/lib/content-storage";
+import { createServiceRoleClient } from "@/lib/supabase/service";
+import type { Database } from "@/types/database";
+
+const BLOG_POSTS_FILE_PATH = "data/blog-posts.json";
+const IMAGE_LINE_REGEX = /^!\[([^\]]*)\]\((\S+?)(?:\s+"([^"]*)")?\)$/;
+
+type BlogPostRow = Database["public"]["Tables"]["blog_posts"]["Row"];
+type BlogPostInsert = Database["public"]["Tables"]["blog_posts"]["Insert"];
+
+export type BlogContentBlock =
+  | {
+      type: "paragraph";
+      text: string;
+    }
+  | {
+      type: "image";
+      url: string;
+      alt: string;
+      caption?: string | null;
+    };
+
 export type BlogPost = {
   slug: string;
   title: string;
@@ -8,156 +32,367 @@ export type BlogPost = {
   author: string;
   readTime: string;
   coverLabel: string;
-  content: string[];
+  coverImageUrl: string | null;
+  coverImageAlt: string | null;
+  content: BlogContentBlock[];
 };
 
-const posts: BlogPost[] = [
-  {
-    slug: "manuscrit-qui-se-vend",
-    title: "Ecrire un manuscrit qui se vend vraiment",
-    excerpt: "Une methode simple pour aligner votre idee, votre audience et votre promesse avant meme la premiere page.",
-    tag: "Edition",
-    date: "2026-02-28",
-    dateLabel: "28 Fev 2026",
-    author: "Equipe Holistique",
-    readTime: "6 min",
-    coverLabel: "Image auteur",
-    content: [
-      "Un bon manuscrit commence par une promesse claire. Avant d'ecrire, posez le probleme que votre livre resout et pour qui.",
-      "Travaillez votre angle. Une idee connue peut devenir unique si vous choisissez un point de vue precis et utile.",
-      "Structurez votre plan avec trois niveaux: intention, chapitres, actions. Vous ecrirez plus vite et plus propre.",
-      "Enfin, testez votre resume en une phrase. Si elle parle a votre lecteur ideal, votre manuscrit est sur la bonne voie.",
-    ],
-  },
-  {
-    slug: "couverture-qui-convertit",
-    title: "Une couverture qui convertit en 5 decisions",
-    excerpt: "Typo, couleurs, contrastes et hierarchie visuelle: les choix qui font cliquer.",
-    tag: "Design",
-    date: "2026-02-21",
-    dateLabel: "21 Fev 2026",
-    author: "Studio HB",
-    readTime: "5 min",
-    coverLabel: "Mockup couverture",
-    content: [
-      "La miniature est votre vraie vitrine. Pensez a une lecture a 2 metres: contraste et titre lisible sont prioritaires.",
-      "Limitez le nombre de couleurs. Deux couleurs dominantes suffisent pour une impression premium.",
-      "Choisissez une typographie principale et une secondaire. Trop de polices tue la coherence.",
-      "Utilisez un point focal clair. Le regard doit entrer et sortir de la couverture sans effort.",
-    ],
-  },
-  {
-    slug: "fixer-le-prix",
-    title: "Fixer le prix juste pour un ebook",
-    excerpt: "Comment comparer vos concurrents, tester votre marche et proteger votre valeur.",
-    tag: "Prix",
-    date: "2026-02-12",
-    dateLabel: "12 Fev 2026",
-    author: "Equipe Holistique",
-    readTime: "7 min",
-    coverLabel: "Pricing",
-    content: [
-      "Le bon prix est un equilibre: valeur percue, objectifs financiers et usages de votre audience.",
-      "Commencez par analyser 5 titres comparables. Regardez le format, la longueur et la notoriete de l'auteur.",
-      "Testez un prix d entree puis montez par paliers. Les promotions doivent creer un effet rarete.",
-      "Gardez un prix plancher. Les baisses trop fortes diminuent la perception de qualite.",
-    ],
-  },
-  {
-    slug: "strategie-precommande",
-    title: "La strategie precommande en 30 jours",
-    excerpt: "Un calendrier pour creer l attente, activer vos ambassadeurs et securiser vos ventes.",
-    tag: "Marketing",
-    date: "2026-02-05",
-    dateLabel: "05 Fev 2026",
-    author: "Lola Mensah",
-    readTime: "8 min",
-    coverLabel: "Campagne",
-    content: [
-      "J-30 a J-15: annoncez votre promesse, publiez un extrait et collectez des emails.",
-      "J-14 a J-7: activez vos premiers lecteurs. Les temoignages creent la confiance.",
-      "J-6 a J-1: proposez une offre limitee et rappelez la date avec un compte a rebours.",
-      "Jour J: un message court, un bouton clair et un suivi rapide des retours.",
-    ],
-  },
-  {
-    slug: "kdp-vs-kobo",
-    title: "KDP vs Kobo: que choisir pour l Afrique",
-    excerpt: "Comparatif pragmatique des plateformes et de la distribution mobile.",
-    tag: "Distribution",
-    date: "2026-01-29",
-    dateLabel: "29 Jan 2026",
-    author: "Yann Diop",
-    readTime: "6 min",
-    coverLabel: "Plateformes",
-    content: [
-      "KDP est puissant pour l international mais demande un marketing solide pour emerger.",
-      "Kobo offre une experience lecture fluide et peut etre plus competitif en recommandations locales.",
-      "La cle: votre audience. Si votre public est mobile, pensez a la compatibilite et au prix data.",
-      "Testez les deux avec un seul titre, puis comparez vos chiffres sur 60 jours.",
-    ],
-  },
-  {
-    slug: "distribution-ecoles-biblios",
-    title: "Distribuer vos livres dans les ecoles et biblios",
-    excerpt: "Les partenariats qui donnent de la credibilite a votre catalogue.",
-    tag: "Partenariats",
-    date: "2026-01-20",
-    dateLabel: "20 Jan 2026",
-    author: "Equipe Holistique",
-    readTime: "5 min",
-    coverLabel: "Reseau",
-    content: [
-      "Preparez un dossier simple: resume, objectif pedagogique, format et prix institutionnel.",
-      "Identifiez un contact local: direction, professeurs, clubs lecture ou bibliotheques municipales.",
-      "Proposez une seance de lecture ou un atelier. L'engagement ouvre la porte aux achats.",
-      "Mesurez l impact avec des retours. Cela renforce vos futures negociations.",
-    ],
-  },
-  {
-    slug: "lancement-30-jours",
-    title: "Plan de lancement en 30 jours",
-    excerpt: "Le parcours ideal pour passer de la preparation a la traction.",
-    tag: "Lancement",
-    date: "2026-01-12",
-    dateLabel: "12 Jan 2026",
-    author: "Amina Koffi",
-    readTime: "9 min",
-    coverLabel: "Lancement",
-    content: [
-      "Semaine 1: clarifiez votre message, construisez la page de vente et vos assets.",
-      "Semaine 2: chauffez votre audience avec des extraits, des reels et une page d'inscription.",
-      "Semaine 3: ouvrez les ventes, puis organisez un live ou un club lecture.",
-      "Semaine 4: analysez les conversions et optimisez la pub ou les partenariats.",
-    ],
-  },
-  {
-    slug: "branding-auteur",
-    title: "Branding auteur: construire une marque durable",
-    excerpt: "Voix, univers et coherence: comment rester memorisable dans un marche sature.",
-    tag: "Branding",
-    date: "2026-01-04",
-    dateLabel: "04 Jan 2026",
-    author: "Studio HB",
-    readTime: "7 min",
-    coverLabel: "Identite",
-    content: [
-      "Une marque auteur se construit par la repetition d'un message simple et d'un style coherant.",
-      "Choisissez une palette et un ton. Ils doivent vivre sur la couverture, le site et les reseaux.",
-      "Gardez un rituel de publication pour rester visible. La constance est votre meilleur levier.",
-      "Investissez dans une bio courte et une photo professionnelle. C'est votre premiere preuve de serieux.",
-    ],
-  },
-];
+type StoredBlogPost = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  tag: string;
+  date: string;
+  dateLabel?: string;
+  author: string;
+  readTime: string;
+  coverLabel: string;
+  coverImageUrl?: string | null;
+  coverImageAlt?: string | null;
+  content: unknown[];
+};
 
-export function getAllBlogPosts() {
-  return posts;
+export type CreateBlogPostInput = {
+  slug?: string;
+  title: string;
+  excerpt: string;
+  tag: string;
+  date: string;
+  author: string;
+  readTime: string;
+  coverLabel: string;
+  coverImageUrl?: string | null;
+  coverImageAlt?: string | null;
+  content: BlogContentBlock[];
+};
+
+function formatBlogDateLabel(date: string) {
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  })
+    .format(new Date(`${date}T12:00:00Z`))
+    .replaceAll(".", "")
+    .replaceAll(",", "");
 }
 
-export function getBlogPostBySlug(slug: string) {
+function normalizeSlug(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function normalizeDate(value: string) {
+  const trimmed = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  return new Date().toISOString().slice(0, 10);
+}
+
+function sortBlogPosts(posts: BlogPost[]) {
+  return [...posts].sort((left, right) => {
+    const leftTime = new Date(left.date).getTime();
+    const rightTime = new Date(right.date).getTime();
+
+    if (rightTime !== leftTime) {
+      return rightTime - leftTime;
+    }
+
+    return right.title.localeCompare(left.title, "fr");
+  });
+}
+
+function normalizeBlogContentBlocks(content: unknown): BlogContentBlock[] {
+  if (!Array.isArray(content)) {
+    return [];
+  }
+
+  return content
+    .map<BlogContentBlock | null>((entry) => {
+      if (typeof entry === "string") {
+        const text = entry.trim();
+        return text ? { type: "paragraph", text } : null;
+      }
+
+      if (!entry || typeof entry !== "object") {
+        return null;
+      }
+
+      const candidate = entry as Record<string, unknown>;
+
+      if (candidate.type === "paragraph" && typeof candidate.text === "string" && candidate.text.trim()) {
+        return {
+          type: "paragraph",
+          text: candidate.text.trim(),
+        };
+      }
+
+      if (candidate.type === "image" && typeof candidate.url === "string" && candidate.url.trim()) {
+        return {
+          type: "image",
+          url: candidate.url.trim(),
+          alt: typeof candidate.alt === "string" ? candidate.alt.trim() : "",
+          caption: typeof candidate.caption === "string" && candidate.caption.trim() ? candidate.caption.trim() : null,
+        };
+      }
+
+      return null;
+    })
+    .filter((block): block is BlogContentBlock => Boolean(block));
+}
+
+function mapStoredPostToBlogPost(post: StoredBlogPost): BlogPost {
+  const normalizedDate = normalizeDate(post.date);
+
+  return {
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.excerpt,
+    tag: post.tag,
+    date: normalizedDate,
+    dateLabel: post.dateLabel?.trim() || formatBlogDateLabel(normalizedDate),
+    author: post.author,
+    readTime: post.readTime,
+    coverLabel: post.coverLabel,
+    coverImageUrl: post.coverImageUrl?.trim() || null,
+    coverImageAlt: post.coverImageAlt?.trim() || null,
+    content: normalizeBlogContentBlocks(post.content),
+  };
+}
+
+function mapRowToBlogPost(row: BlogPostRow): BlogPost {
+  const date = normalizeDate(row.published_at);
+
+  return {
+    slug: row.slug,
+    title: row.title,
+    excerpt: row.excerpt,
+    tag: row.tag,
+    date,
+    dateLabel: formatBlogDateLabel(date),
+    author: row.author,
+    readTime: row.read_time,
+    coverLabel: row.cover_label,
+    coverImageUrl: row.cover_image_url,
+    coverImageAlt: row.cover_image_alt,
+    content: normalizeBlogContentBlocks(row.content_blocks),
+  };
+}
+
+function mapBlogPostToInsert(post: BlogPost): BlogPostInsert {
+  return {
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.excerpt,
+    tag: post.tag,
+    author: post.author,
+    read_time: post.readTime,
+    cover_label: post.coverLabel,
+    cover_image_url: post.coverImageUrl,
+    cover_image_alt: post.coverImageAlt,
+    published_at: post.date,
+    content_blocks: post.content as unknown as Record<string, unknown>[],
+  };
+}
+
+function mapBlogPostToStored(post: BlogPost): StoredBlogPost {
+  return {
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.excerpt,
+    tag: post.tag,
+    date: post.date,
+    dateLabel: post.dateLabel,
+    author: post.author,
+    readTime: post.readTime,
+    coverLabel: post.coverLabel,
+    coverImageUrl: post.coverImageUrl,
+    coverImageAlt: post.coverImageAlt,
+    content: post.content,
+  };
+}
+
+function getBlogClient() {
+  try {
+    return createServiceRoleClient();
+  } catch {
+    return null;
+  }
+}
+
+async function readLegacyBlogPosts() {
+  const posts = await readJsonFile<StoredBlogPost[]>(BLOG_POSTS_FILE_PATH, []);
+  return sortBlogPosts(posts.map(mapStoredPostToBlogPost));
+}
+
+async function writeLegacyBlogPosts(posts: BlogPost[]) {
+  await writeJsonFile(
+    BLOG_POSTS_FILE_PATH,
+    posts.map(mapBlogPostToStored),
+  );
+}
+
+async function readSupabaseBlogPosts() {
+  const supabase = getBlogClient();
+
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .order("published_at", { ascending: false })
+    .order("created_at", { ascending: false })
+    .returns<BlogPostRow[]>();
+
+  if (error) {
+    return null;
+  }
+
+  return (data ?? []).map(mapRowToBlogPost);
+}
+
+async function seedSupabaseFromLegacy(legacyPosts: BlogPost[]) {
+  const supabase = getBlogClient();
+
+  if (!supabase || legacyPosts.length === 0) {
+    return false;
+  }
+
+  const payload = legacyPosts.map(mapBlogPostToInsert);
+  const { error } = await supabase.from("blog_posts").upsert(payload, { onConflict: "slug" });
+
+  return !error;
+}
+
+async function readBlogPosts() {
+  const supabasePosts = await readSupabaseBlogPosts();
+
+  if (supabasePosts && supabasePosts.length > 0) {
+    return supabasePosts;
+  }
+
+  const legacyPosts = await readLegacyBlogPosts();
+
+  if (supabasePosts && supabasePosts.length === 0 && legacyPosts.length > 0) {
+    await seedSupabaseFromLegacy(legacyPosts);
+  }
+
+  return legacyPosts;
+}
+
+export function parseBlogContentInput(raw: string) {
+  return raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map<BlogContentBlock>((line) => {
+      const match = line.match(IMAGE_LINE_REGEX);
+
+      if (match?.[2]) {
+        return {
+          type: "image",
+          url: match[2].trim(),
+          alt: match[1]?.trim() || "",
+          caption: match[3]?.trim() || null,
+        };
+      }
+
+      return {
+        type: "paragraph",
+        text: line,
+      };
+    });
+}
+
+export async function getAllBlogPosts() {
+  return readBlogPosts();
+}
+
+export async function getBlogPostBySlug(slug: string) {
+  const posts = await readBlogPosts();
   return posts.find((post) => post.slug === slug) ?? null;
 }
 
-export function getBlogPreview(count = 4) {
+export async function getBlogPreview(count = 4) {
+  const posts = await readBlogPosts();
   return posts.slice(0, count);
+}
+
+export async function createBlogPost(input: CreateBlogPostInput) {
+  const posts = await readBlogPosts();
+  const slugBase = normalizeSlug(input.slug?.trim() || input.title);
+  const usedSlugs = new Set(posts.map((post) => post.slug));
+
+  let slug = slugBase || `article-${Date.now()}`;
+  let suffix = 2;
+
+  while (usedSlugs.has(slug)) {
+    slug = `${slugBase || "article"}-${suffix}`;
+    suffix += 1;
+  }
+
+  const date = normalizeDate(input.date);
+  const post: BlogPost = {
+    slug,
+    title: input.title.trim(),
+    excerpt: input.excerpt.trim(),
+    tag: input.tag.trim(),
+    date,
+    dateLabel: formatBlogDateLabel(date),
+    author: input.author.trim(),
+    readTime: input.readTime.trim(),
+    coverLabel: input.coverLabel.trim() || "Magazine editorial",
+    coverImageUrl: input.coverImageUrl?.trim() || null,
+    coverImageAlt: input.coverImageAlt?.trim() || null,
+    content: normalizeBlogContentBlocks(input.content),
+  };
+
+  const supabase = getBlogClient();
+  if (supabase) {
+    const { error } = await supabase.from("blog_posts").insert(mapBlogPostToInsert(post));
+    if (!error) {
+      return post;
+    }
+  }
+
+  const legacyPosts = await readLegacyBlogPosts();
+  await writeLegacyBlogPosts([post, ...legacyPosts.filter((entry) => entry.slug !== post.slug)]);
+  return post;
+}
+
+export async function deleteBlogPost(slug: string) {
+  const supabase = getBlogClient();
+
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .delete()
+      .eq("slug", slug)
+      .select("*")
+      .returns<BlogPostRow[]>()
+      .maybeSingle();
+
+    if (!error && data) {
+      return mapRowToBlogPost(data);
+    }
+  }
+
+  const posts = await readLegacyBlogPosts();
+  const targetPost = posts.find((post) => post.slug === slug) ?? null;
+
+  if (!targetPost) {
+    return null;
+  }
+
+  await writeLegacyBlogPosts(posts.filter((post) => post.slug !== slug));
+  return targetPost;
 }

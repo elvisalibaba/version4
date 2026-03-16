@@ -51,7 +51,7 @@ export function ServicesSection() {
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
       <div className="space-y-3">
         <p className="ios-kicker">Services sur-mesure</p>
-        <h2 className="ios-title text-3xl font-bold sm:text-4xl">Tout ce qu'il faut pour publier comme un editeur.</h2>
+        <h2 className="ios-title text-3xl font-bold sm:text-4xl">Tout ce qu&apos;il faut pour publier comme un editeur.</h2>
         <p className="ios-muted max-w-3xl text-sm sm:text-base">
           Des services a la carte pour ecrire, publier, vendre et promouvoir sans compromis sur la qualite.
         </p>

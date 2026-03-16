@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAllBlogPosts, getBlogPostBySlug } from "@/lib/blog";
+import { BlogContentRenderer } from "@/components/blog/blog-content-renderer";
+import { BlogCover } from "@/components/blog/blog-cover";
+import { getBlogPostBySlug } from "@/lib/blog";
 
 type BlogPostPageProps = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
-export function generateStaticParams() {
-  return getAllBlogPosts().map((post) => ({ slug: post.slug }));
-}
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
-  const post = getBlogPostBySlug(params.slug);
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const { slug } = await params;
+  const post = await getBlogPostBySlug(slug);
 
   if (!post) {
     notFound();
@@ -25,9 +27,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
         </Link>
 
         <div className="hb-post-hero">
-          <div className="hb-post-cover" data-image-slot={`blog-${post.slug}`}>
-            <span className="hb-blog-cover-label">{post.coverLabel}</span>
-          </div>
+          <BlogCover imageUrl={post.coverImageUrl} imageAlt={post.coverImageAlt} label={post.coverLabel} className="hb-post-cover" />
           <div className="hb-post-meta">
             <span className="hb-blog-tag">{post.tag}</span>
             <h1 className="hb-title text-3xl sm:text-4xl">{post.title}</h1>
@@ -43,9 +43,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
         </div>
 
         <div className="hb-post-content">
-          {post.content.map((paragraph, index) => (
-            <p key={`${post.slug}-${index}`}>{paragraph}</p>
-          ))}
+          <BlogContentRenderer content={post.content} />
         </div>
       </div>
     </section>

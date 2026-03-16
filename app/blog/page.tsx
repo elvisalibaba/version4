@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { BlogCover } from "@/components/blog/blog-cover";
 import { getAllBlogPosts } from "@/lib/blog";
 
-export default function BlogPage() {
-  const posts = getAllBlogPosts();
+export const dynamic = "force-dynamic";
+
+export default async function BlogPage() {
+  const posts = await getAllBlogPosts();
   const [featured, ...rest] = posts;
 
   return (
@@ -22,9 +25,12 @@ export default function BlogPage() {
         {featured ? (
           <div className="hb-blog-grid">
             <article className="hb-blog-feature">
-              <div className="hb-blog-cover" data-image-slot={`blog-${featured.slug}`}>
-                <span className="hb-blog-cover-label">{featured.coverLabel}</span>
-              </div>
+              <BlogCover
+                imageUrl={featured.coverImageUrl}
+                imageAlt={featured.coverImageAlt}
+                label={featured.coverLabel}
+                className="hb-blog-cover"
+              />
               <div className="hb-blog-body">
                 <span className="hb-blog-tag">{featured.tag}</span>
                 <h2 className="hb-title text-2xl sm:text-3xl">{featured.title}</h2>
@@ -43,9 +49,7 @@ export default function BlogPage() {
             <div className="hb-blog-list hb-blog-list-grid">
               {rest.map((post) => (
                 <Link key={post.slug} href={`/blog/${post.slug}`} className="hb-blog-card">
-                  <div className="hb-blog-card-cover" data-image-slot={`blog-${post.slug}`}>
-                    <span className="hb-blog-cover-label">{post.coverLabel}</span>
-                  </div>
+                  <BlogCover imageUrl={post.coverImageUrl} imageAlt={post.coverImageAlt} label={post.coverLabel} className="hb-blog-card-cover" />
                   <div className="hb-blog-card-body">
                     <span className="hb-blog-tag">{post.tag}</span>
                     <h3 className="hb-blog-card-title">{post.title}</h3>

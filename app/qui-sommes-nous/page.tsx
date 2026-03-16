@@ -38,9 +38,9 @@ export default function QuiSommesNousPage() {
     <section className="space-y-10">
       <div className="space-y-3">
         <p className="ios-kicker">Qui sommes-nous ?</p>
-        <h1 className="ios-title text-3xl font-bold sm:text-4xl">Une maison d'edition premium centree sur les auteurs.</h1>
+        <h1 className="ios-title text-3xl font-bold sm:text-4xl">Une maison d&apos;edition premium centree sur les auteurs.</h1>
         <p className="ios-muted max-w-3xl text-sm sm:text-base">
-          Notre mission est d'accompagner les auteurs avec rigueur, transparence et un reseau solide de partenaires.
+          Notre mission est d&apos;accompagner les auteurs avec rigueur, transparence et un reseau solide de partenaires.
         </p>
       </div>
 

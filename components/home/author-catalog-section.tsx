@@ -11,6 +11,7 @@ type AuthorProfile = {
   name: string;
   books: PublishedBook[];
   topCategory: string;
+  avatar_url: string | null;
 };
 
 function pickTopCategory(categories: string[]) {
@@ -23,13 +24,16 @@ function pickTopCategory(categories: string[]) {
 }
 
 export function AuthorCatalogSection({ books }: AuthorCatalogSectionProps) {
-  const authorMap = new Map<string, { name: string; books: PublishedBook[] }>();
+  const authorMap = new Map<string, { name: string; books: PublishedBook[]; avatar_url: string | null }>();
 
   for (const book of books) {
     const name = book.author_name?.trim();
     if (!name || name.toLowerCase() === "auteur inconnu") continue;
-    const entry = authorMap.get(book.author_id) ?? { name, books: [] };
+    const entry = authorMap.get(book.author_id) ?? { name, books: [], avatar_url: book.author_avatar_url ?? null };
     entry.books.push(book);
+    if (!entry.avatar_url && book.author_avatar_url) {
+      entry.avatar_url = book.author_avatar_url;
+    }
     authorMap.set(book.author_id, entry);
   }
 
@@ -41,6 +45,7 @@ export function AuthorCatalogSection({ books }: AuthorCatalogSectionProps) {
         name: entry.name,
         books: entry.books,
         topCategory: pickTopCategory(categories),
+        avatar_url: entry.avatar_url,
       };
     })
     .sort((a, b) => b.books.length - a.books.length)
@@ -78,14 +83,15 @@ export function AuthorCatalogSection({ books }: AuthorCatalogSectionProps) {
             .slice(0, 2)
             .join("")
             .toUpperCase();
+          const portraitUrl = author.avatar_url?.trim() || latestBook?.cover_signed_url || null;
           const authorQuery = `/books?q=${encodeURIComponent(author.name)}`;
 
           return (
             <article key={author.id} className="ios-surface ios-card-hover overflow-hidden rounded-[2rem]">
               <div className="grid gap-4 p-5 md:grid-cols-[140px_1fr]">
                 <div className="hb-shimmer relative overflow-hidden rounded-2xl bg-slate-100">
-                  {latestBook?.cover_signed_url ? (
-                    <img src={latestBook.cover_signed_url} alt={latestBook.title} className="h-full w-full object-cover" />
+                  {portraitUrl ? (
+                    <img src={portraitUrl} alt={author.name} className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full min-h-[180px] items-center justify-center text-2xl font-semibold text-rose-700">
                       {initials}

@@ -27,7 +27,7 @@ export function WhyChooseSection() {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-3">
             <p className="ios-kicker">Pourquoi Holistique Books ?</p>
-            <h2 className="ios-title text-3xl font-bold sm:text-4xl">La rigueur d'une maison d'edition, la souplesse du digital.</h2>
+            <h2 className="ios-title text-3xl font-bold sm:text-4xl">La rigueur d&apos;une maison d&apos;edition, la souplesse du digital.</h2>
             <p className="ios-muted max-w-2xl text-sm sm:text-base">
               Inspirer confiance, vendre plus, garder le controle. Nous combinons expertise editoriale, diffusion large et services
               a la carte.

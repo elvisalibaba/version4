@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { formatMoney } from "@/lib/book-offers";
 import type { PublishedBook } from "@/lib/books";
 
 type FlashSaleSectionProps = {
-  books: PublishedBook[];
+  books: Array<PublishedBook | null>;
+  discountPercentage: number;
 };
 
-export function FlashSaleSection({ books }: FlashSaleSectionProps) {
-  const dealBooks: Array<PublishedBook | null> = books.length > 0 ? books.slice(6, 9) : Array.from({ length: 3 }, () => null);
+export function FlashSaleSection({ books, discountPercentage }: FlashSaleSectionProps) {
+  const safeDiscountPercentage = Math.min(90, Math.max(0, discountPercentage));
   const [timeLeft, setTimeLeft] = useState({ hours: "00", minutes: "00", seconds: "00" });
 
   useEffect(() => {
@@ -50,10 +52,10 @@ export function FlashSaleSection({ books }: FlashSaleSectionProps) {
     <section className="hb-section">
       <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_1.4fr]">
         <div className="hb-flash-panel hb-flash-center">
-          <p className="hb-kicker">Flash sale</p>
-          <h2 className="hb-title text-2xl sm:text-3xl">Offres eclair sur nos meilleurs titres.</h2>
+          <p className="hb-kicker">Offres du jour</p>
+          <h2 className="hb-title text-2xl sm:text-3xl">Des livres de transformation a prix doux, pour agir maintenant.</h2>
           <p className="hb-muted mt-2 text-sm">
-            Des promotions limitees pour enrichir votre bibliotheque. Profitez-en avant la fin du compte a rebours.
+            Profitez d une fenetre courte pour investir dans des lectures qui nourrissent la clarte, la foi et la progression personnelle.
           </p>
           <div className="hb-countdown mt-5">
             {countdown.map((item) => (
@@ -66,10 +68,10 @@ export function FlashSaleSection({ books }: FlashSaleSectionProps) {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          {dealBooks.map((book, index) => {
+          {books.map((book, index) => {
             const price = book?.price ?? 0;
-            const salePrice = price > 0 ? price * 0.8 : price;
-            const discountLabel = price > 0 ? "20% off" : "Offre";
+            const salePrice = price > 0 ? price * ((100 - safeDiscountPercentage) / 100) : price;
+            const discountLabel = price > 0 ? `-${safeDiscountPercentage}%` : book?.display_price_label ?? "Offre";
 
             return (
               <Link key={book?.id ?? `deal-${index}`} href={book ? `/book/${book.id}` : "/librairie"} className="hb-sale-card">
@@ -79,7 +81,7 @@ export function FlashSaleSection({ books }: FlashSaleSectionProps) {
                     <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                   ) : (
                     <div className="flex h-full items-center justify-center px-3 text-center text-xs font-semibold text-slate-500">
-                      Offre du jour
+                      Lecture a saisir
                     </div>
                   )}
                 </div>
@@ -87,8 +89,8 @@ export function FlashSaleSection({ books }: FlashSaleSectionProps) {
                   <p className="line-clamp-2 text-sm font-semibold text-slate-900">{book?.title ?? "Selection premium"}</p>
                   <p className="mt-1 text-xs text-slate-500">{book?.author_name ?? "Equipe Holistique"}</p>
                   <div className="mt-2 flex items-center gap-2 text-xs">
-                    <span className="hb-price">{price <= 0 ? "Gratuit" : `$${salePrice.toFixed(2)}`}</span>
-                    {price > 0 ? <span className="text-slate-400 line-through">${price.toFixed(2)}</span> : null}
+                    <span className="hb-price">{book ? formatMoney(salePrice, book.currency_code) : "Offre"}</span>
+                    {price > 0 ? <span className="text-slate-400 line-through">{book ? formatMoney(price, book.currency_code) : null}</span> : null}
                   </div>
                 </div>
               </Link>

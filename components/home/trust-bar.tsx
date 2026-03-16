@@ -7,17 +7,17 @@ export function TrustBar() {
         <div className="flex flex-wrap items-center justify-center gap-3">
           <span className="inline-flex items-center gap-2">
             <Lock className="h-4 w-4 text-rose-600" />
-            Paiements securises (Mobile Money & Cards)
+            Paiement simple et securise
           </span>
           <span className="hidden text-slate-300 sm:inline">|</span>
           <span className="inline-flex items-center gap-2">
             <Wifi className="h-4 w-4 text-rose-600" />
-            Lisez partout, meme hors-ligne
+            Lisez partout, a votre rythme
           </span>
           <span className="hidden text-slate-300 sm:inline">|</span>
           <span className="inline-flex items-center gap-2">
             <CreditCard className="h-4 w-4 text-rose-600" />
-            +500 auteurs africains certifies
+            Livres pour grandir et se recentrer
           </span>
         </div>
       </div>

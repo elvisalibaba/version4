@@ -1,12 +1,20 @@
 import Link from "next/link";
-import { BookOpen, LibraryBig, Receipt, Sparkles, Star, Clock3, ArrowRight } from "lucide-react";
+import { ArrowRight, BookOpen, Clock3, LibraryBig, Receipt, Sparkles, Star } from "lucide-react";
+import { DashboardTopbar } from "@/components/ui/dashboard-topbar";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatCard } from "@/components/ui/stat-card";
+import { getLibraryAccessLabel } from "@/lib/access-labels";
 import { requireRole } from "@/lib/auth";
+import { isSubscriptionCurrentlyActive } from "@/lib/book-access";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
+
+type MaybeArray<T> = T | T[] | null;
 
 type LibraryPreview = {
   book_id: string;
   purchased_at: string;
+  access_type: Database["public"]["Tables"]["library"]["Row"]["access_type"];
   books:
     | { id: string; title: string; categories: string[]; cover_url: string | null; rating_avg: number | null }
     | { id: string; title: string; categories: string[]; cover_url: string | null; rating_avg: number | null }[]
@@ -14,6 +22,18 @@ type LibraryPreview = {
 };
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
+
+type SubscriptionRow = Pick<
+  Database["public"]["Tables"]["user_subscriptions"]["Row"],
+  "id" | "status" | "expires_at"
+> & {
+  subscription_plans: MaybeArray<{ name: string; slug: string }>;
+};
+
+function firstOf<T>(value: MaybeArray<T>) {
+  if (Array.isArray(value)) return value[0] ?? null;
+  return value ?? null;
+}
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("fr-FR", {
@@ -27,27 +47,43 @@ export default async function ReaderDashboardPage() {
   const profile = await requireRole(["reader"]);
   const supabase = await createClient();
 
-  const [{ data: library }, { data: orders }] = await Promise.all([
+  const [{ data: library }, { data: orders }, { data: subscriptions }] = await Promise.all([
     supabase
       .from("library")
-      .select("book_id, purchased_at, books:book_id(id, title, categories, cover_url, rating_avg)")
+      .select("book_id, purchased_at, access_type, books:book_id(id, title, categories, cover_url, rating_avg)")
       .order("purchased_at", { ascending: false })
       .returns<LibraryPreview[]>(),
     supabase
       .from("orders")
-      .select("id, total_price, payment_status, created_at")
+      .select("id, total_price, payment_status, created_at, currency_code")
       .order("created_at", { ascending: false })
       .returns<OrderRow[]>(),
+    supabase
+      .from("user_subscriptions")
+      .select("id, status, expires_at, subscription_plans(name, slug)")
+      .order("created_at", { ascending: false })
+      .returns<SubscriptionRow[]>(),
   ]);
 
   const libraryItems = (library ?? []) as LibraryPreview[];
   const orderRows = (orders ?? []) as OrderRow[];
+  const subscriptionRows = (subscriptions ?? []) as SubscriptionRow[];
 
-  const totalBooks = libraryItems.length;
   const paidOrders = orderRows.filter((order) => order.payment_status === "paid");
   const totalSpent = paidOrders.reduce((sum, order) => sum + order.total_price, 0);
   const averageTicket = paidOrders.length > 0 ? totalSpent / paidOrders.length : 0;
+  const purchaseBooks = libraryItems.filter((item) => item.access_type === "purchase").length;
+  const subscriptionBooks = libraryItems.filter((item) => item.access_type === "subscription").length;
+  const freeBooks = libraryItems.filter((item) => item.access_type === "free").length;
   const recentBooks = libraryItems.slice(0, 3);
+  const activeSubscriptions = subscriptionRows.filter((subscription) => isSubscriptionCurrentlyActive(subscription));
+  const lastAcquisitionDate = libraryItems[0]?.purchased_at
+    ? new Date(libraryItems[0].purchased_at).toLocaleDateString("fr-FR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "Aucune acquisition pour le moment";
 
   const categoryCounts = new Map<string, number>();
   for (const item of libraryItems) {
@@ -57,125 +93,49 @@ export default async function ReaderDashboardPage() {
     }
   }
 
-  const favoriteCategory =
-    [...categoryCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "A explorer";
-  const lastPurchaseDate = libraryItems[0]?.purchased_at
-    ? new Date(libraryItems[0].purchased_at).toLocaleDateString("fr-FR", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      })
-    : "Aucun achat pour le moment";
+  const favoriteCategory = [...categoryCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "A explorer";
 
   return (
-    <section className="mx-auto max-w-7xl space-y-7 px-4 py-7 sm:px-6">
-      <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.35),_transparent_28%),linear-gradient(135deg,_#0f172a_0%,_#1e293b_40%,_#134e4a_100%)] p-7 text-white shadow-xl">
-        <div className="absolute -right-10 top-8 h-48 w-48 rounded-full bg-emerald-300/10 blur-3xl" />
-        <div className="absolute left-10 top-24 h-28 w-28 rounded-full bg-amber-300/20 blur-2xl" />
-        <div className="absolute bottom-0 right-0 h-44 w-44 translate-x-12 translate-y-12 rounded-full border border-white/10" />
+    <section className="space-y-6">
+      <DashboardTopbar
+        kicker="Reader dashboard"
+        title={`Bonjour ${profile.name ?? profile.email}`}
+        description="Votre espace lecteur rassemble les achats, les livres Premium et les lectures gratuites dans une experience plus editoriale."
+        actions={
+          <>
+            <Link href="/dashboard/reader/library" className="cta-primary px-5 py-3 text-sm">
+              <LibraryBig className="h-4 w-4" />
+              Ouvrir ma bibliotheque
+            </Link>
+            <Link href="/dashboard/reader/subscriptions" className="cta-secondary px-5 py-3 text-sm">
+              <Receipt className="h-4 w-4" />
+              Voir Premium
+            </Link>
+          </>
+        }
+      />
 
-        <div className="relative grid gap-6 lg:grid-cols-[1.4fr_0.8fr] lg:items-end">
-          <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/85 backdrop-blur-sm">
-              <Sparkles className="h-3.5 w-3.5" />
-              Reading Lounge
-            </p>
-            <h1 className="mt-4 max-w-2xl text-3xl font-bold leading-tight sm:text-4xl">
-              Reader dashboard pense comme une bibliotheque premium.
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm text-slate-200 sm:text-base">
-              Bienvenue, {profile.name ?? profile.email}. Retrouve tes lectures, suis tes achats et replonge vite dans ton univers.
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href="/dashboard/reader/library"
-                className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:bg-amber-50"
-              >
-                <LibraryBig className="h-4 w-4" />
-                Ouvrir ma bibliotheque
-              </Link>
-              <Link
-                href="/dashboard/reader/purchases"
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/15"
-              >
-                <Receipt className="h-4 w-4" />
-                Voir mes achats
-              </Link>
-            </div>
-          </div>
-
-          <div className="grid gap-3 rounded-[1.75rem] border border-white/10 bg-white/8 p-4 backdrop-blur-sm">
-            <div className="rounded-2xl border border-white/10 bg-black/10 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">Dernier achat</p>
-              <p className="mt-2 text-lg font-semibold text-white">{lastPurchaseDate}</p>
-              <p className="mt-1 text-sm text-slate-300">Une bibliotheque qui continue de grandir.</p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-white/8 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-300">Categorie forte</p>
-                <p className="mt-2 text-xl font-semibold text-white">{favoriteCategory}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/8 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-300">Panier moyen</p>
-                <p className="mt-2 text-xl font-semibold text-white">{formatCurrency(averageTicket)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="metric-grid">
+        <StatCard icon={BookOpen} label="Achats" value={purchaseBooks} description="Titres achetes a l unite" tone="amber" />
+        <StatCard icon={Receipt} label="Premium" value={subscriptionBooks} description="Livres ouverts via abonnement" tone="violet" />
+        <StatCard icon={Star} label="Gratuits" value={freeBooks} description="Titres debloques sans paiement" tone="emerald" />
+        <StatCard icon={Clock3} label="Plans actifs" value={activeSubscriptions.length} description="Abonnements Premium en cours" tone="sky" />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            <BookOpen className="h-4 w-4 text-amber-500" />
-            Livres debloques
-          </p>
-          <p className="mt-3 text-3xl font-bold text-slate-900">{totalBooks}</p>
-          <p className="mt-1 text-sm text-slate-500">Dans ta bibliotheque personnelle</p>
-        </article>
-
-        <article className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            <Receipt className="h-4 w-4 text-emerald-500" />
-            Commandes payees
-          </p>
-          <p className="mt-3 text-3xl font-bold text-slate-900">{paidOrders.length}</p>
-          <p className="mt-1 text-sm text-slate-500">Transactions validees</p>
-        </article>
-
-        <article className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            <Star className="h-4 w-4 text-amber-500" />
-            Budget lecture
-          </p>
-          <p className="mt-3 text-3xl font-bold text-slate-900">{formatCurrency(totalSpent)}</p>
-          <p className="mt-1 text-sm text-slate-500">Investi dans tes achats</p>
-        </article>
-
-        <article className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            <Clock3 className="h-4 w-4 text-sky-500" />
-            Derniere activite
-          </p>
-          <p className="mt-3 text-xl font-bold text-slate-900">{lastPurchaseDate}</p>
-          <p className="mt-1 text-sm text-slate-500">Dernier ajout a ta collection</p>
-        </article>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-[1.35fr_0.9fr]">
-        <section className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900">Reprendre la lecture</h2>
-              <p className="text-sm text-slate-500">Tes acquisitions recentes, prêtes a etre rouvertes.</p>
+      <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+        <section className="surface-panel p-6">
+          <div className="section-header">
+            <div className="space-y-2">
+              <p className="section-kicker">Continue reading</p>
+              <h2 className="section-title text-2xl">Reprendre la lecture</h2>
+              <p className="section-description">Vos derniers titres avec leur type d acces reel.</p>
             </div>
-            <Link href="/dashboard/reader/library" className="text-sm font-semibold text-emerald-700 hover:text-emerald-800">
+            <Link href="/dashboard/reader/library" className="cta-secondary px-4 py-2 text-sm">
               Tout voir
             </Link>
           </div>
 
-          <div className="grid gap-3">
+          <div className="mt-5 grid gap-3">
             {recentBooks.length > 0 ? (
               recentBooks.map((item, index) => {
                 const book = Array.isArray(item.books) ? item.books[0] : item.books;
@@ -183,25 +143,22 @@ export default async function ReaderDashboardPage() {
                 return (
                   <article
                     key={item.book_id}
-                    className="grid gap-4 rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(135deg,_rgba(240,253,250,1)_0%,_rgba(255,251,235,0.9)_100%)] p-4 sm:grid-cols-[auto_1fr_auto] sm:items-center"
+                    className="flex flex-wrap items-center justify-between gap-4 rounded-[1.5rem] border border-violet-100 bg-[linear-gradient(135deg,_rgba(255,255,255,0.95),_rgba(244,239,255,0.92))] p-4"
                   >
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-lg font-bold text-white shadow-md">
-                      {(book?.title ?? "HB").slice(0, 2).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
-                        Lecture {index + 1}
-                      </p>
-                      <p className="mt-1 text-lg font-semibold text-slate-900">{book?.title ?? "Titre indisponible"}</p>
-                      <div className="mt-1 flex flex-wrap gap-2 text-sm text-slate-600">
-                        <span>Achete le {new Date(item.purchased_at).toLocaleDateString("fr-FR")}</span>
-                        {book?.rating_avg ? <span>Note {book.rating_avg.toFixed(1)}/5</span> : null}
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-[1.25rem] bg-[linear-gradient(135deg,_#7a63ff,_#624df1)] text-lg font-bold text-white shadow-lg">
+                        {(book?.title ?? "HB").slice(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-500">Lecture {index + 1}</p>
+                        <p className="mt-1 text-lg font-semibold text-slate-950">{book?.title ?? "Titre indisponible"}</p>
+                        <div className="mt-1 flex flex-wrap gap-2 text-sm text-slate-500">
+                          <span>{getLibraryAccessLabel(item.access_type)}</span>
+                          <span>Ajoute le {new Date(item.purchased_at).toLocaleDateString("fr-FR")}</span>
+                        </div>
                       </div>
                     </div>
-                    <Link
-                      href="/dashboard/reader/library"
-                      className="inline-flex items-center gap-2 self-start rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 sm:self-center"
-                    >
+                    <Link href={`/book/${item.book_id}`} className="cta-primary px-5 py-3 text-sm">
                       Lire
                       <ArrowRight className="h-4 w-4" />
                     </Link>
@@ -209,48 +166,68 @@ export default async function ReaderDashboardPage() {
                 );
               })
             ) : (
-              <div className="rounded-[1.6rem] border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
-                Ta bibliotheque est encore vide. Tes prochains achats apparaitront ici.
-              </div>
+              <EmptyState
+                title="Votre bibliotheque est encore vide"
+                description="Vos prochains achats ou acces Premium apparaitront ici pour reprendre la lecture en un clic."
+              />
             )}
           </div>
         </section>
 
-        <section className="space-y-4">
-          <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">Actions rapides</h2>
+        <div className="grid gap-5">
+          <section className="surface-panel-soft p-5">
+            <p className="section-kicker">Collection pulse</p>
             <div className="mt-4 grid gap-3">
-              <Link
-                href="/books"
-                className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
-              >
-                Decouvrir de nouveaux livres
-              </Link>
-              <Link
-                href="/dashboard/reader/library"
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-              >
-                Gerer ma bibliotheque
-              </Link>
-              <Link
-                href="/dashboard/reader/purchases"
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-              >
-                Revoir mes commandes
-              </Link>
+              <div className="rounded-[1.35rem] bg-white/90 p-4 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Derniere acquisition</p>
+                <p className="mt-2 text-lg font-semibold text-slate-950">{lastAcquisitionDate}</p>
+              </div>
+              <div className="rounded-[1.35rem] bg-white/90 p-4 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Categorie forte</p>
+                <p className="mt-2 text-lg font-semibold text-slate-950">{favoriteCategory}</p>
+              </div>
+              <div className="rounded-[1.35rem] bg-white/90 p-4 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Panier moyen</p>
+                <p className="mt-2 text-lg font-semibold text-slate-950">{formatCurrency(averageTicket)}</p>
+              </div>
             </div>
-          </div>
+          </section>
 
-          <div className="rounded-3xl border border-slate-200/80 bg-slate-950 p-5 text-white shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Mood de lecture</p>
-            <h2 className="mt-3 text-2xl font-semibold">Collection en progression constante.</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-300">
-              {totalBooks > 0
-                ? `Tu as deja ${totalBooks} livre${totalBooks > 1 ? "s" : ""} disponible${totalBooks > 1 ? "s" : ""}. Continue sur ce rythme pour construire une vraie bibliotheque digitale.`
-                : "Commence avec un premier achat pour activer une experience lecteur plus riche."}
+          <section className="surface-panel p-5">
+            <div className="section-header">
+              <div className="space-y-2">
+                <p className="section-kicker">Premium</p>
+                <h2 className="section-title text-2xl">Plans actifs</h2>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3">
+              {activeSubscriptions.length > 0 ? (
+                activeSubscriptions.map((subscription) => {
+                  const plan = firstOf(subscription.subscription_plans);
+                  return (
+                    <article key={subscription.id} className="rounded-[1.35rem] bg-violet-50/80 p-4">
+                      <p className="font-semibold text-slate-950">{plan?.name ?? "Plan Premium"}</p>
+                      <p className="mt-1 text-sm text-slate-500">{plan?.slug ?? "premium"}</p>
+                    </article>
+                  );
+                })
+              ) : (
+                <EmptyState title="Aucun abonnement actif" description="Vos futurs packs Premium apparaitront ici." />
+              )}
+            </div>
+          </section>
+
+          <section className="surface-panel-soft p-5">
+            <p className="section-kicker">
+              <Sparkles className="h-3.5 w-3.5" />
+              Budget lecture
             </p>
-          </div>
-        </section>
+            <h2 className="mt-4 text-3xl font-semibold text-slate-950">{formatCurrency(totalSpent)}</h2>
+            <p className="mt-2 text-sm leading-7 text-slate-500">
+              Montant total depense sur les commandes payees. Les acces Premium sont suivis a part.
+            </p>
+          </section>
+        </div>
       </div>
     </section>
   );

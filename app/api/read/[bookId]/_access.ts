@@ -1,3 +1,4 @@
+import { getBlockedAccessMessage, getReaderBookAccessState, syncLibraryAccessEntry } from "@/lib/book-access";
 import { createClient } from "@/lib/supabase/server";
 import type { BookFormatType, Database } from "@/types/database";
 
@@ -7,15 +8,19 @@ export type ReadAccessResult =
   | { ok: true; filePath: string; fileType: FileType }
   | { ok: false; status: number; error: string };
 
-type BookWithFormats =
-  Database["public"]["Tables"]["books"]["Row"] & {
-    book_formats?: {
-      format: BookFormatType;
-      file_url: string | null;
-      price: number;
-      is_published: boolean;
-    }[];
-  };
+type BookWithFormats = Pick<
+  Database["public"]["Tables"]["books"]["Row"],
+  "id" | "file_url" | "price" | "status" | "is_single_sale_enabled" | "is_subscription_available"
+> & {
+  book_formats?: {
+    format: BookFormatType;
+    file_url: string | null;
+    price: number;
+    is_published: boolean;
+    currency_code: string;
+  }[] | null;
+  subscription_plan_books?: { plan_id: string }[] | null;
+};
 
 function getFileType(path: string): FileType | null {
   const lower = path.toLowerCase();
@@ -27,10 +32,11 @@ function getFileType(path: string): FileType | null {
 export async function resolveReadAccess(bookId: string, userId: string): Promise<ReadAccessResult> {
   const supabase = await createClient();
 
-  // SWC type checker on Vercel can sometimes lose generics; force the shape explicitly.
   const { data } = await supabase
     .from("books")
-    .select("id, file_url, price, status, book_formats!left(format, file_url, price, is_published)")
+    .select(
+      "id, file_url, price, status, is_single_sale_enabled, is_subscription_available, book_formats!left(format, file_url, price, is_published, currency_code), subscription_plan_books!left(plan_id)",
+    )
     .eq("id", bookId)
     .eq("status", "published")
     .returns<BookWithFormats>()
@@ -42,24 +48,34 @@ export async function resolveReadAccess(bookId: string, userId: string): Promise
     return { ok: false, status: 404, error: "Livre introuvable." };
   }
 
-  const ebookFormat = (book.book_formats ?? []).find((fmt) => fmt.format === "ebook" && fmt.is_published);
+  const ebookFormat = (book.book_formats ?? []).find((format) => format.format === "ebook" && format.is_published);
   const effectivePrice = ebookFormat?.price ?? book.price ?? 0;
+  const accessState = await getReaderBookAccessState({
+    userId,
+    bookId,
+    bookPlanIds: (book.subscription_plan_books ?? []).map((entry) => entry.plan_id),
+    supabase,
+  });
 
-  if (effectivePrice > 0) {
-    const { data: libraryRow } = await supabase
-      .from("library")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("book_id", bookId)
-      .maybeSingle();
-
-    if (!libraryRow) {
-      return { ok: false, status: 403, error: "Achat requis pour lire ce livre." };
-    }
-  } else {
-    const libraryEntry = { user_id: userId, book_id: bookId } as Database["public"]["Tables"]["library"]["Insert"];
-    await supabase.from("library").upsert(libraryEntry, { onConflict: "user_id,book_id" });
+  if (!accessState.hasAccess) {
+    return {
+      ok: false,
+      status: 403,
+      error: getBlockedAccessMessage({
+        isSingleSaleEnabled: book.is_single_sale_enabled,
+        isSubscriptionAvailable: book.is_subscription_available,
+      }),
+    };
   }
+
+  await syncLibraryAccessEntry({
+    userId,
+    bookId,
+    currentEntry: accessState.libraryEntry,
+    activeSubscriptionId: accessState.activeSubscription?.id ?? null,
+    shouldGrantFreeAccess: book.is_single_sale_enabled && effectivePrice <= 0,
+    supabase,
+  });
 
   const secureFilePath = ebookFormat?.file_url ?? book.file_url;
   if (!secureFilePath) {

@@ -104,41 +104,44 @@ export function ReaderPopup({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-2 sm:p-4">
-      <div ref={containerRef} className="flex h-[96vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-3 py-2 sm:px-4 sm:py-3">
-          <h3 className="font-semibold">Lecteur securise</h3>
+    <div className="reader-modal fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+      <div ref={containerRef} className="reader-window flex h-[96vh] w-full max-w-6xl flex-col overflow-hidden">
+        <div className="reader-toolbar flex flex-wrap items-center justify-between gap-2 px-3 py-3 sm:px-4 sm:py-3.5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">Secure reader</p>
+            <h3 className="mt-1 font-semibold text-slate-950">Lecteur web</h3>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             {isEpub && (
               <>
                 <button
                   onClick={() => renditionRef.current?.prev()}
-                  className="rounded-md border border-slate-300 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm"
+                  className="cta-secondary px-3 py-2 text-xs sm:text-sm"
                 >
                   Precedent
                 </button>
                 <button
                   onClick={() => renditionRef.current?.next()}
-                  className="rounded-md border border-slate-300 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm"
+                  className="cta-secondary px-3 py-2 text-xs sm:text-sm"
                 >
                   Suivant
                 </button>
                 <button
                   onClick={() => setEpubFontSize((prev) => Math.max(80, prev - 10))}
-                  className="rounded-md border border-slate-300 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm"
+                  className="cta-secondary px-3 py-2 text-xs sm:text-sm"
                 >
                   A-
                 </button>
                 <button
                   onClick={() => setEpubFontSize((prev) => Math.min(160, prev + 10))}
-                  className="rounded-md border border-slate-300 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm"
+                  className="cta-secondary px-3 py-2 text-xs sm:text-sm"
                 >
                   A+
                 </button>
                 <select
                   value={epubTheme}
                   onChange={(e) => setEpubTheme(e.target.value as "light" | "sepia" | "dark")}
-                  className="rounded-md border border-slate-300 px-2 py-1 text-xs sm:text-sm"
+                  className="rounded-full border border-violet-200 bg-white px-3 py-2 text-xs sm:text-sm"
                 >
                   <option value="light">Clair</option>
                   <option value="sepia">Sepia</option>
@@ -146,10 +149,10 @@ export function ReaderPopup({
                 </select>
               </>
             )}
-            <button onClick={openFullScreen} className="rounded-md border border-slate-300 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm">
+            <button onClick={openFullScreen} className="cta-secondary px-3 py-2 text-xs sm:text-sm">
               Plein ecran
             </button>
-            <button onClick={onClose} className="rounded-md border border-slate-300 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm">
+            <button onClick={onClose} className="cta-primary px-3 py-2 text-xs sm:text-sm">
               Fermer
             </button>
           </div>

@@ -1,0 +1,45 @@
+import { NextResponse } from "next/server";
+import { getTransactionIdFromNotifyPayload, PaymentFlowError, reconcileCinetPayTransaction } from "@/lib/payments/cinetpay";
+
+async function readNotifyPayload(request: Request) {
+  const contentType = request.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    const json = (await request.json()) as Record<string, unknown>;
+    return Object.fromEntries(Object.entries(json).map(([key, value]) => [key, typeof value === "string" ? value : String(value ?? "")]));
+  }
+
+  if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
+    const formData = await request.formData();
+    return Object.fromEntries(Array.from(formData.entries()).map(([key, value]) => [key, typeof value === "string" ? value : value.name]));
+  }
+
+  const text = await request.text();
+  const params = new URLSearchParams(text);
+  return Object.fromEntries(params.entries());
+}
+
+export async function GET() {
+  return NextResponse.json({ ok: true });
+}
+
+export async function POST(request: Request) {
+  try {
+    const payload = await readNotifyPayload(request);
+    const transactionId = getTransactionIdFromNotifyPayload(payload);
+
+    if (!transactionId) {
+      return NextResponse.json({ error: "transaction_id manquant dans la notification CinetPay." }, { status: 400 });
+    }
+
+    const result = await reconcileCinetPayTransaction(transactionId);
+    return NextResponse.json({ ok: true, ...result });
+  } catch (error) {
+    if (error instanceof PaymentFlowError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+
+    const message = error instanceof Error ? error.message : "Verification CinetPay impossible.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

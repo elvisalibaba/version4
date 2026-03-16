@@ -33,7 +33,7 @@ export default async function ServicesPage() {
         <p className="ios-kicker">Nos services</p>
         <h1 className="ios-title text-3xl font-bold sm:text-4xl">Des solutions completes pour publier, imprimer et vendre.</h1>
         <p className="ios-muted max-w-3xl text-sm sm:text-base">
-          Choisissez les services adaptes a votre projet et profitez d'un accompagnement editorial exigeant.
+          Choisissez les services adaptes a votre projet et profitez d&apos;un accompagnement editorial exigeant.
         </p>
       </div>
 

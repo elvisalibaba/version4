@@ -16,7 +16,7 @@ export function AuthorTrustSection({ books }: AuthorTrustSectionProps) {
           <p className="ios-kicker">Confiance des auteurs</p>
           <h2 className="ios-title text-3xl font-bold sm:text-4xl">Plus de 100 auteurs ont choisi Holistique Books.</h2>
           <p className="ios-muted max-w-2xl text-sm sm:text-base">
-            Decouvrez une selection de livres publies recemment. Des couvertures fortes, une qualite d'edition exigeante et une
+            Decouvrez une selection de livres publies recemment. Des couvertures fortes, une qualite d&apos;edition exigeante et une
             mise en avant digne des meilleures plateformes.
           </p>
         </div>

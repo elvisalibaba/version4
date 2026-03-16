@@ -30,7 +30,7 @@
 - Shared Supabase backend supports web now and Flutter later.
 - `lib/supabase/client.ts` for browser auth/storage.
 - `lib/supabase/server.ts` for server-side auth and queries.
-- `middleware.ts` protects dashboard + secure reader API access.
+- `proxy.ts` protects dashboard + secure reader API access.
 - `lib/auth.ts` has role-based helpers.
 - `supabase/migrations/0001_initial.sql` defines schema + RLS + storage policies.
 
@@ -44,10 +44,41 @@
 1. Create `.env.local`:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-2. Apply SQL migration in Supabase.
+   - `NEXT_PUBLIC_APP_URL=https://your-domain.com`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `CINETPAY_API_KEY`
+   - `CINETPAY_SITE_ID`
+   - `CINETPAY_BASE_URL=https://api-checkout.cinetpay.com/v2`
+   - `APP_BASE_URL=https://your-domain.com`
+   - `ADMIN_NOTIFY_EMAIL=your-admin@email.com`
+   - `SUPABASE_DB_WEBHOOK_SECRET=long-random-secret`
+   - Important: Mobile Money / CinetPay checkout creates and updates orders from the server, so `SUPABASE_SERVICE_ROLE_KEY` is required.
+2. Apply SQL migrations in Supabase, including the latest content migrations `supabase/migrations/0016_blog_posts.sql` and `supabase/migrations/0017_flash_sale_configs.sql`.
 3. Run `npm run dev`.
 
+## Vercel notes
+- Add all variables from `.env.local` to Vercel Project Settings -> Environment Variables.
+- Keep `SUPABASE_SERVICE_ROLE_KEY` only on the server side, never in public client code.
+- The admin blog and flash sale settings now target Supabase storage instead of local file writes, which avoids Vercel filesystem write failures.
+- If you use blog cover images, prefer stable public URLs or Supabase public storage URLs.
+
+## New User Admin Notification
+- Route available: `/api/webhooks/supabase/new-user`
+- Expected use: configure a Supabase Database Webhook on `public.profiles`
+- Event: `INSERT`
+- URL: `https://your-domain.com/api/webhooks/supabase/new-user`
+- Custom header: `x-webhook-secret: <SUPABASE_DB_WEBHOOK_SECRET>`
+- The route sends an admin email using the existing SMTP configuration.
+
+## Supabase Auth Redirects
+- Email confirmation callback route: `/auth/callback`
+- Signup uses `emailRedirectTo=<NEXT_PUBLIC_APP_URL>/auth/callback?next=/dashboard`
+- In Supabase Dashboard, set:
+- `Authentication -> URL Configuration -> Site URL = https://your-domain.com`
+- `Authentication -> URL Configuration -> Redirect URLs` should include:
+- `https://your-domain.com/auth/callback`
+
 ## Next implementation steps
-1. Add cart and checkout flow that writes `orders`, `order_items`, `library`.
+1. Extend checkout to multi-book cart and pending-order reuse strategy.
 2. Add admin moderation actions (publish/remove).
 3. Add richer reader controls (bookmark/progress).

@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { BlogCover } from "@/components/blog/blog-cover";
 import { getBlogPreview } from "@/lib/blog";
 
-export function BlogSection() {
-  const posts = getBlogPreview(4);
+export async function BlogSection() {
+  const posts = await getBlogPreview(4);
   const [highlight, ...rest] = posts;
 
   if (!highlight) return null;
@@ -12,22 +13,20 @@ export function BlogSection() {
       <div className="hb-section-shell">
         <div className="hb-blog-header">
         <div>
-            <p className="hb-kicker">Magazine editorial</p>
-            <h2 className="hb-title text-2xl sm:text-3xl">Conseils, tendances et inspiration</h2>
+            <p className="hb-kicker">Conseils de transformation</p>
+            <h2 className="hb-title text-2xl sm:text-3xl">Idees, habitudes et perspectives pour avancer.</h2>
             <p className="hb-muted mt-2 max-w-2xl text-sm sm:text-base">
-              Une veille editoriale premium pour aider auteurs et lecteurs a mieux comprendre le marche du livre africain.
+              Des contenus pour aider lecteurs et auteurs a transformer une intention en changement concret.
             </p>
           </div>
           <Link href="/blog" className="hb-link text-sm font-semibold">
-            Voir le blog
+            Lire le journal
           </Link>
         </div>
 
         <div className="hb-blog-grid">
           <article className="hb-blog-feature">
-            <div className="hb-blog-cover" data-image-slot={`blog-${highlight.slug}`}>
-              <span className="hb-blog-cover-label">{highlight.coverLabel}</span>
-            </div>
+            <BlogCover imageUrl={highlight.coverImageUrl} imageAlt={highlight.coverImageAlt} label={highlight.coverLabel} className="hb-blog-cover" />
             <div className="hb-blog-body">
               <span className="hb-blog-tag">{highlight.tag}</span>
               <h3 className="hb-title text-xl sm:text-2xl">{highlight.title}</h3>
@@ -46,9 +45,7 @@ export function BlogSection() {
           <div className="hb-blog-list">
             {rest.map((post) => (
               <Link key={post.slug} href={`/blog/${post.slug}`} className="hb-blog-card">
-                <div className="hb-blog-card-cover" data-image-slot={`blog-${post.slug}`}>
-                  <span className="hb-blog-cover-label">{post.coverLabel}</span>
-                </div>
+                <BlogCover imageUrl={post.coverImageUrl} imageAlt={post.coverImageAlt} label={post.coverLabel} className="hb-blog-card-cover" />
                 <div className="hb-blog-card-body">
                   <span className="hb-blog-tag">{post.tag}</span>
                   <h3 className="hb-blog-card-title">{post.title}</h3>

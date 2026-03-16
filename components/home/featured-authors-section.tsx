@@ -6,14 +6,22 @@ type FeaturedAuthorsSectionProps = {
 };
 
 export function FeaturedAuthorsSection({ books }: FeaturedAuthorsSectionProps) {
-  const authorMap = new Map<string, { name: string; count: number; categories: string[] }>();
+  const authorMap = new Map<string, { name: string; count: number; categories: string[]; avatar_url: string | null }>();
 
   for (const book of books) {
     const name = book.author_name?.trim();
     if (!name || name.toLowerCase() === "auteur inconnu") continue;
-    const entry = authorMap.get(book.author_id) ?? { name, count: 0, categories: [] };
+    const entry = authorMap.get(book.author_id) ?? {
+      name,
+      count: 0,
+      categories: [],
+      avatar_url: book.author_avatar_url ?? null,
+    };
     entry.count += 1;
     entry.categories.push(...(book.categories ?? []));
+    if (!entry.avatar_url && book.author_avatar_url) {
+      entry.avatar_url = book.author_avatar_url;
+    }
     authorMap.set(book.author_id, entry);
   }
 
@@ -32,9 +40,9 @@ export function FeaturedAuthorsSection({ books }: FeaturedAuthorsSectionProps) {
     .slice(0, 6);
 
   const fallbackAuthors = [
-    { name: "Collectif Holistique", topCategory: "Spiritualite", count: 4 },
-    { name: "Amina Koffi", topCategory: "Leadership", count: 3 },
-    { name: "Chinedu Obi", topCategory: "Roman social", count: 2 },
+    { name: "Collectif Holistique", topCategory: "Spiritualite", count: 4, avatar_url: null },
+    { name: "Amina Koffi", topCategory: "Leadership", count: 3, avatar_url: null },
+    { name: "Chinedu Obi", topCategory: "Roman social", count: 2, avatar_url: null },
   ];
 
   const finalAuthors = authors.length > 0 ? authors : fallbackAuthors;
@@ -43,14 +51,14 @@ export function FeaturedAuthorsSection({ books }: FeaturedAuthorsSectionProps) {
     <section className="hb-section">
       <div className="mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-4 px-4 sm:px-6">
         <div>
-          <p className="hb-kicker">Auteurs favoris</p>
-          <h2 className="hb-title text-2xl sm:text-3xl">Des voix que nos lecteurs suivent toute l&apos;annee.</h2>
+          <p className="hb-kicker">Voix a suivre</p>
+          <h2 className="hb-title text-2xl sm:text-3xl">Des auteurs qui ecrivent pour faire grandir.</h2>
           <p className="hb-muted mt-2 max-w-2xl text-sm sm:text-base">
-            Explorez les auteurs, leurs univers et les categories qu&apos;ils dominent.
+            Leadership, spiritualite, guerison interieure, discipline, vision: decouvrez les voix qui donnent du relief a notre catalogue.
           </p>
         </div>
         <Link href="/books" className="hb-link text-sm font-semibold">
-          Voir tous les auteurs
+          Decouvrir les auteurs
         </Link>
       </div>
 
@@ -62,10 +70,17 @@ export function FeaturedAuthorsSection({ books }: FeaturedAuthorsSectionProps) {
             .slice(0, 2)
             .join("")
             .toUpperCase();
+          const avatarUrl = author.avatar_url?.trim();
 
           return (
             <article key={author.name} className="hb-author-card">
-              <div className="hb-author-avatar">{initials}</div>
+              <div className="hb-author-avatar">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={author.name} className="h-full w-full object-cover" />
+                ) : (
+                  initials
+                )}
+              </div>
               <h3 className="mt-3 text-sm font-semibold text-slate-900">{author.name}</h3>
               <p className="text-xs text-slate-500">{author.topCategory}</p>
               <span className="mt-3 hb-pill">{author.count} titres</span>

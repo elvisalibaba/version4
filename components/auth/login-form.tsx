@@ -31,17 +31,18 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="ios-surface-strong space-y-4 rounded-[2rem] p-6">
-      <div className="space-y-2">
-        <p className="ios-kicker">Connexion</p>
-        <h1 className="ios-title text-2xl font-bold">Accedez a votre espace</h1>
+    <form onSubmit={onSubmit} className="surface-panel space-y-5 p-7 sm:p-8">
+      <div className="space-y-3">
+        <p className="premium-badge">Connexion</p>
+        <h1 className="section-title text-3xl">Accedez a votre espace</h1>
+        <p className="text-sm leading-7 text-slate-500">Lecteur, auteur ou admin: retrouvez votre compte, votre bibliotheque et vos actions en cours.</p>
       </div>
       <input
         type="email"
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="ios-input w-full rounded-2xl px-4 py-3"
+        className="ios-input w-full px-4 py-3.5"
         required
       />
       <input
@@ -49,11 +50,11 @@ export function LoginForm() {
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="ios-input w-full rounded-2xl px-4 py-3"
+        className="ios-input w-full px-4 py-3.5"
         required
       />
-      {error && <p className="ios-danger rounded-2xl px-4 py-3 text-sm">{error}</p>}
-      <button disabled={loading} className="ios-button-primary w-full rounded-2xl px-4 py-3 font-semibold disabled:opacity-60">
+      {error && <p className="rounded-[1.25rem] bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>}
+      <button disabled={loading} className="cta-primary w-full px-4 py-3.5 text-sm disabled:opacity-60">
         {loading ? "Connexion..." : "Se connecter"}
       </button>
     </form>
