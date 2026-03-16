@@ -6,7 +6,7 @@ const messages = [
   "Jean a Kinshasa vient de commencer \"Revez, Osez, Creez\".",
   "Nadia a Abidjan lit \"Leadership et impact\".",
   "Eric a Douala a ajoute \"Foi et discipline\" a sa bibliotheque.",
-  "Ruth a Kigali a telecharge \"Renaitre chaque jour\".",
+  "Ruth a Kigali lit \"Renaitre chaque jour\" dans le lecteur Holistique.",
   "Ibrahim a Dakar a ouvert \"Puissance interieure\".",
 ];
 

@@ -1,5 +1,4 @@
 import { resolveBookOfferDetails } from "@/lib/book-offers";
-import { isBookCategory } from "@/lib/book-categories";
 import { createClient } from "@/lib/supabase/server";
 import type { BookFormatType, Database } from "@/types/database";
 
@@ -30,6 +29,10 @@ type PublishedBookRow = Pick<
   | "publication_date"
   | "page_count"
   | "categories"
+  | "views_count"
+  | "purchases_count"
+  | "rating_avg"
+  | "ratings_count"
   | "currency_code"
   | "is_single_sale_enabled"
   | "is_subscription_available"
@@ -190,14 +193,15 @@ export async function getPublishedBooks(options: GetPublishedBooksOptions = {}) 
   let query = supabase
     .from("books")
     .select(
-      "id, title, subtitle, description, price, cover_url, status, author_id, created_at, published_at, publication_date, page_count, categories, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(format, price, is_published, currency_code)",
+      "id, title, subtitle, description, price, cover_url, status, author_id, created_at, published_at, publication_date, page_count, categories, views_count, purchases_count, rating_avg, ratings_count, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(format, price, is_published, currency_code)",
     )
     .eq("status", "published")
     .order("published_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
 
-  if (isBookCategory(category)) {
-    query = query.contains("categories", [category]);
+  const categoryTerm = category?.trim();
+  if (categoryTerm && categoryTerm.toLowerCase() !== "all") {
+    query = query.contains("categories", [categoryTerm]);
   }
 
   const term = searchQuery?.trim();
@@ -221,7 +225,7 @@ export async function getComingSoonBooks() {
   const { data, error } = await supabase
     .from("books")
     .select(
-      "id, title, subtitle, description, price, cover_url, status, author_id, created_at, published_at, publication_date, page_count, categories, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(format, price, is_published, currency_code)",
+      "id, title, subtitle, description, price, cover_url, status, author_id, created_at, published_at, publication_date, page_count, categories, views_count, purchases_count, rating_avg, ratings_count, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(format, price, is_published, currency_code)",
     )
     .eq("status", "coming_soon")
     .order("publication_date", { ascending: true, nullsFirst: false })

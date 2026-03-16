@@ -43,7 +43,7 @@ export default async function AuthorSalesPage() {
       <DashboardTopbar
         kicker="Sales analytics"
         title="Ventes auteur"
-        description="Suivez vos revenus et l etat des commandes sur vos livres publies."
+        description="Suivez vos revenus, vos transactions confirmees et l etat des commandes dans une presentation plus professionnelle."
         actions={
           <>
             <Link href="/dashboard/author/books" className="cta-primary px-5 py-3 text-sm">
@@ -83,7 +83,10 @@ export default async function AuthorSalesPage() {
               const isPaid = order?.payment_status === "paid";
 
               return (
-                <article key={`${book?.title ?? "sale"}-${index}`} className="flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-violet-100 bg-[linear-gradient(135deg,_rgba(255,255,255,0.95),_rgba(244,239,255,0.92))] p-4">
+                <article
+                  key={`${book?.title ?? "sale"}-${index}`}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-[#ece3d7] bg-[linear-gradient(135deg,_rgba(255,255,255,0.98),_rgba(250,245,239,0.96))] p-4"
+                >
                   <div>
                     <p className="font-semibold text-slate-950">{book?.title ?? "Livre supprime"}</p>
                     <p className="text-xs text-slate-500">
@@ -94,7 +97,7 @@ export default async function AuthorSalesPage() {
                     <p className="text-sm font-semibold text-slate-950">${sale.price.toFixed(2)}</p>
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        isPaid ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                        isPaid ? "bg-emerald-100 text-emerald-700" : "bg-[#faf1e1] text-[#a06a2b]"
                       }`}
                     >
                       {order?.payment_status ?? "unknown"}

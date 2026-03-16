@@ -71,17 +71,17 @@ export default async function AuthorBooksPage() {
   const premiumEnabledCount = books.filter((book) => book.is_subscription_available).length;
   const statusMeta = {
     published: { label: "Publie", className: "bg-emerald-100 text-emerald-700" },
-    draft: { label: "Brouillon", className: "bg-amber-100 text-amber-700" },
-    coming_soon: { label: "Bientot disponible", className: "bg-sky-100 text-sky-700" },
-    archived: { label: "Archive", className: "bg-slate-200 text-slate-700" },
+    draft: { label: "Brouillon", className: "bg-[#faf1e1] text-[#a06a2b]" },
+    coming_soon: { label: "Bientot disponible", className: "bg-[#edf4f7] text-[#3d6f83]" },
+    archived: { label: "Archive", className: "bg-[#f2f0ec] text-[#5c544b]" },
   } as const;
 
   const reviewMeta: Record<BookReviewStatus, { label: string; className: string }> = {
-    draft: { label: "Brouillon", className: "bg-slate-100 text-slate-700" },
-    submitted: { label: "Soumis", className: "bg-amber-100 text-amber-700" },
+    draft: { label: "Brouillon", className: "bg-[#f2f0ec] text-[#5c544b]" },
+    submitted: { label: "Soumis", className: "bg-[#faf1e1] text-[#a06a2b]" },
     approved: { label: "Valide", className: "bg-emerald-100 text-emerald-700" },
-    rejected: { label: "Refuse", className: "bg-rose-100 text-rose-700" },
-    changes_requested: { label: "Corrections", className: "bg-violet-100 text-violet-700" },
+    rejected: { label: "Refuse", className: "bg-[#fde9e3] text-[#b45b48]" },
+    changes_requested: { label: "Corrections", className: "bg-[#f8efe7] text-[#a85b3f]" },
   };
 
   return (
@@ -89,7 +89,7 @@ export default async function AuthorBooksPage() {
       <DashboardTopbar
         kicker="Catalogue auteur"
         title="Gerez vos livres"
-        description="Vue complete de vos titres, formats, statuts et disponibilites Premium."
+        description="Vue complete de vos titres, formats, statuts et disponibilites commerciales dans un rendu plus lisible et plus editorial."
         actions={
           <>
             <Link href="/dashboard/author/add-book" className="cta-primary px-5 py-3 text-sm">
@@ -117,7 +117,7 @@ export default async function AuthorBooksPage() {
           <div className="space-y-2">
             <p className="section-kicker">Publishing list</p>
             <h2 className="section-title text-2xl">Votre catalogue</h2>
-            <p className="section-description">Chaque livre garde sa logique metier, mais l auteur beneficie maintenant d une lecture visuelle plus claire.</p>
+            <p className="section-description">Chaque livre conserve sa logique metier, mais l interface auteur gagne une lecture plus claire, plus premium et plus exploitable.</p>
           </div>
           <span className="catalog-badge">{premiumEnabledCount} titre(s) Premium</span>
         </div>
@@ -138,7 +138,10 @@ export default async function AuthorBooksPage() {
                 .filter((value): value is string => Boolean(value));
 
               return (
-                <article key={book.id} className="rounded-[1.85rem] border border-violet-100 bg-[linear-gradient(135deg,_rgba(255,255,255,0.95),_rgba(244,239,255,0.92))] p-5">
+                <article
+                  key={book.id}
+                  className="rounded-[1.85rem] border border-[#ece3d7] bg-[linear-gradient(135deg,_rgba(255,255,255,0.98),_rgba(250,245,239,0.96))] p-5"
+                >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <h2 className="text-xl font-semibold text-slate-950">{book.title}</h2>

@@ -24,7 +24,7 @@ export default async function AdminFormatDetailPage({ params }: FormatDetailPage
     <div className="space-y-6">
       <AdminPageHeader
         title={`${data.format.format} - ${data.book.title}`}
-        description="Edition d un format lie a un livre, avec controle de publication, prix et telechargement."
+        description="Edition d un format lie a un livre, avec controle de publication, prix et lecture protegee web/app."
         breadcrumbs={[
           { label: "Admin", href: "/admin" },
           { label: "Formats", href: "/admin/formats" },
@@ -104,10 +104,9 @@ export default async function AdminFormatDetailPage({ params }: FormatDetailPage
               <input type="text" name="file_url" defaultValue={data.format.file_url ?? ""} className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900" />
             </label>
             <div className="grid gap-3 md:grid-cols-2">
-              <label className="flex items-center gap-3 rounded-2xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-700">
-                <input type="checkbox" name="downloadable" defaultChecked={data.format.downloadable} />
-                Telechargeable
-              </label>
+              <div className="rounded-2xl border border-violet-200 bg-violet-50/50 px-4 py-3 text-sm leading-7 text-slate-700">
+                Les ebooks sont maintenant verrouilles en lecture protegee: site Holistique Books ou application uniquement.
+              </div>
               <label className="flex items-center gap-3 rounded-2xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-700">
                 <input type="checkbox" name="is_published" defaultChecked={data.format.is_published} />
                 Publier ce format

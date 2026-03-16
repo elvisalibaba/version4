@@ -151,7 +151,7 @@ export default async function EditAuthorBookPage({ params }: PageProps) {
             coverAltText: book.cover_alt_text ?? "",
             samplePages: book.sample_pages ? String(book.sample_pages) : "",
             ebookPrice: String(ebookFormat?.price ?? book.price),
-            ebookDownloadable: Boolean(ebookFormat?.downloadable),
+            ebookDownloadable: false,
             ebookFileSizeMb: ebookFormat?.file_size_mb ?? (book.file_size ? Math.ceil(book.file_size / (1024 * 1024)) : null),
             ebookStoredFileSize: book.file_size,
             ebookFileFormat: book.file_format,

@@ -224,7 +224,6 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
   const [coverAltText, setCoverAltText] = useState(initial.coverAltText);
   const [samplePages, setSamplePages] = useState(initial.samplePages);
   const [ebookPrice, setEbookPrice] = useState(initial.ebookPrice);
-  const [ebookDownloadable, setEbookDownloadable] = useState(initial.ebookDownloadable);
   const [paperback, setPaperback] = useState<FormatState>(initial.paperback);
   const [hardcover, setHardcover] = useState<FormatState>(initial.hardcover);
   const [audiobook, setAudiobook] = useState<FormatState>(initial.audiobook);
@@ -366,7 +365,7 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
           file_url: ebookPath,
           stock_quantity: null,
           file_size_mb: nextEbookFile ? Math.ceil(nextEbookFile.size / (1024 * 1024)) : initial.ebookFileSizeMb ?? null,
-          downloadable: ebookDownloadable,
+          downloadable: false,
           is_published: false,
         },
         ...(paperback.enabled
@@ -582,11 +581,10 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
           <Input label="Extrait (optionnel)"><input type="file" accept=".epub,.pdf,application/epub+zip,application/pdf" onChange={(event) => setSampleFile(event.target.files?.[0] ?? null)} className="block w-full px-4 py-3.5 text-slate-700" /></Input>
           <Input label="Nombre de pages de l extrait"><input type="number" min="1" value={samplePages} onChange={(event) => setSamplePages(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
           <Input label="Prix ebook *"><input type="number" min="0" step="0.01" required value={ebookPrice} onChange={(event) => setEbookPrice(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <div className="flex items-end gap-6">
-            <label className="flex items-center gap-2 text-sm text-slate-700">
-              <input type="checkbox" checked={ebookDownloadable} onChange={(event) => setEbookDownloadable(event.target.checked)} className="h-4 w-4 rounded border-slate-300 text-indigo-600" />
-              Ebook telechargeable apres validation admin
-            </label>
+          <div className="flex items-end">
+            <div className="rounded-[1.4rem] border border-violet-100 bg-violet-50/70 px-4 py-4 text-sm leading-7 text-slate-700">
+              Ebook protege: lecture uniquement sur le site Holistique Books et dans l application. Aucun telechargement lecteur n est propose.
+            </div>
           </div>
         </div>
         <div className="mt-5 space-y-4">

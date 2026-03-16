@@ -17,9 +17,9 @@ export default async function AuthorDashboardLayout({
 
   return (
     <DashboardShell
-      areaLabel="Author studio"
-      headline="Publishing cockpit"
-      description="Pilotez votre catalogue, vos ventes et vos livres Premium dans une interface plus claire, plus editoriale et plus pro."
+      areaLabel="Writer side"
+      headline="Holistique Author Studio"
+      description="Pilotez votre catalogue, vos performances et vos ventes dans un espace plus credible, plus editorial et vraiment pense pour les auteurs."
       userName={profile?.name ?? profile?.email ?? "Author"}
       userRole="Auteur"
       navigation={navigation}

@@ -4,22 +4,39 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageHero } from "@/components/ui/page-hero";
 import { SearchBar } from "@/components/ui/search-bar";
 import { SectionHeader } from "@/components/ui/section-header";
-import { HEADER_CATEGORY_ITEMS, isBookCategory, isHeaderCategoryValue } from "@/lib/book-categories";
+import { HEADER_CATEGORY_ITEMS } from "@/lib/book-categories";
 import { getPublishedBooks } from "@/lib/books";
 
 type BooksPageProps = {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; author?: string; access?: string }>;
 };
 
 export default async function BooksPage({ searchParams }: BooksPageProps) {
-  const { q, category } = await searchParams;
+  const { q, category, author, access } = await searchParams;
   const searchQuery = q?.trim() ?? "";
-  const normalizedCategory = isHeaderCategoryValue(category) ? category : undefined;
-  const books = await getPublishedBooks({
+  const authorQuery = author?.trim() ?? "";
+  const accessQuery = access?.trim() ?? "all";
+  const normalizedCategory = category?.trim() ? category.trim() : undefined;
+  const baseBooks = await getPublishedBooks({
     searchQuery,
-    category: isBookCategory(normalizedCategory) ? normalizedCategory : undefined,
+    category: normalizedCategory,
   });
-  const activeCategoryLabel = HEADER_CATEGORY_ITEMS.find((item) => item.value === normalizedCategory)?.label;
+  const books = baseBooks.filter((book) => {
+    const matchesAuthor = authorQuery ? (book.author_name ?? "").toLowerCase() === authorQuery.toLowerCase() : true;
+    const matchesAccess =
+      accessQuery === "free"
+        ? book.is_free
+        : accessQuery === "premium"
+          ? book.offer_mode === "sale_and_subscription" || book.offer_mode === "subscription_only"
+          : accessQuery === "purchase"
+            ? book.offer_mode === "sale_only" || book.offer_mode === "sale_and_subscription"
+            : true;
+
+    return matchesAuthor && matchesAccess;
+  });
+  const activeCategoryLabel = HEADER_CATEGORY_ITEMS.find((item) => item.value === normalizedCategory)?.label ?? normalizedCategory;
+  const activeAccessLabel =
+    accessQuery === "free" ? "Livres gratuits" : accessQuery === "premium" ? "Inclus Premium" : accessQuery === "purchase" ? "Achat a l unite" : null;
 
   return (
     <section className="space-y-8">
@@ -50,11 +67,11 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
               </div>
               <div className="rounded-[1.35rem] bg-white/90 p-4 shadow-sm">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Filtre</p>
-                <p className="mt-2 text-base font-semibold text-slate-950">{activeCategoryLabel ?? "Tous les genres"}</p>
+                <p className="mt-2 text-base font-semibold text-slate-950">{activeCategoryLabel ?? activeAccessLabel ?? "Tous les genres"}</p>
               </div>
               <div className="rounded-[1.35rem] bg-white/90 p-4 shadow-sm">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Intention</p>
-                <p className="mt-2 truncate text-base font-semibold text-slate-950">{searchQuery || "Foi, clarte, leadership..."}</p>
+                <p className="mt-2 truncate text-base font-semibold text-slate-950">{searchQuery || authorQuery || "Foi, clarte, leadership..."}</p>
               </div>
             </div>
           </div>
@@ -110,12 +127,12 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
               kicker="Selection"
               title="Lectures pour grandir"
               description={
-                searchQuery || activeCategoryLabel
+                searchQuery || activeCategoryLabel || authorQuery || activeAccessLabel
                   ? "Votre recherche a ete appliquee sur notre selection actuelle."
                   : "Des livres choisis pour aider a penser mieux, vivre mieux et agir avec plus de clarte."
               }
               action={
-                searchQuery || activeCategoryLabel ? (
+                searchQuery || activeCategoryLabel || authorQuery || activeAccessLabel ? (
                   <Link href="/books" className="cta-secondary px-4 py-2 text-sm">
                     Effacer les filtres
                   </Link>
@@ -126,6 +143,12 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 {activeCategoryLabel ? <span className="catalog-badge">{activeCategoryLabel}</span> : null}
                 {searchQuery ? <span className="catalog-badge">&quot;{searchQuery}&quot;</span> : null}
+              </div>
+            )}
+            {(authorQuery || activeAccessLabel) && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {authorQuery ? <span className="catalog-badge">{authorQuery}</span> : null}
+                {activeAccessLabel ? <span className="catalog-badge">{activeAccessLabel}</span> : null}
               </div>
             )}
           </div>

@@ -12,12 +12,17 @@ function contentTypeFrom(fileType: "epub" | "pdf") {
 export async function GET(_request: Request, { params }: RouteProps) {
   const { bookId } = await params;
   const supabase = await createClient();
+  const readerChannel = _request.headers.get("x-holistique-reader");
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Connectez-vous pour lire ce livre." }, { status: 401 });
+  }
+
+  if (readerChannel !== "web" && readerChannel !== "app") {
+    return NextResponse.json({ error: "Lecture reservee au lecteur Holistique Books." }, { status: 403 });
   }
 
   const access = await resolveReadAccess(bookId, user.id);
@@ -46,14 +51,17 @@ export async function GET(_request: Request, { params }: RouteProps) {
   }
 
   const buffer = await fileRes.arrayBuffer();
-  const extension = access.fileType === "pdf" ? "pdf" : "epub";
-
   return new NextResponse(buffer, {
     headers: {
       "Content-Type": contentTypeFrom(access.fileType),
-      "Content-Disposition": `inline; filename="book.${extension}"`,
-      "Cache-Control": "private, max-age=60",
+      "Content-Disposition": "inline",
+      "Cache-Control": "private, no-store, no-cache, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+      "Accept-Ranges": "none",
+      "Cross-Origin-Resource-Policy": "same-origin",
       "X-Content-Type-Options": "nosniff",
+      "X-Robots-Tag": "noindex, noarchive",
     },
   });
 }

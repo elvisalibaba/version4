@@ -1,25 +1,40 @@
+import { AuthorCatalogSection } from "@/components/home/author-catalog-section";
 import { BookShelfSection } from "@/components/home/book-shelf-section";
-import { BlogSection } from "@/components/home/blog-section";
+import { ContactSection } from "@/components/home/contact-section";
+import { DiscoveryFilterSection } from "@/components/home/discovery-filter-section";
+import { FeaturedBooksGridSection } from "@/components/home/featured-books-grid-section";
 import { FlashSaleSection } from "@/components/home/flash-sale-section";
-import { FreeBooksMarqueeSection } from "@/components/home/free-books-marquee-section";
 import { HeroSection } from "@/components/home/hero-section";
+import { MarketPositionSection } from "@/components/home/market-position-section";
 import { NewsletterSection } from "@/components/home/newsletter-section";
-import { QuoteBandSection } from "@/components/home/quote-band-section";
 import { Reveal } from "@/components/home/reveal";
-import { FeaturedAuthorsSection } from "@/components/home/featured-authors-section";
 import { TrustBar } from "@/components/home/trust-bar";
 import { getComingSoonBooks, getPublishedBooks } from "@/lib/books";
 import { getFlashSaleState } from "@/lib/flash-sales";
 
+type HomeBook = Awaited<ReturnType<typeof getPublishedBooks>>[number];
+
+function comparePopularBooks(a: HomeBook, b: HomeBook) {
+  return (
+    (b.purchases_count ?? 0) - (a.purchases_count ?? 0) ||
+    (b.views_count ?? 0) - (a.views_count ?? 0) ||
+    (b.rating_avg ?? 0) - (a.rating_avg ?? 0) ||
+    (b.published_at ?? "").localeCompare(a.published_at ?? "")
+  );
+}
+
 export default async function HomePage() {
   const [books, comingSoonBooks] = await Promise.all([getPublishedBooks(), getComingSoonBooks()]);
-  const newReleases = books.filter((book) => !book.is_free).slice(0, 5);
+  const paidBooks = books.filter((book) => !book.is_free);
+  const freeBooks = books.filter((book) => book.is_free);
+  const popularRanked = [...books].sort(comparePopularBooks);
+  const popularSelection = [
+    ...popularRanked.slice(0, 4),
+    ...[...freeBooks].sort(comparePopularBooks).slice(0, 2),
+  ].filter((book, index, array) => array.findIndex((entry) => entry.id === book.id) === index);
+  const popularFallback = (popularSelection.length > 0 ? popularSelection : books.slice(0, 6)).slice(0, 6);
+  const newReleases = paidBooks.slice(0, 5);
   const newReleasesFallback = newReleases.length > 0 ? newReleases : books.slice(0, 5);
-  const deepDiveBooks = [...books]
-    .filter((book) => !book.is_free)
-    .sort((a, b) => (b.page_count ?? 0) - (a.page_count ?? 0) || (b.published_at ?? "").localeCompare(a.published_at ?? ""))
-    .slice(0, 5);
-  const deepDiveFallback = deepDiveBooks.length > 0 ? deepDiveBooks : books.slice(0, 5);
   const comingSoon = comingSoonBooks.slice(0, 5);
   const flashSale = await getFlashSaleState(books);
 
@@ -32,22 +47,21 @@ export default async function HomePage() {
         <Reveal delay={80}>
           <TrustBar />
         </Reveal>
-        <Reveal delay={120}>
-          <FreeBooksMarqueeSection books={books} />
+        <Reveal delay={110}>
+          <DiscoveryFilterSection books={books} />
         </Reveal>
-        <Reveal delay={160}>
-          <BookShelfSection
-            title="Nouveautes a ouvrir cette semaine"
-            subtitle="Des titres recents, utiles et faciles a recommander pour creer un premier declic rapidement."
-            books={newReleasesFallback}
-            size="compact"
+        <Reveal delay={140}>
+          <FeaturedBooksGridSection
+            id="popular-books"
+            title="Popular Book"
+            books={popularFallback}
           />
         </Reveal>
-        <Reveal delay={200}>
+        <Reveal delay={180}>
           <BookShelfSection
-            title="Pour aller plus loin"
-            subtitle="Des livres plus complets pour les lecteurs deja convaincus, prets a approfondir un sujet en profondeur."
-            books={deepDiveFallback}
+            title="Nouveautes a ouvrir cette semaine"
+            subtitle="Des titres recents mis en scene comme de vraies nouveautes de librairie pour creer un premier achat plus facilement."
+            books={newReleasesFallback}
             size="compact"
           />
         </Reveal>
@@ -55,26 +69,26 @@ export default async function HomePage() {
           <Reveal delay={220}>
             <BookShelfSection
               title="Bientot disponibles"
-              subtitle="Des sorties deja prêtes a relancer l envie de lire, d acheter et de revenir sur la plateforme."
+              subtitle="Des sorties deja pretes a relancer l envie de lire, d acheter et de revenir sur la plateforme."
               books={comingSoon}
               variant="comingSoon"
             />
           </Reveal>
         ) : null}
-        <Reveal delay={230}>
-          <FlashSaleSection books={flashSale.dealBooks} discountPercentage={flashSale.config.discountPercentage} />
+        <Reveal delay={240}>
+          <AuthorCatalogSection books={books} />
         </Reveal>
         <Reveal delay={260}>
-          <FeaturedAuthorsSection books={books} />
-        </Reveal>
-        <Reveal delay={270}>
-          <QuoteBandSection />
+          <FlashSaleSection books={flashSale.dealBooks} discountPercentage={flashSale.config.discountPercentage} />
         </Reveal>
         <Reveal delay={280}>
-          <BlogSection />
+          <NewsletterSection />
         </Reveal>
         <Reveal delay={300}>
-          <NewsletterSection />
+          <ContactSection />
+        </Reveal>
+        <Reveal delay={320}>
+          <MarketPositionSection />
         </Reveal>
       </div>
     </div>

@@ -181,7 +181,9 @@ export function BookDetailClient({ book, accessState, isAuthenticated, checkoutC
 
                   {!isAuthenticated ? (
                     <p className="mt-4 text-sm text-slate-500">Connexion requise pour ouvrir la lecture web securisee.</p>
-                  ) : null}
+                  ) : (
+                    <p className="mt-4 text-sm text-slate-500">Lecture disponible uniquement sur le site Holistique Books et dans notre application.</p>
+                  )}
                 </div>
 
                 <div className="surface-panel-soft p-5">

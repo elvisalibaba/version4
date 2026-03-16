@@ -71,24 +71,24 @@ export default async function AuthorDashboardPage() {
   const recentReaders = ownAcquisitions.slice(0, 5);
   const statusMeta = {
     published: { label: "Publie", className: "bg-emerald-100 text-emerald-700" },
-    draft: { label: "Brouillon", className: "bg-amber-100 text-amber-700" },
-    coming_soon: { label: "Bientot disponible", className: "bg-sky-100 text-sky-700" },
-    archived: { label: "Archive", className: "bg-slate-200 text-slate-700" },
+    draft: { label: "Brouillon", className: "bg-[#faf1e1] text-[#a06a2b]" },
+    coming_soon: { label: "Bientot disponible", className: "bg-[#edf4f7] text-[#3d6f83]" },
+    archived: { label: "Archive", className: "bg-[#f2f0ec] text-[#5c544b]" },
   } as const;
   const reviewMeta: Record<BookReviewStatus, { label: string; className: string }> = {
-    draft: { label: "Brouillon", className: "bg-slate-100 text-slate-700" },
-    submitted: { label: "Soumis", className: "bg-amber-100 text-amber-700" },
+    draft: { label: "Brouillon", className: "bg-[#f2f0ec] text-[#5c544b]" },
+    submitted: { label: "Soumis", className: "bg-[#faf1e1] text-[#a06a2b]" },
     approved: { label: "Valide", className: "bg-emerald-100 text-emerald-700" },
-    rejected: { label: "Refuse", className: "bg-rose-100 text-rose-700" },
-    changes_requested: { label: "Corrections", className: "bg-violet-100 text-violet-700" },
+    rejected: { label: "Refuse", className: "bg-[#fde9e3] text-[#b45b48]" },
+    changes_requested: { label: "Corrections", className: "bg-[#f8efe7] text-[#a85b3f]" },
   };
 
   return (
     <section className="space-y-6">
       <DashboardTopbar
-        kicker="Author studio"
+        kicker="Writer side"
         title={`Tableau de bord auteur de ${profile.name ?? profile.email}`}
-        description="Suivez vos performances, vos lecteurs et toutes les acquisitions, meme sur les livres gratuits ou Premium."
+        description="Suivez vos performances, votre audience et toutes les acquisitions de votre catalogue dans une interface plus editoriale et plus professionnelle."
         actions={
           <>
             <Link href="/dashboard/author/add-book" className="cta-primary px-5 py-3 text-sm">
@@ -133,7 +133,10 @@ export default async function AuthorDashboardPage() {
                 const isFree = entry.access_type === "free";
 
                 return (
-                  <article key={`${entry.user_id}-${entry.purchased_at}-${index}`} className="flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-violet-100 bg-[linear-gradient(135deg,_rgba(255,255,255,0.95),_rgba(244,239,255,0.92))] p-4">
+                  <article
+                    key={`${entry.user_id}-${entry.purchased_at}-${index}`}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-[#ece3d7] bg-[linear-gradient(135deg,_rgba(255,255,255,0.98),_rgba(250,245,239,0.96))] p-4"
+                  >
                     <div>
                       <p className="font-semibold text-slate-950">
                         {buyer?.name ?? "Lecteur"} <span className="font-normal text-slate-500">({buyer?.email ?? "email indisponible"})</span>
@@ -143,7 +146,7 @@ export default async function AuthorDashboardPage() {
                     </div>
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        isSubscription ? "bg-indigo-100 text-indigo-700" : isFree ? "bg-emerald-100 text-emerald-700" : "bg-sky-100 text-sky-700"
+                        isSubscription ? "bg-[#edf4f7] text-[#3d6f83]" : isFree ? "bg-emerald-100 text-emerald-700" : "bg-[#f8efe7] text-[#a85b3f]"
                       }`}
                     >
                       {getLibraryAccessLabel(entry.access_type)}
@@ -190,7 +193,7 @@ export default async function AuthorDashboardPage() {
             <div className="mt-4 space-y-3">
               {recentBooks.length > 0 ? (
                 recentBooks.map((book) => (
-                  <article key={book.id} className="flex items-center justify-between rounded-[1.35rem] bg-violet-50/70 p-4">
+                  <article key={book.id} className="flex items-center justify-between rounded-[1.35rem] bg-[#faf5ef] p-4">
                     <div>
                       <p className="font-semibold text-slate-950">{book.title}</p>
                       <p className="text-xs text-slate-500">Cree le {new Date(book.created_at).toLocaleDateString("fr-FR")}</p>
@@ -213,7 +216,7 @@ export default async function AuthorDashboardPage() {
 
           <section className="surface-panel-soft p-5">
             <div className="flex items-start gap-3">
-              <Users className="mt-1 h-5 w-5 text-violet-500" />
+              <Users className="mt-1 h-5 w-5 text-[#a85b3f]" />
               <div>
                 <p className="text-sm font-semibold text-slate-950">Commununaute active</p>
                 <p className="mt-2 text-sm leading-7 text-slate-500">

@@ -21,7 +21,7 @@ export function SearchBar({
 }: SearchBarProps) {
   return (
     <form action={action} className={`search-field ${compact ? "search-field-compact" : ""} ${className}`.trim()}>
-      <Search className="h-4 w-4 text-violet-500" />
+      <Search className="h-4 w-4 text-[#a85b3f]" />
       <input
         type="search"
         name={name}

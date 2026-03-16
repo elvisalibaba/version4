@@ -9,12 +9,12 @@ type StatCardProps = {
 };
 
 const toneClasses = {
-  violet: "bg-violet-100 text-violet-700",
-  sky: "bg-sky-100 text-sky-700",
-  emerald: "bg-emerald-100 text-emerald-700",
-  amber: "bg-amber-100 text-amber-700",
-  rose: "bg-rose-100 text-rose-700",
-  slate: "bg-slate-100 text-slate-700",
+  violet: "bg-[#f8efe7] text-[#a85b3f]",
+  sky: "bg-[#edf4f7] text-[#3d6f83]",
+  emerald: "bg-[#eef5ef] text-[#47725a]",
+  amber: "bg-[#faf1e1] text-[#a06a2b]",
+  rose: "bg-[#fde9e3] text-[#b45b48]",
+  slate: "bg-[#f2f0ec] text-[#5c544b]",
 };
 
 export function StatCard({ icon: Icon, label, value, description, tone = "violet" }: StatCardProps) {

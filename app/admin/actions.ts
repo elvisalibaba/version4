@@ -306,7 +306,7 @@ export async function saveBookFormatAction(formData: FormData) {
     format: getString(formData, "format") as BookFormatType,
     price: getNumber(formData, "price"),
     currency_code: getString(formData, "currency_code") || "USD",
-    downloadable: getBoolean(formData, "downloadable"),
+    downloadable: false,
     is_published: getBoolean(formData, "is_published"),
     printing_cost: getNullableNumber(formData, "printing_cost"),
     stock_quantity: getNullableNumber(formData, "stock_quantity"),

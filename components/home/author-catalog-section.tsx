@@ -56,18 +56,23 @@ export function AuthorCatalogSection({ books }: AuthorCatalogSectionProps) {
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <section id="authors" className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="ios-kicker">Catalogue auteurs</p>
-          <h2 className="ios-title text-2xl font-bold">Profils complets, parcours editoriaux et titres en vitrine</h2>
+          <p className="ios-kicker">Writer side</p>
+          <h2 className="ios-title text-2xl font-bold">Des auteurs presentes comme de vraies signatures editoriales.</h2>
           <p className="ios-muted mt-2 max-w-2xl text-sm sm:text-base">
-            Une vision claire des auteurs disponibles, de leurs thematiques et de leur rayonnement editorial premium.
+            Holistique Books valorise les auteurs avec une presence plus professionnelle, une lecture claire du catalogue et des points d entree qui inspirent confiance.
           </p>
         </div>
-        <Link href="/books" className="text-sm font-semibold text-rose-700 hover:text-rose-800">
-          Decouvrir tous les auteurs
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/books" className="text-sm font-semibold text-rose-700 hover:text-rose-800">
+            Voir les livres
+          </Link>
+          <Link href="/register" className="text-sm font-semibold text-slate-900 hover:text-rose-700">
+            Ouvrir le studio auteur
+          </Link>
+        </div>
       </div>
 
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
