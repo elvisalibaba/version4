@@ -2423,279 +2423,358 @@ textarea:focus {
   }
 }
 
-.hb-marketing-hero {
+.hb-bookstore-hero {
   display: grid;
-  gap: 1.4rem;
-  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.95fr);
-  align-items: stretch;
-  border: 1px solid rgba(109, 89, 240, 0.12);
-  border-radius: 2.6rem;
-  background:
-    radial-gradient(circle at top left, rgba(167, 152, 255, 0.26), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(255, 173, 160, 0.22), transparent 26%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(246, 241, 255, 0.95));
-  padding: 1.35rem;
-  box-shadow: 0 28px 70px rgba(79, 57, 180, 0.12);
+  gap: 1.2rem;
 }
 
-.hb-marketing-copy,
-.hb-marketing-side {
+.hb-bookstore-main {
   display: grid;
-  gap: 1.1rem;
+  gap: 1.3rem;
+  grid-template-columns: minmax(0, 1.02fr) minmax(360px, 0.98fr);
+  align-items: stretch;
+  border: 1px solid #e7e5e4;
+  border-radius: 2.5rem;
+  background:
+    radial-gradient(circle at top left, rgba(245, 240, 232, 0.9), transparent 26%),
+    linear-gradient(180deg, #ffffff 0%, #fbfaf8 100%);
+  padding: 1.2rem;
+  box-shadow: 0 24px 55px rgba(15, 23, 42, 0.08);
+}
+
+.hb-bookstore-copy,
+.hb-bookstore-stage-shell {
+  display: grid;
+  gap: 1rem;
   align-content: start;
 }
 
-.hb-hero-visual-card {
-  display: grid;
-  gap: 1rem;
-  border: 1px solid rgba(109, 89, 240, 0.12);
-  border-radius: 2rem;
-  background:
-    radial-gradient(circle at top left, rgba(255, 173, 160, 0.18), transparent 30%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(246, 241, 255, 0.94));
-  padding: 1.15rem;
-  box-shadow: 0 18px 42px rgba(79, 57, 180, 0.08);
+.hb-bookstore-copy {
+  padding: 1rem;
 }
 
-.hb-hero-visual-copy {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.hb-hero-visual-grid {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 0.75rem;
-  min-height: 320px;
-}
-
-.hb-hero-visual-frame {
-  position: relative;
-  overflow: hidden;
-  border-radius: 1.5rem;
-  min-height: 150px;
-  background: linear-gradient(180deg, #f2edff, #f8f5ff);
-}
-
-.hb-hero-visual-grid .hb-hero-visual-frame.is-primary {
-  grid-column: 1;
-  grid-row: 1 / span 2;
-  min-height: 320px;
-}
-
-.hb-hero-visual-grid .hb-hero-visual-frame.is-secondary {
-  grid-column: 2;
-  grid-row: 1;
-  min-height: 156px;
-}
-
-.hb-hero-visual-grid .hb-hero-visual-frame.is-tertiary {
-  grid-column: 2;
-  grid-row: 2;
-  min-height: 156px;
-}
-
-.hb-hero-visual-frame::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(18, 13, 51, 0.02), rgba(18, 13, 51, 0.44));
-}
-
-.hb-hero-visual-frame figcaption {
-  position: absolute;
-  left: 0.9rem;
-  right: 0.9rem;
-  bottom: 0.9rem;
-  z-index: 1;
-  color: #fff;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.hb-marketing-copy {
-  padding: 1.2rem;
-}
-
-.hb-marketing-kicker {
+.hb-bookstore-kicker {
   display: inline-flex;
   align-items: center;
   width: fit-content;
   border-radius: 999px;
-  background: rgba(109, 89, 240, 0.12);
-  color: var(--hb-primary);
-  padding: 0.45rem 0.9rem;
-  font-size: 0.72rem;
+  border: 1px solid #e7ded1;
+  background: rgba(255, 255, 255, 0.92);
+  color: #8a6d4f;
+  padding: 0.42rem 0.88rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.hb-bookstore-label {
+  color: #8a6d4f;
+  font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
 }
 
-.hb-marketing-title {
-  max-width: 11ch;
-  color: #17133d;
+.hb-bookstore-title {
+  max-width: 12ch;
+  color: #111827;
   font-family: var(--font-display), sans-serif;
-  font-size: clamp(2.4rem, 5vw, 4.6rem);
-  line-height: 0.98;
+  font-size: clamp(2.55rem, 5vw, 4.8rem);
+  line-height: 0.96;
   letter-spacing: -0.05em;
 }
 
-.hb-marketing-text {
-  max-width: 44rem;
-  color: #5e587f;
+.hb-bookstore-text {
+  max-width: 42rem;
+  color: #57534e;
   font-size: 1rem;
   line-height: 1.85;
 }
 
-.hb-marketing-actions {
+.hb-bookstore-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;
 }
 
-.hb-marketing-stats {
+.hb-bookstore-proof {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.8rem;
 }
 
-.hb-marketing-stat {
+.hb-bookstore-proof-item {
   display: grid;
-  gap: 0.2rem;
-  border: 1px solid rgba(109, 89, 240, 0.12);
-  border-radius: 1.5rem;
-  background: rgba(255, 255, 255, 0.86);
+  gap: 0.25rem;
+  border: 1px solid #ece7df;
+  border-radius: 1.45rem;
+  background: rgba(255, 255, 255, 0.92);
   padding: 1rem;
 }
 
-.hb-marketing-stat strong {
-  color: #1c1747;
-  font-size: 1.5rem;
+.hb-bookstore-proof-item strong {
+  color: #18181b;
+  font-size: 1.45rem;
   line-height: 1;
 }
 
-.hb-marketing-stat span:last-child {
-  color: #6a638a;
-  font-size: 0.86rem;
-  line-height: 1.55;
+.hb-bookstore-proof-item span {
+  color: #6b7280;
+  font-size: 0.84rem;
+  line-height: 1.6;
 }
 
-.hb-marketing-stat-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.35rem;
-  height: 2.35rem;
-  border-radius: 999px;
-  background: rgba(109, 89, 240, 0.12);
-  color: var(--hb-primary);
-}
-
-.hb-featured-book-card,
+.hb-bookstore-focus,
 .hb-mobile-launch-card,
 .hb-free-path-panel {
-  border: 1px solid rgba(109, 89, 240, 0.12);
-  border-radius: 2rem;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 18px 42px rgba(79, 57, 180, 0.08);
+  border: 1px solid #ece7df;
+  border-radius: 1.8rem;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.06);
 }
 
-.hb-featured-book-card {
-  padding: 1.2rem;
+.hb-bookstore-focus {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem 1.1rem;
+  background:
+    radial-gradient(circle at top right, rgba(245, 237, 225, 0.8), transparent 32%),
+    linear-gradient(180deg, #fffdf9 0%, #ffffff 100%);
 }
 
-.hb-featured-book-head {
+.hb-bookstore-focus-kicker {
+  color: #8a6d4f;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.hb-bookstore-focus-title {
+  color: #18181b;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+.hb-bookstore-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
-  margin-bottom: 1rem;
+  gap: 0.55rem;
+}
+
+.hb-bookstore-meta span {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #f6f3ee;
+  color: #57534e;
+  padding: 0.34rem 0.72rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.hb-bookstore-inline-link,
+.hb-bookstore-stage-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  color: #111827;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.hb-bookstore-inline-link:hover,
+.hb-bookstore-stage-link:hover {
+  color: #8a6d4f;
+}
+
+.hb-bookstore-stage-panel {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid #ece7df;
+  border-radius: 2rem;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.75), transparent 28%),
+    linear-gradient(180deg, #f9f9f8 0%, #f2f0ec 100%);
+  padding: 1rem;
+  box-shadow: 0 24px 46px rgba(15, 23, 42, 0.08);
+}
+
+.hb-bookstore-stage-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .hb-featured-chip {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  background: rgba(109, 89, 240, 0.12);
-  color: var(--hb-primary);
-  padding: 0.35rem 0.8rem;
-  font-size: 0.72rem;
+  background: #111827;
+  color: #ffffff;
+  padding: 0.38rem 0.82rem;
+  font-size: 0.7rem;
   font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .hb-featured-chip.is-soft {
-  background: rgba(255, 143, 112, 0.16);
-  color: #d45b3d;
+  background: #efe5d6;
+  color: #8a6d4f;
 }
 
-.hb-featured-book-body {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: 140px minmax(0, 1fr);
-  align-items: start;
-}
-
-.hb-featured-book-cover {
+.hb-bookstore-stage {
+  position: relative;
   overflow: hidden;
-  border-radius: 1.5rem;
-  aspect-ratio: 2 / 3;
-  background: linear-gradient(180deg, #f2edff, #f8f5ff);
-  box-shadow: 0 16px 28px rgba(79, 57, 180, 0.12);
+  min-height: 470px;
+  border-radius: 1.75rem;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.96), transparent 34%),
+    linear-gradient(180deg, #f5f3ef 0%, #ebe7df 100%);
+  padding: 1.2rem;
 }
 
-.hb-featured-book-copy {
+.hb-bookstore-stage::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 1.2rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  filter: blur(18px);
+}
+
+.hb-bookstore-stage-badges {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hb-stage-badge {
+  position: absolute;
+  z-index: 3;
   display: grid;
-  gap: 0.8rem;
+  gap: 0.22rem;
+  max-width: 13.5rem;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 1.1rem;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0.85rem 0.95rem;
+  box-shadow: 0 18px 28px rgba(15, 23, 42, 0.12);
 }
 
-.hb-featured-book-category {
-  color: var(--hb-primary);
-  font-size: 0.72rem;
+.hb-stage-badge strong {
+  color: #111827;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.hb-stage-badge span {
+  color: #6b7280;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.hb-stage-badge.is-free {
+  top: 1rem;
+  left: 1rem;
+}
+
+.hb-stage-badge.is-release {
+  right: 1rem;
+  bottom: 1rem;
+}
+
+.hb-bookstore-book {
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 1.15rem;
+  background: #ffffff;
+  aspect-ratio: 10 / 14;
+  box-shadow: 0 26px 50px rgba(15, 23, 42, 0.18);
+}
+
+.hb-bookstore-book img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hb-bookstore-book figcaption {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 1;
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.84);
+  color: #ffffff;
+  padding: 0.32rem 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
-.hb-featured-book-title {
-  color: #18143c;
-  font-family: var(--font-display), sans-serif;
-  font-size: clamp(1.5rem, 2vw, 2rem);
-  line-height: 1.08;
-  letter-spacing: -0.03em;
+.hb-bookstore-book.is-left {
+  left: 8%;
+  bottom: 3.3rem;
+  width: min(31%, 180px);
+  transform: rotate(-8deg);
 }
 
-.hb-featured-book-meta {
+.hb-bookstore-book.is-center {
+  left: 34%;
+  top: 2rem;
+  z-index: 2;
+  width: min(38%, 235px);
+}
+
+.hb-bookstore-book.is-right {
+  right: 10%;
+  bottom: 3.8rem;
+  width: min(29%, 168px);
+  transform: rotate(8deg);
+}
+
+.hb-bookstore-stage-footer {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
-  color: #645d84;
-  font-size: 0.88rem;
-}
-
-.hb-featured-book-meta span {
-  display: inline-flex;
   align-items: center;
-  border-radius: 999px;
-  background: rgba(109, 89, 240, 0.08);
-  padding: 0.32rem 0.72rem;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
-.hb-upcoming-callout {
-  margin-top: 1rem;
+.hb-bookstore-stage-footer-copy {
   display: grid;
-  gap: 0.35rem;
-  border-radius: 1.45rem;
-  background: linear-gradient(135deg, rgba(255, 143, 112, 0.12), rgba(255, 255, 255, 0.9));
-  padding: 0.95rem 1rem;
+  gap: 0.25rem;
 }
 
-.hb-upcoming-kicker {
-  color: #cf5e42;
+.hb-bookstore-stage-footer-kicker {
+  color: #8a6d4f;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
+}
+
+.hb-bookstore-stage-footer-title {
+  color: #18181b;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(1.4rem, 2vw, 1.9rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
 }
 
 .hb-mobile-launch-card {
@@ -2704,7 +2783,13 @@ textarea:focus {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem 1.2rem;
+  padding: 1rem 1.1rem;
+}
+
+.hb-mobile-launch-card--hero {
+  background:
+    radial-gradient(circle at top left, rgba(245, 237, 225, 0.82), transparent 28%),
+    linear-gradient(180deg, #fffdf9 0%, #ffffff 100%);
 }
 
 .hb-mobile-launch-copy {
@@ -2720,21 +2805,84 @@ textarea:focus {
   width: 2.8rem;
   height: 2.8rem;
   border-radius: 1rem;
-  background: linear-gradient(135deg, rgba(109, 89, 240, 0.16), rgba(255, 143, 112, 0.16));
-  color: var(--hb-primary);
+  background: #111827;
+  color: #ffffff;
+}
+
+.hb-bookstore-services {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  border: 1px solid #ece7df;
+  border-radius: 1.8rem;
+  background: rgba(255, 255, 255, 0.94);
+  padding: 1rem 1.1rem;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.06);
+}
+
+.hb-bookstore-service {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.4rem 0.55rem;
+}
+
+.hb-bookstore-service-top {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.hb-bookstore-service-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  background: #f6f3ee;
+  color: #111827;
+}
+
+.hb-bookstore-service-title {
+  color: #111827;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.hb-bookstore-service p:last-child {
+  color: #6b7280;
+  font-size: 0.85rem;
+  line-height: 1.7;
 }
 
 .hb-mobile-launch-title {
-  color: #18143c;
+  color: #18181b;
   font-size: 1rem;
   font-weight: 700;
 }
 
 .hb-mobile-helper {
-  color: #645d84;
+  color: #6b7280;
   font-size: 0.82rem;
   line-height: 1.7;
   max-width: 16rem;
+}
+
+.hb-mobile-launch-meta {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.hb-mobile-launch-date {
+  color: #8a6d4f;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hb-mobile-countdown-wrap {
+  min-width: 220px;
 }
 
 .hb-cookie-banner {
@@ -2930,43 +3078,53 @@ textarea:focus {
 }
 
 @media (max-width: 1100px) {
-  .hb-marketing-hero,
+  .hb-bookstore-main,
   .hb-free-path-panel {
     grid-template-columns: 1fr;
+  }
+
+  .hb-bookstore-title {
+    max-width: none;
   }
 }
 
 @media (max-width: 768px) {
-  .hb-marketing-copy {
-    padding: 0.55rem;
+  .hb-bookstore-copy {
+    padding: 0.4rem;
   }
 
-  .hb-marketing-title {
-    max-width: none;
-  }
-
-  .hb-marketing-stats,
+  .hb-bookstore-proof,
+  .hb-bookstore-services,
   .hb-free-books-grid {
     grid-template-columns: 1fr;
   }
 
-  .hb-featured-book-body,
+  .hb-bookstore-stage {
+    min-height: 410px;
+  }
+
+  .hb-bookstore-book.is-left {
+    left: 4%;
+    width: 31%;
+  }
+
+  .hb-bookstore-book.is-center {
+    left: 31%;
+    width: 40%;
+  }
+
+  .hb-bookstore-book.is-right {
+    right: 5%;
+    width: 30%;
+  }
+
+  .hb-stage-badge {
+    max-width: 12rem;
+  }
+
   .hb-free-book-card,
   .hb-free-book-card.is-featured {
     grid-template-columns: 96px minmax(0, 1fr);
-  }
-
-  .hb-hero-visual-grid {
-    grid-template-columns: 1fr;
-    min-height: 0;
-  }
-
-  .hb-hero-visual-grid .hb-hero-visual-frame.is-primary,
-  .hb-hero-visual-grid .hb-hero-visual-frame.is-secondary,
-  .hb-hero-visual-grid .hb-hero-visual-frame.is-tertiary {
-    grid-column: auto;
-    grid-row: auto;
-    min-height: 220px;
   }
 
   .hb-free-book-card.is-featured {
@@ -2975,9 +3133,32 @@ textarea:focus {
 }
 
 @media (max-width: 640px) {
-  .hb-marketing-hero {
+  .hb-bookstore-main {
     padding: 1rem;
     border-radius: 2rem;
+  }
+
+  .hb-bookstore-stage {
+    min-height: 365px;
+    padding: 0.9rem;
+  }
+
+  .hb-bookstore-stage-badges {
+    position: relative;
+    display: grid;
+    gap: 0.7rem;
+    inset: auto;
+    pointer-events: auto;
+    z-index: 3;
+  }
+
+  .hb-stage-badge {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    max-width: none;
   }
 
   .hb-mobile-launch-card,
@@ -2985,19 +3166,33 @@ textarea:focus {
     display: grid;
   }
 
-  .hb-featured-book-body,
+  .hb-bookstore-stage-footer {
+    display: grid;
+  }
+
   .hb-free-book-card,
   .hb-free-book-card.is-featured {
     grid-template-columns: 1fr;
   }
 
-  .hb-hero-visual-grid .hb-hero-visual-frame.is-primary,
-  .hb-hero-visual-grid .hb-hero-visual-frame.is-secondary,
-  .hb-hero-visual-grid .hb-hero-visual-frame.is-tertiary {
-    min-height: 180px;
+  .hb-bookstore-book.is-left {
+    left: 2%;
+    bottom: 2.4rem;
+    width: 32%;
   }
 
-  .hb-featured-book-cover,
+  .hb-bookstore-book.is-center {
+    left: 29%;
+    top: 5.4rem;
+    width: 42%;
+  }
+
+  .hb-bookstore-book.is-right {
+    right: 2%;
+    bottom: 2.8rem;
+    width: 31%;
+  }
+
   .hb-free-book-cover {
     max-width: 180px;
   }
