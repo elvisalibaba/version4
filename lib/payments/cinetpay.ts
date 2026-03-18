@@ -108,12 +108,12 @@ function cleanString(value: unknown) {
 }
 
 function getEasyPayConfig(): EasyPayConfig {
-  const correlationId =
+  const correlationIdRaw =
     cleanString(process.env.EASYPAY_CORRELATION_ID) ??
     cleanString(process.env.EASYPAY_CID) ??
     cleanString(process.env.NEXT_PUBLIC_EASYPAY_CORRELATION_ID) ??
     cleanString(process.env.NEXT_PUBLIC_EASYPAY_CID);
-  const publishableKey =
+  const publishableKeyRaw =
     cleanString(process.env.EASYPAY_PUBLISHABLE_KEY) ??
     cleanString(process.env.EASYPAY_TOKEN) ??
     cleanString(process.env.NEXT_PUBLIC_EASYPAY_PUBLISHABLE_KEY) ??
@@ -122,11 +122,11 @@ function getEasyPayConfig(): EasyPayConfig {
   const baseUrl = process.env.EASYPAY_BASE_URL?.replace(/\/$/, "") || "https://www.e-com-easypay.com";
   const missing: string[] = [];
 
-  if (!correlationId) {
+  if (!correlationIdRaw) {
     missing.push("EASYPAY_CORRELATION_ID");
   }
 
-  if (!publishableKey) {
+  if (!publishableKeyRaw) {
     missing.push("EASYPAY_PUBLISHABLE_KEY");
   }
 
@@ -140,6 +140,9 @@ function getEasyPayConfig(): EasyPayConfig {
   if (modeRaw !== "sandbox" && modeRaw !== "v1") {
     throw new PaymentFlowError("EASYPAY_MODE doit etre 'sandbox' ou 'v1'.", 500);
   }
+
+  const correlationId = correlationIdRaw as string;
+  const publishableKey = publishableKeyRaw as string;
 
   return {
     baseUrl,
