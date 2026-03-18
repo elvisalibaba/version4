@@ -26,7 +26,7 @@ export default async function AdminOrderDetailPage({ params }: OrderDetailPagePr
     <div className="space-y-6">
       <AdminPageHeader
         title={`Commande ${data.order.id.slice(0, 8)}`}
-        description="Detail d une commande, de ses lignes et de son statut de paiement, avec un point d extension explicite pour la synchronisation library."
+        description="Detail d une commande lecteur, de ses lignes (ebook/papier) et de son statut de paiement."
         breadcrumbs={[
           { label: "Admin", href: "/admin" },
           { label: "Commandes", href: "/admin/orders" },
@@ -86,14 +86,17 @@ export default async function AdminOrderDetailPage({ params }: OrderDetailPagePr
         </AdminPanel>
       </div>
 
-      <AdminPanel title="Lignes de commande" description="order_items relies a cette commande.">
-        <AdminDataTable columns={["Livre", "Prix", "Devise"]}>
+      <AdminPanel title="Lignes de commande" description="order_items relies a cette commande, y compris le format commande.">
+        <AdminDataTable columns={["Livre", "Format", "Prix", "Devise"]}>
           {data.items.map((item) => (
             <tr key={item.id} className="border-t border-violet-100/70">
               <td className="px-4 py-3">
                 <Link href={`/admin/books/${item.book_id}`} className="font-semibold text-slate-950 hover:text-violet-700">
                   {item.book_title}
                 </Link>
+              </td>
+              <td className="px-4 py-3">
+                <StatusBadge kind="format" value={item.book_format} />
               </td>
               <td className="px-4 py-3 text-sm text-slate-500">{formatMoney(item.price, item.currency_code)}</td>
               <td className="px-4 py-3 text-sm text-slate-500">{item.currency_code}</td>

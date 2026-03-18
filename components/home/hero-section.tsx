@@ -21,19 +21,19 @@ export function HeroSection({ books, comingSoonBooks = [] }: HeroSectionProps) {
       <div className="hb-section-shell">
         <div className="hb-template-hero-banner">
           <div className="hb-template-hero-copy">
-            <p className="hb-template-hero-kicker">Holistique Books Collection</p>
-            <h1 className="hb-template-hero-title">Des livres inspirants, pratiques et accessibles partout.</h1>
+            <p className="hb-template-hero-kicker">HolistiqueBooks - Bibliotheque de transformation</p>
+            <h1 className="hb-template-hero-title">Lisez des ebooks qui elevent l esprit, dans une vitrine claire qui donne envie d aller plus loin.</h1>
             <p className="hb-template-hero-text">
-              Commencez par {freeBooksCount} livres gratuits, poursuivez avec une selection premium et retrouvez une experience de lecture plus claire sur le web.
+              Commencez par {freeBooksCount} livres gratuits, puis evoluez vers une selection premium pensee pour la croissance personnelle et spirituelle.
             </p>
             <p className="hb-template-hero-text">
               {featuredBook
-                ? `Selection du moment: ${featuredBook.title}${featuredBook.author_name ? ` par ${featuredBook.author_name}` : ""}.`
-                : "Une librairie pensee pour lire, progresser et revenir facilement."}
+                ? `A la une: ${featuredBook.title}${featuredBook.author_name ? ` par ${featuredBook.author_name}` : ""}.`
+                : "Une librairie pensee pour lire profondement, progresser et revenir avec constance."}
             </p>
             <div className="hb-template-hero-actions">
               <Link href="/books" className="hb-template-hero-button">
-                Shop Now
+                Explorer le catalogue
               </Link>
               <Link href="/books?access=free" className="hb-template-hero-link">
                 Voir les gratuits

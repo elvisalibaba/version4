@@ -1,6 +1,8 @@
 export const CINETPAY_CHANNELS = ["ALL", "MOBILE_MONEY", "CREDIT_CARD", "WALLET"] as const;
+export const CHECKOUT_BOOK_FORMATS = ["ebook", "paperback", "hardcover"] as const;
 
 export type CinetPayChannel = (typeof CINETPAY_CHANNELS)[number];
+export type CheckoutBookFormat = (typeof CHECKOUT_BOOK_FORMATS)[number];
 
 export type CheckoutCustomerInput = {
   customerId?: string | null;
@@ -31,9 +33,19 @@ export type ValidatedCheckoutCustomer = {
 export type CinetPayInitPayload = {
   bookId?: string;
   orderId?: string;
+  bookFormat?: CheckoutBookFormat;
   channels: CinetPayChannel;
   currency: "USD";
   customer: ValidatedCheckoutCustomer;
+};
+
+export type CinetPayDonationInitPayload = {
+  amount: number;
+  channels: CinetPayChannel;
+  currency: "USD";
+  customer: ValidatedCheckoutCustomer;
+  donorReference?: string;
+  note?: string;
 };
 
 const COUNTRY_ALIASES: Record<string, string> = {
@@ -157,6 +169,21 @@ function normalizeZipCode(value: string | null) {
   return value?.trim().replace(/\s+/g, "") ?? null;
 }
 
+function normalizeAmount(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value.trim().replace(",", "."));
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  throw new Error("Montant de don invalide.");
+}
+
 export function normalizeCheckoutCustomer(input: unknown): ValidatedCheckoutCustomer {
   const customer = isRecord(input) ? input : {};
   const country = normalizeCountryCode(cleanString(customer.country));
@@ -225,6 +252,11 @@ export function validateCinetPayInitPayload(input: unknown): CinetPayInitPayload
 
   const bookId = cleanString(input.bookId) ?? undefined;
   const orderId = cleanString(input.orderId) ?? undefined;
+  const rawBookFormat = cleanString(input.bookFormat);
+  const bookFormat =
+    rawBookFormat && CHECKOUT_BOOK_FORMATS.includes(rawBookFormat as CheckoutBookFormat)
+      ? (rawBookFormat as CheckoutBookFormat)
+      : undefined;
 
   if (!bookId && !orderId) {
     throw new Error("Un bookId ou un orderId est requis pour lancer le paiement.");
@@ -232,6 +264,14 @@ export function validateCinetPayInitPayload(input: unknown): CinetPayInitPayload
 
   if (bookId && orderId) {
     throw new Error("Envoyez soit un bookId, soit un orderId, mais pas les deux.");
+  }
+
+  if (rawBookFormat && !bookFormat) {
+    throw new Error("bookFormat doit etre ebook, paperback ou hardcover.");
+  }
+
+  if (orderId && bookFormat) {
+    throw new Error("bookFormat est autorise uniquement avec bookId.");
   }
 
   if (!isCinetPayChannel(input.channels)) {
@@ -243,8 +283,53 @@ export function validateCinetPayInitPayload(input: unknown): CinetPayInitPayload
   return {
     bookId,
     orderId,
+    bookFormat,
     channels: input.channels,
     currency: validateUsdCurrency(input.currency),
     customer,
+  };
+}
+
+export function validateCinetPayDonationInitPayload(input: unknown): CinetPayDonationInitPayload {
+  if (!isRecord(input)) {
+    throw new Error("Payload de don invalide.");
+  }
+
+  const amount = Number(normalizeAmount(input.amount).toFixed(2));
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new Error("Le montant du don doit etre superieur a zero.");
+  }
+
+  if (amount < 1) {
+    throw new Error("Le montant minimum du don est de 1 USD.");
+  }
+
+  if (amount > 50000) {
+    throw new Error("Le montant du don depasse la limite autorisee.");
+  }
+
+  if (!isCinetPayChannel(input.channels)) {
+    throw new Error("channels doit etre ALL, MOBILE_MONEY, CREDIT_CARD ou WALLET.");
+  }
+
+  const customer = validateCheckoutCustomer(normalizeCheckoutCustomer(input.customer), input.channels);
+  const donorReference = cleanString(input.donorReference) ?? undefined;
+  const note = cleanString(input.note) ?? undefined;
+
+  if (donorReference && donorReference.length > 80) {
+    throw new Error("La reference donateur est trop longue (80 caracteres max).");
+  }
+
+  if (note && note.length > 240) {
+    throw new Error("Le message de don est trop long (240 caracteres max).");
+  }
+
+  return {
+    amount,
+    channels: input.channels,
+    currency: validateUsdCurrency(input.currency),
+    customer,
+    donorReference,
+    note,
   };
 }

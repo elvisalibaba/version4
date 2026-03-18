@@ -4,11 +4,12 @@ import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
 export function SiteFooter() {
   const footerColumns = [
     {
-      title: "Navigate",
+      title: "Navigation",
       links: [
-        { label: "Home", href: "/home" },
-        { label: "Books", href: "/books" },
+        { label: "Accueil", href: "/home" },
+        { label: "Catalogue", href: "/books" },
         { label: "Blog", href: "/blog" },
+        { label: "Faire un don", href: "/don" },
         { label: "FAQ", href: "/faq" },
         { label: "Contact", href: "/home#contact" },
       ],
@@ -17,23 +18,23 @@ export function SiteFooter() {
       title: "Collections",
       links: [
         { label: "Livres gratuits", href: "/books?access=free" },
-        { label: "Popular books", href: "/home#popular-books" },
+        { label: "Lectures du moment", href: "/home#popular-books" },
         { label: "Explorer par auteur", href: "/home#authors" },
         { label: "Nouveautes", href: "/books" },
       ],
     },
     {
-      title: "Writer side",
+      title: "Espace auteur",
       links: [
         { label: "Studio auteur", href: "/dashboard/author" },
         { label: "Publier un livre", href: "/dashboard/author/add-book" },
-        { label: "Ventes auteur", href: "/dashboard/author/sales" },
+        { label: "Suivi des ventes", href: "/dashboard/author/sales" },
         { label: "Guide auteur", href: "/faq#auteurs" },
         { label: "Creer un compte", href: "/register" },
       ],
     },
     {
-      title: "Legal",
+      title: "Juridique",
       links: [
         { label: "Conditions", href: "/conditions" },
         { label: "Confidentialite", href: "/confidentialite" },
@@ -48,7 +49,7 @@ export function SiteFooter() {
         <div className="hb-footer-callout">
           <div className="hb-footer-brand-block">
             <p className="hb-kicker">Holistique Books</p>
-            <h2 className="hb-title text-3xl sm:text-4xl">Une librairie premium pour lire, publier et faire rayonner des livres qui transforment.</h2>
+            <h2 className="hb-title text-2xl sm:text-3xl">Une librairie premium pour lire, publier et faire rayonner des livres qui transforment.</h2>
             <p className="hb-muted max-w-3xl text-sm sm:text-base">
               Parcourez des livres numeriques et physiques, decouvrez des auteurs credibles et avancez dans une experience de lecture plus claire, plus sobre et plus professionnelle.
             </p>
@@ -57,6 +58,9 @@ export function SiteFooter() {
           <div className="hb-footer-callout-actions">
             <Link href="/books" className="cta-primary px-5 py-3 text-sm">
               Explorer la librairie
+            </Link>
+            <Link href="/don" className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300">
+              Faire un don
             </Link>
             <Link href="/dashboard/author" className="cta-secondary px-5 py-3 text-sm">
               Ouvrir le studio auteur

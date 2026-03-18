@@ -56,7 +56,7 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
         }
         aside={
           <div className="surface-panel-soft p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-500">Trouver vite</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#a85b3f]">Trouver vite</p>
             <div className="mt-4">
               <SearchBar defaultValue={searchQuery} placeholder="Titre, auteur, theme ou categorie" buttonLabel="Chercher" />
             </div>
@@ -81,7 +81,7 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
       <div className="catalog-layout">
         <aside className="catalog-panel space-y-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-500">Votre parcours</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#a85b3f]">Votre parcours</p>
             <h2 className="mt-2 text-xl font-semibold text-slate-950">Affinez votre recherche</h2>
           </div>
 
@@ -93,7 +93,7 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
           <div className="space-y-3">
             <p className="text-sm font-semibold text-slate-900">Genres</p>
             <div className="flex flex-wrap gap-2">
-              <Link href="/books" className={`cta-secondary px-4 py-2 text-xs ${!activeCategoryLabel ? "bg-violet-50 text-violet-700" : ""}`}>
+              <Link href="/books" className={`cta-secondary px-4 py-2 text-xs ${!activeCategoryLabel ? "bg-[#f7eee6] text-[#a85b3f]" : ""}`}>
                 Tous
               </Link>
               {HEADER_CATEGORY_ITEMS.map((item) => {
@@ -102,7 +102,7 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
                   <Link
                     key={item.value}
                     href={`/books?category=${item.value}`}
-                    className={`cta-secondary px-4 py-2 text-xs ${active ? "bg-violet-50 text-violet-700" : ""}`}
+                    className={`cta-secondary px-4 py-2 text-xs ${active ? "bg-[#f7eee6] text-[#a85b3f]" : ""}`}
                   >
                     {item.label}
                   </Link>
@@ -111,7 +111,7 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
             </div>
           </div>
 
-          <div className="rounded-[1.5rem] bg-violet-50/80 p-4">
+          <div className="rounded-[1.5rem] bg-[#fbf3ec] p-4">
             <p className="text-sm font-semibold text-slate-950">Disponibilite</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <span className="catalog-badge">Lecture instantanee</span>

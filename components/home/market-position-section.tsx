@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BookOpenText, LayoutPanelTop, PenSquare, ShieldCheck } from "lucide-react";
 
@@ -23,8 +24,8 @@ const pillars = [
   },
   {
     icon: PenSquare,
-    title: "Writer side credible",
-    description: "Un espace auteur plus solide pour publier, vendre et piloter son catalogue.",
+    title: "Espace auteur credible",
+    description: "Un espace auteur plus solide pour publier, vendre et piloter son catalogue avec precision.",
   },
 ];
 
@@ -59,10 +60,23 @@ export function MarketPositionSection() {
                 <ShieldCheck className="h-4 w-4" />
                 Ambition premium
               </span>
-              <p className="hb-market-hero-heading">Une experience qui doit paraitre serieuse, nette et desirables des le premier regard.</p>
+              <p className="hb-market-hero-heading">Une experience qui doit paraitre serieuse, nette et desirable des le premier regard.</p>
               <p className="hb-market-hero-copy">
-                Design plus propre, hierarchie plus forte, produits mieux mis en avant et writer side plus professionnel.
+                Design plus propre, hierarchie plus forte, produits mieux mis en avant et espace auteur plus professionnel.
               </p>
+              <div className="hb-market-hero-media">
+                <Image
+                  src="/images/ce2.jpg"
+                  alt="Mise en avant premium de livres Holistique Books"
+                  fill
+                  sizes="(max-width: 1100px) 100vw, 420px"
+                  className="object-cover"
+                />
+                <div className="hb-market-hero-media-copy">
+                  <p className="hb-market-hero-media-label">Vitrine premium</p>
+                  <p className="hb-market-hero-media-text">Produits bien exposes, parcours clair et espace auteur plus professionnel.</p>
+                </div>
+              </div>
             </div>
           </div>
 

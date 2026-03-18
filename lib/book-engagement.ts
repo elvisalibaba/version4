@@ -97,13 +97,6 @@ async function writeEngagementFallback(params: {
     return false;
   }
 
-  if (params.eventType === "detail_view") {
-    const { data: book } = await service.from("books").select("views_count").eq("id", params.bookId).maybeSingle();
-    if (typeof book?.views_count === "number") {
-      await service.from("books").update({ views_count: book.views_count + 1 }).eq("id", params.bookId);
-    }
-  }
-
   return true;
 }
 

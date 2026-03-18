@@ -17,7 +17,7 @@ function getStatusCopy(status: OrderRow["payment_status"]) {
     case "paid":
       return {
         title: "Paiement confirme",
-        description: "Votre commande est payee et le livre a ete ajoute a votre bibliotheque.",
+        description: "Votre commande est payee. Les achats ebook sont ajoutes a votre bibliotheque numerique.",
         accent: "bg-emerald-50 text-emerald-700 border-emerald-200",
       };
     case "failed":
@@ -85,7 +85,7 @@ export default async function PaymentReturnPage({ searchParams }: { searchParams
 
   const { data: items } = await supabase
     .from("order_items")
-    .select("id, price, currency_code, books:book_id(id, title)")
+    .select("id, price, currency_code, book_format, books:book_id(id, title)")
     .eq("order_id", resolvedOrder.id);
 
   const statusCopy = getStatusCopy(resolvedOrder.payment_status);
@@ -126,7 +126,10 @@ export default async function PaymentReturnPage({ searchParams }: { searchParams
               const book = Array.isArray(item.books) ? item.books[0] : item.books;
               return (
                 <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-[1.2rem] border border-slate-100 px-4 py-3">
-                  <p className="text-sm font-medium text-slate-900">{book?.title ?? "Livre HolistiqueBooks"}</p>
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">{book?.title ?? "Livre HolistiqueBooks"}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.14em] text-slate-400">{item.book_format}</p>
+                  </div>
                   <p className="text-sm text-slate-500">
                     {new Intl.NumberFormat("en-US", {
                       style: "currency",

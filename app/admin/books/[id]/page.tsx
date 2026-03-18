@@ -230,7 +230,7 @@ export default async function AdminBookDetailPage({ params }: BookDetailPageProp
 
       <div className="grid gap-6 xl:grid-cols-2">
         <AdminPanel title="Commandes liees" description="Lignes order_items associees a ce livre.">
-          <AdminDataTable columns={["Commande", "Statut", "Prix", "Date"]}>
+          <AdminDataTable columns={["Commande", "Statut", "Format", "Prix", "Date"]}>
             {data.orders.map((item) => (
               <tr key={item.id} className="border-t border-violet-100/70">
                 <td className="px-4 py-3">
@@ -244,6 +244,9 @@ export default async function AdminBookDetailPage({ params }: BookDetailPageProp
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge kind="payment" value={item.order_meta?.payment_status ?? "pending"} />
+                </td>
+                <td className="px-4 py-3">
+                  <StatusBadge kind="format" value={item.book_format} />
                 </td>
                 <td className="px-4 py-3 text-sm text-slate-500">{formatMoney(item.price, item.currency_code)}</td>
                 <td className="px-4 py-3 text-sm text-slate-500">{formatAdminDateTime(item.order_meta?.created_at)}</td>

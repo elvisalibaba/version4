@@ -38,6 +38,15 @@ type DashboardAuthorPerformer = {
   estimatedSalesLabel: string;
 };
 
+type DashboardMarketingBook = {
+  id: string;
+  title: string;
+  author_name: string;
+  views_count: number;
+  purchases_count: number;
+  conversion_rate: number;
+};
+
 export type AdminDashboardData = {
   totals: {
     users: number;
@@ -66,6 +75,16 @@ export type AdminDashboardData = {
   recentBooks: Array<BookWithAuthorRow & { cover_signed_url: string | null; author_name: string }>;
   recentSubmittedBooks: Array<BookWithAuthorRow & { cover_signed_url: string | null; author_name: string }>;
   ratingDistribution: Array<{ label: string; value: number }>;
+  marketing: {
+    totalBookViews: number;
+    totalBookPurchases: number;
+    viewToPurchaseRate: number;
+    paidOrderRate: number;
+    activeSubscriptionRate: number;
+    submissionPressureRate: number;
+    watchlist: DashboardMarketingBook[];
+    campaignCandidates: DashboardMarketingBook[];
+  };
   notices: AdminNotice[];
 };
 
@@ -238,6 +257,48 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       ? Number((ratingRows.reduce((total, row) => total + Number(row.rating ?? 0), 0) / ratingRows.length).toFixed(1))
       : null;
 
+  const publishedBooks = (authorPerformanceResult.data ?? []).filter((book) => book.status === "published");
+  const marketingBooks: DashboardMarketingBook[] = publishedBooks.map((book) => {
+    const viewsCount = Number(book.views_count ?? 0);
+    const purchasesCount = Number(book.purchases_count ?? 0);
+    const conversionRate = viewsCount > 0 ? Number(((purchasesCount / viewsCount) * 100).toFixed(2)) : 0;
+
+    return {
+      id: book.id,
+      title: book.title,
+      author_name: firstOf(book.author_profile)?.display_name ?? firstOf(book.author_profile_fallback)?.name ?? "Auteur inconnu",
+      views_count: viewsCount,
+      purchases_count: purchasesCount,
+      conversion_rate: conversionRate,
+    };
+  });
+
+  const totalBookViews = marketingBooks.reduce((total, book) => total + book.views_count, 0);
+  const totalBookPurchases = marketingBooks.reduce((total, book) => total + book.purchases_count, 0);
+  const viewToPurchaseRate = totalBookViews > 0 ? Number(((totalBookPurchases / totalBookViews) * 100).toFixed(2)) : 0;
+  const paidOrderRate =
+    (ordersCountResult.count ?? 0) > 0
+      ? Number((((paidOrdersCountResult.count ?? 0) / (ordersCountResult.count ?? 1)) * 100).toFixed(1))
+      : 0;
+  const activeSubscriptionRate =
+    (readersCountResult.count ?? 0) > 0
+      ? Number((((activeSubscriptionsCountResult.count ?? 0) / (readersCountResult.count ?? 1)) * 100).toFixed(1))
+      : 0;
+  const submissionPressureRate =
+    (publishedBooksCountResult.count ?? 0) > 0
+      ? Number((((submittedBooksCountResult.count ?? 0) / (publishedBooksCountResult.count ?? 1)) * 100).toFixed(1))
+      : 0;
+
+  const marketingWatchlist = marketingBooks
+    .filter((book) => book.views_count >= 20 && (book.purchases_count === 0 || book.conversion_rate < 2))
+    .sort((left, right) => left.conversion_rate - right.conversion_rate || right.views_count - left.views_count)
+    .slice(0, 5);
+
+  const marketingCampaignCandidates = marketingBooks
+    .filter((book) => book.views_count >= 10 && book.purchases_count >= 2)
+    .sort((left, right) => right.conversion_rate - left.conversion_rate || right.purchases_count - left.purchases_count)
+    .slice(0, 5);
+
   const orderItemCountMap = new Map<string, number>();
   (recentOrderItemsResult.data ?? []).forEach((item) => {
     orderItemCountMap.set(item.order_id, (orderItemCountMap.get(item.order_id) ?? 0) + 1);
@@ -246,17 +307,17 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   const notices: AdminNotice[] = [
     {
       id: "derived-stats",
-      tone: "warning",
-      title: "Stats derivees a surveiller",
+      tone: "info",
+      title: "Stats derivees automatisees",
       description:
-        "Les colonnes books.views_count, purchases_count, rating_avg et ratings_count sont affichees telles qu elles existent. Si elles ne sont pas recalculees par trigger ou job, le dashboard peut montrer un decalage.",
+        "Les colonnes books.views_count, purchases_count, rating_avg et ratings_count sont maintenues par des triggers backend. Si tu observes un decalage, verifie que la migration 0020 est bien appliquee.",
     },
     {
       id: "library-sync",
       tone: "info",
-      title: "Paiement et acces bibliotheque",
+      title: "Paiement et acces bibliotheque synchronises",
       description:
-        "Le schema ne montre pas explicitement l automatisation orders.paid -> library. L admin peut changer le statut d une commande, mais la synchronisation d acces doit rester un point d extension backend explicite.",
+        "La transition orders.payment_status = paid declenche la synchronisation purchase vers library. L action admin appelle aussi une fonction backend explicite de resynchronisation.",
     },
   ];
 
@@ -266,6 +327,16 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       tone: "warning",
       title: "Soumissions auteur en attente",
       description: `${submittedBooksCountResult.count ?? 0} livre(s) attendent une validation admin. La file de revue doit etre traitee avant publication, surtout pour les formats papier et leur arbitrage prix / impression.`,
+    });
+  }
+
+  if (marketingWatchlist.length > 0) {
+    notices.push({
+      id: "marketing-watchlist",
+      tone: "warning",
+      title: "Conversion marketing a optimiser",
+      description:
+        "Certains livres cumulent deja des vues significatives mais convertissent peu. La watchlist marketing du dashboard aide a prioriser les relances.",
     });
   }
 
@@ -322,6 +393,16 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     recentBooks: hydrateBooks(recentBooksResult.data ?? [], signedMap),
     recentSubmittedBooks: hydrateBooks(recentSubmittedBooksResult.data ?? [], signedMap),
     ratingDistribution,
+    marketing: {
+      totalBookViews,
+      totalBookPurchases,
+      viewToPurchaseRate,
+      paidOrderRate,
+      activeSubscriptionRate,
+      submissionPressureRate,
+      watchlist: marketingWatchlist,
+      campaignCandidates: marketingCampaignCandidates,
+    },
     notices,
   };
 }

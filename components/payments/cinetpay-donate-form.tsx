@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useMemo, useState } from "react";
 import { channelRequiresCardCustomerFields, type CinetPayChannel } from "@/lib/payments/validation";
 
-type CustomerDefaults = {
+type DonationCustomerDefaults = {
   customerId?: string | null;
   firstName?: string | null;
   lastName?: string | null;
@@ -17,23 +16,9 @@ type CustomerDefaults = {
   zipCode?: string | null;
 };
 
-type CheckoutFormatOption = {
-  format: "ebook" | "paperback" | "hardcover";
-  label: string;
-  amount: number;
-  currencyCode: string;
-};
-
-type CinetPayButtonsProps = {
-  bookId?: string;
-  orderId?: string;
-  bookTitle: string;
-  amount: number;
-  currencyCode: string;
-  formatOptions?: CheckoutFormatOption[];
-  isAuthenticated: boolean;
-  loginHref: string;
-  defaultCustomer?: CustomerDefaults | null;
+type CinetPayDonateFormProps = {
+  defaultCustomer?: DonationCustomerDefaults | null;
+  suggestedAmounts?: number[];
 };
 
 function Field({
@@ -54,17 +39,14 @@ function Field({
   );
 }
 
-export function CinetPayButtons({
-  bookId,
-  orderId,
-  bookTitle,
-  amount,
-  currencyCode,
-  formatOptions = [],
-  isAuthenticated,
-  loginHref,
-  defaultCustomer,
-}: CinetPayButtonsProps) {
+function parseAmount(value: string) {
+  const parsed = Number(value.trim().replace(",", "."));
+  if (!Number.isFinite(parsed)) return null;
+  return Number(parsed.toFixed(2));
+}
+
+export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10, 25, 50] }: CinetPayDonateFormProps) {
+  const [amountInput, setAmountInput] = useState(String(suggestedAmounts[1] ?? 10));
   const [firstName, setFirstName] = useState(defaultCustomer?.firstName ?? "");
   const [lastName, setLastName] = useState(defaultCustomer?.lastName ?? "");
   const [email, setEmail] = useState(defaultCustomer?.email ?? "");
@@ -74,125 +56,127 @@ export function CinetPayButtons({
   const [country, setCountry] = useState(defaultCustomer?.country ?? "");
   const [state, setState] = useState(defaultCustomer?.state ?? "");
   const [zipCode, setZipCode] = useState(defaultCustomer?.zipCode ?? "");
-  const [selectedFormat, setSelectedFormat] = useState<CheckoutFormatOption["format"]>(formatOptions[0]?.format ?? "ebook");
+  const [donorReference, setDonorReference] = useState("");
+  const [note, setNote] = useState("");
   const [busyChannel, setBusyChannel] = useState<CinetPayChannel | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedFormatOption = formatOptions.find((option) => option.format === selectedFormat) ?? formatOptions[0] ?? null;
-  const effectiveAmount = selectedFormatOption?.amount ?? amount;
-  const effectiveCurrencyCode = selectedFormatOption?.currencyCode ?? currencyCode;
+  const parsedAmount = useMemo(() => parseAmount(amountInput), [amountInput]);
 
-  async function launchCheckout(channel: CinetPayChannel) {
-    if (!isAuthenticated) {
-      window.location.assign(loginHref);
+  async function launchDonation(channel: CinetPayChannel) {
+    setError(null);
+
+    if (!parsedAmount || parsedAmount <= 0) {
+      setError("Entrez un montant valide superieur a zero.");
       return;
     }
 
-    setBusyChannel(channel);
-    setError(null);
+    if (parsedAmount < 1) {
+      setError("Le montant minimum est de 1 USD.");
+      return;
+    }
 
-    const customer = {
-      customerId: defaultCustomer?.customerId ?? null,
-      firstName,
-      lastName,
-      email,
-      phoneNumber,
-      address,
-      city,
-      country,
-      state,
-      zipCode,
-    };
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !phoneNumber.trim()) {
+      setError("Nom, prenom, email et telephone sont requis pour lancer le don.");
+      return;
+    }
 
     if (channelRequiresCardCustomerFields(channel) && (!address.trim() || !city.trim() || !country.trim() || !zipCode.trim())) {
-      setBusyChannel(null);
       setError("Pour la carte bancaire ou le guichet complet, renseignez adresse, ville, pays ISO et code postal.");
       return;
     }
 
+    setBusyChannel(channel);
+
     try {
-      const response = await fetch("/api/payments/cinetpay/init", {
+      const response = await fetch("/api/payments/cinetpay/donate/init", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          bookId,
-          orderId,
-          bookFormat: selectedFormatOption?.format,
+          amount: parsedAmount,
           channels: channel,
           currency: "USD",
-          customer,
+          donorReference: donorReference.trim() || null,
+          note: note.trim() || null,
+          customer: {
+            customerId: defaultCustomer?.customerId ?? null,
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            address,
+            city,
+            country,
+            state,
+            zipCode,
+          },
         }),
       });
 
       const data = (await response.json()) as { error?: string; paymentUrl?: string };
 
       if (!response.ok || !data.paymentUrl) {
-        throw new Error(data.error ?? "Impossible de lancer le paiement CinetPay.");
+        throw new Error(data.error ?? "Impossible de lancer le don CinetPay.");
       }
 
       window.location.assign(data.paymentUrl);
-    } catch (checkoutError) {
+    } catch (donationError) {
       setBusyChannel(null);
-      setError(checkoutError instanceof Error ? checkoutError.message : "Impossible de lancer le paiement.");
+      setError(donationError instanceof Error ? donationError.message : "Impossible de lancer le don.");
     }
   }
-
-  const currencyMismatch = effectiveCurrencyCode !== "USD";
 
   return (
     <div className="space-y-5 rounded-[1.6rem] border border-violet-100 bg-[linear-gradient(135deg,_rgba(248,245,255,0.96),_rgba(255,255,255,0.96))] p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">CinetPay checkout</p>
-          <p className="mt-2 text-lg font-semibold text-slate-950">{bookTitle}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">Don via CinetPay</p>
+          <p className="mt-2 text-lg font-semibold text-slate-950">Soutenir Holistique Books</p>
           <p className="mt-1 text-sm leading-6 text-slate-500">
-            Paiement en redirection avec verification serveur obligatoire. Les achats ebook debloquent la bibliotheque apres confirmation.
+            Votre don passe par le meme moyen de paiement CinetPay, avec verification serveur du statut de transaction.
           </p>
         </div>
         <span className="catalog-badge">
           {new Intl.NumberFormat("en-US", {
             style: "currency",
-            currency: effectiveCurrencyCode,
-          }).format(effectiveAmount)}
+            currency: "USD",
+          }).format(parsedAmount ?? 0)}
         </span>
       </div>
 
-      {formatOptions.length > 0 ? (
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Format</p>
-          <div className="flex flex-wrap gap-2">
-            {formatOptions.map((option) => {
-              const isActive = option.format === selectedFormat;
-              return (
-                <button
-                  key={option.format}
-                  type="button"
-                  onClick={() => setSelectedFormat(option.format)}
-                  className={`rounded-xl border px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition ${
-                    isActive ? "border-violet-500 bg-violet-100 text-violet-700" : "border-slate-200 bg-white text-slate-600 hover:border-violet-300"
-                  }`}
-                >
-                  {option.label} -{" "}
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: option.currencyCode,
-                  }).format(option.amount)}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
-
-      {currencyMismatch ? (
-        <div className="rounded-[1.25rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          Ce livre n est pas facture en USD. Le checkout CinetPay est actuellement limite a USD.
-        </div>
-      ) : null}
+      <div className="grid gap-3 sm:grid-cols-4">
+        {suggestedAmounts.map((value) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setAmountInput(String(value))}
+            className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:border-slate-400"
+          >
+            {new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: "USD",
+              maximumFractionDigits: 0,
+            }).format(value)}
+          </button>
+        ))}
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
+        <Field label="Montant (USD)" hint="Minimum 1 USD.">
+          <input
+            type="number"
+            min="1"
+            step="0.01"
+            value={amountInput}
+            onChange={(event) => setAmountInput(event.target.value)}
+            className="ios-input w-full px-4 py-3.5"
+          />
+        </Field>
+        <Field label="Reference donateur" hint="Optionnel, ex: Campagne Mars 2026.">
+          <input value={donorReference} onChange={(event) => setDonorReference(event.target.value)} className="ios-input w-full px-4 py-3.5" />
+        </Field>
         <Field label="Prenom">
           <input value={firstName} onChange={(event) => setFirstName(event.target.value)} className="ios-input w-full px-4 py-3.5" />
         </Field>
@@ -211,64 +195,57 @@ export function CinetPayButtons({
         <Field label="Ville">
           <input value={city} onChange={(event) => setCity(event.target.value)} className="ios-input w-full px-4 py-3.5" />
         </Field>
-        <Field label="Pays" hint="Code ISO a 2 lettres, ex: CD, CI, CM, US, FR.">
+        <Field label="Pays" hint="Code ISO a 2 lettres, ex: CI, CD, CM, US, FR.">
           <input value={country} onChange={(event) => setCountry(event.target.value.toUpperCase())} className="ios-input w-full px-4 py-3.5" placeholder="CI" maxLength={2} />
         </Field>
-        <Field label="Etat / Province" hint="Utile surtout pour US et CA. Sinon nous reutilisons le pays ISO.">
+        <Field label="Etat / Province" hint="Utile surtout pour US et CA.">
           <input value={state} onChange={(event) => setState(event.target.value.toUpperCase())} className="ios-input w-full px-4 py-3.5" placeholder="CI" maxLength={32} />
         </Field>
         <Field label="Code postal">
           <input value={zipCode} onChange={(event) => setZipCode(event.target.value)} className="ios-input w-full px-4 py-3.5" />
+        </Field>
+        <Field label="Message" hint="Optionnel, 240 caracteres max.">
+          <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={3} maxLength={240} className="ios-input w-full px-4 py-3.5" />
         </Field>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <button
           type="button"
-          onClick={() => launchCheckout("CREDIT_CARD")}
-          disabled={Boolean(busyChannel) || currencyMismatch}
+          onClick={() => launchDonation("CREDIT_CARD")}
+          disabled={Boolean(busyChannel)}
           className="cta-primary px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {busyChannel === "CREDIT_CARD" ? "Redirection..." : "Payer par carte"}
+          {busyChannel === "CREDIT_CARD" ? "Redirection..." : "Don par carte"}
         </button>
         <button
           type="button"
-          onClick={() => launchCheckout("MOBILE_MONEY")}
-          disabled={Boolean(busyChannel) || currencyMismatch}
+          onClick={() => launchDonation("MOBILE_MONEY")}
+          disabled={Boolean(busyChannel)}
           className="cta-secondary px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {busyChannel === "MOBILE_MONEY" ? "Redirection..." : "Payer par mobile money"}
+          {busyChannel === "MOBILE_MONEY" ? "Redirection..." : "Don mobile money"}
         </button>
         <button
           type="button"
-          onClick={() => launchCheckout("ALL")}
-          disabled={Boolean(busyChannel) || currencyMismatch}
+          onClick={() => launchDonation("ALL")}
+          disabled={Boolean(busyChannel)}
           className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busyChannel === "ALL" ? "Redirection..." : "Choisir sur le guichet"}
         </button>
         <button
           type="button"
-          onClick={() => launchCheckout("WALLET")}
-          disabled={Boolean(busyChannel) || currencyMismatch}
+          onClick={() => launchDonation("WALLET")}
+          disabled={Boolean(busyChannel)}
           className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {busyChannel === "WALLET" ? "Redirection..." : "Payer par wallet"}
+          {busyChannel === "WALLET" ? "Redirection..." : "Don par wallet"}
         </button>
       </div>
 
-      {!isAuthenticated ? (
-        <div className="rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
-          Connectez-vous avant de lancer un paiement.
-          {" "}
-          <Link href={loginHref} className="font-semibold text-violet-700 hover:text-violet-800">
-            Ouvrir la connexion
-          </Link>
-        </div>
-      ) : null}
-
       <div className="rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
-        Le guichet affiche tous les moyens de paiement disponibles. Pour payer par carte, renseignez au minimum l adresse, la ville, le pays en code ISO a 2 lettres et le code postal.
+        Le guichet CinetPay affiche les moyens disponibles selon votre pays. Pour la carte bancaire, adresse, ville, pays ISO et code postal sont requis.
       </div>
 
       {error ? <div className="rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}

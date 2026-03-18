@@ -16,7 +16,7 @@ export function PageHero({ kicker, title, description, actions, aside, className
         <div className="space-y-4">
           <span className="premium-badge">{kicker}</span>
           <div className="space-y-3">
-            <h1 className="section-title text-3xl sm:text-4xl lg:text-5xl">{title}</h1>
+            <h1 className="section-title text-3xl tracking-tight sm:text-4xl lg:text-[3.2rem]">{title}</h1>
             {description ? <p className="section-description max-w-3xl">{description}</p> : null}
           </div>
           {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}

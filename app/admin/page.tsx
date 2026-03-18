@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BadgeDollarSign, BookOpen, ClipboardCheck, CreditCard, Eye, Layers3, ShoppingCart, Star, Users } from "lucide-react";
+import { BadgeDollarSign, BookOpen, ClipboardCheck, CreditCard, Eye, Funnel, Layers3, Megaphone, ShoppingCart, Sparkles, Star, Target, Users } from "lucide-react";
 import { formatMoney } from "@/lib/book-offers";
 import { getAdminDashboardData } from "@/lib/supabase/admin/dashboard";
 import { formatAdminDateTime, formatCompactNumber } from "@/lib/supabase/admin/shared";
@@ -11,8 +11,47 @@ import { AdminPanel } from "@/components/admin/shared/admin-panel";
 import { StatusBadge } from "@/components/admin/shared/status-badge";
 import { AdminNotice } from "@/components/admin/shared/admin-notice";
 
+function formatPercent(value: number) {
+  const precision = Number.isInteger(value) ? 0 : 1;
+  return `${value.toFixed(precision)}%`;
+}
+
 export default async function AdminDashboardPage() {
   const data = await getAdminDashboardData();
+  const marketingModules = [
+    {
+      id: "funnel",
+      icon: Funnel,
+      label: "Funnel vue -> achat",
+      value: formatPercent(data.marketing.viewToPurchaseRate),
+      hint: `${formatCompactNumber(data.marketing.totalBookPurchases)} achats pour ${formatCompactNumber(data.marketing.totalBookViews)} vues catalogue.`,
+      tone: "from-sky-50 to-indigo-50 border-sky-200/70 text-sky-700",
+    },
+    {
+      id: "checkout",
+      icon: Target,
+      label: "Checkout paye",
+      value: formatPercent(data.marketing.paidOrderRate),
+      hint: `${formatCompactNumber(data.totals.paidOrders)} commandes payees sur ${formatCompactNumber(data.totals.orders)} commandes.`,
+      tone: "from-emerald-50 to-lime-50 border-emerald-200/70 text-emerald-700",
+    },
+    {
+      id: "subscriptions",
+      icon: Sparkles,
+      label: "Activation abonnements",
+      value: formatPercent(data.marketing.activeSubscriptionRate),
+      hint: `${formatCompactNumber(data.totals.activeSubscriptions)} abonnements actifs pour ${formatCompactNumber(data.totals.readers)} lecteurs.`,
+      tone: "from-violet-50 to-fuchsia-50 border-violet-200/70 text-violet-700",
+    },
+    {
+      id: "pipeline",
+      icon: Megaphone,
+      label: "Pression editoriale",
+      value: formatPercent(data.marketing.submissionPressureRate),
+      hint: `${formatCompactNumber(data.totals.submittedBooks)} soumissions en attente face au catalogue publie.`,
+      tone: "from-amber-50 to-orange-50 border-amber-200/70 text-amber-700",
+    },
+  ] as const;
 
   return (
     <div className="space-y-6">
@@ -104,6 +143,108 @@ export default async function AdminDashboardPage() {
           ))}
         </div>
       ) : null}
+
+      <section className="space-y-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">Modules marketing</p>
+            <h2 className="text-2xl font-semibold tracking-[-0.03em] text-slate-950">Pilotage acquisition, conversion et relance</h2>
+            <p className="max-w-3xl text-sm text-slate-500">
+              Cette zone transforme les signaux de ton catalogue en plan d action clair: quoi pousser, quoi corriger, et ou investir l effort de campagne.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/admin/home-positioning" className="cta-secondary px-5 py-3 text-sm">
+              Positionnement home
+            </Link>
+            <Link href="/admin/orders" className="cta-secondary px-5 py-3 text-sm">
+              Ouvrir les commandes
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {marketingModules.map((module) => {
+            const Icon = module.icon;
+
+            return (
+              <article
+                key={module.id}
+                className={`rounded-[1.6rem] border bg-gradient-to-br p-5 shadow-[0_18px_35px_rgba(15,23,42,0.07)] ${module.tone}`}
+              >
+                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/85">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{module.label}</p>
+                <p className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-slate-950">{module.value}</p>
+                <p className="mt-2 text-sm text-slate-600">{module.hint}</p>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-2">
+          <AdminPanel
+            title="Watchlist conversion"
+            description="Livres avec trafic deja present mais conversion faible. Priorite: page produit, offre et argumentaire."
+          >
+            <div className="space-y-3">
+              {data.marketing.watchlist.length ? (
+                data.marketing.watchlist.map((book) => (
+                  <Link
+                    key={book.id}
+                    href={`/admin/books/${book.id}`}
+                    className="flex items-center justify-between gap-4 rounded-2xl border border-rose-200/70 bg-rose-50/60 px-4 py-3 transition hover:bg-rose-50"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-slate-950">{book.title}</p>
+                      <p className="truncate text-xs uppercase tracking-[0.16em] text-slate-500">{book.author_name}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-slate-950">{formatPercent(book.conversion_rate)}</p>
+                      <p className="text-xs text-slate-500">
+                        {formatCompactNumber(book.views_count)} vues / {formatCompactNumber(book.purchases_count)} achats
+                      </p>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <p className="text-sm text-slate-500">Aucune alerte critique de conversion pour le moment.</p>
+              )}
+            </div>
+          </AdminPanel>
+
+          <AdminPanel
+            title="Campagnes a pousser maintenant"
+            description="Titres qui convertissent deja bien. Priorite: amplification paid, social et newsletter."
+          >
+            <div className="space-y-3">
+              {data.marketing.campaignCandidates.length ? (
+                data.marketing.campaignCandidates.map((book) => (
+                  <Link
+                    key={book.id}
+                    href={`/admin/books/${book.id}`}
+                    className="flex items-center justify-between gap-4 rounded-2xl border border-emerald-200/70 bg-emerald-50/60 px-4 py-3 transition hover:bg-emerald-50"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-slate-950">{book.title}</p>
+                      <p className="truncate text-xs uppercase tracking-[0.16em] text-slate-500">{book.author_name}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-slate-950">{formatPercent(book.conversion_rate)}</p>
+                      <p className="text-xs text-slate-500">
+                        {formatCompactNumber(book.purchases_count)} achats / {formatCompactNumber(book.views_count)} vues
+                      </p>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <p className="text-sm text-slate-500">Pas encore assez de data pour recommander une campagne prioritaire.</p>
+              )}
+            </div>
+          </AdminPanel>
+        </div>
+      </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <AdminPanel title="Top auteurs en ventes estimees" description="Agregation actuelle basee sur purchases_count x books.price.">

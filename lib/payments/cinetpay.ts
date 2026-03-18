@@ -2,7 +2,7 @@ import "server-only";
 
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import type { Database, OrderPaymentStatus } from "@/types/database";
-import type { CinetPayChannel, ValidatedCheckoutCustomer } from "./validation";
+import type { CheckoutBookFormat, CinetPayChannel, ValidatedCheckoutCustomer } from "./validation";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderInsert = Database["public"]["Tables"]["orders"]["Insert"];
@@ -25,11 +25,14 @@ type CheckoutBookRow = Pick<
     | null;
 };
 
+type CheckoutBookFormatRow = NonNullable<CheckoutBookRow["book_formats"]>[number];
+
 type CheckoutBookContext = {
   id: string;
   title: string;
   amount: number;
   currencyCode: string;
+  format: CheckoutBookFormat;
 };
 
 type InitProviderPayload = {
@@ -85,6 +88,8 @@ type PreparedOrder = {
   items: OrderItemRow[];
   bookTitles: string[];
 };
+
+const CHECKOUT_FORMAT_PRIORITY: CheckoutBookFormat[] = ["ebook", "paperback", "hardcover"];
 
 export class PaymentFlowError extends Error {
   status: number;
@@ -192,7 +197,7 @@ async function fetchJson<T>(url: string, body: Record<string, unknown>) {
   return data;
 }
 
-async function loadCheckoutBookContext(userId: string, bookId: string): Promise<CheckoutBookContext> {
+async function loadCheckoutBookContext(userId: string, bookId: string, requestedFormat?: CheckoutBookFormat): Promise<CheckoutBookContext> {
   const service = createPaymentServiceClient();
   const [bookResult, libraryResult] = await Promise.all([
     service
@@ -220,13 +225,28 @@ async function loadCheckoutBookContext(userId: string, bookId: string): Promise<
     throw new PaymentFlowError("La vente unitaire n est pas activee pour ce livre.", 409);
   }
 
-  if (existingLibraryEntry?.access_type === "purchase") {
+  const publishedFormats = (book.book_formats ?? []).filter(
+    (format): format is CheckoutBookFormatRow =>
+      format.is_published && CHECKOUT_FORMAT_PRIORITY.includes(format.format as CheckoutBookFormat),
+  );
+
+  const selectedFormat =
+    requestedFormat
+      ? publishedFormats.find((format) => format.format === requestedFormat)
+      : CHECKOUT_FORMAT_PRIORITY.map((formatKey) => publishedFormats.find((format) => format.format === formatKey)).find(Boolean) ?? null;
+
+  if (requestedFormat && !selectedFormat) {
+    throw new PaymentFlowError("Le format selectionne n est pas disponible pour ce livre.", 409);
+  }
+
+  const effectiveFormat = (selectedFormat?.format ?? "ebook") as CheckoutBookFormat;
+
+  if (existingLibraryEntry?.access_type === "purchase" && effectiveFormat === "ebook") {
     throw new PaymentFlowError("Ce livre a deja ete achete sur votre compte.", 409);
   }
 
-  const publishedEbook = (book.book_formats ?? []).find((format) => format.format === "ebook" && format.is_published);
-  const amount = publishedEbook?.price ?? book.price;
-  const currencyCode = publishedEbook?.currency_code ?? book.currency_code;
+  const amount = selectedFormat?.price ?? book.price;
+  const currencyCode = selectedFormat?.currency_code ?? book.currency_code;
 
   if (currencyCode !== "USD") {
     throw new PaymentFlowError(
@@ -240,6 +260,7 @@ async function loadCheckoutBookContext(userId: string, bookId: string): Promise<
     title: book.title,
     amount,
     currencyCode,
+    format: effectiveFormat,
   };
 }
 
@@ -292,10 +313,11 @@ async function loadPreparedOrderForUser(userId: string, orderId: string): Promis
 async function createPendingOrderForBook(params: {
   userId: string;
   bookId: string;
+  bookFormat?: CheckoutBookFormat;
   channel: CinetPayChannel;
 }): Promise<PreparedOrder> {
   const service = createPaymentServiceClient();
-  const checkoutBook = await loadCheckoutBookContext(params.userId, params.bookId);
+  const checkoutBook = await loadCheckoutBookContext(params.userId, params.bookId, params.bookFormat);
   const orderId = crypto.randomUUID();
   const transactionId = createTransactionId(orderId);
 
@@ -313,6 +335,7 @@ async function createPendingOrderForBook(params: {
       order_source: "single_book_checkout",
       requested_channel: params.channel,
       book_ids: [checkoutBook.id],
+      selected_format: checkoutBook.format,
     },
   } satisfies OrderInsert;
 
@@ -328,6 +351,7 @@ async function createPendingOrderForBook(params: {
     book_id: checkoutBook.id,
     price: checkoutBook.amount,
     currency_code: "USD",
+    book_format: checkoutBook.format,
   } satisfies OrderItemInsert;
 
   const { data: itemData, error: itemError } = await service.from("order_items").insert(itemInsert).select("*");
@@ -380,7 +404,7 @@ function buildCheckoutDescription(bookTitles: string[]) {
     .filter(Boolean);
 
   if (bookTitles.length === 1) {
-    return `Achat ebook HolistiqueBooks - ${sanitizedTitles[0] ?? "Livre"}`;
+    return `Achat livre HolistiqueBooks - ${sanitizedTitles[0] ?? "Livre"}`;
   }
 
   return `Achat HolistiqueBooks - ${sanitizedTitles.length || bookTitles.length} livres`;
@@ -454,6 +478,7 @@ export async function initCinetPayCheckout(params: {
   userId: string;
   bookId?: string;
   orderId?: string;
+  bookFormat?: CheckoutBookFormat;
   channel: CinetPayChannel;
   customer: ValidatedCheckoutCustomer;
   appBaseUrl?: string;
@@ -463,6 +488,7 @@ export async function initCinetPayCheckout(params: {
     ? await createPendingOrderForBook({
         userId: params.userId,
         bookId: params.bookId,
+        bookFormat: params.bookFormat,
         channel: params.channel,
       })
     : await loadPreparedOrderForUser(params.userId, params.orderId!);
@@ -475,6 +501,7 @@ export async function initCinetPayCheckout(params: {
   const service = createPaymentServiceClient();
   const metadataPatch = mergePaymentMetadata(preparedOrder.order.payment_metadata, {
     requested_channel: params.channel,
+    ...(params.bookFormat ? { requested_format: params.bookFormat } : {}),
   });
 
   const { data: updatedOrder } = await service
@@ -652,6 +679,10 @@ async function persistVerifiedOrderState(params: {
   }
 
   for (const item of params.items) {
+    if ((item.book_format ?? "ebook") !== "ebook") {
+      continue;
+    }
+
     await service.from("library").upsert(
       {
         user_id: params.order.user_id,

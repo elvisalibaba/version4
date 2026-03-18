@@ -5,12 +5,14 @@ import { DiscoveryFilterSection } from "@/components/home/discovery-filter-secti
 import { FeaturedBooksGridSection } from "@/components/home/featured-books-grid-section";
 import { FlashSaleSection } from "@/components/home/flash-sale-section";
 import { HeroSection } from "@/components/home/hero-section";
+import { ImmersiveScrollBooksSection } from "@/components/home/immersive-scroll-books-section";
 import { MarketPositionSection } from "@/components/home/market-position-section";
 import { NewsletterSection } from "@/components/home/newsletter-section";
 import { Reveal } from "@/components/home/reveal";
 import { TrustBar } from "@/components/home/trust-bar";
 import { getComingSoonBooks, getPublishedBooks } from "@/lib/books";
 import { getFlashSaleState } from "@/lib/flash-sales";
+import { getHomeFeaturedState } from "@/lib/home-positioning";
 
 type HomeBook = Awaited<ReturnType<typeof getPublishedBooks>>[number];
 
@@ -25,24 +27,29 @@ function comparePopularBooks(a: HomeBook, b: HomeBook) {
 
 export default async function HomePage() {
   const [books, comingSoonBooks] = await Promise.all([getPublishedBooks(), getComingSoonBooks()]);
+  const [homeFeatured, flashSale] = await Promise.all([getHomeFeaturedState(books), getFlashSaleState(books)]);
+  const orderedBooks = homeFeatured.orderedBooks;
   const paidBooks = books.filter((book) => !book.is_free);
-  const freeBooks = books.filter((book) => book.is_free);
-  const popularRanked = [...books].sort(comparePopularBooks);
+  const freeBooks = orderedBooks.filter((book) => book.is_free);
+  const popularRanked = [...orderedBooks].sort(comparePopularBooks);
   const popularSelection = [
+    ...homeFeatured.selectedBooks.slice(0, 6),
     ...popularRanked.slice(0, 4),
     ...[...freeBooks].sort(comparePopularBooks).slice(0, 2),
   ].filter((book, index, array) => array.findIndex((entry) => entry.id === book.id) === index);
-  const popularFallback = (popularSelection.length > 0 ? popularSelection : books.slice(0, 6)).slice(0, 6);
+  const popularFallback = (popularSelection.length > 0 ? popularSelection : orderedBooks.slice(0, 6)).slice(0, 6);
   const newReleases = paidBooks.slice(0, 5);
-  const newReleasesFallback = newReleases.length > 0 ? newReleases : books.slice(0, 5);
+  const newReleasesFallback = newReleases.length > 0 ? newReleases : orderedBooks.slice(0, 5);
   const comingSoon = comingSoonBooks.slice(0, 5);
-  const flashSale = await getFlashSaleState(books);
 
   return (
     <div className="hb-fullbleed">
       <div className="home-mesh">
         <Reveal>
-          <HeroSection books={books} comingSoonBooks={comingSoonBooks} />
+          <HeroSection books={orderedBooks} comingSoonBooks={comingSoonBooks} />
+        </Reveal>
+        <Reveal delay={50}>
+          <ImmersiveScrollBooksSection books={orderedBooks} />
         </Reveal>
         <Reveal delay={80}>
           <TrustBar />
@@ -53,7 +60,7 @@ export default async function HomePage() {
         <Reveal delay={140}>
           <FeaturedBooksGridSection
             id="popular-books"
-            title="Popular Book"
+            title="Lectures du moment"
             books={popularFallback}
           />
         </Reveal>

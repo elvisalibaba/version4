@@ -40,7 +40,7 @@ export function DiscoveryFilterSection({ books }: DiscoveryFilterSectionProps) {
         <form action="/books" className="hb-template-filter-bar">
           <label className="hb-template-filter-field">
             <select name="category" defaultValue="all">
-              <option value="all">All Category</option>
+              <option value="all">Toutes les categories</option>
               {categories.map((category) => (
                 <option key={category} value={category}>
                   {category}
@@ -51,7 +51,7 @@ export function DiscoveryFilterSection({ books }: DiscoveryFilterSectionProps) {
 
           <label className="hb-template-filter-field">
             <select name="author" defaultValue="">
-              <option value="">All Author</option>
+              <option value="">Tous les auteurs</option>
               {authors.map((author) => (
                 <option key={author} value={author}>
                   {author}
@@ -62,7 +62,7 @@ export function DiscoveryFilterSection({ books }: DiscoveryFilterSectionProps) {
 
           <button type="submit" className="hb-template-find-button">
             <Search className="h-4 w-4" />
-            Find Book
+            Trouver un livre
           </button>
         </form>
       </div>

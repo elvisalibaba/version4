@@ -2,6 +2,8 @@ import { resolveBookOfferDetails } from "@/lib/book-offers";
 import { createClient } from "@/lib/supabase/server";
 import type { BookFormatType, Database } from "@/types/database";
 
+type PurchasableCheckoutFormat = "ebook" | "paperback" | "hardcover";
+
 type MaybeArray<T> = T | T[] | null;
 
 type AuthorSummary = {
@@ -130,6 +132,37 @@ function getDetailedEbookFormat(
   return (formats ?? []).find((format) => format.format === "ebook" && format.is_published);
 }
 
+function getPublishedPurchaseFormats(
+  formats:
+    | {
+        id: string;
+        format: BookFormatType;
+        price: number;
+        file_url: string | null;
+        downloadable: boolean;
+        is_published: boolean;
+        currency_code: string;
+      }[]
+    | null,
+) {
+  const priorities: BookFormatType[] = ["ebook", "paperback", "hardcover"];
+  const published = (formats ?? []).filter(
+    (
+      format,
+    ): format is {
+      id: string;
+      format: PurchasableCheckoutFormat;
+      price: number;
+      file_url: string | null;
+      downloadable: boolean;
+      is_published: boolean;
+      currency_code: string;
+    } => format.is_published && (format.format === "ebook" || format.format === "paperback" || format.format === "hardcover"),
+  );
+
+  return published.sort((left, right) => priorities.indexOf(left.format) - priorities.indexOf(right.format));
+}
+
 async function hydrateBooks(supabase: SupabaseClient, rows: PublishedBookRow[]) {
   const coverPaths = rows
     .map((book) => book.cover_url)
@@ -255,9 +288,11 @@ export async function getBookById(bookId: string) {
   if (!book) return null;
 
   const ebook = getDetailedEbookFormat(book.book_formats);
+  const purchasableFormats = getPublishedPurchaseFormats(book.book_formats);
+  const primaryPurchaseFormat = ebook ?? purchasableFormats[0] ?? null;
   const author = firstOf(book.author);
-  const effectivePrice = ebook?.price ?? book.price;
-  const resolvedCurrencyCode = ebook?.currency_code ?? book.currency_code;
+  const effectivePrice = primaryPurchaseFormat?.price ?? book.price;
+  const resolvedCurrencyCode = primaryPurchaseFormat?.currency_code ?? book.currency_code;
   const offer = resolveBookOfferDetails({
     price: effectivePrice,
     currencyCode: resolvedCurrencyCode,
@@ -272,6 +307,22 @@ export async function getBookById(bookId: string) {
       : { data: null };
 
   const subscriptionPlans = book.is_subscription_available ? await getBookSubscriptionPlans(supabase, book.id) : [];
+  const purchaseFormats =
+    purchasableFormats.length > 0
+      ? purchasableFormats.map((format) => ({
+          format: format.format,
+          price: format.price,
+          currency_code: format.currency_code,
+        }))
+      : book.is_single_sale_enabled
+        ? [
+            {
+              format: "ebook" as const,
+              price: book.price,
+              currency_code: book.currency_code,
+            },
+          ]
+        : [];
 
   return {
     ...book,
@@ -284,6 +335,7 @@ export async function getBookById(bookId: string) {
       (book.cover_url && (book.cover_url.startsWith("http://") || book.cover_url.startsWith("https://")) ? book.cover_url : null) ??
       signedCover?.signedUrl ??
       null,
+    purchase_formats: purchaseFormats,
     subscription_plans: subscriptionPlans,
     is_free: offer.isFree,
     offer_mode: offer.offerMode,

@@ -13,10 +13,12 @@ export async function SiteHeader() {
     userRole === "admin" ? "/admin" : userRole === "author" ? "/dashboard/author" : user ? "/dashboard/reader" : "/login";
   const authorHref = userRole === "author" || userRole === "admin" ? "/dashboard/author" : "/register";
   const navLinks = [
-    { label: "Home", href: "/home" },
-    { label: "Shop", href: "/books" },
+    { label: "Accueil", href: "/home" },
+    { label: "Catalogue", href: "/books" },
     { label: "Blog", href: "/blog" },
-    { label: "Author", href: authorHref },
+    { label: "Auteurs", href: authorHref },
+    ...(userRole === "admin" ? [{ label: "Admin", href: "/admin" }] : []),
+    { label: "Faire un don", href: "/don" },
     { label: "Contact", href: "/home#contact" },
   ];
 

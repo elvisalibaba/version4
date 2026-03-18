@@ -11,7 +11,7 @@ import {
   type MaybeArray,
 } from "@/lib/supabase/admin/shared";
 import type { AdminNotice, AdminPagedResult } from "@/types/admin";
-import type { OrderPaymentStatus } from "@/types/database";
+import type { BookFormatType, OrderPaymentStatus } from "@/types/database";
 
 type OrderRow = {
   id: string;
@@ -29,12 +29,19 @@ type OrderItemRow = {
   book_id: string;
   price: number;
   currency_code: string;
+  book_format: BookFormatType;
   book: MaybeArray<{ id: string; title: string; status: string }>;
 };
 
 export type AdminOrderListItem = OrderRow & {
   user_name: string;
   itemCount: number;
+  formatBreakdown: {
+    ebook: number;
+    paperback: number;
+    hardcover: number;
+    audiobook: number;
+  };
 };
 
 export type AdminOrdersPageData = AdminPagedResult<AdminOrderListItem> & {
@@ -86,10 +93,10 @@ export async function listAdminOrders(params: {
   const notices: AdminNotice[] = [
     {
       id: "payment-warning",
-      tone: "warning",
-      title: "Changement de statut paiement",
+      tone: "info",
+      title: "Synchro paiement active",
       description:
-        "Toute transition de payment_status doit rester securisee cote backend. Si une commande passe a paid, la synchronisation library doit etre declenchee explicitement et non supposee.",
+        "Les commandes ebook et papier sont visibles cote admin, en pending comme en paid. Seuls les items ebook debloquent l acces library.",
     },
   ];
 
@@ -146,12 +153,44 @@ export async function listAdminOrders(params: {
   const orderIds = (data ?? []).map((order) => order.id);
   const orderItemsResult =
     orderIds.length > 0
-      ? await supabase.from("order_items").select("order_id").in("order_id", orderIds)
-      : { data: [] as Array<{ order_id: string }>, error: null };
+      ? await supabase.from("order_items").select("order_id, book_format").in("order_id", orderIds)
+      : { data: [] as Array<{ order_id: string; book_format: BookFormatType }>, error: null };
 
   const itemCountByOrderId = new Map<string, number>();
+  const formatByOrderId = new Map<
+    string,
+    {
+      ebook: number;
+      paperback: number;
+      hardcover: number;
+      audiobook: number;
+    }
+  >();
+
+  function ensureFormatBucket(orderId: string) {
+    const current = formatByOrderId.get(orderId);
+    if (current) return current;
+
+    const next = {
+      ebook: 0,
+      paperback: 0,
+      hardcover: 0,
+      audiobook: 0,
+    };
+    formatByOrderId.set(orderId, next);
+    return next;
+  }
+
   (orderItemsResult.data ?? []).forEach((item) => {
     itemCountByOrderId.set(item.order_id, (itemCountByOrderId.get(item.order_id) ?? 0) + 1);
+    const bucket = ensureFormatBucket(item.order_id);
+    const key = item.book_format ?? "ebook";
+
+    if (key in bucket) {
+      bucket[key as keyof typeof bucket] += 1;
+    } else {
+      bucket.ebook += 1;
+    }
   });
 
   return {
@@ -159,6 +198,7 @@ export async function listAdminOrders(params: {
       ...order,
       user_name: firstOf(order.user)?.name ?? firstOf(order.user)?.email ?? "Utilisateur inconnu",
       itemCount: itemCountByOrderId.get(order.id) ?? 0,
+      formatBreakdown: formatByOrderId.get(order.id) ?? { ebook: 0, paperback: 0, hardcover: 0, audiobook: 0 },
     })),
     pagination: buildPagination(count, page, ADMIN_DEFAULT_PAGE_SIZE),
     notices,
@@ -171,9 +211,9 @@ export async function getAdminOrderDetail(orderId: string): Promise<AdminOrderDe
     {
       id: "order-sync-warning",
       tone: "info",
-      title: "Point d extension library",
+      title: "Resynchronisation library disponible",
       description:
-        "Si le statut passe a paid, il faut verifier la creation ou la correction des entrees library associees. Cette relation n est pas supposee implicite par l interface.",
+        "Les lignes de commande incluent maintenant le format (ebook, paperback, hardcover). Les commandes papier restent visibles sans debloquer library.",
     },
   ];
 
@@ -192,15 +232,32 @@ export async function getAdminOrderDetail(orderId: string): Promise<AdminOrderDe
 
   const itemsResult = await supabase
     .from("order_items")
-    .select("id, order_id, book_id, price, currency_code, book:books(id, title, status)")
+    .select("id, order_id, book_id, price, currency_code, book_format, book:books(id, title, status)")
     .eq("order_id", orderId)
     .returns<OrderItemRow[]>();
+
+  const detailFormatBreakdown = {
+    ebook: 0,
+    paperback: 0,
+    hardcover: 0,
+    audiobook: 0,
+  };
+
+  (itemsResult.data ?? []).forEach((item) => {
+    const key = item.book_format ?? "ebook";
+    if (key in detailFormatBreakdown) {
+      detailFormatBreakdown[key as keyof typeof detailFormatBreakdown] += 1;
+    } else {
+      detailFormatBreakdown.ebook += 1;
+    }
+  });
 
   return {
     order: {
       ...order,
       user_name: firstOf(order.user)?.name ?? firstOf(order.user)?.email ?? "Utilisateur inconnu",
       itemCount: (itemsResult.data ?? []).length,
+      formatBreakdown: detailFormatBreakdown,
     },
     items: (itemsResult.data ?? []).map((item) => ({
       ...item,

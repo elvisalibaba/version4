@@ -28,7 +28,7 @@ export default async function LibrairiePage() {
     <section className="space-y-10">
       <div className="space-y-3">
         <p className="ios-kicker">Librairie</p>
-        <h1 className="ios-title text-3xl font-bold sm:text-4xl">Des lectures de transformation pour clarifier, guerir et progresser.</h1>
+        <h1 className="ios-title text-2xl font-bold sm:text-3xl">Des lectures de transformation pour clarifier, guerir et progresser.</h1>
         <p className="ios-muted max-w-3xl text-sm sm:text-base">
           Explorez des livres choisis pour la croissance personnelle, la foi, la discipline, la vision et le leadership.
         </p>

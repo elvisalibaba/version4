@@ -20,6 +20,7 @@ export async function POST(request: Request) {
       userId: user.id,
       bookId: payload.bookId,
       orderId: payload.orderId,
+      bookFormat: payload.bookFormat,
       channel: payload.channels,
       customer: {
         ...payload.customer,

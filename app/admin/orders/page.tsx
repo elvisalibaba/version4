@@ -34,7 +34,7 @@ export default async function AdminOrdersPage({ searchParams }: OrdersPageProps)
     <div className="space-y-6">
       <AdminPageHeader
         title="Commandes"
-        description="Supervision des transactions, des statuts de paiement et des lignes de commande, sans supposer une synchronisation cachée vers library."
+        description="Supervision des transactions lecteurs, avec visibilite des formats ebook et papier en pending comme en paid."
         breadcrumbs={[
           { label: "Admin", href: "/admin" },
           { label: "Commandes" },
@@ -85,8 +85,8 @@ export default async function AdminOrdersPage({ searchParams }: OrdersPageProps)
         </AdminFilterBar>
       </AdminPanel>
 
-      <AdminPanel title="Toutes les commandes" description="Vue consolidée orders + nombre d items derives via order_items.">
-        <AdminDataTable columns={["Commande", "Utilisateur", "Montant", "Statut", "Date", "Items"]}>
+      <AdminPanel title="Toutes les commandes" description="Vue consolidee orders + formats commandes (ebook, paperback, hardcover).">
+        <AdminDataTable columns={["Commande", "Utilisateur", "Montant", "Statut", "Date", "Formats", "Items"]}>
           {data.items.map((order) => (
             <tr key={order.id} className="border-t border-violet-100/70">
               <td className="px-4 py-3">
@@ -100,6 +100,23 @@ export default async function AdminOrdersPage({ searchParams }: OrdersPageProps)
                 <StatusBadge kind="payment" value={order.payment_status} />
               </td>
               <td className="px-4 py-3 text-sm text-slate-500">{formatAdminDateTime(order.created_at)}</td>
+              <td className="px-4 py-3">
+                <div className="flex flex-wrap gap-2">
+                  {order.formatBreakdown.ebook > 0 ? (
+                    <StatusBadge kind="format" value="ebook" label={`ebook x${order.formatBreakdown.ebook}`} />
+                  ) : null}
+                  {order.formatBreakdown.paperback > 0 ? (
+                    <StatusBadge kind="format" value="paperback" label={`paperback x${order.formatBreakdown.paperback}`} />
+                  ) : null}
+                  {order.formatBreakdown.hardcover > 0 ? (
+                    <StatusBadge kind="format" value="hardcover" label={`hardcover x${order.formatBreakdown.hardcover}`} />
+                  ) : null}
+                  {order.formatBreakdown.audiobook > 0 ? (
+                    <StatusBadge kind="format" value="audiobook" label={`audiobook x${order.formatBreakdown.audiobook}`} />
+                  ) : null}
+                  {order.itemCount === 0 ? <span className="text-xs text-slate-400">-</span> : null}
+                </div>
+              </td>
               <td className="px-4 py-3 text-sm font-semibold text-slate-950">{order.itemCount}</td>
             </tr>
           ))}

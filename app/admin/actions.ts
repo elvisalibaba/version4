@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { createBlogPost, deleteBlogPost, parseBlogContentInput } from "@/lib/blog";
 import { addBookToFlashSale, clearFlashSaleBooks, removeBookFromFlashSale, updateFlashSaleDiscount } from "@/lib/flash-sales";
+import { addBookToHomeFeatured, clearHomeFeaturedBooks, moveHomeFeaturedBook, removeBookFromHomeFeatured } from "@/lib/home-positioning";
 import { splitCommaSeparatedValues } from "@/lib/supabase/admin/shared";
 import { createClient } from "@/lib/supabase/server";
 import type { BookFormatType, BookReviewStatus, BookStatus, LibraryAccessType, OrderPaymentStatus, SubscriptionStatus, UserRole } from "@/types/database";
@@ -134,6 +135,68 @@ export async function clearFlashSaleBooksAction(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/home");
   revalidatePath("/admin/flash-sales");
+  redirect(redirectTo);
+}
+
+export async function addHomeFeaturedBookAction(formData: FormData) {
+  await requireAdmin();
+  const redirectTo = getRedirectPath(formData, "/admin/home-positioning");
+  const bookId = getString(formData, "book_id");
+
+  if (bookId) {
+    await addBookToHomeFeatured(bookId);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/home");
+  revalidatePath("/admin");
+  revalidatePath("/admin/home-positioning");
+  redirect(redirectTo);
+}
+
+export async function removeHomeFeaturedBookAction(formData: FormData) {
+  await requireAdmin();
+  const redirectTo = getRedirectPath(formData, "/admin/home-positioning");
+  const bookId = getString(formData, "book_id");
+
+  if (bookId) {
+    await removeBookFromHomeFeatured(bookId);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/home");
+  revalidatePath("/admin");
+  revalidatePath("/admin/home-positioning");
+  redirect(redirectTo);
+}
+
+export async function clearHomeFeaturedBooksAction(formData: FormData) {
+  await requireAdmin();
+  const redirectTo = getRedirectPath(formData, "/admin/home-positioning");
+
+  await clearHomeFeaturedBooks();
+
+  revalidatePath("/");
+  revalidatePath("/home");
+  revalidatePath("/admin");
+  revalidatePath("/admin/home-positioning");
+  redirect(redirectTo);
+}
+
+export async function moveHomeFeaturedBookAction(formData: FormData) {
+  await requireAdmin();
+  const redirectTo = getRedirectPath(formData, "/admin/home-positioning");
+  const bookId = getString(formData, "book_id");
+  const direction = getString(formData, "direction");
+
+  if (bookId && (direction === "up" || direction === "down")) {
+    await moveHomeFeaturedBook(bookId, direction);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/home");
+  revalidatePath("/admin");
+  revalidatePath("/admin/home-positioning");
   redirect(redirectTo);
 }
 
@@ -354,6 +417,9 @@ export async function updateOrderStatusAction(formData: FormData) {
   const redirectTo = getRedirectPath(formData, `/admin/orders/${orderId}`);
 
   await supabase.from("orders").update({ payment_status: paymentStatus }).eq("id", orderId);
+  if (orderId && paymentStatus === "paid") {
+    await supabase.rpc("sync_library_access_for_order", { p_order_id: orderId });
+  }
 
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${orderId}`);

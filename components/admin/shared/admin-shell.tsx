@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Blocks,
   BookCopy,
+  BringToFront,
   CreditCard,
   FileText,
   Highlighter,
@@ -62,6 +63,7 @@ const navigationGroups: Array<{ title: string; items: NavigationItem[] }> = [
     items: [
       { href: "/admin/blog", label: "Blog", icon: FileText },
       { href: "/admin/flash-sales", label: "Flash sale", icon: Tag },
+      { href: "/admin/home-positioning", label: "Mise en avant", icon: BringToFront },
     ],
   },
 ];

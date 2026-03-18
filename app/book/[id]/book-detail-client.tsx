@@ -29,6 +29,11 @@ type BookDetailView = {
   categories: string[];
   is_single_sale_enabled: boolean;
   is_subscription_available: boolean;
+  purchase_formats: Array<{
+    format: "ebook" | "paperback" | "hardcover";
+    price: number;
+    currency_code: string;
+  }>;
   subscription_plans: SubscriptionPlan[];
 };
 
@@ -110,8 +115,8 @@ export function BookDetailClient({ book, accessState, isAuthenticated, checkoutC
       <section className="space-y-8 px-0 py-4">
         <div className="page-hero-shell">
           <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
-            <div className="overflow-hidden rounded-[2rem] border border-violet-200/70 bg-white/90 shadow-[0_22px_48px_rgba(79,57,180,0.12)]">
-              <div className="aspect-[3/4] bg-[linear-gradient(180deg,_#f4efff,_#efe8ff)]">
+            <div className="overflow-hidden rounded-[2rem] border border-[#ece3d7] bg-white/90 shadow-[0_22px_48px_rgba(15,23,42,0.10)]">
+              <div className="aspect-[3/4] bg-[linear-gradient(180deg,_#f8f1e8,_#f2eadf)]">
                 {book.cover_signed_url ? (
                   <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover" />
                 ) : (
@@ -128,18 +133,18 @@ export function BookDetailClient({ book, accessState, isAuthenticated, checkoutC
               </div>
 
               <div className="space-y-3">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-500">{book.author_name}</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#a85b3f]">{book.author_name}</p>
                 <div>
-                  <h1 className="section-title text-4xl sm:text-5xl">{book.title}</h1>
-                  {book.subtitle ? <p className="mt-3 text-lg leading-8 text-slate-500">{book.subtitle}</p> : null}
+                  <h1 className="section-title text-3xl tracking-tight sm:text-[3rem]">{book.title}</h1>
+                  {book.subtitle ? <p className="mt-3 text-base leading-7 text-slate-500">{book.subtitle}</p> : null}
                 </div>
-                <p className="max-w-3xl text-base leading-8 text-slate-600">{book.description ?? "Description indisponible."}</p>
+                <p className="max-w-3xl text-[0.96rem] leading-7 text-slate-600">{book.description ?? "Description indisponible."}</p>
               </div>
 
               <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
                 <div className="surface-panel p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-500">Acces & tarification</p>
-                  <p className="mt-3 text-4xl font-semibold text-slate-950">{book.display_price_label}</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#a85b3f]">Acces & tarification</p>
+                  <p className="mt-3 text-3xl font-semibold text-slate-950">{book.display_price_label}</p>
                   <p className="mt-3 text-sm leading-7 text-slate-500">{accessMessage}</p>
 
                   {accessState?.hasAccess || !book.is_single_sale_enabled ? (
@@ -172,6 +177,17 @@ export function BookDetailClient({ book, accessState, isAuthenticated, checkoutC
                         bookTitle={book.title}
                         amount={book.price}
                         currencyCode={book.currency_code}
+                        formatOptions={book.purchase_formats.map((format) => ({
+                          format: format.format,
+                          label:
+                            format.format === "paperback"
+                              ? "Paperback"
+                              : format.format === "hardcover"
+                                ? "Hardcover"
+                                : "Ebook",
+                          amount: format.price,
+                          currencyCode: format.currency_code,
+                        }))}
                         isAuthenticated={isAuthenticated}
                         loginHref={loginHref}
                         defaultCustomer={checkoutCustomer}
@@ -187,7 +203,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, checkoutC
                 </div>
 
                 <div className="surface-panel-soft p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-500">Packs Premium</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#a85b3f]">Packs Premium</p>
                   {book.subscription_plans.length > 0 ? (
                     <div className="mt-4 grid gap-3">
                       {book.subscription_plans.map((plan) => (
@@ -220,7 +236,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, checkoutC
 
         <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="surface-panel p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-500">Editorial notes</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#a85b3f]">Editorial notes</p>
             <h2 className="mt-3 section-title text-2xl">Pourquoi ce livre merite votre attention</h2>
             <p className="mt-3 text-sm leading-8 text-slate-600">
               Cette page conserve toute la logique d acces actuelle tout en clarifiant les cas d usage: achat individuel, lecture via abonnement Premium, acces deja debloque ou bibliotheque existante.
@@ -228,7 +244,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, checkoutC
           </div>
 
           <div className="surface-panel-soft p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-500">Statut lecteur</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#a85b3f]">Statut lecteur</p>
             <div className="mt-4 grid gap-3">
               <div className="rounded-[1.35rem] bg-white/90 p-4 shadow-sm">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Acces</p>

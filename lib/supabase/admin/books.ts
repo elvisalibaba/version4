@@ -48,6 +48,7 @@ type RelatedOrderItemRow = {
   book_id: string;
   price: number;
   currency_code: string;
+  book_format: BookFormatType;
   order: MaybeArray<{
     id: string;
     user_id: string;
@@ -411,7 +412,7 @@ export async function getAdminBookDetail(bookId: string): Promise<AdminBookDetai
     supabase
       .from("order_items")
       .select(
-        "id, order_id, book_id, price, currency_code, order:orders!order_items_order_id_fkey(id, user_id, total_price, currency_code, payment_status, created_at)",
+        "id, order_id, book_id, price, currency_code, book_format, order:orders!order_items_order_id_fkey(id, user_id, total_price, currency_code, payment_status, created_at)",
       )
       .eq("book_id", bookId)
       .order("order_id", { ascending: false })

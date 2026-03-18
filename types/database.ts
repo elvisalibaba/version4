@@ -248,6 +248,24 @@ export type Database = {
         };
         Relationships: [];
       };
+      home_featured_configs: {
+        Row: {
+          scope: string;
+          selected_book_ids: string[];
+          updated_at: string;
+        };
+        Insert: {
+          scope?: string;
+          selected_book_ids?: string[];
+          updated_at?: string;
+        };
+        Update: {
+          scope?: string;
+          selected_book_ids?: string[];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       books: {
         Row: {
           id: string;
@@ -728,6 +746,7 @@ export type Database = {
           book_id: string;
           price: number;
           currency_code: string;
+          book_format: BookFormatType;
         };
         Insert: {
           id?: string;
@@ -735,6 +754,7 @@ export type Database = {
           book_id: string;
           price: number;
           currency_code?: string;
+          book_format?: BookFormatType;
         };
         Update: {
           id?: string;
@@ -742,6 +762,7 @@ export type Database = {
           book_id?: string;
           price?: number;
           currency_code?: string;
+          book_format?: BookFormatType;
         };
         Relationships: [
           {
@@ -950,6 +971,12 @@ export type Database = {
       is_current_user_admin: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
+      };
+      sync_library_access_for_order: {
+        Args: {
+          p_order_id: string;
+        };
+        Returns: undefined;
       };
       track_book_engagement: {
         Args: {
