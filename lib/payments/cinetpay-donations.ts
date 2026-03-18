@@ -6,6 +6,9 @@ type EasyPayInitResponse = {
   code?: number | string;
   reference?: string;
   message?: string;
+  transaction?: {
+    reference?: string;
+  };
 };
 
 type EasyPayCheckingResponse = {
@@ -63,13 +66,33 @@ function cleanString(value: unknown) {
 }
 
 function getEasyPayConfig(): EasyPayConfig {
-  const correlationId = process.env.EASYPAY_CORRELATION_ID;
-  const publishableKey = process.env.EASYPAY_PUBLISHABLE_KEY;
+  const correlationId =
+    cleanString(process.env.EASYPAY_CORRELATION_ID) ??
+    cleanString(process.env.EASYPAY_CID) ??
+    cleanString(process.env.NEXT_PUBLIC_EASYPAY_CORRELATION_ID) ??
+    cleanString(process.env.NEXT_PUBLIC_EASYPAY_CID);
+  const publishableKey =
+    cleanString(process.env.EASYPAY_PUBLISHABLE_KEY) ??
+    cleanString(process.env.EASYPAY_TOKEN) ??
+    cleanString(process.env.NEXT_PUBLIC_EASYPAY_PUBLISHABLE_KEY) ??
+    cleanString(process.env.NEXT_PUBLIC_EASYPAY_TOKEN);
   const modeRaw = process.env.EASYPAY_MODE?.trim().toLowerCase() ?? "sandbox";
   const baseUrl = process.env.EASYPAY_BASE_URL?.replace(/\/$/, "") || "https://www.e-com-easypay.com";
+  const missing: string[] = [];
 
-  if (!correlationId || !publishableKey) {
-    throw new DonationFlowError("La configuration EasyPay est incomplete cote serveur.", 500);
+  if (!correlationId) {
+    missing.push("EASYPAY_CORRELATION_ID");
+  }
+
+  if (!publishableKey) {
+    missing.push("EASYPAY_PUBLISHABLE_KEY");
+  }
+
+  if (missing.length > 0) {
+    throw new DonationFlowError(
+      `La configuration EasyPay est incomplete cote serveur. Variables manquantes: ${missing.join(", ")}.`,
+      500,
+    );
   }
 
   if (modeRaw !== "sandbox" && modeRaw !== "v1") {
@@ -199,9 +222,10 @@ export async function initCinetPayDonation(params: {
   const result = await fetchJson<EasyPayInitResponse>(initUrl, requestBody);
   const responseCode = result?.code !== undefined && result?.code !== null ? String(result.code) : null;
   const responseMessage = cleanString(result?.message);
-  const providerReference = cleanString(result?.reference);
+  const providerReference = cleanString(result?.reference) ?? cleanString(result?.transaction?.reference);
+  const isInitSuccess = responseCode === "1" || (responseCode === null && Boolean(providerReference));
 
-  if (responseCode !== "1" || !providerReference) {
+  if (!isInitSuccess || !providerReference) {
     throw new DonationFlowError(responseMessage ?? "EasyPay n a pas pu initialiser la transaction de don.", 502);
   }
 
@@ -225,8 +249,31 @@ export async function verifyCinetPayDonationTransaction(transactionId: string): 
   }
 
   const config = getEasyPayConfig();
-  const checkUrl = buildEasyPayModeUrl(config, `/payment/${encodeURIComponent(normalizedTransactionId)}/checking-payment`);
-  const result = await fetchJson<EasyPayCheckingResponse>(checkUrl, {});
+  const encodedReference = encodeURIComponent(normalizedTransactionId);
+  const checkingEndpoints = [
+    buildEasyPayModeUrl(config, `/payment/${encodedReference}/checking-status`),
+    buildEasyPayModeUrl(config, `/payment/${encodedReference}/checking-payment`),
+  ];
+
+  let result: EasyPayCheckingResponse | null = null;
+  let lastError: unknown = null;
+
+  for (const endpoint of checkingEndpoints) {
+    try {
+      result = await fetchJson<EasyPayCheckingResponse>(endpoint, {});
+      break;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (!result) {
+    if (lastError instanceof DonationFlowError) {
+      throw lastError;
+    }
+
+    throw new DonationFlowError("Verification EasyPay indisponible pour cette transaction.", 502);
+  }
 
   const providerStatus = (cleanString(result?.payment?.status) ?? "UNKNOWN").toUpperCase();
 
