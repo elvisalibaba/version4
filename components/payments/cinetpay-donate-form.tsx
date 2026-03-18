@@ -89,7 +89,7 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
     setBusyChannel(channel);
 
     try {
-      const response = await fetch("/api/payments/cinetpay/donate/init", {
+      const response = await fetch("/api/payments/easypay/donate/init", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,7 +118,7 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
       const data = (await response.json()) as { error?: string; paymentUrl?: string };
 
       if (!response.ok || !data.paymentUrl) {
-        throw new Error(data.error ?? "Impossible de lancer le don CinetPay.");
+        throw new Error(data.error ?? "Impossible de lancer le don EasyPay.");
       }
 
       window.location.assign(data.paymentUrl);
@@ -132,10 +132,10 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
     <div className="space-y-5 rounded-[1.6rem] border border-violet-100 bg-[linear-gradient(135deg,_rgba(248,245,255,0.96),_rgba(255,255,255,0.96))] p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">Don via CinetPay</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">Don via EasyPay</p>
           <p className="mt-2 text-lg font-semibold text-slate-950">Soutenir Holistique Books</p>
           <p className="mt-1 text-sm leading-6 text-slate-500">
-            Votre don passe par le meme moyen de paiement CinetPay, avec verification serveur du statut de transaction.
+            Votre don passe par EasyPay, avec verification serveur du statut de transaction.
           </p>
         </div>
         <span className="catalog-badge">
@@ -209,7 +209,7 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
         </Field>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <button
           type="button"
           onClick={() => launchDonation("CREDIT_CARD")}
@@ -234,18 +234,10 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
         >
           {busyChannel === "ALL" ? "Redirection..." : "Choisir sur le guichet"}
         </button>
-        <button
-          type="button"
-          onClick={() => launchDonation("WALLET")}
-          disabled={Boolean(busyChannel)}
-          className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {busyChannel === "WALLET" ? "Redirection..." : "Don par wallet"}
-        </button>
       </div>
 
       <div className="rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
-        Le guichet CinetPay affiche les moyens disponibles selon votre pays. Pour la carte bancaire, adresse, ville, pays ISO et code postal sont requis.
+        Le guichet EasyPay affiche les moyens disponibles selon votre pays. Pour la carte bancaire, adresse, ville, pays ISO et code postal sont requis.
       </div>
 
       {error ? <div className="rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}

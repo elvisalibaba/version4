@@ -35,7 +35,7 @@ function getStatusCopy(status: OrderRow["payment_status"]) {
     default:
       return {
         title: "Verification du paiement",
-        description: "Nous verifions encore la transaction avec CinetPay. Cette page ne se base jamais uniquement sur les query params du navigateur.",
+        description: "Nous verifions encore la transaction avec EasyPay. Cette page ne se base jamais uniquement sur les query params du navigateur.",
         accent: "bg-slate-100 text-slate-700 border-slate-200",
       };
   }
@@ -67,7 +67,11 @@ export default async function PaymentReturnPage({ searchParams }: { searchParams
 
   let order: OrderRow | null = (initialOrderResult.data ?? null) as OrderRow | null;
 
-  if (order?.payment_status === "pending" && order.payment_provider === "cinetpay" && order.payment_transaction_id) {
+  if (
+    order?.payment_status === "pending" &&
+    (order.payment_provider === "easypay" || order.payment_provider === "cinetpay") &&
+    order.payment_transaction_id
+  ) {
     try {
       await reconcileCinetPayOrder(order.id);
       const refreshed = await supabase.from("orders").select("*").eq("id", order.id).eq("user_id", user.id).returns<OrderRow>().maybeSingle();
@@ -94,7 +98,7 @@ export default async function PaymentReturnPage({ searchParams }: { searchParams
     <section className="page-hero-shell space-y-8 py-12">
       <div className="surface-panel space-y-6 p-8">
         <div className={`rounded-[1.6rem] border px-5 py-4 ${statusCopy.accent}`}>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em]">CinetPay redirect return</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em]">EasyPay redirect return</p>
           <h1 className="mt-2 text-3xl font-semibold">{statusCopy.title}</h1>
           <p className="mt-3 max-w-3xl text-sm leading-7">{statusCopy.description}</p>
         </div>

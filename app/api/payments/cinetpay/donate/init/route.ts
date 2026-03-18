@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    const message = error instanceof Error ? error.message : "Impossible de demarrer le don CinetPay.";
+    const message = error instanceof Error ? error.message : "Impossible de demarrer le don EasyPay.";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

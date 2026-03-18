@@ -20,7 +20,7 @@ function getServiceRoleConfig() {
     throw new Error(
       `Supabase server configuration is incomplete. Missing: ${missing.join(
         ", ",
-      )}. Add these variables to .env.local to enable order creation and Mobile Money payments via CinetPay.`,
+      )}. Add these variables to .env.local to enable order creation and payments via EasyPay.`,
     );
   }
 

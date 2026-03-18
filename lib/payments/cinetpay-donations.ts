@@ -2,32 +2,30 @@ import "server-only";
 
 import type { CinetPayChannel, ValidatedCheckoutCustomer } from "./validation";
 
-type CinetPayInitResponse = {
-  code?: string;
+type EasyPayInitResponse = {
+  code?: number | string;
+  reference?: string;
   message?: string;
-  description?: string;
-  data?: {
-    payment_url?: string;
-    payment_token?: string;
-    payment_code?: string;
-    payment_method?: string;
-  };
 };
 
-type CinetPayCheckResponse = {
-  code?: string;
-  message?: string;
-  description?: string;
-  data?: {
-    status?: string;
-    amount?: number | string;
-    currency?: string;
-    payment_method?: string;
-    operator_id?: string;
-    payment_date?: string;
-    transaction_id?: string;
-    metadata?: string;
+type EasyPayCheckingResponse = {
+  transaction?: {
+    order_ref?: string;
+    reference?: string;
   };
+  payment?: {
+    channel?: string;
+    status?: string;
+    reference?: string;
+  };
+  message?: string;
+};
+
+type EasyPayConfig = {
+  baseUrl: string;
+  mode: "sandbox" | "v1";
+  correlationId: string;
+  publishableKey: string;
 };
 
 export type DonationTransactionStatus = "paid" | "failed" | "pending";
@@ -56,19 +54,33 @@ export class DonationFlowError extends Error {
   }
 }
 
-function getCinetPayConfig() {
-  const apiKey = process.env.CINETPAY_API_KEY;
-  const siteId = process.env.CINETPAY_SITE_ID;
-  const baseUrl = process.env.CINETPAY_BASE_URL?.replace(/\/$/, "") || "https://api-checkout.cinetpay.com/v2";
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
-  if (!apiKey || !siteId) {
-    throw new DonationFlowError("La configuration CinetPay est incomplete cote serveur.", 500);
+function cleanString(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function getEasyPayConfig(): EasyPayConfig {
+  const correlationId = process.env.EASYPAY_CORRELATION_ID;
+  const publishableKey = process.env.EASYPAY_PUBLISHABLE_KEY;
+  const modeRaw = process.env.EASYPAY_MODE?.trim().toLowerCase() ?? "sandbox";
+  const baseUrl = process.env.EASYPAY_BASE_URL?.replace(/\/$/, "") || "https://www.e-com-easypay.com";
+
+  if (!correlationId || !publishableKey) {
+    throw new DonationFlowError("La configuration EasyPay est incomplete cote serveur.", 500);
+  }
+
+  if (modeRaw !== "sandbox" && modeRaw !== "v1") {
+    throw new DonationFlowError("EASYPAY_MODE doit etre 'sandbox' ou 'v1'.", 500);
   }
 
   return {
-    apiKey,
-    siteId,
     baseUrl,
+    mode: modeRaw,
+    correlationId,
+    publishableKey,
   };
 }
 
@@ -83,14 +95,18 @@ function resolveAppBaseUrl(fallbackOrigin?: string) {
     return fallbackOrigin.replace(/\/$/, "");
   }
 
-  throw new DonationFlowError("APP_BASE_URL est requis pour construire les URLs CinetPay.", 500);
+  throw new DonationFlowError("APP_BASE_URL est requis pour construire les URLs EasyPay.", 500);
 }
 
 function buildAppUrl(baseUrl: string, path: string) {
   return `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-function createDonationTransactionId() {
+function buildEasyPayModeUrl(config: EasyPayConfig, path: string) {
+  return `${config.baseUrl}/${config.mode}/${path.replace(/^\//, "")}`;
+}
+
+function createDonationOrderRef() {
   const randomSuffix = Math.random().toString(36).slice(2, 8).toUpperCase();
   return `HB-DON-${Date.now()}-${randomSuffix}`;
 }
@@ -99,25 +115,37 @@ function toProviderAmount(amount: number) {
   const normalizedAmount = Number(amount.toFixed(2));
 
   if (!Number.isFinite(normalizedAmount) || normalizedAmount <= 0) {
-    throw new DonationFlowError("Montant de don invalide pour CinetPay.", 400);
+    throw new DonationFlowError("Montant de don invalide pour EasyPay.", 400);
   }
 
   return normalizedAmount;
 }
 
-function isUsdAccountCompatibilityError(payload: { message?: string; description?: string }) {
-  const haystack = `${payload.message ?? ""} ${payload.description ?? ""}`.toLowerCase();
-  return haystack.includes("usd") && (haystack.includes("devise") || haystack.includes("currency") || haystack.includes("autor"));
+function mapEasyPayChannels(channel: CinetPayChannel) {
+  if (channel === "MOBILE_MONEY") {
+    return [{ channel: "MOBILE MONEY" }];
+  }
+
+  if (channel === "CREDIT_CARD") {
+    return [{ channel: "CREDIT CARD" }];
+  }
+
+  return [{ channel: "CREDIT CARD" }, { channel: "MOBILE MONEY" }];
 }
 
-async function fetchJson<T>(url: string, body: Record<string, unknown>) {
+function buildCustomerFullName(customer: ValidatedCheckoutCustomer) {
+  const fullName = `${customer.firstName} ${customer.lastName}`.trim();
+  return fullName || customer.email || "Donateur HolistiqueBooks";
+}
+
+async function fetchJson<T>(url: string, body?: Record<string, unknown>) {
   const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(body ?? {}),
     cache: "no-store",
   });
 
@@ -129,25 +157,10 @@ async function fetchJson<T>(url: string, body: Record<string, unknown>) {
   }
 
   if (!response.ok) {
-    throw new DonationFlowError("La passerelle CinetPay est temporairement indisponible.", 502);
+    throw new DonationFlowError("La passerelle EasyPay est temporairement indisponible.", 502);
   }
 
   return data;
-}
-
-function parseNumericAmount(value: number | string | undefined) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return Number(value.toFixed(2));
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) {
-      return Number(parsed.toFixed(2));
-    }
-  }
-
-  return null;
 }
 
 export async function initCinetPayDonation(params: {
@@ -159,67 +172,49 @@ export async function initCinetPayDonation(params: {
   note?: string;
   appBaseUrl?: string;
 }) {
-  const config = getCinetPayConfig();
+  const config = getEasyPayConfig();
   const baseUrl = resolveAppBaseUrl(params.appBaseUrl);
-  const transactionId = createDonationTransactionId();
+  const orderRef = createDonationOrderRef();
   const notePreview = params.note?.slice(0, 80) ?? "";
   const description = notePreview ? `Don HolistiqueBooks - ${notePreview}` : "Don HolistiqueBooks";
+  const initUrl = `${buildEasyPayModeUrl(config, "/payment/initialization")}?cid=${encodeURIComponent(config.correlationId)}&token=${encodeURIComponent(config.publishableKey)}`;
 
   const requestBody: Record<string, unknown> = {
-    apikey: config.apiKey,
-    site_id: config.siteId,
-    transaction_id: transactionId,
+    order_ref: orderRef,
     amount: toProviderAmount(params.amount),
     currency: params.currency,
     description,
-    notify_url: buildAppUrl(baseUrl, "/api/payments/cinetpay/donate/notify"),
-    return_url: buildAppUrl(baseUrl, `/don/retour?transactionId=${encodeURIComponent(transactionId)}`),
-    channels: params.channel,
-    metadata: JSON.stringify({
-      flow: "donation",
-      donorReference: params.donorReference ?? null,
-      note: params.note ?? null,
-      amount: params.amount,
-      currency: params.currency,
-      createdAt: new Date().toISOString(),
-    }),
-    customer_id: params.customer.customerId ?? params.donorReference ?? transactionId,
-    customer_name: params.customer.lastName,
-    customer_surname: params.customer.firstName,
-    customer_phone_number: params.customer.phoneNumber,
-    customer_email: params.customer.email,
+    success_url: buildAppUrl(baseUrl, "/don/retour"),
+    cancel_url: buildAppUrl(baseUrl, "/don/retour"),
+    error_url: buildAppUrl(baseUrl, "/don/retour"),
+    language: "FR",
+    channels: mapEasyPayChannels(params.channel),
+    customer_name: buildCustomerFullName(params.customer),
   };
 
-  if (params.channel === "CREDIT_CARD" || params.channel === "ALL") {
-    requestBody.customer_address = params.customer.address;
-    requestBody.customer_city = params.customer.city;
-    requestBody.customer_country = params.customer.country;
-    requestBody.customer_state = params.customer.state;
-    requestBody.customer_zip_code = params.customer.zipCode;
+  if (params.customer.email) {
+    requestBody.customer_email = params.customer.email;
   }
 
-  const result = await fetchJson<CinetPayInitResponse>(`${config.baseUrl}/payment`, requestBody);
-  const paymentUrl = result?.data?.payment_url ?? null;
+  const result = await fetchJson<EasyPayInitResponse>(initUrl, requestBody);
+  const responseCode = result?.code !== undefined && result?.code !== null ? String(result.code) : null;
+  const responseMessage = cleanString(result?.message);
+  const providerReference = cleanString(result?.reference);
 
-  if (!paymentUrl) {
-    if (isUsdAccountCompatibilityError({ message: result?.message, description: result?.description })) {
-      throw new DonationFlowError(
-        "Votre compte CinetPay ne semble pas autorise a encaisser en USD. Verifiez la compatibilite devise de votre compte avant la mise en production.",
-        409,
-      );
-    }
-
-    throw new DonationFlowError(result?.description ?? result?.message ?? "CinetPay n a pas retourne de payment_url exploitable.", 502);
+  if (responseCode !== "1" || !providerReference) {
+    throw new DonationFlowError(responseMessage ?? "EasyPay n a pas pu initialiser la transaction de don.", 502);
   }
+
+  const paymentUrl = `${buildEasyPayModeUrl(config, "/payment/initialization")}?reference=${encodeURIComponent(providerReference)}`;
 
   return {
-    transactionId,
+    transactionId: providerReference,
     paymentUrl,
-    responseCode: result?.code ?? null,
-    responseMessage: result?.message ?? null,
-    responseDescription: result?.description ?? null,
-    paymentToken: result?.data?.payment_token ?? null,
-    paymentMethod: result?.data?.payment_method ?? result?.data?.payment_code ?? null,
+    responseCode,
+    responseMessage,
+    responseDescription: null,
+    paymentToken: providerReference,
+    paymentMethod: null,
   };
 }
 
@@ -229,21 +224,16 @@ export async function verifyCinetPayDonationTransaction(transactionId: string): 
     throw new DonationFlowError("transactionId manquant pour verifier la transaction.", 400);
   }
 
-  const config = getCinetPayConfig();
-  const result = await fetchJson<CinetPayCheckResponse>(`${config.baseUrl}/payment/check`, {
-    apikey: config.apiKey,
-    site_id: config.siteId,
-    transaction_id: normalizedTransactionId,
-  });
+  const config = getEasyPayConfig();
+  const checkUrl = buildEasyPayModeUrl(config, `/payment/${encodeURIComponent(normalizedTransactionId)}/checking-payment`);
+  const result = await fetchJson<EasyPayCheckingResponse>(checkUrl, {});
 
-  const providerStatus = result?.data?.status ?? "UNKNOWN";
-  const normalizedStatus = providerStatus.toUpperCase();
-  const providerCode = result?.code ?? null;
+  const providerStatus = (cleanString(result?.payment?.status) ?? "UNKNOWN").toUpperCase();
 
   let status: DonationTransactionStatus = "pending";
-  if (providerCode === "00" || normalizedStatus === "ACCEPTED") {
+  if (providerStatus === "SUCCESS") {
     status = "paid";
-  } else if (normalizedStatus === "REFUSED" || normalizedStatus === "FAILED" || normalizedStatus === "CANCELLED") {
+  } else if (providerStatus === "CANCELED" || providerStatus === "DECLINED" || providerStatus === "FAILED") {
     status = "failed";
   }
 
@@ -251,17 +241,50 @@ export async function verifyCinetPayDonationTransaction(transactionId: string): 
     transactionId: normalizedTransactionId,
     status,
     providerStatus,
-    providerCode,
-    providerMessage: result?.description ?? result?.message ?? null,
-    amount: parseNumericAmount(result?.data?.amount),
-    currency: result?.data?.currency ?? null,
-    paymentMethod: result?.data?.payment_method ?? null,
-    operatorId: result?.data?.operator_id ?? null,
-    paymentDate: result?.data?.payment_date ?? null,
-    metadata: typeof result?.data?.metadata === "string" ? result.data.metadata : null,
+    providerCode: null,
+    providerMessage: cleanString(result?.message),
+    amount: null,
+    currency: null,
+    paymentMethod: cleanString(result?.payment?.channel),
+    operatorId: null,
+    paymentDate: null,
+    metadata: JSON.stringify({
+      transaction: result?.transaction ?? null,
+      payment: result?.payment ?? null,
+    }),
   };
 }
 
-export function getDonationTransactionIdFromNotifyPayload(payload: Record<string, string>) {
-  return payload.cpm_trans_id ?? payload.transaction_id ?? payload.trans_id ?? null;
+export function getDonationTransactionIdFromNotifyPayload(payload: unknown) {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  const directReference =
+    cleanString(payload.reference) ??
+    cleanString(payload.cpm_trans_id) ??
+    cleanString(payload.transaction_id) ??
+    cleanString(payload.trans_id);
+
+  if (directReference) {
+    return directReference;
+  }
+
+  const transactionPayload = payload.transaction;
+  if (isRecord(transactionPayload)) {
+    const nestedTransactionReference = cleanString(transactionPayload.reference);
+    if (nestedTransactionReference) {
+      return nestedTransactionReference;
+    }
+  }
+
+  const paymentPayload = payload.payment;
+  if (isRecord(paymentPayload)) {
+    const nestedPaymentReference = cleanString(paymentPayload.reference);
+    if (nestedPaymentReference) {
+      return nestedPaymentReference;
+    }
+  }
+
+  return null;
 }

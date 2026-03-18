@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    const message = error instanceof Error ? error.message : "Impossible de demarrer le checkout CinetPay.";
+    const message = error instanceof Error ? error.message : "Impossible de demarrer le checkout EasyPay.";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

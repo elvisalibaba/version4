@@ -1,4 +1,4 @@
-export const CINETPAY_CHANNELS = ["ALL", "MOBILE_MONEY", "CREDIT_CARD", "WALLET"] as const;
+export const CINETPAY_CHANNELS = ["ALL", "MOBILE_MONEY", "CREDIT_CARD"] as const;
 export const CHECKOUT_BOOK_FORMATS = ["ebook", "paperback", "hardcover"] as const;
 
 export type CinetPayChannel = (typeof CINETPAY_CHANNELS)[number];
@@ -110,7 +110,7 @@ export function validateUsdCurrency(value: unknown): "USD" {
   const currency = cleanString(value) ?? "USD";
 
   if (currency !== "USD") {
-    throw new Error("HolistiqueBooks Checkout avec CinetPay est actuellement disponible uniquement en USD.");
+    throw new Error("HolistiqueBooks Checkout avec EasyPay est actuellement disponible uniquement en USD.");
   }
 
   return "USD";
@@ -211,7 +211,7 @@ export function validateCheckoutCustomer(customer: ValidatedCheckoutCustomer, ch
   ].filter(([, value]) => !value);
 
   if (missingBaseFields.length > 0) {
-    throw new Error("Nom, prenom, email et telephone sont requis pour initialiser un paiement CinetPay.");
+    throw new Error("Nom, prenom, email et telephone sont requis pour initialiser un paiement EasyPay.");
   }
 
   if (!channelRequiresCardCustomerFields(channels)) {
@@ -227,7 +227,7 @@ export function validateCheckoutCustomer(customer: ValidatedCheckoutCustomer, ch
 
   if (missingCardFields.length > 0) {
     throw new Error(
-      "Le canal carte bancaire CinetPay exige customer_address, customer_city, customer_country et customer_zip_code.",
+      "Le canal carte bancaire EasyPay exige customer_address, customer_city, customer_country et customer_zip_code.",
     );
   }
 
@@ -275,7 +275,7 @@ export function validateCinetPayInitPayload(input: unknown): CinetPayInitPayload
   }
 
   if (!isCinetPayChannel(input.channels)) {
-    throw new Error("channels doit etre ALL, MOBILE_MONEY, CREDIT_CARD ou WALLET.");
+    throw new Error("channels doit etre ALL, MOBILE_MONEY ou CREDIT_CARD.");
   }
 
   const customer = validateCheckoutCustomer(normalizeCheckoutCustomer(input.customer), input.channels);
@@ -309,7 +309,7 @@ export function validateCinetPayDonationInitPayload(input: unknown): CinetPayDon
   }
 
   if (!isCinetPayChannel(input.channels)) {
-    throw new Error("channels doit etre ALL, MOBILE_MONEY, CREDIT_CARD ou WALLET.");
+    throw new Error("channels doit etre ALL, MOBILE_MONEY ou CREDIT_CARD.");
   }
 
   const customer = validateCheckoutCustomer(normalizeCheckoutCustomer(input.customer), input.channels);

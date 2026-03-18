@@ -35,7 +35,7 @@ export default async function DonatePage() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-600">Soutien Holistique Books</p>
           <h1 className="mt-2 text-3xl font-semibold text-slate-950">Faire un don</h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-            Utilisez votre moyen de paiement CinetPay pour soutenir la plateforme. Le statut de transaction est verifie cote serveur avant confirmation.
+            Utilisez votre moyen de paiement EasyPay pour soutenir la plateforme. Le statut de transaction est verifie cote serveur avant confirmation.
           </p>
         </div>
 

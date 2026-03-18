@@ -111,7 +111,7 @@ export function CinetPayButtons({
     }
 
     try {
-      const response = await fetch("/api/payments/cinetpay/init", {
+      const response = await fetch("/api/payments/easypay/init", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -129,7 +129,7 @@ export function CinetPayButtons({
       const data = (await response.json()) as { error?: string; paymentUrl?: string };
 
       if (!response.ok || !data.paymentUrl) {
-        throw new Error(data.error ?? "Impossible de lancer le paiement CinetPay.");
+        throw new Error(data.error ?? "Impossible de lancer le paiement EasyPay.");
       }
 
       window.location.assign(data.paymentUrl);
@@ -145,7 +145,7 @@ export function CinetPayButtons({
     <div className="space-y-5 rounded-[1.6rem] border border-violet-100 bg-[linear-gradient(135deg,_rgba(248,245,255,0.96),_rgba(255,255,255,0.96))] p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">CinetPay checkout</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">EasyPay checkout</p>
           <p className="mt-2 text-lg font-semibold text-slate-950">{bookTitle}</p>
           <p className="mt-1 text-sm leading-6 text-slate-500">
             Paiement en redirection avec verification serveur obligatoire. Les achats ebook debloquent la bibliotheque apres confirmation.
@@ -188,7 +188,7 @@ export function CinetPayButtons({
 
       {currencyMismatch ? (
         <div className="rounded-[1.25rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          Ce livre n est pas facture en USD. Le checkout CinetPay est actuellement limite a USD.
+          Ce livre n est pas facture en USD. Le checkout EasyPay est actuellement limite a USD.
         </div>
       ) : null}
 
@@ -222,7 +222,7 @@ export function CinetPayButtons({
         </Field>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <button
           type="button"
           onClick={() => launchCheckout("CREDIT_CARD")}
@@ -247,14 +247,6 @@ export function CinetPayButtons({
         >
           {busyChannel === "ALL" ? "Redirection..." : "Choisir sur le guichet"}
         </button>
-        <button
-          type="button"
-          onClick={() => launchCheckout("WALLET")}
-          disabled={Boolean(busyChannel) || currencyMismatch}
-          className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {busyChannel === "WALLET" ? "Redirection..." : "Payer par wallet"}
-        </button>
       </div>
 
       {!isAuthenticated ? (
@@ -268,7 +260,7 @@ export function CinetPayButtons({
       ) : null}
 
       <div className="rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
-        Le guichet affiche tous les moyens de paiement disponibles. Pour payer par carte, renseignez au minimum l adresse, la ville, le pays en code ISO a 2 lettres et le code postal.
+        Le guichet EasyPay affiche les moyens disponibles selon votre contexte. Pour payer par carte, renseignez au minimum l adresse, la ville, le pays en code ISO a 2 lettres et le code postal.
       </div>
 
       {error ? <div className="rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}

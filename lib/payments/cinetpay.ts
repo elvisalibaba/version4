@@ -37,42 +37,30 @@ type CheckoutBookContext = {
 
 type InitProviderPayload = {
   orderId: string;
-  transactionId: string;
   amount: number;
   description: string;
   channel: CinetPayChannel;
   customer: ValidatedCheckoutCustomer;
-  notifyUrl: string;
   returnUrl: string;
-  metadata: string;
 };
 
-type CinetPayInitResponse = {
-  code?: string;
+type EasyPayInitResponse = {
+  code?: number | string;
+  reference?: string;
   message?: string;
-  description?: string;
-  data?: {
-    payment_url?: string;
-    payment_token?: string;
-    payment_code?: string;
-    payment_method?: string;
+};
+
+type EasyPayCheckingResponse = {
+  transaction?: {
+    order_ref?: string;
+    reference?: string;
   };
-};
-
-type CinetPayCheckResponse = {
-  code?: string;
-  message?: string;
-  description?: string;
-  data?: {
+  payment?: {
+    channel?: string;
     status?: string;
-    amount?: number | string;
-    currency?: string;
-    payment_method?: string;
-    operator_id?: string;
-    payment_date?: string;
-    transaction_id?: string;
-    metadata?: string;
+    reference?: string;
   };
+  message?: string;
 };
 
 type VerificationOutcome = {
@@ -89,6 +77,13 @@ type PreparedOrder = {
   bookTitles: string[];
 };
 
+type EasyPayConfig = {
+  baseUrl: string;
+  mode: "sandbox" | "v1";
+  correlationId: string;
+  publishableKey: string;
+};
+
 const CHECKOUT_FORMAT_PRIORITY: CheckoutBookFormat[] = ["ebook", "paperback", "hardcover"];
 
 export class PaymentFlowError extends Error {
@@ -101,19 +96,33 @@ export class PaymentFlowError extends Error {
   }
 }
 
-function getCinetPayConfig() {
-  const apiKey = process.env.CINETPAY_API_KEY;
-  const siteId = process.env.CINETPAY_SITE_ID;
-  const baseUrl = process.env.CINETPAY_BASE_URL?.replace(/\/$/, "") || "https://api-checkout.cinetpay.com/v2";
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
-  if (!apiKey || !siteId) {
-    throw new PaymentFlowError("La configuration CinetPay est incomplete cote serveur.", 500);
+function cleanString(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function getEasyPayConfig(): EasyPayConfig {
+  const correlationId = process.env.EASYPAY_CORRELATION_ID;
+  const publishableKey = process.env.EASYPAY_PUBLISHABLE_KEY;
+  const modeRaw = process.env.EASYPAY_MODE?.trim().toLowerCase() ?? "sandbox";
+  const baseUrl = process.env.EASYPAY_BASE_URL?.replace(/\/$/, "") || "https://www.e-com-easypay.com";
+
+  if (!correlationId || !publishableKey) {
+    throw new PaymentFlowError("La configuration EasyPay est incomplete cote serveur.", 500);
+  }
+
+  if (modeRaw !== "sandbox" && modeRaw !== "v1") {
+    throw new PaymentFlowError("EASYPAY_MODE doit etre 'sandbox' ou 'v1'.", 500);
   }
 
   return {
-    apiKey,
-    siteId,
     baseUrl,
+    mode: modeRaw,
+    correlationId,
+    publishableKey,
   };
 }
 
@@ -132,11 +141,15 @@ function resolveAppBaseUrl(fallbackOrigin?: string) {
     return fallbackOrigin.replace(/\/$/, "");
   }
 
-  throw new PaymentFlowError("APP_BASE_URL est requis pour construire les URLs CinetPay.", 500);
+  throw new PaymentFlowError("APP_BASE_URL est requis pour construire les URLs EasyPay.", 500);
 }
 
 function buildAppUrl(baseUrl: string, path: string) {
   return `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+function buildEasyPayModeUrl(config: EasyPayConfig, path: string) {
+  return `${config.baseUrl}/${config.mode}/${path.replace(/^\//, "")}`;
 }
 
 function createTransactionId(orderId: string) {
@@ -148,12 +161,9 @@ function toProviderAmount(amount: number) {
   const normalizedAmount = Number(amount.toFixed(2));
 
   if (!Number.isFinite(normalizedAmount) || normalizedAmount <= 0) {
-    throw new PaymentFlowError("Montant de commande invalide pour CinetPay.", 400);
+    throw new PaymentFlowError("Montant de commande invalide pour EasyPay.", 400);
   }
 
-  // La documentation CinetPay mentionne une contrainte multiple de 5 dans certains contextes,
-  // mais montre aussi des exemples USD et ne confirme pas une regle universelle pour toutes les devises.
-  // On n applique donc pas de validation agressive qui rejetterait injustement un prix USD comme 9.99.
   return normalizedAmount;
 }
 
@@ -167,19 +177,14 @@ function mergePaymentMetadata(
   };
 }
 
-function isUsdAccountCompatibilityError(payload: { message?: string; description?: string }) {
-  const haystack = `${payload.message ?? ""} ${payload.description ?? ""}`.toLowerCase();
-  return haystack.includes("usd") && (haystack.includes("devise") || haystack.includes("currency") || haystack.includes("autor"));
-}
-
-async function fetchJson<T>(url: string, body: Record<string, unknown>) {
+async function fetchJson<T>(url: string, body?: Record<string, unknown>) {
   const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(body ?? {}),
     cache: "no-store",
   });
 
@@ -191,7 +196,7 @@ async function fetchJson<T>(url: string, body: Record<string, unknown>) {
   }
 
   if (!response.ok) {
-    throw new PaymentFlowError("La passerelle CinetPay est temporairement indisponible.", 502);
+    throw new PaymentFlowError("La passerelle EasyPay est temporairement indisponible.", 502);
   }
 
   return data;
@@ -250,7 +255,7 @@ async function loadCheckoutBookContext(userId: string, bookId: string, requested
 
   if (currencyCode !== "USD") {
     throw new PaymentFlowError(
-      "Le checkout CinetPay de HolistiqueBooks est configure en USD. Le livre selectionne doit donc etre facture en USD.",
+      "Le checkout EasyPay de HolistiqueBooks est actuellement configure en USD. Le livre selectionne doit donc etre facture en USD.",
       409,
     );
   }
@@ -293,7 +298,7 @@ async function loadPreparedOrderForUser(userId: string, orderId: string): Promis
   }
 
   if (order.currency_code !== "USD" || items.some((item) => item.currency_code !== "USD")) {
-    throw new PaymentFlowError("CinetPay Checkout est actuellement limite aux commandes USD.", 409);
+    throw new PaymentFlowError("EasyPay checkout est actuellement limite aux commandes USD.", 409);
   }
 
   const bookIds = Array.from(new Set(items.map((item) => item.book_id)));
@@ -327,7 +332,7 @@ async function createPendingOrderForBook(params: {
     total_price: checkoutBook.amount,
     currency_code: "USD",
     payment_status: "pending",
-    payment_provider: "cinetpay",
+    payment_provider: "easypay",
     payment_transaction_id: transactionId,
     payment_channel: params.channel,
     payment_provider_status: "INIT_PREPARED",
@@ -383,16 +388,21 @@ async function refreshOrderInitState(
   patch: Record<string, unknown>,
   providerStatus: string,
   paymentStatus?: OrderPaymentStatus,
+  providerReference?: string,
 ) {
   const service = createPaymentServiceClient();
   const update: OrderUpdate = {
-    payment_provider: "cinetpay",
+    payment_provider: "easypay",
     payment_provider_status: providerStatus,
     payment_metadata: mergePaymentMetadata(order.payment_metadata, patch),
   };
 
   if (paymentStatus) {
     update.payment_status = paymentStatus;
+  }
+
+  if (providerReference) {
+    update.payment_transaction_id = providerReference;
   }
 
   await service.from("orders").update(update).filter("id", "eq", order.id);
@@ -414,63 +424,60 @@ function toPostgrestInFilter(values: string[]) {
   return `(${values.map((value) => `"${value.replace(/"/g, '\\"')}"`).join(",")})`;
 }
 
+function mapEasyPayChannels(channel: CinetPayChannel) {
+  if (channel === "MOBILE_MONEY") {
+    return [{ channel: "MOBILE MONEY" }];
+  }
+
+  if (channel === "CREDIT_CARD") {
+    return [{ channel: "CREDIT CARD" }];
+  }
+
+  return [{ channel: "CREDIT CARD" }, { channel: "MOBILE MONEY" }];
+}
+
+function buildCustomerFullName(customer: ValidatedCheckoutCustomer) {
+  const fullName = `${customer.firstName} ${customer.lastName}`.trim();
+  return fullName || customer.email || "Client HolistiqueBooks";
+}
+
 async function initializeProviderCheckout(payload: InitProviderPayload) {
-  const config = getCinetPayConfig();
+  const config = getEasyPayConfig();
+  const initUrl = `${buildEasyPayModeUrl(config, "/payment/initialization")}?cid=${encodeURIComponent(config.correlationId)}&token=${encodeURIComponent(config.publishableKey)}`;
+
   const requestBody: Record<string, unknown> = {
-    apikey: config.apiKey,
-    site_id: config.siteId,
-    transaction_id: payload.transactionId,
-    amount: toProviderAmount(payload.amount),
+    order_ref: payload.orderId,
     currency: "USD",
+    amount: toProviderAmount(payload.amount),
     description: payload.description,
-    notify_url: payload.notifyUrl,
-    return_url: payload.returnUrl,
-    channels: payload.channel,
-    lang: "fr",
-    metadata: payload.metadata,
+    success_url: payload.returnUrl,
+    cancel_url: payload.returnUrl,
+    error_url: payload.returnUrl,
+    language: "FR",
+    channels: mapEasyPayChannels(payload.channel),
+    customer_name: buildCustomerFullName(payload.customer),
   };
 
-  if (payload.customer.customerId) {
-    requestBody.customer_id = payload.customer.customerId;
+  if (payload.customer.email) {
+    requestBody.customer_email = payload.customer.email;
   }
 
-  requestBody.customer_name = payload.customer.lastName;
-  requestBody.customer_surname = payload.customer.firstName;
-  requestBody.customer_phone_number = payload.customer.phoneNumber;
-  requestBody.customer_email = payload.customer.email;
+  const result = await fetchJson<EasyPayInitResponse>(initUrl, requestBody);
+  const responseCode = result?.code !== undefined && result?.code !== null ? String(result.code) : null;
+  const responseMessage = cleanString(result?.message);
+  const providerReference = cleanString(result?.reference);
 
-  if (payload.channel === "CREDIT_CARD" || payload.channel === "ALL") {
-    requestBody.customer_address = payload.customer.address;
-    requestBody.customer_city = payload.customer.city;
-    requestBody.customer_country = payload.customer.country;
-    requestBody.customer_state = payload.customer.state;
-    requestBody.customer_zip_code = payload.customer.zipCode;
+  if (responseCode !== "1" || !providerReference) {
+    throw new PaymentFlowError(responseMessage ?? "EasyPay n a pas pu initialiser la transaction.", 502);
   }
 
-  const result = await fetchJson<CinetPayInitResponse>(`${config.baseUrl}/payment`, requestBody);
-  const paymentUrl = result?.data?.payment_url ?? null;
-  const code = result?.code ?? null;
-  const message = result?.message ?? null;
-  const description = result?.description ?? null;
-
-  if (!paymentUrl) {
-    if (isUsdAccountCompatibilityError({ message: message ?? undefined, description: description ?? undefined })) {
-      throw new PaymentFlowError(
-        "Votre compte CinetPay ne semble pas autorise a encaisser en USD. Verifiez la compatibilite devise de votre compte avant la mise en production.",
-        409,
-      );
-    }
-
-    throw new PaymentFlowError(description ?? message ?? "CinetPay n a pas retourne de payment_url exploitable.", 502);
-  }
+  const paymentUrl = `${buildEasyPayModeUrl(config, "/payment/initialization")}?reference=${encodeURIComponent(providerReference)}`;
 
   return {
     paymentUrl,
-    responseCode: code,
-    responseMessage: message,
-    responseDescription: description,
-    paymentToken: result?.data?.payment_token ?? null,
-    paymentMethod: result?.data?.payment_method ?? result?.data?.payment_code ?? null,
+    providerReference,
+    responseCode,
+    responseMessage,
   };
 }
 
@@ -493,7 +500,7 @@ export async function initCinetPayCheckout(params: {
       })
     : await loadPreparedOrderForUser(params.userId, params.orderId!);
 
-  const transactionId =
+  const provisionalReference =
     preparedOrder.order.payment_transaction_id && preparedOrder.order.payment_transaction_id.trim().length > 0
       ? preparedOrder.order.payment_transaction_id
       : createTransactionId(preparedOrder.order.id);
@@ -508,8 +515,8 @@ export async function initCinetPayCheckout(params: {
     .from("orders")
     .update({
       payment_status: "pending",
-      payment_provider: "cinetpay",
-      payment_transaction_id: transactionId,
+      payment_provider: "easypay",
+      payment_transaction_id: provisionalReference,
       payment_channel: params.channel,
       payment_provider_status: "INIT_PREPARED",
       payment_metadata: metadataPatch,
@@ -525,17 +532,11 @@ export async function initCinetPayCheckout(params: {
   try {
     const providerResponse = await initializeProviderCheckout({
       orderId: preparedOrder.order.id,
-      transactionId,
       amount: preparedOrder.order.total_price,
       description: buildCheckoutDescription(preparedOrder.bookTitles),
       channel: params.channel,
       customer: params.customer,
-      notifyUrl: buildAppUrl(baseUrl, "/api/payments/cinetpay/notify"),
       returnUrl: buildAppUrl(baseUrl, `/payment/return?orderId=${preparedOrder.order.id}`),
-      metadata: JSON.stringify({
-        orderId: preparedOrder.order.id,
-        userId: params.userId,
-      }),
     });
 
     await refreshOrderInitState(
@@ -543,21 +544,20 @@ export async function initCinetPayCheckout(params: {
       {
         init_response_code: providerResponse.responseCode,
         init_response_message: providerResponse.responseMessage,
-        init_response_description: providerResponse.responseDescription,
-        payment_token: providerResponse.paymentToken,
-        payment_method_hint: providerResponse.paymentMethod,
+        provider_reference: providerResponse.providerReference,
       },
       "INITIATED",
       "pending",
+      providerResponse.providerReference,
     );
 
     return {
       orderId: preparedOrder.order.id,
-      transactionId,
+      transactionId: providerResponse.providerReference,
       paymentUrl: providerResponse.paymentUrl,
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "CinetPay initialization failed.";
+    const message = error instanceof Error ? error.message : "EasyPay initialization failed.";
 
     await refreshOrderInitState(
       preparedOrder.order,
@@ -572,45 +572,35 @@ export async function initCinetPayCheckout(params: {
       throw error;
     }
 
-    throw new PaymentFlowError("Impossible d initialiser le checkout CinetPay.", 502);
+    throw new PaymentFlowError("Impossible d initialiser le checkout EasyPay.", 502);
   }
 }
 
 async function verifyProviderTransaction(transactionId: string) {
-  const config = getCinetPayConfig();
-  const result = await fetchJson<CinetPayCheckResponse>(`${config.baseUrl}/payment/check`, {
-    apikey: config.apiKey,
-    site_id: config.siteId,
-    transaction_id: transactionId,
-  });
+  const config = getEasyPayConfig();
+  const checkUrl = buildEasyPayModeUrl(config, `/payment/${encodeURIComponent(transactionId)}/checking-payment`);
+  const result = await fetchJson<EasyPayCheckingResponse>(checkUrl, {});
 
-  const code = result?.code ?? null;
-  const providerStatus = result?.data?.status ?? "UNKNOWN";
-  const providerMessage = result?.description ?? result?.message ?? null;
-  const normalizedStatus = providerStatus.toUpperCase();
+  const providerStatus = (cleanString(result?.payment?.status) ?? "UNKNOWN").toUpperCase();
+  const providerMessage = cleanString(result?.message);
 
   let orderStatus: OrderPaymentStatus = "pending";
-  if (code === "00" || normalizedStatus === "ACCEPTED") {
+  if (providerStatus === "SUCCESS") {
     orderStatus = "paid";
-  } else if (normalizedStatus === "REFUSED" || normalizedStatus === "FAILED" || normalizedStatus === "CANCELLED") {
+  } else if (providerStatus === "CANCELED" || providerStatus === "DECLINED" || providerStatus === "FAILED") {
     orderStatus = "failed";
-  } else {
-    orderStatus = "pending";
   }
 
   return {
     orderStatus,
     providerStatus,
-    providerCode: code,
+    providerCode: null,
     providerMessage,
     providerData: {
-      amount: result?.data?.amount ?? null,
-      currency: result?.data?.currency ?? null,
-      payment_method: result?.data?.payment_method ?? null,
-      operator_id: result?.data?.operator_id ?? null,
-      payment_date: result?.data?.payment_date ?? null,
-      transaction_id: result?.data?.transaction_id ?? transactionId,
-      metadata: result?.data?.metadata ?? null,
+      transaction_reference: cleanString(result?.transaction?.reference) ?? transactionId,
+      order_ref: cleanString(result?.transaction?.order_ref),
+      channel: cleanString(result?.payment?.channel),
+      payment_status: providerStatus,
     },
   } satisfies VerificationOutcome;
 }
@@ -621,12 +611,11 @@ async function loadOrderByTransactionId(transactionId: string) {
     .from("orders")
     .select("*")
     .filter("payment_transaction_id", "eq", transactionId)
-    .filter("payment_provider", "eq", "cinetpay")
     .maybeSingle();
 
   const order = (orderData ?? null) as OrderRow | null;
-  if (!order) {
-    throw new PaymentFlowError("Aucune commande locale ne correspond a cette transaction CinetPay.", 404);
+  if (!order || (order.payment_provider !== "easypay" && order.payment_provider !== "cinetpay")) {
+    throw new PaymentFlowError("Aucune commande locale ne correspond a cette transaction EasyPay.", 404);
   }
 
   const { data: itemData } = await service
@@ -654,6 +643,7 @@ async function persistVerifiedOrderState(params: {
   });
 
   const updatePayload: OrderUpdate = {
+    payment_provider: "easypay",
     payment_provider_status: params.verification.providerStatus,
     payment_verified_at: new Date().toISOString(),
     payment_metadata: metadataPatch,
@@ -688,10 +678,7 @@ async function persistVerifiedOrderState(params: {
         user_id: params.order.user_id,
         book_id: item.book_id,
         access_type: "purchase",
-        purchased_at:
-          typeof params.verification.providerData.payment_date === "string" && params.verification.providerData.payment_date
-            ? params.verification.providerData.payment_date
-            : new Date().toISOString(),
+        purchased_at: new Date().toISOString(),
         subscription_id: null,
       },
       { onConflict: "user_id,book_id" },
@@ -725,13 +712,43 @@ export async function reconcileCinetPayOrder(orderId: string) {
     .maybeSingle();
   const order = (orderData ?? null) as OrderRow | null;
 
-  if (!order || order.payment_provider !== "cinetpay" || !order.payment_transaction_id) {
-    throw new PaymentFlowError("Cette commande n est pas liee a une transaction CinetPay exploitable.", 404);
+  if (!order || (order.payment_provider !== "easypay" && order.payment_provider !== "cinetpay") || !order.payment_transaction_id) {
+    throw new PaymentFlowError("Cette commande n est pas liee a une transaction EasyPay exploitable.", 404);
   }
 
   return reconcileCinetPayTransaction(order.payment_transaction_id);
 }
 
-export function getTransactionIdFromNotifyPayload(payload: Record<string, string>) {
-  return payload.cpm_trans_id ?? payload.transaction_id ?? payload.trans_id ?? null;
+export function getTransactionIdFromNotifyPayload(payload: unknown) {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  const directReference =
+    cleanString(payload.reference) ??
+    cleanString(payload.cpm_trans_id) ??
+    cleanString(payload.transaction_id) ??
+    cleanString(payload.trans_id);
+
+  if (directReference) {
+    return directReference;
+  }
+
+  const transactionPayload = payload.transaction;
+  if (isRecord(transactionPayload)) {
+    const nestedTransactionReference = cleanString(transactionPayload.reference);
+    if (nestedTransactionReference) {
+      return nestedTransactionReference;
+    }
+  }
+
+  const paymentPayload = payload.payment;
+  if (isRecord(paymentPayload)) {
+    const nestedPaymentReference = cleanString(paymentPayload.reference);
+    if (nestedPaymentReference) {
+      return nestedPaymentReference;
+    }
+  }
+
+  return null;
 }
