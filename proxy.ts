@@ -1,16 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
+import { getSupabasePublicRuntimeConfig } from "@/lib/supabase/runtime-config";
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const pathname = request.nextUrl.pathname;
   const isDashboardRoute = pathname.startsWith("/dashboard");
   const isAdminRoute = pathname.startsWith("/admin");
+  const { url, anonKey } = getSupabasePublicRuntimeConfig();
 
   const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    anonKey,
     {
       cookies: {
         getAll() {
@@ -29,9 +31,22 @@ export async function proxy(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user: { id: string } | null = null;
+
+  try {
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+    user = authUser ? { id: authUser.id } : null;
+  } catch (error) {
+    console.error("[Proxy] Failed to resolve auth user.", error);
+    if (isDashboardRoute || isAdminRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("next", pathname);
+      return NextResponse.redirect(url);
+    }
+  }
 
   if ((isDashboardRoute || isAdminRoute) && !user) {
     const url = request.nextUrl.clone();
@@ -41,7 +56,14 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isAdminRoute && user) {
-    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+    let profile: { role: string | null } | null = null;
+
+    try {
+      const { data } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+      profile = data;
+    } catch (error) {
+      console.error("[Proxy] Failed to load profile role for admin route.", error);
+    }
 
     if (profile?.role !== "admin") {
       const url = request.nextUrl.clone();

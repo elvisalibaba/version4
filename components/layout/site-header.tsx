@@ -2,13 +2,32 @@ import Link from "next/link";
 import { Heart, Search, ShoppingCart, UserCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
+function isNextDynamicServerUsageError(error: unknown) {
+  return typeof error === "object" && error !== null && "digest" in error && (error as { digest?: string }).digest === "DYNAMIC_SERVER_USAGE";
+}
+
 export async function SiteHeader() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const { data: profile } = user ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle() : { data: null };
-  const userRole = profile?.role ?? null;
+  let user: { id: string } | null = null;
+  let userRole: string | null = null;
+
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+    user = authUser ? { id: authUser.id } : null;
+
+    if (user) {
+      const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+      userRole = profile?.role ?? null;
+    }
+  } catch (error) {
+    if (isNextDynamicServerUsageError(error)) {
+      throw error;
+    }
+    console.error("[SiteHeader] Failed to resolve auth state. Rendering public navigation.", error);
+  }
+
   const dashboardHref =
     userRole === "admin" ? "/admin" : userRole === "author" ? "/dashboard/author" : user ? "/dashboard/reader" : "/login";
   const authorHref = userRole === "author" || userRole === "admin" ? "/dashboard/author" : "/register";

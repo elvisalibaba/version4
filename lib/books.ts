@@ -98,6 +98,10 @@ type GetPublishedBooksOptions = {
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
+function isNextDynamicServerUsageError(error: unknown) {
+  return typeof error === "object" && error !== null && "digest" in error && (error as { digest?: string }).digest === "DYNAMIC_SERVER_USAGE";
+}
+
 function firstOf<T>(value: MaybeArray<T>): T | null {
   if (Array.isArray(value)) return value[0] ?? null;
   return value ?? null;
@@ -220,128 +224,152 @@ async function getBookSubscriptionPlans(supabase: SupabaseClient, bookId: string
 }
 
 export async function getPublishedBooks(options: GetPublishedBooksOptions = {}) {
-  const supabase = await createClient();
-  const { searchQuery, category } = options;
+  try {
+    const supabase = await createClient();
+    const { searchQuery, category } = options;
 
-  let query = supabase
-    .from("books")
-    .select(
-      "id, title, subtitle, description, price, cover_url, status, author_id, created_at, published_at, publication_date, page_count, categories, views_count, purchases_count, rating_avg, ratings_count, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(format, price, is_published, currency_code)",
-    )
-    .eq("status", "published")
-    .order("published_at", { ascending: false, nullsFirst: false })
-    .order("created_at", { ascending: false });
+    let query = supabase
+      .from("books")
+      .select(
+        "id, title, subtitle, description, price, cover_url, status, author_id, created_at, published_at, publication_date, page_count, categories, views_count, purchases_count, rating_avg, ratings_count, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(format, price, is_published, currency_code)",
+      )
+      .eq("status", "published")
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false });
 
-  const categoryTerm = category?.trim();
-  if (categoryTerm && categoryTerm.toLowerCase() !== "all") {
-    query = query.contains("categories", [categoryTerm]);
-  }
+    const categoryTerm = category?.trim();
+    if (categoryTerm && categoryTerm.toLowerCase() !== "all") {
+      query = query.contains("categories", [categoryTerm]);
+    }
 
-  const term = searchQuery?.trim();
-  if (term) {
-    const safeTerm = term.replace(/[%_,]/g, " ");
-    query = query.or(`title.ilike.%${safeTerm}%,subtitle.ilike.%${safeTerm}%`);
-  }
+    const term = searchQuery?.trim();
+    if (term) {
+      const safeTerm = term.replace(/[%_,]/g, " ");
+      query = query.or(`title.ilike.%${safeTerm}%,subtitle.ilike.%${safeTerm}%`);
+    }
 
-  const { data, error } = await query.returns<PublishedBookRow[]>();
+    const { data, error } = await query.returns<PublishedBookRow[]>();
 
-  if (error) {
+    if (error) {
+      return [];
+    }
+
+    return hydrateBooks(supabase, (data ?? []) as PublishedBookRow[]);
+  } catch (error) {
+    if (isNextDynamicServerUsageError(error)) {
+      throw error;
+    }
+    console.error("[Books] Failed to fetch published books. Returning empty list.", error);
     return [];
   }
-
-  return hydrateBooks(supabase, (data ?? []) as PublishedBookRow[]);
 }
 
 export async function getComingSoonBooks() {
-  const supabase = await createClient();
+  try {
+    const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("books")
-    .select(
-      "id, title, subtitle, description, price, cover_url, status, author_id, created_at, published_at, publication_date, page_count, categories, views_count, purchases_count, rating_avg, ratings_count, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(format, price, is_published, currency_code)",
-    )
-    .eq("status", "coming_soon")
-    .order("publication_date", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: false })
-    .returns<PublishedBookRow[]>();
+    const { data, error } = await supabase
+      .from("books")
+      .select(
+        "id, title, subtitle, description, price, cover_url, status, author_id, created_at, published_at, publication_date, page_count, categories, views_count, purchases_count, rating_avg, ratings_count, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(format, price, is_published, currency_code)",
+      )
+      .eq("status", "coming_soon")
+      .order("publication_date", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .returns<PublishedBookRow[]>();
 
-  if (error) {
+    if (error) {
+      return [];
+    }
+
+    return hydrateBooks(supabase, (data ?? []) as PublishedBookRow[]);
+  } catch (error) {
+    if (isNextDynamicServerUsageError(error)) {
+      throw error;
+    }
+    console.error("[Books] Failed to fetch coming-soon books. Returning empty list.", error);
     return [];
   }
-
-  return hydrateBooks(supabase, (data ?? []) as PublishedBookRow[]);
 }
 
 export async function getBookById(bookId: string) {
-  const supabase = await createClient();
+  try {
+    const supabase = await createClient();
 
-  const { data } = await supabase
-    .from("books")
-    .select(
-      "id, title, subtitle, description, price, cover_url, status, author_id, file_url, language, publisher, publication_date, page_count, categories, tags, age_rating, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(id, format, price, file_url, downloadable, is_published, currency_code)",
-    )
-    .eq("id", bookId)
-    .returns<BookDetailRow>()
-    .single();
+    const { data } = await supabase
+      .from("books")
+      .select(
+        "id, title, subtitle, description, price, cover_url, status, author_id, file_url, language, publisher, publication_date, page_count, categories, tags, age_rating, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(id, format, price, file_url, downloadable, is_published, currency_code)",
+      )
+      .eq("id", bookId)
+      .returns<BookDetailRow>()
+      .single();
 
-  const book = (data ?? null) as BookDetailRow | null;
-  if (!book) return null;
+    const book = (data ?? null) as BookDetailRow | null;
+    if (!book) return null;
 
-  const ebook = getDetailedEbookFormat(book.book_formats);
-  const purchasableFormats = getPublishedPurchaseFormats(book.book_formats);
-  const primaryPurchaseFormat = ebook ?? purchasableFormats[0] ?? null;
-  const author = firstOf(book.author);
-  const effectivePrice = primaryPurchaseFormat?.price ?? book.price;
-  const resolvedCurrencyCode = primaryPurchaseFormat?.currency_code ?? book.currency_code;
-  const offer = resolveBookOfferDetails({
-    price: effectivePrice,
-    currencyCode: resolvedCurrencyCode,
-    isSingleSaleEnabled: book.is_single_sale_enabled,
-    isSubscriptionAvailable: book.is_subscription_available,
-  });
+    const ebook = getDetailedEbookFormat(book.book_formats);
+    const purchasableFormats = getPublishedPurchaseFormats(book.book_formats);
+    const primaryPurchaseFormat = ebook ?? purchasableFormats[0] ?? null;
+    const author = firstOf(book.author);
+    const effectivePrice = primaryPurchaseFormat?.price ?? book.price;
+    const resolvedCurrencyCode = primaryPurchaseFormat?.currency_code ?? book.currency_code;
+    const offer = resolveBookOfferDetails({
+      price: effectivePrice,
+      currencyCode: resolvedCurrencyCode,
+      isSingleSaleEnabled: book.is_single_sale_enabled,
+      isSubscriptionAvailable: book.is_subscription_available,
+    });
 
-  const shouldSignCover = book.cover_url && !book.cover_url.startsWith("http://") && !book.cover_url.startsWith("https://");
-  const { data: signedCover } =
-    shouldSignCover && book.cover_url
-      ? await supabase.storage.from("books").createSignedUrl(book.cover_url, 60 * 60)
-      : { data: null };
+    const shouldSignCover = book.cover_url && !book.cover_url.startsWith("http://") && !book.cover_url.startsWith("https://");
+    const { data: signedCover } =
+      shouldSignCover && book.cover_url
+        ? await supabase.storage.from("books").createSignedUrl(book.cover_url, 60 * 60)
+        : { data: null };
 
-  const subscriptionPlans = book.is_subscription_available ? await getBookSubscriptionPlans(supabase, book.id) : [];
-  const purchaseFormats =
-    purchasableFormats.length > 0
-      ? purchasableFormats.map((format) => ({
-          format: format.format,
-          price: format.price,
-          currency_code: format.currency_code,
-        }))
-      : book.is_single_sale_enabled
-        ? [
-            {
-              format: "ebook" as const,
-              price: book.price,
-              currency_code: book.currency_code,
-            },
-          ]
-        : [];
+    const subscriptionPlans = book.is_subscription_available ? await getBookSubscriptionPlans(supabase, book.id) : [];
+    const purchaseFormats =
+      purchasableFormats.length > 0
+        ? purchasableFormats.map((format) => ({
+            format: format.format,
+            price: format.price,
+            currency_code: format.currency_code,
+          }))
+        : book.is_single_sale_enabled
+          ? [
+              {
+                format: "ebook" as const,
+                price: book.price,
+                currency_code: book.currency_code,
+              },
+            ]
+          : [];
 
-  return {
-    ...book,
-    currency_code: resolvedCurrencyCode,
-    price: effectivePrice,
-    file_url: ebook?.file_url ?? book.file_url,
-    author_name: author?.display_name ?? "Auteur inconnu",
-    author_avatar_url: author?.avatar_url ?? null,
-    cover_signed_url:
-      (book.cover_url && (book.cover_url.startsWith("http://") || book.cover_url.startsWith("https://")) ? book.cover_url : null) ??
-      signedCover?.signedUrl ??
-      null,
-    purchase_formats: purchaseFormats,
-    subscription_plans: subscriptionPlans,
-    is_free: offer.isFree,
-    offer_mode: offer.offerMode,
-    display_price_label: offer.displayPriceLabel,
-    offer_summary_label: offer.offerSummaryLabel,
-  };
+    return {
+      ...book,
+      currency_code: resolvedCurrencyCode,
+      price: effectivePrice,
+      file_url: ebook?.file_url ?? book.file_url,
+      author_name: author?.display_name ?? "Auteur inconnu",
+      author_avatar_url: author?.avatar_url ?? null,
+      cover_signed_url:
+        (book.cover_url && (book.cover_url.startsWith("http://") || book.cover_url.startsWith("https://")) ? book.cover_url : null) ??
+        signedCover?.signedUrl ??
+        null,
+      purchase_formats: purchaseFormats,
+      subscription_plans: subscriptionPlans,
+      is_free: offer.isFree,
+      offer_mode: offer.offerMode,
+      display_price_label: offer.displayPriceLabel,
+      offer_summary_label: offer.offerSummaryLabel,
+    };
+  } catch (error) {
+    if (isNextDynamicServerUsageError(error)) {
+      throw error;
+    }
+    console.error(`[Books] Failed to fetch book ${bookId}. Returning null.`, error);
+    return null;
+  }
 }
 
 export type PublishedBook = Awaited<ReturnType<typeof getPublishedBooks>>[number];

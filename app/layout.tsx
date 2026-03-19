@@ -10,10 +10,31 @@ import "./cinema-theme.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-body" });
 const sora = Sora({ subsets: ["latin"], variable: "--font-display" });
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_BASE_URL || "https://holistique-books.com";
+const FALLBACK_APP_URL = "https://holistique-books.com";
+let hasLoggedInvalidAppBaseUrl = false;
+
+function resolveMetadataBase() {
+  const rawCandidate = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.APP_BASE_URL?.trim() || FALLBACK_APP_URL;
+
+  try {
+    const parsed = new URL(rawCandidate);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed;
+    }
+  } catch {
+    // Fallback handled below.
+  }
+
+  if (!hasLoggedInvalidAppBaseUrl) {
+    hasLoggedInvalidAppBaseUrl = true;
+    console.error(`[App URL] Invalid NEXT_PUBLIC_APP_URL/APP_BASE_URL value: "${rawCandidate}". Falling back to ${FALLBACK_APP_URL}.`);
+  }
+
+  return new URL(FALLBACK_APP_URL);
+}
 
 export const metadata: Metadata = {
-  metadataBase: new URL(appUrl),
+  metadataBase: resolveMetadataBase(),
   title: {
     default: "HolistiqueBooks",
     template: "%s | HolistiqueBooks",
