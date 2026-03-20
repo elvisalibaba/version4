@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { SubscriptionPlanSelector } from "@/components/author/subscription-plan-selector";
 import { FormSection } from "@/components/ui/form-section";
 import { BOOK_CATEGORIES } from "@/lib/book-categories";
+import { getSupabaseBrowserConfigErrorMessage, getSupabaseBrowserErrorMessage } from "@/lib/supabase/browser-errors";
 import { createClient } from "@/lib/supabase/client";
 import type { BookFormatType, BookReviewStatus, Database } from "@/types/database";
 
@@ -285,6 +286,13 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
     setSaving(true);
     setError(null);
 
+    const configError = getSupabaseBrowserConfigErrorMessage();
+    if (configError) {
+      setError(configError);
+      setSaving(false);
+      return;
+    }
+
     try {
       const supabase = createClient();
       const {
@@ -440,7 +448,7 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
       router.push("/dashboard/author/books");
       router.refresh();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Enregistrement impossible.");
+      setError(getSupabaseBrowserErrorMessage(submitError, "la soumission du livre"));
     } finally {
       setSaving(false);
     }

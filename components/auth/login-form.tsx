@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getSupabaseBrowserConfigErrorMessage, getSupabaseBrowserErrorMessage } from "@/lib/supabase/browser-errors";
 import { createClient } from "@/lib/supabase/client";
 
 export function LoginForm() {
@@ -14,20 +15,32 @@ export function LoginForm() {
     setError(null);
     setLoading(true);
 
-    const supabase = createClient();
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-
-    setLoading(false);
-    if (signInError) {
-      setError(signInError.message);
-      return;
-    }
-    if (!data.session) {
-      setError("Connexion impossible: session non creee.");
+    const configError = getSupabaseBrowserConfigErrorMessage();
+    if (configError) {
+      setError(configError);
+      setLoading(false);
       return;
     }
 
-    window.location.assign("/dashboard");
+    try {
+      const supabase = createClient();
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (signInError) {
+        setError(getSupabaseBrowserErrorMessage(signInError, "la connexion"));
+        return;
+      }
+      if (!data.session) {
+        setError("Connexion impossible: session non creee.");
+        return;
+      }
+
+      window.location.assign("/dashboard");
+    } catch (signInError) {
+      setError(getSupabaseBrowserErrorMessage(signInError, "la connexion"));
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

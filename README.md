@@ -41,20 +41,30 @@
 - `ReaderPopup` renders epub/pdf in modal with no direct download button.
 
 ## Setup
-1. Create `.env.local`:
+1. Create `.env.local` from `.env.example`.
+2. Fill at least these variables:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `NEXT_PUBLIC_APP_URL=https://your-domain.com`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `CINETPAY_API_KEY`
-   - `CINETPAY_SITE_ID`
-   - `CINETPAY_BASE_URL=https://api-checkout.cinetpay.com/v2`
    - `APP_BASE_URL=https://your-domain.com`
-   - `ADMIN_NOTIFY_EMAIL=your-admin@email.com`
+   - `SUPABASE_SERVICE_ROLE_KEY`
    - `SUPABASE_DB_WEBHOOK_SECRET=long-random-secret`
-   - Important: Mobile Money / CinetPay checkout creates and updates orders from the server, so `SUPABASE_SERVICE_ROLE_KEY` is required.
-2. Apply SQL migrations in Supabase, including the latest content migrations `supabase/migrations/0016_blog_posts.sql` and `supabase/migrations/0017_flash_sale_configs.sql`.
-3. Run `npm run dev`.
+   - `EASYPAY_PUBLISHABLE_KEY`
+   - `EASYPAY_CORRELATION_ID`
+   - `EASYPAY_MODE=sandbox`
+   - `EASYPAY_BASE_URL=https://www.e-com-easypay.com`
+   - `SMTP_HOST`
+   - `SMTP_PORT`
+   - `SMTP_USER`
+   - `SMTP_PASS`
+   - `SMTP_FROM`
+   - `CONTACT_TO`
+   - `ADMIN_NOTIFY_EMAIL=your-admin@email.com`
+   - Optional: `NEXT_PUBLIC_ANDROID_APK_URL`
+3. Important: checkout and some admin/payment flows create or update data from the server, so `SUPABASE_SERVICE_ROLE_KEY` must stay server-side only.
+4. `.env.local` is ignored by git on purpose. Commit `.env.example`, never your real secrets.
+5. Apply SQL migrations in Supabase, including the latest content migrations `supabase/migrations/0016_blog_posts.sql` and `supabase/migrations/0017_flash_sale_configs.sql`.
+6. Run `npm run dev`.
 
 ## Vercel notes
 - Add all variables from `.env.local` to Vercel Project Settings -> Environment Variables.

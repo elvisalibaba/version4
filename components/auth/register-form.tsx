@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { BookOpen, PenTool, UserRound } from "lucide-react";
 import { BOOK_CATEGORIES } from "@/lib/book-categories";
+import { getSupabaseBrowserConfigErrorMessage, getSupabaseBrowserErrorMessage } from "@/lib/supabase/browser-errors";
 import { createClient } from "@/lib/supabase/client";
 import type { UserRole } from "@/types/database";
 
@@ -123,63 +124,73 @@ export function RegisterForm() {
       return;
     }
 
-    const supabase = createClient();
-    const cleanFavoriteCategories = favoriteCategories;
-    const cleanAuthorGenres = authorGenres;
-    const socialLinks = buildSocialLinks({
-      instagram: instagramUrl,
-      x: xUrl,
-      facebook: facebookUrl,
-      linkedin: linkedinUrl,
-    });
-
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: getEmailRedirectTo(),
-        data: {
-          name: fullName,
-          role,
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          phone: phone.trim() || null,
-          country: country.trim() || null,
-          city: city.trim() || null,
-          preferred_language: preferredLanguage,
-          favorite_categories: cleanFavoriteCategories,
-          marketing_opt_in: marketingOptIn,
-          author_profile:
-            role === "author"
-              ? {
-                  display_name: displayName.trim(),
-                  professional_headline: professionalHeadline.trim() || null,
-                  bio: bio.trim() || null,
-                  website: website.trim() || null,
-                  location: authorLocation.trim() || null,
-                  genres: cleanAuthorGenres,
-                  publishing_goals: publishingGoals.trim() || null,
-                  social_links: socialLinks,
-                }
-              : null,
-        },
-      },
-    });
-
-    if (signUpError) {
-      setError(signUpError.message);
+    const configError = getSupabaseBrowserConfigErrorMessage();
+    if (configError) {
+      setError(configError);
       setLoading(false);
       return;
     }
 
-    setLoading(false);
+    try {
+      const supabase = createClient();
+      const cleanFavoriteCategories = favoriteCategories;
+      const cleanAuthorGenres = authorGenres;
+      const socialLinks = buildSocialLinks({
+        instagram: instagramUrl,
+        x: xUrl,
+        facebook: facebookUrl,
+        linkedin: linkedinUrl,
+      });
 
-    if (!data.session) {
-      setSuccess("Compte cree. Verifie ton email. Apres confirmation, vous serez renvoye automatiquement vers votre espace.");
-      return;
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: getEmailRedirectTo(),
+          data: {
+            name: fullName,
+            role,
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+            phone: phone.trim() || null,
+            country: country.trim() || null,
+            city: city.trim() || null,
+            preferred_language: preferredLanguage,
+            favorite_categories: cleanFavoriteCategories,
+            marketing_opt_in: marketingOptIn,
+            author_profile:
+              role === "author"
+                ? {
+                    display_name: displayName.trim(),
+                    professional_headline: professionalHeadline.trim() || null,
+                    bio: bio.trim() || null,
+                    website: website.trim() || null,
+                    location: authorLocation.trim() || null,
+                    genres: cleanAuthorGenres,
+                    publishing_goals: publishingGoals.trim() || null,
+                    social_links: socialLinks,
+                  }
+                : null,
+          },
+        },
+      });
+
+      if (signUpError) {
+        setError(getSupabaseBrowserErrorMessage(signUpError, "l inscription"));
+        return;
+      }
+
+      if (!data.session) {
+        setSuccess("Compte cree. Verifie ton email. Apres confirmation, vous serez renvoye automatiquement vers votre espace.");
+        return;
+      }
+
+      window.location.assign("/dashboard");
+    } catch (submitError) {
+      setError(getSupabaseBrowserErrorMessage(submitError, "l inscription"));
+    } finally {
+      setLoading(false);
     }
-
-    window.location.assign("/dashboard");
   }
 
   return (
