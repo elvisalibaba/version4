@@ -17,9 +17,9 @@ export default async function AuthorDashboardLayout({
 
   return (
     <DashboardShell
-      areaLabel="Writer side"
-      headline="Holistique Author Studio"
-      description="Pilotez votre catalogue, vos performances et vos ventes dans un espace plus credible, plus editorial et vraiment pense pour les auteurs."
+      areaLabel="Author studio"
+      headline="Catalogue, ventes et mise en ligne"
+      description="Le studio auteur garde les memes donnees Supabase, mais avec une interface plus compacte et plus proche d un outil de publication."
       userName={profile?.name ?? profile?.email ?? "Author"}
       userRole="Auteur"
       navigation={navigation}

@@ -17,9 +17,9 @@ export default async function ReaderDashboardLayout({
 
   return (
     <DashboardShell
-      areaLabel="Reader space"
-      headline="Library lounge"
-      description="Retrouvez vos achats, vos livres Premium et vos acquisitions gratuites dans une experience de lecture plus premium."
+      areaLabel="Reader workspace"
+      headline="Bibliotheque, achats et Premium"
+      description="Un espace lecteur plus clair pour suivre les lectures, les acquisitions et les abonnements sans surcharge visuelle."
       userName={profile?.name ?? profile?.email ?? "Reader"}
       userRole="Lecteur"
       navigation={navigation}

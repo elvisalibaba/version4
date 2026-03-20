@@ -2,26 +2,42 @@ import { redirect } from "next/navigation";
 import type { UserRole } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 
+function getMetadataRecord(metadata: unknown) {
+  return typeof metadata === "object" && metadata !== null ? (metadata as Record<string, unknown>) : null;
+}
+
 function getSafeRoleFromMetadata(metadata: unknown): Exclude<UserRole, "admin"> {
-  const role = typeof metadata === "object" && metadata !== null ? (metadata as Record<string, unknown>).role : undefined;
+  const role = getMetadataRecord(metadata)?.role;
   return role === "author" ? "author" : "reader";
 }
 
 function getStringMetadata(metadata: unknown, key: string) {
-  if (typeof metadata !== "object" || metadata === null) return null;
-  const value = (metadata as Record<string, unknown>)[key];
+  const value = getMetadataRecord(metadata)?.[key];
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
 function getStringArrayMetadata(metadata: unknown, key: string) {
-  if (typeof metadata !== "object" || metadata === null) return [];
-  const value = (metadata as Record<string, unknown>)[key];
+  const value = getMetadataRecord(metadata)?.[key];
   return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0) : [];
 }
 
 function getBooleanMetadata(metadata: unknown, key: string) {
-  if (typeof metadata !== "object" || metadata === null) return false;
-  return Boolean((metadata as Record<string, unknown>)[key]);
+  return Boolean(getMetadataRecord(metadata)?.[key]);
+}
+
+function getNestedRecordMetadata(metadata: unknown, key: string) {
+  return getMetadataRecord(getMetadataRecord(metadata)?.[key]);
+}
+
+function getStringObject(value: unknown) {
+  const record = getMetadataRecord(value);
+  if (!record) return {};
+
+  return Object.fromEntries(
+    Object.entries(record).flatMap(([key, entry]) =>
+      typeof entry === "string" && entry.trim().length > 0 ? [[key, entry.trim()]] : [],
+    ),
+  );
 }
 
 function buildProfileUpsertPayload(user: {
@@ -50,6 +66,49 @@ function buildProfileUpsertPayload(user: {
   };
 }
 
+function buildAuthorProfileUpsertPayload(user: {
+  id: string;
+  email?: string | null;
+  user_metadata?: unknown;
+}) {
+  const metadata = user.user_metadata;
+  const authorMetadata = getNestedRecordMetadata(metadata, "author_profile");
+  const firstName = getStringMetadata(metadata, "first_name");
+  const lastName = getStringMetadata(metadata, "last_name");
+  const fallbackName = getStringMetadata(metadata, "name");
+  const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+  const fallbackDisplayName = fallbackName || fullName || user.email?.split("@")[0] || "Auteur";
+
+  return {
+    id: user.id,
+    display_name: getStringMetadata(authorMetadata, "display_name") ?? fallbackDisplayName,
+    professional_headline: getStringMetadata(authorMetadata, "professional_headline"),
+    bio: getStringMetadata(authorMetadata, "bio"),
+    website: getStringMetadata(authorMetadata, "website"),
+    location: getStringMetadata(authorMetadata, "location"),
+    phone: getStringMetadata(authorMetadata, "phone") ?? getStringMetadata(metadata, "phone"),
+    genres: getStringArrayMetadata(authorMetadata, "genres"),
+    publishing_goals: getStringMetadata(authorMetadata, "publishing_goals"),
+    social_links: getStringObject(getMetadataRecord(authorMetadata)?.social_links),
+  };
+}
+
+async function syncAuthorProfileIfNeeded(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  user: {
+    id: string;
+    email?: string | null;
+    user_metadata?: unknown;
+  },
+) {
+  if (getSafeRoleFromMetadata(user.user_metadata) !== "author") {
+    return;
+  }
+
+  const authorProfilePayload = buildAuthorProfileUpsertPayload(user);
+  await supabase.from("author_profiles").upsert(authorProfilePayload, { onConflict: "id" });
+}
+
 export async function getCurrentUserProfile() {
   const supabase = await createClient();
   const {
@@ -74,7 +133,15 @@ export async function getCurrentUserProfile() {
         .select("id, email, name, role, first_name, last_name, phone, country, city, preferred_language, favorite_categories, marketing_opt_in, created_at")
         .maybeSingle();
 
+      if (wantedRole === "author") {
+        await syncAuthorProfileIfNeeded(supabase, user).catch(() => undefined);
+      }
+
       return syncedProfile ?? profile;
+    }
+
+    if (wantedRole === "author") {
+      await syncAuthorProfileIfNeeded(supabase, user).catch(() => undefined);
     }
 
     return profile;
@@ -84,6 +151,10 @@ export async function getCurrentUserProfile() {
 
   const profilePayload = buildProfileUpsertPayload(user);
   await supabase.from("profiles").upsert(profilePayload);
+
+  if (safeRole === "author") {
+    await syncAuthorProfileIfNeeded(supabase, user).catch(() => undefined);
+  }
 
   const { data: repairedProfile } = await supabase
     .from("profiles")
