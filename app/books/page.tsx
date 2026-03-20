@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { BookCard } from "@/components/books/book-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { HEADER_CATEGORY_ITEMS } from "@/lib/book-categories";
@@ -36,174 +36,184 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
 
   const activeCategoryLabel = HEADER_CATEGORY_ITEMS.find((item) => item.value === normalizedCategory)?.label ?? normalizedCategory;
   const activeAccessLabel =
-    accessQuery === "free" ? "Livres gratuits" : accessQuery === "premium" ? "Inclus Premium" : accessQuery === "purchase" ? "Achat a l unite" : null;
+    accessQuery === "free" ? "Livres gratuits" : accessQuery === "premium" ? "Inclus Premium" : accessQuery === "purchase" ? "Achat à l'unité" : null;
   const activeFilters = [activeCategoryLabel, activeAccessLabel, authorQuery || null, searchQuery || null].filter(Boolean) as string[];
 
   return (
-    <section className="space-y-8 pb-4">
-      <section className="rounded-[40px] border border-[#ece3d7] bg-[linear-gradient(135deg,#171717_0%,#2c211b_44%,#6a3d2e_100%)] p-6 text-white shadow-[0_30px_80px_rgba(15,23,42,0.18)] sm:p-8">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_360px]">
-          <div className="space-y-5">
-            <span className="inline-flex w-fit rounded-full bg-white/10 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#ffd9cd]">
-              Catalogue
-            </span>
-            <div className="space-y-3">
-              <h1 className="max-w-4xl text-[2.35rem] font-semibold tracking-[-0.06em] text-white sm:text-[3.15rem]">
-                Parcourez la boutique comme une vraie librairie ebook.
-              </h1>
-              <p className="max-w-3xl text-sm leading-7 text-white/76 sm:text-base">
-                Recherche rapide, categories visibles, produits clairs et rayons mieux structures pour aider les lecteurs a trouver le bon livre.
-              </p>
+    <div className="bg-gray-50 min-h-screen">
+      {/* Header breadcrumb / banner (Amazon style) */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Link href="/" className="hover:text-[#ff9900]">Accueil</Link>
+              <span>›</span>
+              <span className="text-gray-800 font-medium">Catalogue</span>
+            </div>
+            <div className="text-sm text-gray-500">
+              {books.length} résultats
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar filters */}
+          <aside className="lg:w-64 flex-shrink-0 space-y-6">
+            <div className="bg-white rounded-md border border-gray-200 p-4">
+              <h2 className="font-medium text-gray-900 mb-3">Filtres</h2>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-800 mb-2">Catégories</h3>
+                  <ul className="space-y-1">
+                    <li>
+                      <Link
+                        href="/books"
+                        className={`text-sm block py-1 ${!normalizedCategory ? "text-[#ff9900] font-medium" : "text-gray-600 hover:text-[#ff9900]"}`}
+                      >
+                        Tous les livres
+                      </Link>
+                    </li>
+                    {HEADER_CATEGORY_ITEMS.filter((item) => item.value !== "all" && item.value !== "new").map((item) => (
+                      <li key={item.value}>
+                        <Link
+                          href={`/books?category=${encodeURIComponent(item.value)}`}
+                          className={`text-sm block py-1 ${item.value === normalizedCategory ? "text-[#ff9900] font-medium" : "text-gray-600 hover:text-[#ff9900]"}`}
+                        >
+                          {item.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-800 mb-2">Type d'accès</h3>
+                  <ul className="space-y-1">
+                    <li>
+                      <Link
+                        href="/books?access=free"
+                        className={`text-sm block py-1 ${accessQuery === "free" ? "text-[#ff9900] font-medium" : "text-gray-600 hover:text-[#ff9900]"}`}
+                      >
+                        Livres gratuits
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/books?access=premium"
+                        className={`text-sm block py-1 ${accessQuery === "premium" ? "text-[#ff9900] font-medium" : "text-gray-600 hover:text-[#ff9900]"}`}
+                      >
+                        Inclus Premium
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/books?access=purchase"
+                        className={`text-sm block py-1 ${accessQuery === "purchase" ? "text-[#ff9900] font-medium" : "text-gray-600 hover:text-[#ff9900]"}`}
+                      >
+                        Achat à l'unité
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
-            <form
-              action="/books"
-              className="flex flex-col gap-3 rounded-[28px] border border-white/10 bg-white/8 p-3 backdrop-blur sm:flex-row sm:items-center"
-            >
-              <div className="flex min-h-[3.25rem] flex-1 items-center gap-3 rounded-full bg-white px-4">
-                <Search className="h-4 w-4 text-[#8b8177]" />
-                <input
-                  type="search"
-                  name="q"
-                  defaultValue={searchQuery}
-                  placeholder="Titre, auteur ou categorie"
-                  className="h-full flex-1 bg-transparent text-sm text-[#171717] outline-none placeholder:text-[#9a8f84]"
-                />
-              </div>
-              <button
-                type="submit"
-                className="inline-flex h-[3.25rem] items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-[#171717] transition hover:bg-[#f3eee8]"
-              >
-                Rechercher
-              </button>
-            </form>
-
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/books"
-                className={`inline-flex items-center rounded-full border px-4 py-2 text-sm transition ${
-                  !activeCategoryLabel ? "border-white bg-white text-[#171717]" : "border-white/12 bg-white/8 text-white/84 hover:bg-white/14"
-                }`}
-              >
-                Tous
+            {/* Optional: promotion banner */}
+            <div className="bg-[#ff9900]/10 border border-[#ff9900]/30 rounded-md p-4">
+              <p className="text-sm font-semibold text-gray-900">Offre Premium</p>
+              <p className="text-xs text-gray-600 mt-1">Accédez à tous les livres en illimité.</p>
+              <Link href="/dashboard/reader/subscriptions" className="mt-2 inline-block text-xs font-medium text-[#ff9900] hover:underline">
+                Découvrir →
               </Link>
-              {HEADER_CATEGORY_ITEMS.filter((item) => item.value !== "all" && item.value !== "new").map((item) => {
-                const active = item.label === activeCategoryLabel;
-                return (
+            </div>
+          </aside>
+
+          {/* Main content */}
+          <main className="flex-1">
+            {/* Search bar */}
+            <div className="bg-white rounded-md border border-gray-200 p-4 mb-6">
+              <form action="/books" className="flex gap-2">
+                <div className="flex-1 flex items-center border border-gray-300 rounded-md bg-white">
+                  <Search className="h-4 w-4 text-gray-400 ml-3" />
+                  <input
+                    type="search"
+                    name="q"
+                    defaultValue={searchQuery}
+                    placeholder="Rechercher par titre, auteur ou catégorie"
+                    className="flex-1 px-3 py-2 text-sm text-gray-900 outline-none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="bg-[#ff9900] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#e68900] transition"
+                >
+                  Rechercher
+                </button>
+              </form>
+            </div>
+
+            {/* Active filters */}
+            {activeFilters.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <span className="text-sm text-gray-600">Filtres actifs :</span>
+                {activeFilters.map((filter) => (
+                  <span key={filter} className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">
+                    {filter}
+                    <Link href="/books" className="hover:text-red-500">
+                      <X className="h-3 w-3" />
+                    </Link>
+                  </span>
+                ))}
+                <Link href="/books" className="text-xs text-[#ff9900] hover:underline ml-2">
+                  Tout effacer
+                </Link>
+              </div>
+            )}
+
+            {/* Results count and sorting (Amazon style) */}
+            <div className="flex items-center justify-between mb-4 text-sm text-gray-600">
+              <p>{books.length} résultats</p>
+              <div className="flex items-center gap-2">
+                <span>Trier par :</span>
+                <select className="border border-gray-300 rounded-md text-sm px-2 py-1 bg-white">
+                  <option>Pertinence</option>
+                  <option>Prix croissant</option>
+                  <option>Prix décroissant</option>
+                  <option>Les plus récents</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Books grid */}
+            {books.length > 0 ? (
+              <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {books.map((book) => (
+                  <BookCard key={book.id} book={book} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                title="Aucun livre trouvé"
+                description={
+                  searchQuery || activeCategoryLabel || authorQuery || activeAccessLabel
+                    ? "Essayez un autre terme ou retirez les filtres pour retrouver le reste de la sélection."
+                    : "Aucun livre publié n'est disponible pour le moment."
+                }
+                action={
                   <Link
-                    key={item.value}
-                    href={`/books?category=${encodeURIComponent(item.value)}`}
-                    className={`inline-flex items-center rounded-full border px-4 py-2 text-sm transition ${
-                      active ? "border-white bg-white text-[#171717]" : "border-white/12 bg-white/8 text-white/84 hover:bg-white/14"
-                    }`}
+                    href="/books"
+                    className="inline-flex h-11 items-center justify-center rounded-md bg-[#ff9900] px-4 text-sm font-semibold text-white transition hover:bg-[#e68900]"
                   >
-                    {item.label}
+                    Voir tout le catalogue
                   </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="rounded-[32px] border border-white/10 bg-white/8 p-5 backdrop-blur">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-[#ffd9cd]">
-                <SlidersHorizontal className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-[#ffd9cd]">Vue boutique</p>
-                <h2 className="mt-1 text-[1.35rem] font-semibold tracking-[-0.04em] text-white">{books.length} titre(s)</h2>
-              </div>
-            </div>
-            <div className="mt-5 grid gap-3">
-              <Link
-                href="/books?access=free"
-                className={`rounded-[22px] border px-4 py-3 text-sm transition ${
-                  accessQuery === "free" ? "border-white bg-white text-[#171717]" : "border-white/10 bg-white/8 text-white/84 hover:bg-white/12"
-                }`}
-              >
-                Livres gratuits
-              </Link>
-              <Link
-                href="/books?access=premium"
-                className={`rounded-[22px] border px-4 py-3 text-sm transition ${
-                  accessQuery === "premium" ? "border-white bg-white text-[#171717]" : "border-white/10 bg-white/8 text-white/84 hover:bg-white/12"
-                }`}
-              >
-                Inclus Premium
-              </Link>
-              <Link
-                href="/books?access=purchase"
-                className={`rounded-[22px] border px-4 py-3 text-sm transition ${
-                  accessQuery === "purchase" ? "border-white bg-white text-[#171717]" : "border-white/10 bg-white/8 text-white/84 hover:bg-white/12"
-                }`}
-              >
-                Achat a l unite
-              </Link>
-              <Link href="/dashboard/reader/subscriptions" className="inline-flex items-center gap-2 text-sm font-semibold text-white transition hover:text-[#ffd9cd]">
-                Voir Premium
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
+                }
+              />
+            )}
+          </main>
         </div>
-      </section>
-
-      <section className="space-y-5 rounded-[34px] border border-[#ece3d7] bg-white/94 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.05)] sm:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-2">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-[#a85b3f]">Resultats</p>
-            <h2 className="text-[1.55rem] font-semibold tracking-[-0.04em] text-[#171717]">Rayon principal</h2>
-            <p className="max-w-3xl text-sm leading-7 text-[#6f665e]">
-              {activeFilters.length > 0
-                ? "Les filtres ci-dessous sont appliques sur le catalogue publie."
-                : "Tous les livres publies apparaissent ici avec une presentation plus storefront."}
-            </p>
-          </div>
-          {activeFilters.length > 0 ? (
-            <Link
-              href="/books"
-              className="inline-flex h-11 items-center justify-center rounded-full border border-[#e7ddd1] bg-[#fcfaf7] px-4 text-sm font-semibold text-[#26221d] transition hover:border-[#d5c8bb] hover:bg-white"
-            >
-              Effacer les filtres
-            </Link>
-          ) : null}
-        </div>
-
-        {activeFilters.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {activeFilters.map((filter) => (
-              <span key={filter} className="inline-flex items-center rounded-full bg-[#fff1ea] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#a85b3f]">
-                {filter}
-              </span>
-            ))}
-          </div>
-        ) : null}
-
-        {books.length > 0 ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {books.map((book) => (
-              <BookCard key={book.id} book={book} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            title="Aucun livre trouve"
-            description={
-              searchQuery || activeCategoryLabel || authorQuery || activeAccessLabel
-                ? "Essayez un autre terme ou retirez les filtres pour retrouver le reste de la selection."
-                : "Aucun livre publie n est disponible pour le moment."
-            }
-            action={
-              <Link
-                href="/books"
-                className="inline-flex h-11 items-center justify-center rounded-full bg-[#171717] px-4 text-sm font-semibold text-white transition hover:bg-[#0f172a]"
-              >
-                Revenir au catalogue complet
-              </Link>
-            }
-          />
-        )}
-      </section>
-    </section>
+      </div>
+    </div>
   );
 }

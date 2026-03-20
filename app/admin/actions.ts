@@ -8,40 +8,59 @@ import { addBookToFlashSale, clearFlashSaleBooks, removeBookFromFlashSale, updat
 import { addBookToHomeFeatured, clearHomeFeaturedBooks, moveHomeFeaturedBook, removeBookFromHomeFeatured } from "@/lib/home-positioning";
 import { splitCommaSeparatedValues } from "@/lib/supabase/admin/shared";
 import { createClient } from "@/lib/supabase/server";
-import type { BookFormatType, BookReviewStatus, BookStatus, LibraryAccessType, OrderPaymentStatus, SubscriptionStatus, UserRole } from "@/types/database";
+import type {
+  BookFormatType,
+  BookReviewStatus,
+  BookStatus,
+  LibraryAccessType,
+  OrderPaymentStatus,
+  SubscriptionStatus,
+  UserRole,
+} from "@/types/database";
 
-function getString(formData: FormData, key: string) {
+/* --------------------------------------------------------------------------
+ *  Utilities
+ * ------------------------------------------------------------------------- */
+
+function getString(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
 }
 
-function getNullableString(formData: FormData, key: string) {
+function getNullableString(formData: FormData, key: string): string | null {
   const value = getString(formData, key);
   return value ? value : null;
 }
 
-function getNumber(formData: FormData, key: string, fallback = 0) {
+function getNumber(formData: FormData, key: string, fallback = 0): number {
   const raw = getString(formData, key);
   const parsed = Number(raw);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function getNullableNumber(formData: FormData, key: string) {
+function getNullableNumber(formData: FormData, key: string): number | null {
   const raw = getString(formData, key);
   if (!raw) return null;
   const parsed = Number(raw);
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function getBoolean(formData: FormData, key: string) {
+function getBoolean(formData: FormData, key: string): boolean {
   const value = getString(formData, key);
   return value === "true" || value === "on" || value === "1";
 }
 
-function getRedirectPath(formData: FormData, fallback: string) {
+function getRedirectPath(formData: FormData, fallback: string): string {
   return getString(formData, "redirect_to") || fallback;
 }
 
+/* --------------------------------------------------------------------------
+ *  Blog actions
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Crée un nouvel article de blog (admin uniquement).
+ */
 export async function createBlogPostAction(formData: FormData) {
   await requireAdmin();
   const redirectTo = getRedirectPath(formData, "/admin/blog");
@@ -68,6 +87,9 @@ export async function createBlogPostAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Supprime un article de blog (admin uniquement).
+ */
 export async function deleteBlogPostAction(formData: FormData) {
   await requireAdmin();
   const redirectTo = getRedirectPath(formData, "/admin/blog");
@@ -84,6 +106,13 @@ export async function deleteBlogPostAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/* --------------------------------------------------------------------------
+ *  Flash sales actions
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Met à jour le pourcentage de remise pour les flash sales (admin uniquement).
+ */
 export async function updateFlashSaleDiscountAction(formData: FormData) {
   await requireAdmin();
   const redirectTo = getRedirectPath(formData, "/admin/flash-sales");
@@ -96,6 +125,9 @@ export async function updateFlashSaleDiscountAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Ajoute un livre à la liste des flash sales (admin uniquement).
+ */
 export async function addFlashSaleBookAction(formData: FormData) {
   await requireAdmin();
   const redirectTo = getRedirectPath(formData, "/admin/flash-sales");
@@ -111,6 +143,9 @@ export async function addFlashSaleBookAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Retire un livre de la liste des flash sales (admin uniquement).
+ */
 export async function removeFlashSaleBookAction(formData: FormData) {
   await requireAdmin();
   const redirectTo = getRedirectPath(formData, "/admin/flash-sales");
@@ -126,6 +161,9 @@ export async function removeFlashSaleBookAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Vide complètement la liste des flash sales (admin uniquement).
+ */
 export async function clearFlashSaleBooksAction(formData: FormData) {
   await requireAdmin();
   const redirectTo = getRedirectPath(formData, "/admin/flash-sales");
@@ -138,6 +176,13 @@ export async function clearFlashSaleBooksAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/* --------------------------------------------------------------------------
+ *  Home featured books actions
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Ajoute un livre à la section mise en avant de la page d'accueil (admin uniquement).
+ */
 export async function addHomeFeaturedBookAction(formData: FormData) {
   await requireAdmin();
   const redirectTo = getRedirectPath(formData, "/admin/home-positioning");
@@ -154,6 +199,9 @@ export async function addHomeFeaturedBookAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Retire un livre de la section mise en avant de la page d'accueil (admin uniquement).
+ */
 export async function removeHomeFeaturedBookAction(formData: FormData) {
   await requireAdmin();
   const redirectTo = getRedirectPath(formData, "/admin/home-positioning");
@@ -170,6 +218,9 @@ export async function removeHomeFeaturedBookAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Vide complètement la section mise en avant de la page d'accueil (admin uniquement).
+ */
 export async function clearHomeFeaturedBooksAction(formData: FormData) {
   await requireAdmin();
   const redirectTo = getRedirectPath(formData, "/admin/home-positioning");
@@ -183,6 +234,9 @@ export async function clearHomeFeaturedBooksAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Déplace un livre dans l'ordre d'affichage de la section mise en avant (admin uniquement).
+ */
 export async function moveHomeFeaturedBookAction(formData: FormData) {
   await requireAdmin();
   const redirectTo = getRedirectPath(formData, "/admin/home-positioning");
@@ -200,6 +254,13 @@ export async function moveHomeFeaturedBookAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/* --------------------------------------------------------------------------
+ *  Users & authors actions
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Met à jour le rôle d'un utilisateur (admin uniquement).
+ */
 export async function updateUserRoleAction(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
@@ -223,6 +284,9 @@ export async function updateUserRoleAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Met à jour le profil auteur (admin uniquement).
+ */
 export async function updateAuthorProfileAction(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
@@ -247,6 +311,13 @@ export async function updateAuthorProfileAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/* --------------------------------------------------------------------------
+ *  Books actions
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Met à jour un livre (admin uniquement).
+ */
 export async function updateBookAction(formData: FormData) {
   const admin = await requireAdmin();
   const supabase = await createClient();
@@ -301,6 +372,9 @@ export async function updateBookAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Traite une soumission de livre (approbation, demande de modifications ou rejet).
+ */
 export async function reviewBookSubmissionAction(formData: FormData) {
   const admin = await requireAdmin();
   const supabase = await createClient();
@@ -357,6 +431,13 @@ export async function reviewBookSubmissionAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/* --------------------------------------------------------------------------
+ *  Book formats actions
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Crée ou met à jour un format de livre (admin uniquement).
+ */
 export async function saveBookFormatAction(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
@@ -391,6 +472,9 @@ export async function saveBookFormatAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Supprime un format de livre (seulement s'il n'est pas publié).
+ */
 export async function deleteBookFormatAction(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
@@ -409,6 +493,13 @@ export async function deleteBookFormatAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/* --------------------------------------------------------------------------
+ *  Orders actions
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Met à jour le statut de paiement d'une commande (admin uniquement).
+ */
 export async function updateOrderStatusAction(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
@@ -427,6 +518,13 @@ export async function updateOrderStatusAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/* --------------------------------------------------------------------------
+ *  Library access actions
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Ajoute un accès à la bibliothèque pour un utilisateur (admin uniquement).
+ */
 export async function addLibraryAccessAction(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
@@ -447,6 +545,9 @@ export async function addLibraryAccessAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Supprime un accès à la bibliothèque (admin uniquement).
+ */
 export async function removeLibraryAccessAction(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
@@ -459,6 +560,13 @@ export async function removeLibraryAccessAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/* --------------------------------------------------------------------------
+ *  Ratings & highlights actions
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Supprime une note (admin uniquement).
+ */
 export async function deleteRatingAction(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
@@ -472,6 +580,9 @@ export async function deleteRatingAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Supprime un surlignage (admin uniquement).
+ */
 export async function deleteHighlightAction(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
@@ -485,6 +596,13 @@ export async function deleteHighlightAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/* --------------------------------------------------------------------------
+ *  Subscriptions actions
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Crée ou met à jour un plan d'abonnement (admin uniquement).
+ */
 export async function saveSubscriptionPlanAction(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
@@ -512,6 +630,9 @@ export async function saveSubscriptionPlanAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Ajoute un livre à un plan d'abonnement (admin uniquement).
+ */
 export async function addBookToPlanAction(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
@@ -530,6 +651,9 @@ export async function addBookToPlanAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Retire un livre d'un plan d'abonnement (admin uniquement).
+ */
 export async function removeBookFromPlanAction(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
@@ -544,6 +668,9 @@ export async function removeBookFromPlanAction(formData: FormData) {
   redirect(redirectTo);
 }
 
+/**
+ * Crée ou met à jour un abonnement utilisateur (admin uniquement).
+ */
 export async function saveUserSubscriptionAction(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();

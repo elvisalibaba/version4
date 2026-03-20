@@ -20,14 +20,14 @@ type HomeBook = Awaited<ReturnType<typeof getPublishedBooks>>[number];
 
 const featuredCollections = [
   {
-    title: "Decouvrez les supports de lecture Holistique",
+    title: "Découvrez les supports de lecture Holistique",
     description: "Lecture web, parcours mobile et espace personnel dans un environnement sans distraction.",
-    cta: "Explorer les acces",
+    cta: "Explorer les accès",
     href: "/dashboard/reader",
   },
   {
-    title: "Ne soyez jamais a court d histoires avec Holistique Plus",
-    description: "Faites monter la retention avec une offre d abonnement visible des la home.",
+    title: "Ne soyez jamais à court d'histoires avec Holistique Plus",
+    description: "Faites monter la rétention avec une offre d'abonnement visible dès la home.",
     cta: "En savoir plus",
     href: "/dashboard/reader/subscriptions",
   },
@@ -36,15 +36,15 @@ const featuredCollections = [
 const readingProducts = [
   {
     title: "Lecteur Web",
-    subtitle: "Lisez instantanement dans votre navigateur",
-    price: "Acces inclus",
+    subtitle: "Lisez instantanément dans votre navigateur",
+    price: "Accès inclus",
     note: "Sans installation",
   },
   {
     title: "Holistique Plus",
-    subtitle: "Abonnement lecture pour titres eligibles",
+    subtitle: "Abonnement lecture pour titres éligibles",
     price: "Offre Premium",
-    note: "Bibliotheque enrichie",
+    note: "Bibliothèque enrichie",
   },
   {
     title: "Studio Auteur",
@@ -91,7 +91,7 @@ function CoverArtwork({ book, priority = false }: { book: HomeBook; priority?: b
   }
 
   return (
-    <div className="grid h-full w-full place-items-center bg-[#f3eee8] px-5 text-center text-sm font-semibold text-[#6f665e]">
+    <div className="grid h-full w-full place-items-center bg-gray-100 px-5 text-center text-sm font-semibold text-gray-600">
       {book.title}
     </div>
   );
@@ -105,28 +105,28 @@ function ShelfBookCard({ book, showPremiumHint = false }: { book: HomeBook; show
       : null;
 
   return (
-    <article className="w-[182px] shrink-0 rounded-[26px] border border-[#ece3d7] bg-white p-3 shadow-[0_14px_32px_rgba(15,23,42,0.05)]">
-      <Link href={`/book/${book.id}`} className="block overflow-hidden rounded-[18px] bg-[#f5efe8]">
+    <article className="w-[182px] shrink-0 rounded-md border border-gray-200 bg-white p-3 shadow-sm hover:shadow-md transition">
+      <Link href={`/book/${book.id}`} className="block overflow-hidden rounded-md bg-gray-100">
         <div className="aspect-[0.72]">
           <CoverArtwork book={book} />
         </div>
       </Link>
       <div className="mt-3 space-y-2">
-        <p className="line-clamp-2 text-sm font-semibold leading-5 text-[#171717]">
+        <p className="line-clamp-2 text-sm font-semibold leading-5 text-gray-900">
           <Link href={`/book/${book.id}`}>{book.title}</Link>
         </p>
-        <p className="line-clamp-1 text-xs text-[#6f665e]">{book.author_name ?? "Auteur inconnu"}</p>
+        <p className="line-clamp-1 text-xs text-gray-600">{book.author_name ?? "Auteur inconnu"}</p>
         <div className="flex items-center gap-1">
           {stars.map((filled, index) => (
             <Star
               key={`${book.id}-${index}`}
-              className={`h-3.5 w-3.5 ${filled ? "fill-current text-[#f3a81f]" : "text-[#ddd2c7]"}`}
+              className={`h-3.5 w-3.5 ${filled ? "fill-current text-[#ff9900]" : "text-gray-300"}`}
             />
           ))}
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-[#171717]">{formatPriceLabel(book)}</p>
-          {premiumLabel ? <p className="text-[0.72rem] font-medium text-[#6f665e]">{premiumLabel}</p> : null}
+          <p className="text-sm font-semibold text-gray-900">{formatPriceLabel(book)}</p>
+          {premiumLabel ? <p className="text-xs font-medium text-gray-500">{premiumLabel}</p> : null}
         </div>
       </div>
     </article>
@@ -153,14 +153,13 @@ function RailSection({
   }
 
   return (
-    <section className="space-y-4 rounded-[34px] border border-[#ece3d7] bg-white/94 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.05)] sm:p-6">
+    <section className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
-          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-[#a85b3f]">Selection</p>
-          <h2 className="text-[1.55rem] font-semibold tracking-[-0.04em] text-[#171717]">{title}</h2>
-          <p className="max-w-3xl text-sm leading-7 text-[#6f665e]">{description}</p>
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+          <p className="text-sm text-gray-600">{description}</p>
         </div>
-        <Link href={href} className="inline-flex items-center gap-2 text-sm font-semibold text-[#171717] transition hover:text-[#a85b3f]">
+        <Link href={href} className="inline-flex items-center gap-2 text-sm font-semibold text-[#ff9900] hover:underline">
           {hrefLabel}
           <ArrowRight className="h-4 w-4" />
         </Link>
@@ -177,11 +176,11 @@ function RailSection({
 
 function PromoFeature({ title, description, cta, href }: { title: string; description: string; cta: string; href: string }) {
   return (
-    <article className="rounded-[30px] border border-[#ece3d7] bg-[linear-gradient(180deg,#fff9f4,#ffffff)] p-5 shadow-[0_18px_40px_rgba(15,23,42,0.05)]">
+    <article className="rounded-md border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition">
       <div className="space-y-3">
-        <h3 className="text-[1.35rem] font-semibold tracking-[-0.04em] text-[#171717]">{title}</h3>
-        <p className="text-sm leading-7 text-[#6f665e]">{description}</p>
-        <Link href={href} className="inline-flex items-center gap-2 text-sm font-semibold text-[#171717] transition hover:text-[#a85b3f]">
+        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        <p className="text-sm text-gray-600">{description}</p>
+        <Link href={href} className="inline-flex items-center gap-2 text-sm font-semibold text-[#ff9900] hover:underline">
           {cta}
           <ArrowRight className="h-4 w-4" />
         </Link>
@@ -212,431 +211,251 @@ export default async function HomePage() {
   const dailyDeal = highlightedFlashDeals[0] ?? featuredBook;
 
   return (
-    <div className="space-y-8 pb-6">
-      <section className="overflow-hidden rounded-[40px] border border-[#ece3d7] bg-[linear-gradient(135deg,#171717_0%,#241a14_42%,#74402f_100%)] p-6 text-white shadow-[0_30px_80px_rgba(15,23,42,0.18)] sm:p-8">
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.12fr)_430px]">
-          <div className="space-y-6">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#ffd9cd]">
-              <Sparkles className="h-3.5 w-3.5" />
-              Le printemps est dans l air, et sur vos pages
-            </span>
-
-            <div className="space-y-4">
-              <h1 className="max-w-4xl text-[2.5rem] font-semibold tracking-[-0.06em] text-white sm:text-[3.5rem]">
+    <div className="bg-gray-100 min-h-screen">
+      {/* Hero section : large banner with CTA and search */}
+      <div className="bg-gradient-to-r from-[#232f3e] to-[#1a2a3a] text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+          <div className="grid gap-8 md:grid-cols-2 items-center">
+            <div className="space-y-6">
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
                 Les histoires fleurissent sur Holistique Books.
               </h1>
-              <p className="max-w-3xl text-sm leading-7 text-white/76 sm:text-base">
-                Une home structuree comme un vrai storefront ebook: promo principale, meilleures ventes, offre du jour, abonnement, rails
-                thematiques, avant-premieres et espace auteur.
+              <p className="text-lg text-gray-200">
+                Une librairie en ligne pensée pour les lecteurs exigeants et les auteurs ambitieux.
               </p>
-            </div>
-
-            <div className="rounded-[30px] border border-white/10 bg-white/8 p-5 backdrop-blur">
-              <div className="space-y-3">
-                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#ffd9cd]">L offre se termine bientot</p>
-                <h2 className="text-[1.8rem] font-semibold tracking-[-0.05em] text-white">
-                  Le storefront premium est en ligne avec recherche, rayons et lecture directe.
-                </h2>
-                <p className="text-sm leading-7 text-white/72">
-                  Mettez en avant vos livres, vos offres Premium, vos avant-premieres et votre studio auteur dans une seule vitrine claire.
-                </p>
-              </div>
-              <div className="mt-5 flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-4">
                 <Link
                   href="/books"
-                  className="inline-flex h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-[#171717] transition hover:bg-[#f4eee7]"
+                  className="inline-flex items-center rounded-md bg-[#ff9900] px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-[#e68900] transition"
                 >
                   Explorer la boutique
                 </Link>
                 <Link
                   href="/dashboard/author"
-                  className="inline-flex h-11 items-center justify-center rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold text-white transition hover:bg-white/12"
+                  className="inline-flex items-center rounded-md border border-white/30 bg-transparent px-6 py-3 text-base font-semibold text-white hover:bg-white/10 transition"
                 >
                   Publier un livre
                 </Link>
               </div>
-            </div>
-
-            <form
-              action="/books"
-              className="flex flex-col gap-3 rounded-[28px] border border-white/10 bg-white/8 p-3 backdrop-blur sm:flex-row sm:items-center"
-            >
-              <div className="flex min-h-[3.25rem] flex-1 items-center gap-3 rounded-full bg-white px-4">
-                <Search className="h-4 w-4 text-[#8b8177]" />
-                <input
-                  type="search"
-                  name="q"
-                  placeholder="Rechercher sur Holistique Books"
-                  className="h-full flex-1 bg-transparent text-sm text-[#171717] outline-none placeholder:text-[#9a8f84]"
-                />
-              </div>
-              <button
-                type="submit"
-                className="inline-flex h-[3.25rem] items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-[#171717] transition hover:bg-[#f3eee8]"
-              >
-                Rechercher
-              </button>
-            </form>
-
-            <div className="flex flex-wrap gap-2">
-              {HEADER_CATEGORY_ITEMS.filter((item) => item.value !== "all").map((item) => (
-                <Link
-                  key={item.value}
-                  href={item.value === "new" ? "/books" : `/books?category=${encodeURIComponent(item.value)}`}
-                  className="inline-flex items-center rounded-full border border-white/12 bg-white/8 px-4 py-2 text-sm text-white/84 transition hover:bg-white/14"
+              <form action="/books" className="flex max-w-lg">
+                <div className="flex-1 flex items-center border border-gray-300 rounded-l-md bg-white">
+                  <Search className="h-5 w-5 text-gray-400 ml-3" />
+                  <input
+                    type="search"
+                    name="q"
+                    placeholder="Rechercher par titre, auteur ou catégorie"
+                    className="flex-1 px-3 py-2 text-gray-900 outline-none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="bg-[#ff9900] text-white px-5 py-2 rounded-r-md font-semibold hover:bg-[#e68900] transition"
                 >
-                  {item.label}
+                  Rechercher
+                </button>
+              </form>
+            </div>
+            {/* Optional hero image */}
+            <div className="hidden md:block relative h-80">
+              <Image
+                src="/images/ce2.jpg"
+                alt="Hero"
+                fill
+                className="object-cover rounded-lg shadow-xl"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+        {/* Today's Deal */}
+        {dailyDeal && (
+          <section className="bg-white rounded-md border border-gray-200 p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-2xl">🔥</span>
+              <h2 className="text-xl font-bold text-gray-900">Offre du jour</h2>
+            </div>
+            <div className="grid gap-6 md:grid-cols-[200px_1fr]">
+              <div className="rounded-md overflow-hidden bg-gray-100">
+                <div className="aspect-[0.72]">
+                  <CoverArtwork book={dailyDeal} />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-2xl font-bold text-gray-900">{dailyDeal.title}</h3>
+                <p className="text-gray-600">par {dailyDeal.author_name ?? "Auteur inconnu"}</p>
+                <p className="text-gray-700">{dailyDeal.description?.trim() || "Un titre incontournable à prix réduit aujourd'hui seulement."}</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-2xl font-bold text-[#ff9900]">{formatPriceLabel(dailyDeal)}</span>
+                  {flashSale.config.discountPercentage > 0 && (
+                    <span className="bg-red-100 text-red-700 text-sm font-semibold px-3 py-1 rounded-full">
+                      -{flashSale.config.discountPercentage}%
+                    </span>
+                  )}
+                </div>
+                <Link
+                  href={`/book/${dailyDeal.id}`}
+                  className="inline-flex items-center gap-2 rounded-md bg-[#ff9900] px-5 py-2 text-sm font-semibold text-white hover:bg-[#e68900] transition"
+                >
+                  Voir l'offre
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Best Sellers */}
+        <RailSection
+          title="Meilleures ventes"
+          description="Les livres les plus populaires du moment"
+          books={spotlightBooks}
+          href="/books"
+          hrefLabel="Voir tous les best-sellers"
+        />
+
+        {/* New Releases */}
+        <RailSection
+          title="Nouveautés"
+          description="Les dernières parutions à découvrir"
+          books={newReleases}
+          href="/books"
+          hrefLabel="Voir toutes les nouveautés"
+          showPremiumHint
+        />
+
+        {/* Premium Picks */}
+        <RailSection
+          title="Lectures incluses Premium"
+          description="Accédez à ces titres avec votre abonnement"
+          books={premiumBooks.slice(0, 14)}
+          href="/dashboard/reader/subscriptions"
+          hrefLabel="Découvrir Premium"
+          showPremiumHint
+        />
+
+        {/* Free Books */}
+        <RailSection
+          title="Livres gratuits"
+          description="Commencez votre voyage sans frais"
+          books={freeBooks.slice(0, 14)}
+          href="/books?access=free"
+          hrefLabel="Voir tous les livres gratuits"
+        />
+
+        {/* Thematic rails */}
+        <RailSection
+          title="Romans & fiction"
+          description="Plongez dans des histoires captivantes"
+          books={categoryRomans}
+          href="/books?category=Roman"
+          hrefLabel="Voir tous les romans"
+        />
+
+        <RailSection
+          title="Spiritualité & croissance"
+          description="Des lectures pour nourrir l'esprit"
+          books={categorySpirituality}
+          href="/books?category=Spiritualite"
+          hrefLabel="Explorer la collection"
+        />
+
+        {comingSoon.length > 0 && (
+          <RailSection
+            title="À paraître"
+            description="Préparez-vous pour ces futures sorties"
+            books={comingSoon}
+            href="/books"
+            hrefLabel="Voir les précommandes"
+          />
+        )}
+
+        {/* Promo cards */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {featuredCollections.map((item) => (
+            <PromoFeature key={item.title} {...item} />
+          ))}
+        </div>
+
+        {/* Reading products */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900">Nos solutions de lecture</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {readingProducts.map((product) => (
+              <div key={product.title} className="bg-white rounded-md border border-gray-200 p-5 shadow-sm">
+                <p className="text-sm font-semibold uppercase text-[#ff9900]">{product.title}</p>
+                <h3 className="mt-2 text-lg font-bold text-gray-900">{product.subtitle}</h3>
+                <p className="mt-4 text-xl font-semibold text-gray-900">{product.price}</p>
+                <p className="text-sm text-gray-500">{product.note}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* African Authors */}
+        <RailSection
+          title="Auteurs africains"
+          description="Des voix qui comptent"
+          books={categoryAfricanAuthors}
+          href="/books?category=Auteurs%20africains"
+          hrefLabel="Voir la sélection"
+        />
+
+        {/* FAQ & Contact */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="bg-white rounded-md border border-gray-200 p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-gray-900">Questions fréquentes</h2>
+            <div className="mt-4 space-y-4">
+              {[
+                {
+                  question: "Comment les lecteurs accèdent-ils aux livres ?",
+                  answer: "Par achat unitaire, accès gratuit ou abonnement Premium selon l'offre configurée sur chaque livre.",
+                },
+                {
+                  question: "Les auteurs peuvent-ils publier eux-mêmes ?",
+                  answer: "Oui. Le studio auteur permet de préparer la fiche, les formats et de soumettre le livre à validation.",
+                },
+                {
+                  question: "Le storefront reste lié à Supabase ?",
+                  answer: "Oui. Comptes, profils, bibliothèques, commandes et catalogues restent reliés à votre schéma actuel.",
+                },
+              ].map((item) => (
+                <div key={item.question} className="border-b border-gray-200 pb-3 last:border-0">
+                  <h3 className="font-semibold text-gray-900">{item.question}</h3>
+                  <p className="mt-1 text-sm text-gray-600">{item.answer}</p>
+                </div>
               ))}
             </div>
           </div>
 
-          <div className="space-y-4">
-            {featuredBook ? (
-              <div className="rounded-[32px] border border-white/10 bg-white p-5 text-[#171717] shadow-[0_22px_60px_rgba(0,0,0,0.22)]">
-                <div className="grid gap-5 sm:grid-cols-[160px_minmax(0,1fr)]">
-                  <div className="overflow-hidden rounded-[22px] bg-[#f5efe8]">
-                    <div className="aspect-[0.72]">
-                      <CoverArtwork book={featuredBook} priority />
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <span className="inline-flex w-fit rounded-full bg-[#fff1ea] px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-[#a85b3f]">
-                      Notre recommandation du mois
-                    </span>
-                    <div className="space-y-2">
-                      <h2 className="text-[1.45rem] font-semibold tracking-[-0.04em] text-[#171717]">{featuredBook.title}</h2>
-                      <p className="text-sm text-[#6f665e]">{featuredBook.author_name ?? "Auteur inconnu"}</p>
-                    </div>
-                    <p className="line-clamp-4 text-sm leading-7 text-[#5c534b]">
-                      {featuredBook.description?.trim() ||
-                        "Un titre mis en avant dans une carte hero plus proche des grandes boutiques ebook."}
-                    </p>
-                    <div className="space-y-1">
-                      <p className="text-lg font-semibold text-[#171717]">{formatPriceLabel(featuredBook)}</p>
-                      <p className="text-sm text-[#6f665e]">{featuredBook.offer_summary_label}</p>
-                    </div>
-                    <Link
-                      href={`/book/${featuredBook.id}`}
-                      className="inline-flex h-11 items-center gap-2 rounded-full bg-[#171717] px-4 text-sm font-semibold text-white transition hover:bg-[#0f172a]"
-                    >
-                      Voir le livre
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
-            {featuredCollections.map((item) => (
-              <PromoFeature key={item.title} {...item} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <RailSection
-        title="Meilleurs livres dans la boutique"
-        description="Une premiere ligne de livres comme sur les grandes librairies ebook: bestsellers, livres du moment et titres a forte traction."
-        books={spotlightBooks}
-        href="/books"
-        hrefLabel="Voir la liste complete"
-      />
-
-      <section className="grid gap-5 lg:grid-cols-2">
-        <div className="rounded-[34px] border border-[#ece3d7] bg-[linear-gradient(135deg,#fff8f2,#ffffff)] p-6 shadow-[0_20px_50px_rgba(15,23,42,0.05)]">
-          <div className="space-y-3">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-[#a85b3f]">Lire partout</p>
-            <h2 className="text-[1.7rem] font-semibold tracking-[-0.04em] text-[#171717]">
-              Decouvrez les supports de lecture Holistique
-            </h2>
-            <p className="text-sm leading-7 text-[#6f665e]">
-              Aucune distraction, aucune friction: juste vous, votre livre, votre bibliotheque et votre espace personnel.
-            </p>
-            <Link href="/dashboard/reader" className="inline-flex items-center gap-2 text-sm font-semibold text-[#171717] transition hover:text-[#a85b3f]">
-              Acheter des acces
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-
-        <div className="rounded-[34px] border border-[#ece3d7] bg-[linear-gradient(135deg,#171717,#2b211b)] p-6 text-white shadow-[0_20px_50px_rgba(15,23,42,0.14)]">
-          <div className="space-y-3">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-[#ffd9cd]">Abonnement</p>
-            <h2 className="text-[1.7rem] font-semibold tracking-[-0.04em] text-white">
-              Ne soyez jamais a court d histoires avec Holistique Plus
-            </h2>
-            <p className="text-sm leading-7 text-white/72">
-              Parce que votre pile a lire est deja trop longue, et que l abonnement doit vraiment donner envie de rester.
-            </p>
-            <Link
-              href="/dashboard/reader/subscriptions"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-white transition hover:text-[#ffd9cd]"
-            >
-              En savoir plus
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <RailSection
-        title="Nouveautes a ne pas manquer"
-        description="Une ligne complete de sorties recentes pour garder le storefront vivant et proche des usages des grandes plateformes."
-        books={newReleases}
-        href="/books"
-        hrefLabel="Voir les nouveautes"
-        showPremiumHint
-      />
-
-      <section className="space-y-5 rounded-[34px] border border-[#ece3d7] bg-white/94 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.05)] sm:p-6">
-        <div className="space-y-2">
-          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-[#a85b3f]">Acces & produits</p>
-          <h2 className="text-[1.55rem] font-semibold tracking-[-0.04em] text-[#171717]">Sans reflet, leger et concu pour lire plus souvent</h2>
-          <p className="max-w-3xl text-sm leading-7 text-[#6f665e]">
-            Une section carte produit inspirée des marketplaces de lecture, adaptee a vos vrais acces: web, Premium et studio auteur.
-          </p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {readingProducts.map((product) => (
-            <article key={product.title} className="rounded-[28px] border border-[#ece3d7] bg-[#fcfaf7] p-5">
-              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#8b8177]">{product.title}</p>
-              <h3 className="mt-3 text-[1.35rem] font-semibold tracking-[-0.04em] text-[#171717]">{product.subtitle}</h3>
-              <p className="mt-4 text-lg font-semibold text-[#171717]">{product.price}</p>
-              <p className="mt-1 text-sm text-[#6f665e]">{product.note}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      {dailyDeal ? (
-        <section className="rounded-[36px] border border-[#ece3d7] bg-[linear-gradient(135deg,#fff8f2,#ffffff)] p-6 shadow-[0_20px_50px_rgba(15,23,42,0.05)] sm:p-7">
-          <div className="grid gap-6 lg:grid-cols-[170px_minmax(0,1fr)]">
-            <div className="overflow-hidden rounded-[24px] bg-[#f5efe8]">
-              <div className="aspect-[0.72]">
-                <CoverArtwork book={dailyDeal} />
-              </div>
-            </div>
-            <div className="space-y-4">
-              <span className="inline-flex w-fit rounded-full bg-[#fff1ea] px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#a85b3f]">
-                L offre du jour
-              </span>
-              <div className="space-y-2">
-                <h2 className="text-[2rem] font-semibold tracking-[-0.05em] text-[#171717]">{dailyDeal.title}</h2>
-                <p className="text-sm text-[#6f665e]">par {dailyDeal.author_name ?? "Auteur inconnu"}</p>
-              </div>
-              <p className="max-w-4xl text-sm leading-7 text-[#5c534b]">
-                {dailyDeal.description?.trim() ||
-                  "Un bloc spotlight plus direct pour mettre en avant une offre courte, une promo active ou un livre cle du moment."}
-              </p>
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-[#ece3d7] bg-white px-3 py-1.5 text-sm font-semibold text-[#171717]">
-                  {formatPriceLabel(dailyDeal)}
-                </span>
-                <span className="rounded-full bg-[#171717] px-3 py-1.5 text-sm font-semibold text-white">
-                  {flashSale.config.discountPercentage}% de remise active
-                </span>
-              </div>
-              <Link
-                href={`/book/${dailyDeal.id}`}
-                className="inline-flex h-11 items-center gap-2 rounded-full bg-[#171717] px-4 text-sm font-semibold text-white transition hover:bg-[#0f172a]"
-              >
-                Voir l offre
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      <RailSection
-        title="Lectures incluses Premium"
-        description="Une ligne dediee aux titres lisibles dans le cadre de l abonnement, avec un indice clair directement sur chaque carte."
-        books={premiumBooks.slice(0, 14)}
-        href="/dashboard/reader/subscriptions"
-        hrefLabel="Voir Premium"
-        showPremiumHint
-      />
-
-      <RailSection
-        title="Lectures offertes et decouverte rapide"
-        description="Un rayon dedie aux livres gratuits pour augmenter l entree dans la plateforme et la reprise de lecture."
-        books={freeBooks.slice(0, 14)}
-        href="/books?access=free"
-        hrefLabel="Voir les livres gratuits"
-      />
-
-      <RailSection
-        title="Roman et fiction"
-        description="Une ligne thematique proche des rayons Kobo pour ancrer l exploration dans des categories nettes."
-        books={categoryRomans}
-        href="/books?category=Roman"
-        hrefLabel="Voir les romans"
-      />
-
-      <RailSection
-        title="Spiritualite et croissance"
-        description="Une collection plus editoriale pour mettre en avant les titres de profondeur, de foi et de transformation."
-        books={categorySpirituality}
-        href="/books?category=Spiritualite"
-        hrefLabel="Voir la collection"
-      />
-
-      {comingSoon.length > 0 ? (
-        <RailSection
-          title="Disponible bientot"
-          description="Les titres a paraitre gardent une vraie presence storefront pour nourrir l attente et preparer les campagnes."
-          books={comingSoon}
-          href="/books"
-          hrefLabel="Voir les a venir"
-        />
-      ) : null}
-
-      <section className="grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        <div className="rounded-[34px] border border-[#ece3d7] bg-[linear-gradient(135deg,#fff7ef,#ffffff)] p-6 shadow-[0_20px_50px_rgba(15,23,42,0.05)] sm:p-7">
-          <div className="space-y-4">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[#fff1ea] px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#a85b3f]">
-              <Gift className="h-3.5 w-3.5" />
-              S offrir du temps pour soi
-            </span>
-            <div className="space-y-3">
-              <h2 className="text-[2rem] font-semibold tracking-[-0.05em] text-[#171717] sm:text-[2.45rem]">
-                Offrez une carte-cadeau ou recommandez une lecture en un clic.
-              </h2>
-              <p className="max-w-2xl text-sm leading-7 text-[#6f665e]">
-                Une grande bannière de conversion, a la manière des grands stores, pour vendre des acces, des offres ou des campagnes cadeau.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/don"
-                className="inline-flex h-11 items-center justify-center rounded-full bg-[#171717] px-5 text-sm font-semibold text-white transition hover:bg-[#0f172a]"
-              >
-                Envoyer une carte-cadeau
-              </Link>
-              <Link
-                href="/books"
-                className="inline-flex h-11 items-center justify-center rounded-full border border-[#e7ddd1] bg-white px-5 text-sm font-semibold text-[#26221d] transition hover:border-[#d5c8bb]"
-              >
-                Revenir a la boutique
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid gap-4">
-          <article className="rounded-[28px] border border-[#ece3d7] bg-white/94 p-5 shadow-[0_16px_38px_rgba(15,23,42,0.05)]">
-            <div className="flex items-start gap-3">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#171717] text-white">
-                <BookOpen className="h-4 w-4" />
-              </span>
-              <div className="space-y-1">
-                <h3 className="text-lg font-semibold tracking-[-0.03em] text-[#171717]">Collections editoriales</h3>
-                <p className="text-sm leading-7 text-[#6f665e]">
-                  Creez des sous-univers comme Kobo le fait avec ses vitrines thematiques et ses selections de marque.
-                </p>
-              </div>
-            </div>
-          </article>
-          <article className="rounded-[28px] border border-[#ece3d7] bg-white/94 p-5 shadow-[0_16px_38px_rgba(15,23,42,0.05)]">
-            <div className="flex items-start gap-3">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#171717] text-white">
-                <Headphones className="h-4 w-4" />
-              </span>
-              <div className="space-y-1">
-                <h3 className="text-lg font-semibold tracking-[-0.03em] text-[#171717]">Formats immersifs</h3>
-                <p className="text-sm leading-7 text-[#6f665e]">
-                  La structure accepte aussi demain des livres audio, des exclusivites et des collections partenaires.
-                </p>
-              </div>
-            </div>
-          </article>
-          <article className="rounded-[28px] border border-[#ece3d7] bg-white/94 p-5 shadow-[0_16px_38px_rgba(15,23,42,0.05)]">
-            <div className="flex items-start gap-3">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#171717] text-white">
-                <PenSquare className="h-4 w-4" />
-              </span>
-              <div className="space-y-1">
-                <h3 className="text-lg font-semibold tracking-[-0.03em] text-[#171717]">Publiez votre roman</h3>
-                <p className="text-sm leading-7 text-[#6f665e]">
-                  Le storefront public et le studio auteur parlent maintenant le meme langage produit.
-                </p>
-              </div>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <RailSection
-        title="Auteurs africains et voix a suivre"
-        description="Un rayon distinct pour les catalogues a forte identite et les selections de voix francophones et africaines."
-        books={categoryAfricanAuthors}
-        href="/books?category=Auteurs%20africains"
-        hrefLabel="Voir la selection"
-      />
-
-      <section className="grid gap-5 lg:grid-cols-2">
-        <div className="rounded-[34px] border border-[#ece3d7] bg-white/94 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.05)]">
-          <div className="space-y-3">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-[#a85b3f]">Questions frequentes</p>
-            <h2 className="text-[1.65rem] font-semibold tracking-[-0.04em] text-[#171717]">Une boutique plus simple a comprendre</h2>
-          </div>
-          <div className="mt-5 grid gap-3">
-            {[
-              {
-                question: "Comment les lecteurs accedent-ils aux livres ?",
-                answer: "Par achat unitaire, acces gratuit ou abonnement Premium selon l offre configuree sur chaque livre.",
-              },
-              {
-                question: "Les auteurs peuvent-ils publier eux-memes ?",
-                answer: "Oui. Le studio auteur permet de preparer la fiche, les formats et de soumettre le livre a validation.",
-              },
-              {
-                question: "Le storefront reste lie a Supabase ?",
-                answer: "Oui. Comptes, profils, bibliotheques, commandes et catalogues restent relies a votre schema actuel.",
-              },
-            ].map((item) => (
-              <article key={item.question} className="rounded-[22px] border border-[#ece3d7] bg-[#fcfaf7] p-4">
-                <h3 className="text-sm font-semibold text-[#171717]">{item.question}</h3>
-                <p className="mt-2 text-sm leading-7 text-[#6f665e]">{item.answer}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-
-        <div id="contact" className="rounded-[34px] border border-[#ece3d7] bg-[#171717] p-6 text-white shadow-[0_24px_60px_rgba(15,23,42,0.18)]">
-          <div className="space-y-4">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#ffd9cd]">
-              <MonitorPlay className="h-3.5 w-3.5" />
-              Contact & accompagnement
-            </span>
-            <h2 className="text-[1.9rem] font-semibold tracking-[-0.05em] text-white">
-              Besoin d aide pour configurer le storefront, lire ou publier ?
-            </h2>
-            <p className="text-sm leading-7 text-white/72">
+          <div className="bg-[#232f3e] rounded-md p-6 text-white shadow-sm">
+            <h2 className="text-xl font-bold">Besoin d'aide ?</h2>
+            <p className="mt-2 text-gray-200">
               Orientez les lecteurs vers la boutique et les auteurs vers le studio, avec un point de contact visible comme sur les grandes plateformes.
             </p>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="mt-4 flex flex-wrap gap-3">
               <Link
                 href="/faq"
-                className="inline-flex h-11 items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-[#171717] transition hover:bg-[#f4eee7]"
+                className="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-[#232f3e] hover:bg-gray-100 transition"
               >
                 Ouvrir la FAQ
               </Link>
               <Link
                 href="/blog"
-                className="inline-flex h-11 items-center justify-center rounded-full border border-white/16 bg-white/8 px-4 text-sm font-semibold text-white transition hover:bg-white/12"
+                className="inline-flex items-center rounded-md border border-white/30 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10 transition"
               >
                 Lire le blog
               </Link>
             </div>
-            <div className="rounded-[24px] border border-white/10 bg-white/8 p-4">
-              <p className="text-sm font-semibold text-white">contact@holistiquebooks.africa</p>
-              <p className="mt-2 text-sm leading-7 text-white/68">Canal principal pour le support, les demandes auteur et les partenariats de diffusion.</p>
+            <div className="mt-6 border-t border-white/20 pt-4">
+              <p className="text-sm font-semibold">contact@holistiquebooks.africa</p>
+              <p className="mt-1 text-sm text-gray-300">Canal principal pour le support, les demandes auteur et les partenariats de diffusion.</p>
             </div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

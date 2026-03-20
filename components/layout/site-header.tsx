@@ -30,101 +30,100 @@ export async function SiteHeader() {
 
   const dashboardHref =
     userRole === "admin" ? "/admin" : userRole === "author" ? "/dashboard/author" : user ? "/dashboard/reader" : "/login";
+
+  // Navigation links (Amazon style)
   const primaryLinks = [
-    { label: "Toutes les promos", href: "/books" },
-    { label: "Nos contenus exclusifs", href: "/dashboard/reader/subscriptions" },
-    { label: "Publiez votre roman !", href: "/dashboard/author/add-book" },
-    { label: "Le blog Holistique", href: "/blog" },
+    { label: "Promotions", href: "/books" },
+    { label: "Contenus exclusifs", href: "/dashboard/reader/subscriptions" },
+    { label: "Publiez votre roman", href: "/dashboard/author/add-book" },
+    { label: "Blog", href: "/blog" },
+  ];
+
+  // Additional links for top bar
+  const topBarLinks = [
+    { label: "Cartes cadeau", href: "/don" },
+    { label: "Blog", href: "/blog" },
+    { label: "Aide", href: "/faq" },
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#ece3d7] bg-[rgba(250,246,241,0.96)] backdrop-blur-xl">
-      <div className="mx-auto w-full max-w-[96rem] px-4">
-        <div className="flex min-h-10 flex-wrap items-center justify-between gap-3 border-b border-[#f0e7dc] text-[0.72rem] font-medium text-[#6f665e]">
-          <div className="flex flex-wrap items-center gap-3 py-2">
-            <span className="transition hover:text-[#171717]">Changer de pays</span>
-            <span className="text-[#cbbcab]">|</span>
-            <span className="font-semibold text-[#171717]">Francais</span>
+    <header className="sticky top-0 z-50">
+      {/* Top bar : country, account, orders, etc. (Amazon dark bar) */}
+      <div className="bg-[#232f3e] text-xs text-white">
+        <div className="mx-auto flex max-w-[96rem] flex-wrap items-center justify-between gap-4 px-4 py-1.5">
+          <div className="flex items-center gap-4">
+            <span className="inline-flex items-center gap-1">
+              <span className="font-semibold">Bonjour</span>
+              <span className="opacity-90">•</span>
+              <span>Français</span>
+            </span>
           </div>
-          <div className="flex flex-wrap items-center gap-4 py-2">
-            <Link href="/don" className="transition hover:text-[#171717]">
-              Cartes cadeau
-            </Link>
-            <Link href="/blog" className="transition hover:text-[#171717]">
-              Blog
-            </Link>
-            <Link href="/faq" className="transition hover:text-[#171717]">
-              Aide
-            </Link>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-4 py-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex items-center gap-4 xl:min-w-[250px]">
-            <Link href="/home" className="flex items-center gap-3">
-              <span className="grid h-12 w-12 place-items-center rounded-[18px] bg-[#171717] text-sm font-semibold text-white">HB</span>
-              <span>
-                <span className="block text-[0.66rem] font-semibold uppercase tracking-[0.24em] text-[#a85b3f]">Holistique</span>
-                <span className="block text-xl font-semibold tracking-[-0.04em] text-[#171717]">Books</span>
-              </span>
-            </Link>
-          </div>
-
-          <form action="/books" className="flex min-h-[3.25rem] flex-1 items-center gap-3 rounded-full border border-[#e7ddd1] bg-white px-4 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-            <Search className="h-4 w-4 text-[#8b8177]" />
-            <input
-              type="search"
-              name="q"
-              placeholder="Rechercher sur Holistique Books"
-              className="h-full flex-1 bg-transparent text-sm text-[#171717] outline-none placeholder:text-[#9c9186]"
-            />
-            <button
-              type="submit"
-              className="inline-flex h-10 items-center justify-center rounded-full bg-[#171717] px-4 text-sm font-semibold text-white transition hover:bg-[#0f172a]"
-            >
-              Rechercher
-            </button>
-          </form>
-
-          <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-[#171717]">
-            <Link href="/books" className="transition hover:text-[#a85b3f]">
-              Liste d envies
-            </Link>
-            <Link href="/cart" className="transition hover:text-[#a85b3f]">
+          <div className="flex flex-wrap items-center gap-4">
+            <Link href="/cart" className="hover:underline">
               Panier
             </Link>
-            <Link href={dashboardHref} className="transition hover:text-[#a85b3f]">
-              Mon compte
-            </Link>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 pb-4">
-          {primaryLinks.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="inline-flex items-center rounded-full border border-[#ece3d7] bg-white/92 px-4 py-2.5 text-sm font-medium text-[#3a342f] transition hover:border-[#d6c7b7] hover:bg-white hover:text-[#171717]"
-            >
-              {item.label}
-            </Link>
-          ))}
-
-          <div className="ml-auto flex items-center gap-2">
-            <Link href="/books" className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#e7ddd1] bg-white text-[#26221d]">
-              <Heart className="h-4 w-4" />
-            </Link>
-            <Link href="/cart" className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#e7ddd1] bg-white text-[#26221d]">
-              <ShoppingCart className="h-4 w-4" />
-            </Link>
-            <Link
-              href={dashboardHref}
-              className="inline-flex h-11 items-center gap-2 rounded-full border border-[#171717] bg-[#171717] px-4 text-sm font-semibold text-white transition hover:bg-[#0f172a]"
-            >
-              <UserCircle2 className="h-4 w-4" />
+            <Link href={dashboardHref} className="hover:underline">
               {user ? "Mon compte" : "Connexion"}
             </Link>
           </div>
+        </div>
+      </div>
+
+      {/* Main header : logo + search bar + cart/wishlist icons */}
+      <div className="border-b border-gray-300 bg-white py-2">
+        <div className="mx-auto flex max-w-[96rem] flex-wrap items-center justify-between gap-4 px-4">
+          {/* Logo */}
+          <Link href="/home" className="flex items-center gap-1 text-xl font-bold text-[#232f3e]">
+            <span className="text-2xl">📚</span>
+            <span>Holistique Books</span>
+          </Link>
+
+          {/* Search bar (Amazon style) */}
+          <form action="/books" className="flex flex-1 max-w-2xl items-center rounded-md border border-gray-300 bg-white shadow-sm">
+            <input
+              type="search"
+              name="q"
+              placeholder="Rechercher dans Holistique Books"
+              className="h-10 flex-1 rounded-l-md px-4 text-sm text-gray-900 outline-none"
+            />
+            <button
+              type="submit"
+              className="flex h-10 w-12 items-center justify-center rounded-r-md bg-[#febd69] text-gray-800 transition hover:bg-[#f3a847]"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+          </form>
+
+          {/* Icons : wishlist & cart */}
+          <div className="flex items-center gap-3 text-sm font-medium text-gray-800">
+            <Link href="/books" className="relative flex items-center gap-1 hover:text-[#febd69]">
+              <Heart className="h-5 w-5" />
+              <span className="hidden sm:inline">Liste</span>
+            </Link>
+            <Link href="/cart" className="relative flex items-center gap-1 hover:text-[#febd69]">
+              <ShoppingCart className="h-5 w-5" />
+              <span className="hidden sm:inline">Panier</span>
+            </Link>
+            <Link href={dashboardHref} className="flex items-center gap-1 hover:text-[#febd69]">
+              <UserCircle2 className="h-5 w-5" />
+              <span className="hidden sm:inline">{user ? "Compte" : "Connexion"}</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary navigation : category links */}
+      <div className="bg-[#232f3e] text-white">
+        <div className="mx-auto flex max-w-[96rem] flex-wrap items-center gap-4 px-4 py-2 text-sm">
+          {primaryLinks.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="whitespace-nowrap hover:underline"
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
       </div>
     </header>

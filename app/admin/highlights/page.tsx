@@ -34,10 +34,10 @@ export default async function AdminHighlightsPage({ searchParams }: HighlightsPa
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-12">
       <AdminPageHeader
         title="Highlights"
-        description="Consultation, moderation et analyse d engagement lecture a partir des highlights lecteurs."
+        description="Consultation, modération et analyse d'engagement lecture à partir des highlights lecteurs."
         breadcrumbs={[
           { label: "Admin", href: "/admin" },
           { label: "Highlights" },
@@ -45,18 +45,18 @@ export default async function AdminHighlightsPage({ searchParams }: HighlightsPa
       />
 
       {data.notices.length ? (
-        <div className="grid gap-3 xl:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {data.notices.map((notice) => (
             <AdminNotice key={notice.id} tone={notice.tone} title={notice.title} description={notice.description} />
           ))}
         </div>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <AdminPanel title="Couleurs utilisees" description="Distribution des couleurs d annotation.">
+      <div className="grid gap-6 lg:grid-cols-2">
+        <AdminPanel title="Couleurs utilisées" description="Distribution des couleurs d'annotation.">
           <SimpleBarChart data={data.stats.byColor} />
         </AdminPanel>
-        <AdminPanel title="Livres les plus annotés" description="Indicateur simple d engagement sur le corpus visible.">
+        <AdminPanel title="Livres les plus annotés" description="Indicateur simple d'engagement sur le corpus visible.">
           <SimpleBarChart data={data.stats.topBooks} />
         </AdminPanel>
       </div>
@@ -76,25 +76,31 @@ export default async function AdminHighlightsPage({ searchParams }: HighlightsPa
             ]}
           />
           <div className="flex gap-3">
-            <button type="submit" className="cta-primary px-5 py-3 text-sm">
+            <button
+              type="submit"
+              className="inline-flex items-center rounded-md bg-[#ff9900] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#e68900] focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
+            >
               Appliquer
             </button>
-            <Link href="/admin/highlights" className="cta-secondary px-5 py-3 text-sm">
-              Reinitialiser
+            <Link
+              href="/admin/highlights"
+              className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
+            >
+              Réinitialiser
             </Link>
           </div>
         </AdminFilterBar>
       </AdminPanel>
 
-      <AdminPanel title="Tous les highlights" description="Suppression possible si le contenu devient problematique.">
+      <AdminPanel title="Tous les highlights" description="Suppression possible si le contenu devient problématique.">
         <AdminDataTable columns={["Utilisateur", "Livre", "Extrait", "Couleur", "Date", "Action"]}>
           {data.items.map((entry) => (
-            <tr key={entry.id} className="border-t border-violet-100/70 align-top">
-              <td className="px-4 py-3 text-sm text-slate-500">{entry.user_name}</td>
-              <td className="px-4 py-3 text-sm text-slate-500">{entry.book_title}</td>
-              <td className="px-4 py-3 text-sm text-slate-500">{entry.text?.slice(0, 90) || entry.note || "Sans texte"}</td>
-              <td className="px-4 py-3 text-sm font-semibold text-slate-950">{entry.color}</td>
-              <td className="px-4 py-3 text-sm text-slate-500">{formatAdminDateTime(entry.created_at)}</td>
+            <tr key={entry.id} className="border-t border-gray-200 align-top hover:bg-gray-50">
+              <td className="px-4 py-3 text-sm text-gray-600">{entry.user_name}</td>
+              <td className="px-4 py-3 text-sm text-gray-600">{entry.book_title}</td>
+              <td className="px-4 py-3 text-sm text-gray-600">{entry.text?.slice(0, 90) || entry.note || "Sans texte"}</td>
+              <td className="px-4 py-3 text-sm font-medium text-gray-900">{entry.color}</td>
+              <td className="px-4 py-3 text-sm text-gray-500">{formatAdminDateTime(entry.created_at)}</td>
               <td className="px-4 py-3">
                 <form action={deleteHighlightAction}>
                   <input type="hidden" name="highlight_id" value={entry.id} />
@@ -102,7 +108,7 @@ export default async function AdminHighlightsPage({ searchParams }: HighlightsPa
                   <ConfirmSubmitButton
                     label="Supprimer"
                     confirmMessage="Supprimer ce highlight ?"
-                    className="cta-secondary px-4 py-2 text-xs text-rose-700"
+                    className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-red-600 shadow-sm hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                   />
                 </form>
               </td>

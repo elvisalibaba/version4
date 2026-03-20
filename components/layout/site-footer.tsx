@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 export function SiteFooter() {
@@ -20,134 +22,137 @@ export function SiteFooter() {
   ];
   const paymentMethods = ["Visa", "MasterCard", "PayPal", "Apple Pay", "Google Pay", "Virement"];
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <footer className="mt-12 border-t border-[#ece3d7] bg-[linear-gradient(180deg,#faf6f1,#f5efe8)]">
-      <div className="mx-auto w-full max-w-[96rem] px-4 py-10">
-        <div className="grid gap-5 rounded-[34px] border border-[#ece3d7] bg-[#171717] p-6 text-white shadow-[0_30px_70px_rgba(15,23,42,0.18)] lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:p-8">
-          <div className="space-y-4">
-            <span className="inline-flex w-fit rounded-full bg-white/10 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#ffd9cd]">
-              Holistique Books
-            </span>
-            <div className="space-y-3">
-              <h2 className="max-w-2xl text-[2rem] font-semibold tracking-[-0.05em] text-white sm:text-[2.55rem]">
-                Restez connecte a la boutique, au studio auteur et a vos prochaines lectures.
-              </h2>
-              <p className="max-w-2xl text-sm leading-7 text-white/72">
-                Une architecture footer plus riche, plus proche des grands stores ebook, avec aide, opportunites, blog, paiements et navigation de service.
-              </p>
-            </div>
-          </div>
+    <footer className="bg-[#f3f3f3] text-gray-700">
+      {/* Back to top button (style Amazon) */}
+      <div
+        onClick={scrollToTop}
+        className="cursor-pointer border-b border-gray-300 bg-[#37475a] py-3 text-center text-sm font-medium text-white transition hover:bg-[#485769]"
+      >
+        Haut de page
+      </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Link
-              href="/books"
-              className="inline-flex h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-[#171717] transition hover:bg-[#f4eee7]"
-            >
-              Explorer la boutique
-            </Link>
-            <Link
-              href="/dashboard/author"
-              className="inline-flex h-11 items-center justify-center rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold text-white transition hover:bg-white/12"
-            >
-              Ouvrir le studio auteur
-            </Link>
-            <Link
-              href="/dashboard/reader/subscriptions"
-              className="inline-flex h-11 items-center justify-center rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold text-white transition hover:bg-white/12"
-            >
-              Decouvrir Premium
-            </Link>
-            <Link
-              href="/faq"
-              className="inline-flex h-11 items-center justify-center rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold text-white transition hover:bg-white/12"
-            >
-              Centre d aide
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-6 grid gap-6 rounded-[34px] border border-[#ece3d7] bg-white/94 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.05)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] lg:p-8">
-          <div className="space-y-4">
-            <h3 className="text-[0.74rem] font-semibold uppercase tracking-[0.22em] text-[#8b8177]">A propos de Holistique Books</h3>
-            <div className="grid gap-2">
+      {/* Main footer links - Amazon style columns */}
+      <div className="mx-auto max-w-[96rem] px-4 py-12 md:px-8">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+          {/* Column 1 : Get to Know Us (aboutLinks) */}
+          <div className="space-y-2">
+            <h3 className="mb-2 text-sm font-semibold text-gray-800">A propos de Holistique Books</h3>
+            <ul className="space-y-1 text-sm">
               {aboutLinks.map((item) => (
-                <Link key={item} href="/home" className="text-sm text-[#4f4740] transition hover:text-[#171717]">
-                  {item}
-                </Link>
+                <li key={item}>
+                  <Link href="/home" className="text-gray-600 transition hover:underline">
+                    {item}
+                  </Link>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-[0.74rem] font-semibold uppercase tracking-[0.22em] text-[#8b8177]">Opportunites</h3>
-            <div className="grid gap-2">
+          {/* Column 2 : Make Money with Us (opportunityLinks) */}
+          <div className="space-y-2">
+            <h3 className="mb-2 text-sm font-semibold text-gray-800">Opportunités</h3>
+            <ul className="space-y-1 text-sm">
               {opportunityLinks.map((item) => (
-                <Link key={item} href="/dashboard/author" className="text-sm text-[#4f4740] transition hover:text-[#171717]">
-                  {item}
-                </Link>
+                <li key={item}>
+                  <Link href="/dashboard/author" className="text-gray-600 transition hover:underline">
+                    {item}
+                  </Link>
+                </li>
               ))}
-            </div>
-
-            <h3 className="pt-3 text-[0.74rem] font-semibold uppercase tracking-[0.22em] text-[#8b8177]">Restez connecte</h3>
-            <div className="flex flex-wrap gap-2">
-              {["Facebook", "Instagram", "YouTube", "LinkedIn"].map((item) => (
-                <span key={item} className="rounded-full border border-[#ece3d7] bg-[#fcfaf7] px-3 py-1.5 text-xs font-semibold text-[#4f4740]">
-                  {item}
-                </span>
-              ))}
-            </div>
+            </ul>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-[0.74rem] font-semibold uppercase tracking-[0.22em] text-[#8b8177]">Derniers billets de blog</h3>
-            <div className="grid gap-2">
+          {/* Column 3 : Blog */}
+          <div className="space-y-2">
+            <h3 className="mb-2 text-sm font-semibold text-gray-800">Derniers billets</h3>
+            <ul className="space-y-1 text-sm">
               {blogLinks.map((item) => (
-                <Link key={item} href="/blog" className="text-sm text-[#4f4740] transition hover:text-[#171717]">
-                  {item}
+                <li key={item}>
+                  <Link href="/blog" className="text-gray-600 transition hover:underline">
+                    {item}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column 4 : Payment Methods + Social */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="mb-2 text-sm font-semibold text-gray-800">Moyens de paiement</h3>
+              <div className="flex flex-wrap gap-2">
+                {paymentMethods.map((method) => (
+                  <span key={method} className="rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700">
+                    {method}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="mb-2 text-sm font-semibold text-gray-800">Restez connecté</h3>
+              <div className="flex flex-wrap gap-2">
+                {["Facebook", "Instagram", "YouTube", "LinkedIn"].map((social) => (
+                  <span key={social} className="rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700">
+                    {social}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Column 5 : Help (added for Amazon-like completeness, keeps data intact) */}
+          <div className="space-y-2">
+            <h3 className="mb-2 text-sm font-semibold text-gray-800">Aide & services</h3>
+            <ul className="space-y-1 text-sm">
+              <li>
+                <Link href="/faq" className="text-gray-600 transition hover:underline">
+                  Centre d'aide
                 </Link>
-              ))}
-            </div>
+              </li>
+              <li>
+                <Link href="/accessibilite" className="text-gray-600 transition hover:underline">
+                  Accessibilité
+                </Link>
+              </li>
+              <li>
+                <Link href="/conditions" className="text-gray-600 transition hover:underline">
+                  Conditions générales
+                </Link>
+              </li>
+              <li>
+                <Link href="/confidentialite" className="text-gray-600 transition hover:underline">
+                  Confidentialité
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-6 rounded-[34px] border border-[#ece3d7] bg-white/94 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.05)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          <div className="space-y-4">
-            <h3 className="text-[0.74rem] font-semibold uppercase tracking-[0.22em] text-[#8b8177]">Telechargez l application gratuite</h3>
-            <div className="flex flex-wrap gap-3">
-              <span className="rounded-[16px] border border-[#ece3d7] bg-[#171717] px-4 py-3 text-sm font-semibold text-white">Disponible sur le Web</span>
-              <span className="rounded-[16px] border border-[#ece3d7] bg-[#fcfaf7] px-4 py-3 text-sm font-semibold text-[#171717]">Ajout PWA possible</span>
-            </div>
-          </div>
+        <hr className="my-8 border-gray-300" />
 
-          <div className="space-y-4">
-            <h3 className="text-[0.74rem] font-semibold uppercase tracking-[0.22em] text-[#8b8177]">Modes de paiement acceptes</h3>
-            <div className="flex flex-wrap gap-2">
-              {paymentMethods.map((item) => (
-                <span key={item} className="rounded-full border border-[#ece3d7] bg-[#fcfaf7] px-3 py-1.5 text-xs font-semibold text-[#4f4740]">
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-5 flex flex-col gap-3 border-t border-[#ece3d7] pt-5 text-xs text-[#7f756b] sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-3">
-            <span>Francais</span>
+        {/* Bottom bar : country + copyright + legal links */}
+        <div className="flex flex-col items-center justify-between gap-4 text-xs text-gray-500 sm:flex-row">
+          <div className="flex flex-wrap items-center gap-4">
+            <span>Français</span>
             <span>© 2026 Holistique Books</span>
           </div>
-          <div className="flex flex-wrap gap-4">
-            <Link href="/conditions" className="transition hover:text-[#171717]">
-              Conditions d utilisation
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/conditions" className="hover:underline">
+              Conditions d'utilisation
             </Link>
-            <Link href="/confidentialite" className="transition hover:text-[#171717]">
-              Politique de confidentialite
+            <Link href="/confidentialite" className="hover:underline">
+              Politique de confidentialité
             </Link>
-            <Link href="/cookies" className="transition hover:text-[#171717]">
-              Parametres de confidentialite
+            <Link href="/cookies" className="hover:underline">
+              Paramètres de confidentialité
             </Link>
-            <Link href="/faq" className="transition hover:text-[#171717]">
-              Accessibilite
+            <Link href="/faq" className="hover:underline">
+              Accessibilité
             </Link>
           </div>
         </div>

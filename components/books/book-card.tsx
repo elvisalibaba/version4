@@ -39,11 +39,11 @@ export function BookCard({ book }: { book: Book }) {
       ? `${book.rating_avg.toFixed(1)}${book.ratings_count ? ` • ${book.ratings_count} avis` : ""}`
       : "Nouveau titre";
   const description =
-    book.description?.trim() || "Une fiche plus propre pour afficher clairement le livre, son auteur et son mode d acces.";
+    book.description?.trim() || "Une fiche plus propre pour afficher clairement le livre, son auteur et son mode d'accès.";
 
   return (
-    <article className="group flex h-full flex-col rounded-[30px] border border-[#ece3d7] bg-white p-4 shadow-[0_18px_42px_rgba(15,23,42,0.05)] transition hover:-translate-y-1 hover:shadow-[0_24px_52px_rgba(15,23,42,0.08)]">
-      <Link href={`/book/${book.id}`} className="block overflow-hidden rounded-[22px] bg-[#f5efe8]" aria-label={`Voir ${book.title}`}>
+    <article className="group flex h-full flex-col rounded-md border border-gray-200 bg-white shadow-sm transition hover:shadow-md hover:border-gray-300">
+      <Link href={`/book/${book.id}`} className="block overflow-hidden rounded-t-md bg-gray-100" aria-label={`Voir ${book.title}`}>
         <div className="aspect-[0.74]">
           {book.cover_signed_url ? (
             <Image
@@ -54,43 +54,45 @@ export function BookCard({ book }: { book: Book }) {
               className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
             />
           ) : (
-            <div className="grid h-full place-items-center px-4 text-center text-sm font-semibold text-[#6f665e]">{book.title}</div>
+            <div className="grid h-full place-items-center px-4 text-center text-sm font-semibold text-gray-500">{book.title}</div>
           )}
         </div>
       </Link>
 
-      <div className="mt-4 flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col p-4">
         <div className="space-y-2">
-          <p className="inline-flex w-fit rounded-full bg-[#fff1ea] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#a85b3f]">
+          <p className="inline-flex w-fit rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
             {eyebrowLabel}
           </p>
-          <h3 className="text-[1.1rem] font-semibold leading-6 tracking-[-0.03em] text-[#171717]">
-            <Link href={`/book/${book.id}`}>{book.title}</Link>
+          <h3 className="text-base font-semibold leading-5 text-gray-900">
+            <Link href={`/book/${book.id}`} className="hover:text-[#ff9900]">
+              {book.title}
+            </Link>
           </h3>
-          <p className="text-sm text-[#6f665e]">par {book.author_name ?? "Auteur inconnu"}</p>
+          <p className="text-sm text-gray-600">par {book.author_name ?? "Auteur inconnu"}</p>
         </div>
 
-        <div className="mt-3 flex items-center gap-1">
+        <div className="mt-2 flex items-center gap-1">
           {stars.map((filled, index) => (
             <Star
               key={`${book.id}-${index}`}
-              className={`h-3.5 w-3.5 ${filled ? "fill-current text-[#f3a81f]" : "text-[#ddd2c7]"}`}
+              className={`h-4 w-4 ${filled ? "fill-current text-[#ff9900]" : "text-gray-300"}`}
             />
           ))}
-          <span className="ml-1 text-xs font-medium text-[#8b8177]">{ratingLabel}</span>
+          <span className="ml-1 text-xs text-gray-500">{ratingLabel}</span>
         </div>
 
-        <p className="mt-4 line-clamp-3 flex-1 text-sm leading-7 text-[#5d554d]">{description}</p>
+        <p className="mt-3 line-clamp-3 text-sm text-gray-600">{description}</p>
 
-        <div className="mt-5 flex items-end justify-between gap-3 border-t border-[#f1e8de] pt-4">
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-gray-200 pt-4">
           <div>
-            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#8b8177]">{book.is_free ? "Acces" : "Prix"}</p>
-            <p className="mt-1 text-lg font-semibold tracking-[-0.03em] text-[#171717]">{priceLabel}</p>
+            <p className="text-xs text-gray-500">{book.is_free ? "Accès" : "Prix"}</p>
+            <p className="text-lg font-bold text-gray-900">{priceLabel}</p>
           </div>
 
           <Link
             href={`/book/${book.id}`}
-            className="inline-flex h-11 items-center gap-2 rounded-full bg-[#171717] px-4 text-sm font-semibold text-white transition hover:bg-[#0f172a]"
+            className="inline-flex h-9 items-center gap-1 rounded-md bg-[#ff9900] px-3 text-sm font-semibold text-white transition hover:bg-[#e68900]"
           >
             {ctaLabel}
             <ArrowRight className="h-4 w-4" />
