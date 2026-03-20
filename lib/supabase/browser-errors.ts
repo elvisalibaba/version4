@@ -39,7 +39,7 @@ export function getSupabaseBrowserConfigErrorMessage() {
     return null;
   }
 
-  return "Configuration Supabase publique invalide. Verifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans .env.local, puis redemarre Next.";
+  return "Configuration Supabase publique invalide. En local, verifie .env.local. En ligne, configure NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans les variables d environnement du deploiement, puis redeploie.";
 }
 
 export function getSupabaseBrowserErrorMessage(error: unknown, actionLabel: string) {
