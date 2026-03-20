@@ -63,8 +63,10 @@
    - Optional: `NEXT_PUBLIC_ANDROID_APK_URL`
 3. Important: checkout and some admin/payment flows create or update data from the server, so `SUPABASE_SERVICE_ROLE_KEY` must stay server-side only.
 4. `.env.local` is ignored by git on purpose. Commit `.env.example`, never your real secrets.
-5. Apply SQL migrations in Supabase, including the latest content migrations `supabase/migrations/0016_blog_posts.sql` and `supabase/migrations/0017_flash_sale_configs.sql`.
-6. Run `npm run dev`.
+5. This repo may include a tracked `.env.production` only for non-secret public defaults such as `NEXT_PUBLIC_*` and `APP_BASE_URL`.
+6. Keep all secrets like `SUPABASE_SERVICE_ROLE_KEY`, payment private keys, SMTP passwords, and webhook secrets in Vercel Environment Variables.
+7. Apply SQL migrations in Supabase, including the latest content migrations `supabase/migrations/0016_blog_posts.sql` and `supabase/migrations/0017_flash_sale_configs.sql`.
+8. Run `npm run dev`.
 
 ## Vercel notes
 - Add all variables from `.env.local` to Vercel Project Settings -> Environment Variables.
