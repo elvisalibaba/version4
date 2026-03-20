@@ -3,8 +3,13 @@ const FALLBACK_SUPABASE_ANON_KEY = "missing-supabase-anon-key";
 
 let hasLoggedMissingSupabasePublicConfig = false;
 
+const PUBLIC_SUPABASE_ENV = {
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+} as const;
+
 function readTrimmedEnv(name: "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_ANON_KEY") {
-  const value = process.env[name];
+  const value = PUBLIC_SUPABASE_ENV[name];
   if (!value) return null;
 
   const trimmed = value.trim();
