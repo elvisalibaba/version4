@@ -147,13 +147,13 @@ export default async function AdminLibraryPage({ searchParams }: LibraryPageProp
         <AdminDataTable columns={["Utilisateur", "Livre", "Type", "Date", "Provenance", "Action"]}>
           {data.items.map((entry) => (
             <tr key={entry.id} className="border-t border-gray-200 hover:bg-gray-50">
-              <td className="px-4 py-3 text-sm text-gray-600">{entry.user_name}蹲
-              <td className="px-4 py-3 text-sm text-gray-600">{entry.book_title}蹲
+              <td className="px-4 py-3 text-sm text-gray-600">{entry.user_name}</td>
+              <td className="px-4 py-3 text-sm text-gray-600">{entry.book_title}</td>
               <td className="px-4 py-3">
                 <StatusBadge kind="access" value={entry.access_type} />
-              蹲
-              <td className="px-4 py-3 text-sm text-gray-500">{formatAdminDateTime(entry.purchased_at)}蹲
-              <td className="px-4 py-3 text-sm text-gray-500">{entry.plan_name ?? "Manuel / achat / gratuit"}蹲
+              </td>
+              <td className="px-4 py-3 text-sm text-gray-500">{formatAdminDateTime(entry.purchased_at)}</td>
+              <td className="px-4 py-3 text-sm text-gray-500">{entry.plan_name ?? "Manuel / achat / gratuit"}</td>
               <td className="px-4 py-3">
                 <form action={removeLibraryAccessAction}>
                   <input type="hidden" name="library_id" value={entry.id} />
@@ -164,8 +164,8 @@ export default async function AdminLibraryPage({ searchParams }: LibraryPageProp
                     className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-red-600 shadow-sm hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                   />
                 </form>
-              蹲
-             </tr>
+              </td>
+            </tr>
           ))}
         </AdminDataTable>
 
