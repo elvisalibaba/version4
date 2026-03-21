@@ -1,5 +1,73 @@
 [
   {
+    "slug": "10-lectures-pour-mieux-vivre-2026",
+    "title": "10 lectures pour mieux vivre 2026",
+    "excerpt": "Une selection de livres pour clarifier ses priorites, ralentir le bruit et construire une vie plus intentionnelle.",
+    "tag": "Selection",
+    "date": "2026-03-20",
+    "dateLabel": "20 mars 2026",
+    "author": "Equipe Holistique",
+    "readTime": "6 min",
+    "coverLabel": "Magazine editorial",
+    "content": [
+      "Mieux vivre en 2026 demande plus qu une motivation passagere. Il faut des lectures qui remettent de l ordre dans les habitudes, les relations et la vision long terme.",
+      "Cette selection melange spiritualite, discipline personnelle, business conscient et respiration interieure pour nourrir plusieurs dimensions de la vie.",
+      "L idee n est pas d accumuler les titres mais de choisir les livres qui transforment vraiment une decision, une routine ou une conversation.",
+      "Commencez par un seul livre, appliquez une idee pendant une semaine, puis passez au suivant avec une intention claire."
+    ]
+  },
+  {
+    "slug": "selection-business-et-spiritualite",
+    "title": "Selection business et spiritualite",
+    "excerpt": "Des livres pour tenir ensemble vision, execution, sens et alignement dans une meme bibliotheque.",
+    "tag": "Business",
+    "date": "2026-03-18",
+    "dateLabel": "18 mars 2026",
+    "author": "Equipe Holistique",
+    "readTime": "5 min",
+    "coverLabel": "Curated shelf",
+    "content": [
+      "Business et spiritualite ne s opposent pas forcement. Les meilleurs catalogues montrent souvent comment la clarte interieure renforce la qualite des decisions exterieures.",
+      "Cette selection met ensemble des titres sur la vision, l energie personnelle, l attention et la responsabilite dans la conduite d un projet ou d une entreprise.",
+      "Pour un lecteur fondateur, manager ou auteur, cette pile de livres aide a sortir d une logique purement reactive pour retrouver une direction plus stable.",
+      "L enjeu est simple: grandir sans se perdre, produire sans s epuiser et vendre sans vider le sens du travail."
+    ]
+  },
+  {
+    "slug": "pile-a-lire-equipe-holistique",
+    "title": "La pile a lire de l equipe Holistique",
+    "excerpt": "Les livres que l equipe garde pres d elle pour penser catalogue, experience lecteur et exigence editoriale.",
+    "tag": "Equipe",
+    "date": "2026-03-14",
+    "dateLabel": "14 mars 2026",
+    "author": "Equipe Holistique",
+    "readTime": "4 min",
+    "coverLabel": "Inside Holistique",
+    "content": [
+      "La pile a lire de l equipe Holistique n est pas une vitrine decorative. Elle sert a nourrir la curation, les angles editoriaux et la facon dont nous presentons les livres.",
+      "On y retrouve des textes qui aident a mieux editer, a mieux raconter et a mieux comprendre ce dont les lecteurs ont besoin maintenant.",
+      "Certains titres sont la pour affiner le style, d autres pour challenger nos decisions produit, notre home ou la maniere dont nous accompagnons les auteurs.",
+      "Une bonne equipe editoriale lit autant pour produire que pour garder une longueur d avance sur la qualite."
+    ]
+  },
+  {
+    "slug": "ralentir-et-mieux-penser",
+    "title": "Des livres pour ralentir et mieux penser",
+    "excerpt": "Une courte bibliographie pour retrouver de la profondeur dans un environnement trop rapide.",
+    "tag": "Mindset",
+    "date": "2026-03-10",
+    "dateLabel": "10 mars 2026",
+    "author": "Studio HB",
+    "readTime": "5 min",
+    "coverLabel": "Deep reading",
+    "content": [
+      "Ralentir n est pas fuir le monde. C est recreer les conditions d une pensee plus juste, plus profonde et plus fertile.",
+      "Les livres qui aident vraiment a mieux penser savent installer du silence interieur, remettre des nuances et reouvrir des questions trop vite refermees.",
+      "Cette selection s adresse a celles et ceux qui veulent sortir du bruit permanent pour retrouver une lecture plus dense et plus transformatrice.",
+      "Prenez un carnet, lisez moins vite, notez les idees qui resistent dans le temps. C est souvent la que le livre commence vraiment a agir."
+    ]
+  },
+  {
     "slug": "holistique-books-est-officiellement-lance",
     "title": "Holistique Books est officiellement lancé",
     "excerpt": "Holistique Books",

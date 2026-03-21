@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ChevronDown, HeartHandshake } from "lucide-react";
 import { channelRequiresCardCustomerFields, type CinetPayChannel } from "@/lib/payments/validation";
 
 type DonationCustomerDefaults = {
@@ -21,6 +22,12 @@ type CinetPayDonateFormProps = {
   suggestedAmounts?: number[];
 };
 
+const inputClassName =
+  "h-11 w-full rounded-lg border border-[#a6a6a6] bg-white px-3 text-sm text-[#0f1111] outline-none transition placeholder:text-[#6b7280] focus:border-[#e77600] focus:ring-2 focus:ring-[#fbd8a5]";
+
+const textareaClassName =
+  "w-full rounded-lg border border-[#a6a6a6] bg-white px-3 py-2.5 text-sm text-[#0f1111] outline-none transition placeholder:text-[#6b7280] focus:border-[#e77600] focus:ring-2 focus:ring-[#fbd8a5]";
+
 function Field({
   label,
   hint,
@@ -31,11 +38,31 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="grid gap-2">
-      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</span>
+    <label className="grid gap-1.5">
+      <span className="text-sm font-medium text-[#0f1111]">{label}</span>
       {children}
-      {hint ? <span className="text-xs text-slate-400">{hint}</span> : null}
+      {hint ? <span className="text-xs leading-5 text-[#565959]">{hint}</span> : null}
     </label>
+  );
+}
+
+function SectionCard({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-xl border border-[#d5d9d9] bg-white p-4">
+      <div className="space-y-1">
+        <h2 className="text-lg font-semibold text-[#0f1111]">{title}</h2>
+        {hint ? <p className="text-sm leading-6 text-[#565959]">{hint}</p> : null}
+      </div>
+      <div className="mt-4 grid gap-4">{children}</div>
+    </section>
   );
 }
 
@@ -43,6 +70,14 @@ function parseAmount(value: string) {
   const parsed = Number(value.trim().replace(",", "."));
   if (!Number.isFinite(parsed)) return null;
   return Number(parsed.toFixed(2));
+}
+
+function formatUsd(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: value % 1 === 0 ? 0 : 2,
+  }).format(value);
 }
 
 export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10, 25, 50] }: CinetPayDonateFormProps) {
@@ -129,92 +164,142 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
   }
 
   return (
-    <div className="space-y-5 rounded-[1.6rem] border border-violet-100 bg-[linear-gradient(135deg,_rgba(248,245,255,0.96),_rgba(255,255,255,0.96))] p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">Don via EasyPay</p>
-          <p className="mt-2 text-lg font-semibold text-slate-950">Soutenir Holistique Books</p>
-          <p className="mt-1 text-sm leading-6 text-slate-500">
-            Votre don passe par EasyPay, avec verification serveur du statut de transaction.
+    <form className="rounded-2xl border border-[#d5d9d9] bg-white p-5 shadow-sm sm:p-6" onSubmit={(event) => event.preventDefault()}>
+      <div className="space-y-3">
+        <span className="inline-flex items-center gap-2 rounded-full bg-[#232f3e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">
+          <HeartHandshake className="h-3.5 w-3.5" />
+          Don EasyPay
+        </span>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#0f1111]">Faire un don</h1>
+          <p className="text-sm leading-6 text-[#565959]">
+            Soutenez Holistique Books avec un formulaire plus simple, puis choisissez votre canal de paiement.
           </p>
         </div>
-        <span className="catalog-badge">
-          {new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-          }).format(parsedAmount ?? 0)}
-        </span>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-4">
-        {suggestedAmounts.map((value) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => setAmountInput(String(value))}
-            className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:border-slate-400"
-          >
-            {new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "USD",
-              maximumFractionDigits: 0,
-            }).format(value)}
-          </button>
-        ))}
+      <div className="mt-6 space-y-4">
+        <SectionCard title="Montant du don" hint="Choisissez un montant rapide ou entrez votre propre montant.">
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-[#f3a847] bg-[#fff8e8] px-4 py-3">
+            <span className="text-sm font-medium text-[#5c3b00]">Montant actuel</span>
+            <span className="text-lg font-semibold text-[#0f1111]">{formatUsd(parsedAmount ?? 0)}</span>
+          </div>
+
+          <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+            {suggestedAmounts.map((value) => {
+              const active = parsedAmount === value;
+
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setAmountInput(String(value))}
+                  className={`rounded-full border px-4 py-2.5 text-sm font-semibold transition ${
+                    active
+                      ? "border-[#232f3e] bg-[#232f3e] text-white"
+                      : "border-[#d5d9d9] bg-white text-[#0f1111] hover:border-[#c7cccc] hover:bg-[#f7fafa]"
+                  }`}
+                >
+                  {formatUsd(value)}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Montant (USD)" hint="Minimum 1 USD.">
+              <input
+                type="number"
+                min="1"
+                step="0.01"
+                value={amountInput}
+                onChange={(event) => setAmountInput(event.target.value)}
+                className={inputClassName}
+              />
+            </Field>
+            <Field label="Reference donateur" hint="Optionnel, ex: Campagne Mars 2026.">
+              <input value={donorReference} onChange={(event) => setDonorReference(event.target.value)} className={inputClassName} />
+            </Field>
+          </div>
+
+          <Field label="Message" hint="Optionnel, 240 caracteres max.">
+            <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={3} maxLength={240} className={textareaClassName} />
+          </Field>
+        </SectionCard>
+
+        <SectionCard title="Coordonnees du donateur" hint="Ces informations sont necessaires pour lancer la transaction.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Prenom">
+              <input value={firstName} onChange={(event) => setFirstName(event.target.value)} className={inputClassName} />
+            </Field>
+            <Field label="Nom">
+              <input value={lastName} onChange={(event) => setLastName(event.target.value)} className={inputClassName} />
+            </Field>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Email">
+              <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={inputClassName} />
+            </Field>
+            <Field label="Telephone">
+              <input value={phoneNumber} onChange={(event) => setPhoneNumber(event.target.value)} className={inputClassName} />
+            </Field>
+          </div>
+        </SectionCard>
+
+        <details className="rounded-xl border border-[#d5d9d9] bg-white">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-sm font-semibold text-[#0f1111] marker:hidden">
+            Ajouter les informations de facturation
+            <ChevronDown className="h-4 w-4 text-[#565959]" />
+          </summary>
+          <div className="grid gap-4 border-t border-[#d5d9d9] px-4 py-4">
+            <div className="rounded-lg border border-[#f3a847] bg-[#fff8e8] px-4 py-3 text-sm leading-6 text-[#5c3b00]">
+              Ces champs sont requis pour le paiement par carte bancaire et pour l option `Choisir sur EasyPay`.
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Adresse">
+                <input value={address} onChange={(event) => setAddress(event.target.value)} className={inputClassName} />
+              </Field>
+              <Field label="Ville">
+                <input value={city} onChange={(event) => setCity(event.target.value)} className={inputClassName} />
+              </Field>
+              <Field label="Pays" hint="Code ISO a 2 lettres, ex: CI, CD, CM, US, FR.">
+                <input
+                  value={country}
+                  onChange={(event) => setCountry(event.target.value.toUpperCase())}
+                  className={inputClassName}
+                  placeholder="CI"
+                  maxLength={2}
+                />
+              </Field>
+              <Field label="Etat / Province" hint="Utile surtout pour US et CA.">
+                <input
+                  value={state}
+                  onChange={(event) => setState(event.target.value.toUpperCase())}
+                  className={inputClassName}
+                  placeholder="Abidjan"
+                  maxLength={32}
+                />
+              </Field>
+              <Field label="Code postal">
+                <input value={zipCode} onChange={(event) => setZipCode(event.target.value)} className={inputClassName} />
+              </Field>
+            </div>
+          </div>
+        </details>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Montant (USD)" hint="Minimum 1 USD.">
-          <input
-            type="number"
-            min="1"
-            step="0.01"
-            value={amountInput}
-            onChange={(event) => setAmountInput(event.target.value)}
-            className="ios-input w-full px-4 py-3.5"
-          />
-        </Field>
-        <Field label="Reference donateur" hint="Optionnel, ex: Campagne Mars 2026.">
-          <input value={donorReference} onChange={(event) => setDonorReference(event.target.value)} className="ios-input w-full px-4 py-3.5" />
-        </Field>
-        <Field label="Prenom">
-          <input value={firstName} onChange={(event) => setFirstName(event.target.value)} className="ios-input w-full px-4 py-3.5" />
-        </Field>
-        <Field label="Nom">
-          <input value={lastName} onChange={(event) => setLastName(event.target.value)} className="ios-input w-full px-4 py-3.5" />
-        </Field>
-        <Field label="Email">
-          <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="ios-input w-full px-4 py-3.5" />
-        </Field>
-        <Field label="Telephone">
-          <input value={phoneNumber} onChange={(event) => setPhoneNumber(event.target.value)} className="ios-input w-full px-4 py-3.5" />
-        </Field>
-        <Field label="Adresse" hint="Obligatoire pour carte bancaire et ALL.">
-          <input value={address} onChange={(event) => setAddress(event.target.value)} className="ios-input w-full px-4 py-3.5" />
-        </Field>
-        <Field label="Ville">
-          <input value={city} onChange={(event) => setCity(event.target.value)} className="ios-input w-full px-4 py-3.5" />
-        </Field>
-        <Field label="Pays" hint="Code ISO a 2 lettres, ex: CI, CD, CM, US, FR.">
-          <input value={country} onChange={(event) => setCountry(event.target.value.toUpperCase())} className="ios-input w-full px-4 py-3.5" placeholder="CI" maxLength={2} />
-        </Field>
-        <Field label="Etat / Province" hint="Utile surtout pour US et CA.">
-          <input value={state} onChange={(event) => setState(event.target.value.toUpperCase())} className="ios-input w-full px-4 py-3.5" placeholder="CI" maxLength={32} />
-        </Field>
-        <Field label="Code postal">
-          <input value={zipCode} onChange={(event) => setZipCode(event.target.value)} className="ios-input w-full px-4 py-3.5" />
-        </Field>
-        <Field label="Message" hint="Optionnel, 240 caracteres max.">
-          <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={3} maxLength={240} className="ios-input w-full px-4 py-3.5" />
-        </Field>
-      </div>
+      {error ? (
+        <p className="mt-4 rounded-lg border border-[#d13212] bg-[#fff2f2] px-4 py-3 text-sm text-[#b12704]">{error}</p>
+      ) : null}
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-5 grid gap-3 md:grid-cols-3">
         <button
           type="button"
           onClick={() => launchDonation("CREDIT_CARD")}
           disabled={Boolean(busyChannel)}
-          className="cta-primary px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center rounded-full border border-[#fcd200] bg-[#ffd814] px-4 text-sm font-semibold text-[#0f1111] transition hover:bg-[#f7ca00] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busyChannel === "CREDIT_CARD" ? "Redirection..." : "Don par carte"}
         </button>
@@ -222,7 +307,7 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
           type="button"
           onClick={() => launchDonation("MOBILE_MONEY")}
           disabled={Boolean(busyChannel)}
-          className="cta-secondary px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center rounded-full border border-[#d5d9d9] bg-white px-4 text-sm font-semibold text-[#0f1111] transition hover:bg-[#f7fafa] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busyChannel === "MOBILE_MONEY" ? "Redirection..." : "Don mobile money"}
         </button>
@@ -230,17 +315,16 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
           type="button"
           onClick={() => launchDonation("ALL")}
           disabled={Boolean(busyChannel)}
-          className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center rounded-full border border-[#d5d9d9] bg-white px-4 text-sm font-semibold text-[#0f1111] transition hover:bg-[#f7fafa] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {busyChannel === "ALL" ? "Redirection..." : "Choisir sur le guichet"}
+          {busyChannel === "ALL" ? "Redirection..." : "Choisir sur EasyPay"}
         </button>
       </div>
 
-      <div className="rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
-        Le guichet EasyPay affiche les moyens disponibles selon votre pays. Pour la carte bancaire, adresse, ville, pays ISO et code postal sont requis.
+      <div className="mt-4 rounded-lg border border-[#d5d9d9] bg-[#f7fafa] px-4 py-3 text-sm leading-6 text-[#565959]">
+        EasyPay affiche les moyens disponibles selon votre pays. Pour la carte bancaire et le guichet complet, il faut
+        renseigner l adresse, la ville, le pays ISO et le code postal.
       </div>
-
-      {error ? <div className="rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
-    </div>
+    </form>
   );
 }

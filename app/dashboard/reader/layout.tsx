@@ -13,6 +13,7 @@ export default async function ReaderDashboardLayout({
     { href: "/dashboard/reader/library", label: "Bibliotheque", icon: "library-big" },
     { href: "/dashboard/reader/purchases", label: "Historique", icon: "receipt" },
     { href: "/dashboard/reader/subscriptions", label: "Premium", icon: "gem" },
+    { href: "/dashboard/reader/affiliations", label: "Affiliation", icon: "circle-dollar-sign" },
   ];
 
   return (

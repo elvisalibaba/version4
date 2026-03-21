@@ -6,6 +6,8 @@ export type BookEngagementEventType = "detail_view" | "reader_open" | "file_acce
 export type LibraryAccessType = "purchase" | "subscription" | "free";
 export type SubscriptionStatus = "active" | "cancelled" | "expired" | "past_due";
 export type OrderPaymentStatus = "pending" | "paid" | "failed" | "refunded";
+export type AffiliateSourceType = "book" | "plan";
+export type AffiliateWalletTransactionStatus = "pending" | "credited" | "reversed";
 
 export type Database = {
   public: {
@@ -24,6 +26,11 @@ export type Database = {
           preferred_language: string;
           favorite_categories: string[];
           marketing_opt_in: boolean;
+          referred_by_affiliate_user_id: string | null;
+          referred_by_affiliate_code: string | null;
+          affiliate_source_type: AffiliateSourceType | null;
+          affiliate_source_book_id: string | null;
+          affiliate_source_plan_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -39,6 +46,11 @@ export type Database = {
           preferred_language?: string;
           favorite_categories?: string[];
           marketing_opt_in?: boolean;
+          referred_by_affiliate_user_id?: string | null;
+          referred_by_affiliate_code?: string | null;
+          affiliate_source_type?: AffiliateSourceType | null;
+          affiliate_source_book_id?: string | null;
+          affiliate_source_plan_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -53,9 +65,28 @@ export type Database = {
           preferred_language?: string;
           favorite_categories?: string[];
           marketing_opt_in?: boolean;
+          referred_by_affiliate_user_id?: string | null;
+          referred_by_affiliate_code?: string | null;
+          affiliate_source_type?: AffiliateSourceType | null;
+          affiliate_source_book_id?: string | null;
+          affiliate_source_plan_id?: string | null;
           created_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "affiliate_wallet_transactions_affiliate_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_wallet_transactions";
+            referencedColumns: ["affiliate_user_id"];
+          },
+          {
+            foreignKeyName: "affiliate_wallet_transactions_referred_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_wallet_transactions";
+            referencedColumns: ["referred_user_id"];
+          },
           {
             foreignKeyName: "author_profiles_id_fkey";
             columns: ["id"];
@@ -99,11 +130,32 @@ export type Database = {
             referencedColumns: ["user_id"];
           },
           {
+            foreignKeyName: "profiles_referred_by_affiliate_user_id_fkey";
+            columns: ["referred_by_affiliate_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "ratings_user_id_fkey";
             columns: ["id"];
             isOneToOne: false;
             referencedRelation: "ratings";
             referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "reader_affiliate_profiles_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: true;
+            referencedRelation: "reader_affiliate_profiles";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_affiliate_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "user_subscriptions";
+            referencedColumns: ["affiliate_user_id"];
           },
           {
             foreignKeyName: "user_subscriptions_user_id_fkey";
@@ -401,6 +453,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "affiliate_wallet_transactions_source_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_wallet_transactions";
+            referencedColumns: ["source_book_id"];
+          },
+          {
             foreignKeyName: "book_formats_book_id_fkey";
             columns: ["id"];
             isOneToOne: false;
@@ -457,6 +516,13 @@ export type Database = {
             referencedColumns: ["book_id"];
           },
           {
+            foreignKeyName: "profiles_affiliate_source_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["affiliate_source_book_id"];
+          },
+          {
             foreignKeyName: "ratings_book_id_fkey";
             columns: ["id"];
             isOneToOne: false;
@@ -469,6 +535,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "subscription_plan_books";
             referencedColumns: ["book_id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_affiliate_source_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "user_subscriptions";
+            referencedColumns: ["affiliate_source_book_id"];
           },
         ];
       };
@@ -823,6 +896,143 @@ export type Database = {
           },
         ];
       };
+      reader_affiliate_profiles: {
+        Row: {
+          user_id: string;
+          affiliate_code: string;
+          commission_rate: number;
+          wallet_balance: number;
+          lifetime_credited: number;
+          currency_code: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          affiliate_code: string;
+          commission_rate?: number;
+          wallet_balance?: number;
+          lifetime_credited?: number;
+          currency_code?: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          affiliate_code?: string;
+          commission_rate?: number;
+          wallet_balance?: number;
+          lifetime_credited?: number;
+          currency_code?: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reader_affiliate_profiles_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      affiliate_wallet_transactions: {
+        Row: {
+          id: string;
+          affiliate_user_id: string;
+          referred_user_id: string;
+          subscription_id: string;
+          plan_id: string;
+          source_type: AffiliateSourceType;
+          source_book_id: string | null;
+          source_plan_id: string | null;
+          commission_rate: number;
+          subscription_amount: number;
+          commission_amount: number;
+          currency_code: string;
+          status: AffiliateWalletTransactionStatus;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          affiliate_user_id: string;
+          referred_user_id: string;
+          subscription_id: string;
+          plan_id: string;
+          source_type: AffiliateSourceType;
+          source_book_id?: string | null;
+          source_plan_id?: string | null;
+          commission_rate?: number;
+          subscription_amount: number;
+          commission_amount: number;
+          currency_code?: string;
+          status?: AffiliateWalletTransactionStatus;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          affiliate_user_id?: string;
+          referred_user_id?: string;
+          subscription_id?: string;
+          plan_id?: string;
+          source_type?: AffiliateSourceType;
+          source_book_id?: string | null;
+          source_plan_id?: string | null;
+          commission_rate?: number;
+          subscription_amount?: number;
+          commission_amount?: number;
+          currency_code?: string;
+          status?: AffiliateWalletTransactionStatus;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_wallet_transactions_affiliate_user_id_fkey";
+            columns: ["affiliate_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_wallet_transactions_plan_id_fkey";
+            columns: ["plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_wallet_transactions_referred_user_id_fkey";
+            columns: ["referred_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_wallet_transactions_source_book_id_fkey";
+            columns: ["source_book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_wallet_transactions_source_plan_id_fkey";
+            columns: ["source_plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_wallet_transactions_subscription_id_fkey";
+            columns: ["subscription_id"];
+            isOneToOne: true;
+            referencedRelation: "user_subscriptions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       subscription_plans: {
         Row: {
           id: string;
@@ -859,11 +1069,39 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "affiliate_wallet_transactions_plan_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_wallet_transactions";
+            referencedColumns: ["plan_id"];
+          },
+          {
+            foreignKeyName: "affiliate_wallet_transactions_source_plan_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_wallet_transactions";
+            referencedColumns: ["source_plan_id"];
+          },
+          {
+            foreignKeyName: "profiles_affiliate_source_plan_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["affiliate_source_plan_id"];
+          },
+          {
             foreignKeyName: "subscription_plan_books_plan_id_fkey";
             columns: ["id"];
             isOneToOne: false;
             referencedRelation: "subscription_plan_books";
             referencedColumns: ["plan_id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_affiliate_source_plan_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "user_subscriptions";
+            referencedColumns: ["affiliate_source_plan_id"];
           },
           {
             foreignKeyName: "user_subscriptions_plan_id_fkey";
@@ -918,6 +1156,13 @@ export type Database = {
           status: SubscriptionStatus;
           started_at: string;
           expires_at: string | null;
+          affiliate_user_id: string | null;
+          affiliate_code_used: string | null;
+          affiliate_source_type: AffiliateSourceType | null;
+          affiliate_source_book_id: string | null;
+          affiliate_source_plan_id: string | null;
+          affiliate_commission_rate: number;
+          affiliate_commission_amount: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -928,6 +1173,13 @@ export type Database = {
           status: SubscriptionStatus;
           started_at?: string;
           expires_at?: string | null;
+          affiliate_user_id?: string | null;
+          affiliate_code_used?: string | null;
+          affiliate_source_type?: AffiliateSourceType | null;
+          affiliate_source_book_id?: string | null;
+          affiliate_source_plan_id?: string | null;
+          affiliate_commission_rate?: number;
+          affiliate_commission_amount?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -938,16 +1190,51 @@ export type Database = {
           status?: SubscriptionStatus;
           started_at?: string;
           expires_at?: string | null;
+          affiliate_user_id?: string | null;
+          affiliate_code_used?: string | null;
+          affiliate_source_type?: AffiliateSourceType | null;
+          affiliate_source_book_id?: string | null;
+          affiliate_source_plan_id?: string | null;
+          affiliate_commission_rate?: number;
+          affiliate_commission_amount?: number | null;
           created_at?: string;
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "affiliate_wallet_transactions_subscription_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_wallet_transactions";
+            referencedColumns: ["subscription_id"];
+          },
           {
             foreignKeyName: "library_subscription_id_fkey";
             columns: ["id"];
             isOneToOne: false;
             referencedRelation: "library";
             referencedColumns: ["subscription_id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_affiliate_source_book_id_fkey";
+            columns: ["affiliate_source_book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_affiliate_source_plan_id_fkey";
+            columns: ["affiliate_source_plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_affiliate_user_id_fkey";
+            columns: ["affiliate_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
           {
             foreignKeyName: "user_subscriptions_plan_id_fkey";

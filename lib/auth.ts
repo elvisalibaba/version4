@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { isUuidLike, normalizeAffiliateCode, normalizeAffiliateSourceType } from "@/lib/affiliate";
 import type { UserRole } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,6 +15,11 @@ function getSafeRoleFromMetadata(metadata: unknown): Exclude<UserRole, "admin"> 
 function getStringMetadata(metadata: unknown, key: string) {
   const value = getMetadataRecord(metadata)?.[key];
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function getUuidMetadata(metadata: unknown, key: string) {
+  const value = getStringMetadata(metadata, key);
+  return isUuidLike(value) ? value : null;
 }
 
 function getStringArrayMetadata(metadata: unknown, key: string) {
@@ -49,6 +55,7 @@ function buildProfileUpsertPayload(user: {
   const lastName = getStringMetadata(user.user_metadata, "last_name");
   const fallbackName = getStringMetadata(user.user_metadata, "name");
   const fullName = [firstName, lastName].filter(Boolean).join(" ").trim() || fallbackName;
+  const affiliateSourceType = normalizeAffiliateSourceType(getStringMetadata(user.user_metadata, "affiliate_source_type"));
 
   return {
     id: user.id,
@@ -63,6 +70,10 @@ function buildProfileUpsertPayload(user: {
     preferred_language: getStringMetadata(user.user_metadata, "preferred_language") ?? "fr",
     favorite_categories: getStringArrayMetadata(user.user_metadata, "favorite_categories"),
     marketing_opt_in: getBooleanMetadata(user.user_metadata, "marketing_opt_in"),
+    referred_by_affiliate_code: normalizeAffiliateCode(getStringMetadata(user.user_metadata, "referred_by_affiliate_code")),
+    affiliate_source_type: affiliateSourceType,
+    affiliate_source_book_id: affiliateSourceType === "book" ? getUuidMetadata(user.user_metadata, "affiliate_source_book_id") : null,
+    affiliate_source_plan_id: affiliateSourceType === "plan" ? getUuidMetadata(user.user_metadata, "affiliate_source_plan_id") : null,
   };
 }
 

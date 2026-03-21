@@ -38,7 +38,7 @@ export default async function ReaderLibraryPage() {
   const { data: library } = await supabase
     .from("library")
     .select(
-      "book_id, purchased_at, access_type, subscription_id, books:book_id(id, title, description, cover_url, price, categories, rating_avg), user_subscriptions:subscription_id(status, expires_at, subscription_plans(name))",
+      "book_id, purchased_at, access_type, subscription_id, books:book_id(id, title, description, cover_url, price, categories, rating_avg), user_subscriptions:subscription_id(status, expires_at, subscription_plans!user_subscriptions_plan_id_fkey(name))",
     )
     .order("purchased_at", { ascending: false })
     .returns<LibraryEntry[]>();

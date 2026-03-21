@@ -11,7 +11,6 @@ import {
   UserRoundPlus,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { PageHero } from "@/components/ui/page-hero";
 
 type JourneyStep = {
   title: string;
@@ -36,28 +35,32 @@ type FaqCategory = {
 const readerJourney: JourneyStep[] = [
   {
     title: "Créer votre compte",
-    description: "Inscrivez-vous avec votre email pour sauvegarder vos achats, vos lectures gratuites et votre bibliothèque personnelle.",
+    description:
+      "Inscrivez-vous avec votre email pour sauvegarder vos achats, vos lectures gratuites et votre bibliothèque personnelle.",
     icon: UserRoundPlus,
     href: "/register",
     linkLabel: "Ouvrir un compte lecteur",
   },
   {
     title: "Explorer la librairie",
-    description: "Parcourez les catégories, les auteurs et les titres gratuits ou premium directement depuis la boutique Holistique Books.",
+    description:
+      "Parcourez les catégories, les auteurs et les titres gratuits ou premium directement depuis la boutique Holistique Books.",
     icon: BookOpenText,
     href: "/books",
     linkLabel: "Voir les livres",
   },
   {
     title: "Acheter ou lire gratuitement",
-    description: "Ajoutez un livre payant à votre panier ou démarrez tout de suite avec un titre gratuit quand il est proposé.",
+    description:
+      "Ajoutez un livre payant à votre panier ou démarrez tout de suite avec un titre gratuit quand il est proposé.",
     icon: CreditCard,
     href: "/cart",
     linkLabel: "Vérifier le panier",
   },
   {
     title: "Retrouver votre bibliothèque",
-    description: "Après achat ou activation, vos livres restent reliés à votre compte pour une reprise simple sur le web et les expériences mobiles disponibles.",
+    description:
+      "Après achat ou activation, vos livres restent reliés à votre compte pour une reprise simple sur le web et les expériences mobiles disponibles.",
     icon: LibraryBig,
     href: "/dashboard/reader",
     linkLabel: "Accéder à ma bibliothèque",
@@ -67,28 +70,32 @@ const readerJourney: JourneyStep[] = [
 const authorJourney: JourneyStep[] = [
   {
     title: "Créer votre espace auteur",
-    description: "Inscrivez-vous puis ouvrez votre studio auteur pour gérer votre identité éditoriale et votre catalogue.",
+    description:
+      "Inscrivez-vous puis ouvrez votre studio auteur pour gérer votre identité éditoriale et votre catalogue.",
     icon: UserRoundPlus,
     href: "/register",
     linkLabel: "Démarrer comme auteur",
   },
   {
     title: "Compléter votre profil",
-    description: "Ajoutez un nom de plume clair, votre présentation et les informations qui renforcent votre crédibilité professionnelle.",
+    description:
+      "Ajoutez un nom de plume clair, votre présentation et les informations qui renforcent votre crédibilité professionnelle.",
     icon: ShieldCheck,
     href: "/dashboard/author",
     linkLabel: "Voir le studio auteur",
   },
   {
     title: "Ajouter un livre",
-    description: "Renseignez le titre, la description, la couverture, le prix et le positionnement de votre livre depuis le tableau de bord.",
+    description:
+      "Renseignez le titre, la description, la couverture, le prix et le positionnement de votre livre depuis le tableau de bord.",
     icon: Upload,
     href: "/dashboard/author/add-book",
     linkLabel: "Publier un titre",
   },
   {
     title: "Suivre ventes et lectures",
-    description: "Une fois votre livre publié, vous suivez les acquisitions, les lectures et les performances de votre catalogue dans votre espace auteur.",
+    description:
+      "Une fois votre livre publié, vous suivez les acquisitions, les lectures et les performances de votre catalogue dans votre espace auteur.",
     icon: Sparkles,
     href: "/dashboard/author/sales",
     linkLabel: "Consulter les performances",
@@ -99,7 +106,8 @@ const faqCategories: FaqCategory[] = [
   {
     id: "lecteurs",
     title: "Questions lecteurs",
-    description: "Tout le parcours lecteur, depuis l'inscription jusqu'à la lecture et la récupération des livres.",
+    description:
+      "Inscription, lecture, achats, bibliothèque et récupération des livres.",
     items: [
       {
         question: "Faut-il créer un compte pour lire sur Holistique Books ?",
@@ -136,7 +144,8 @@ const faqCategories: FaqCategory[] = [
   {
     id: "auteurs",
     title: "Questions auteurs",
-    description: "Le parcours auteur expliqué : comment publier, gérer, corriger et suivre les performances de vos livres.",
+    description:
+      "Publication, catalogue, mises à jour et suivi des performances.",
     items: [
       {
         question: "Comment devenir auteur sur Holistique Books ?",
@@ -172,8 +181,9 @@ const faqCategories: FaqCategory[] = [
   },
   {
     id: "compte-support",
-    title: "Compte, support et confiance",
-    description: "Les réponses essentielles pour gérer votre accès, vos données et les points de support les plus fréquents.",
+    title: "Compte et support",
+    description:
+      "Accès, données, sécurité et assistance.",
     items: [
       {
         question: "Comment protéger mon compte ?",
@@ -202,208 +212,301 @@ const faqCategories: FaqCategory[] = [
 const quickLinks = [
   { label: "Guide lecteur", href: "#lecteurs" },
   { label: "Guide auteur", href: "#auteurs" },
-  { label: "Questions compte", href: "#compte-support" },
+  { label: "Compte et support", href: "#compte-support" },
   { label: "Explorer les livres", href: "/books" },
 ];
 
-export function FaqPage() {
+function SectionCard({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="bg-gray-50">
-      <PageHero
-        kicker="Centre d'aide"
-        title="Tout comprendre sur Holistique Books, côté lecteur comme côté auteur."
-        description="Cette page explique le parcours complet : création de compte, lecture, achats, bibliothèque, publication, gestion du catalogue et suivi professionnel des performances."
-        actions={
-          <>
-            <Link
-              href="/register"
-              className="inline-flex items-center rounded-md bg-[#ff9900] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#e68900] focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
+    <section className="rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="border-b border-gray-200 px-5 py-4 sm:px-6">
+        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+        {description ? (
+          <p className="mt-1 text-sm text-gray-600">{description}</p>
+        ) : null}
+      </div>
+      <div className="p-5 sm:p-6">{children}</div>
+    </section>
+  );
+}
+
+function JourneyList({
+  steps,
+  badge,
+}: {
+  steps: JourneyStep[];
+  badge: string;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="inline-flex rounded-full bg-[#fff3e0] px-3 py-1 text-xs font-semibold text-[#b4690e]">
+        {badge}
+      </div>
+
+      <div className="divide-y divide-gray-200 rounded-lg border border-gray-200">
+        {steps.map((step, index) => {
+          const Icon = step.icon;
+
+          return (
+            <div
+              key={step.title}
+              className="flex gap-4 p-4 sm:p-5"
             >
-              Créer un compte
-            </Link>
-            <Link
-              href="/dashboard/author"
-              className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
-            >
-              Voir le studio auteur
-            </Link>
-          </>
-        }
-        aside={
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#ff9900]">Accès rapide</p>
-            <div className="mt-4 space-y-3">
-              {quickLinks.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  className="flex items-center justify-between text-sm text-gray-700 hover:text-[#ff9900] hover:underline"
-                >
-                  <span>{link.label}</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              ))}
-            </div>
-            <div className="mt-6 border-t border-gray-200 pt-4">
-              <p className="text-xs uppercase tracking-wide text-gray-500">Version</p>
-              <p className="mt-2 text-base font-semibold text-gray-900">Mars 2026</p>
-              <p className="mt-2 text-sm text-gray-600">
-                Une aide claire pour avancer plus vite, que vous veniez pour lire, acheter, publier ou structurer votre activité d'auteur.
-              </p>
-            </div>
-          </div>
-        }
-      />
-
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 space-y-12">
-        <section className="space-y-6">
-          <div className="space-y-2 text-center sm:text-left">
-            <p className="text-sm font-semibold uppercase tracking-wide text-[#ff9900]">Parcours complets</p>
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Depuis la création du compte jusqu'à l'usage quotidien.
-            </h2>
-            <p className="max-w-2xl text-gray-600">
-              Holistique Books doit inspirer confiance dès la première visite. Ces deux parcours montrent clairement comment la plateforme fonctionne pour les lecteurs et pour les auteurs.
-            </p>
-          </div>
-
-          <div className="grid gap-8 lg:grid-cols-2">
-            {/* Lecteurs */}
-            <section id="lecteurs" className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="space-y-4">
-                <span className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">Lecteurs</span>
-                <h3 className="text-2xl font-bold text-gray-900">Lire, acheter et retrouver ses livres sans friction.</h3>
-                <p className="text-gray-600">
-                  Tout est pensé pour faire entrer le lecteur vite dans la bonne lecture, puis lui permettre de revenir facilement à sa bibliothèque.
-                </p>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
+                <Icon className="h-5 w-5" />
               </div>
 
-              <div className="mt-6 space-y-6">
-                {readerJourney.map((step) => {
-                  const Icon = step.icon;
-                  return (
-                    <div key={step.title} className="flex gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <div className="space-y-2">
-                        <h4 className="font-semibold text-gray-900">{step.title}</h4>
-                        <p className="text-sm text-gray-600">{step.description}</p>
-                        <Link
-                          href={step.href}
-                          className="inline-flex items-center gap-1 text-sm font-medium text-[#ff9900] hover:underline"
-                        >
-                          {step.linkLabel}
-                          <ArrowRight className="h-4 w-4" />
-                        </Link>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* Auteurs */}
-            <section id="auteurs" className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="space-y-4">
-                <span className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">Auteurs</span>
-                <h3 className="text-2xl font-bold text-gray-900">Publier, valoriser et suivre son catalogue avec un cadre pro.</h3>
-                <p className="text-gray-600">
-                  Le writer side est pensé comme un vrai espace éditorial : plus clair, plus crédible, plus utile pour piloter vos livres.
-                </p>
-              </div>
-
-              <div className="mt-6 space-y-6">
-                {authorJourney.map((step) => {
-                  const Icon = step.icon;
-                  return (
-                    <div key={step.title} className="flex gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <div className="space-y-2">
-                        <h4 className="font-semibold text-gray-900">{step.title}</h4>
-                        <p className="text-sm text-gray-600">{step.description}</p>
-                        <Link
-                          href={step.href}
-                          className="inline-flex items-center gap-1 text-sm font-medium text-[#ff9900] hover:underline"
-                        >
-                          {step.linkLabel}
-                          <ArrowRight className="h-4 w-4" />
-                        </Link>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          </div>
-        </section>
-
-        <section className="space-y-6">
-          <div className="space-y-2 text-center sm:text-left">
-            <p className="text-sm font-semibold uppercase tracking-wide text-[#ff9900]">Questions fréquentes</p>
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Les réponses utiles, sans jargon inutile.</h2>
-            <p className="max-w-2xl text-gray-600">
-              L'idée est simple : un lecteur doit comprendre comment lire. Un auteur doit comprendre comment publier, suivre et faire grandir ses livres.
-            </p>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {faqCategories.map((category) => (
-              <section
-                key={category.id}
-                id={category.id}
-                className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <CircleHelp className="h-4 w-4 text-[#ff9900]" />
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[#ff9900]">FAQ</p>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900">{category.title}</h3>
-                  <p className="text-sm text-gray-600">{category.description}</p>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-semibold text-gray-500">
+                    Étape {index + 1}
+                  </span>
+                  <h3 className="text-sm font-semibold text-gray-900 sm:text-base">
+                    {step.title}
+                  </h3>
                 </div>
 
-                <div className="mt-5 space-y-4">
+                <p className="mt-2 text-sm leading-6 text-gray-600">
+                  {step.description}
+                </p>
+
+                <Link
+                  href={step.href}
+                  className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-[#ff9900] hover:underline"
+                >
+                  {step.linkLabel}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function FaqPage() {
+  return (
+    <div className="min-h-screen bg-[#f3f3f3]">
+      <div className="border-b border-gray-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="grid gap-6 lg:grid-cols-[1.4fr_0.8fr] lg:items-start">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#cc7a00]">
+                Centre d’aide
+              </p>
+              <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                Aide Holistique Books
+              </h1>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-gray-600 sm:text-base">
+                Retrouvez les informations utiles pour créer un compte, lire,
+                acheter, publier un livre, gérer votre bibliothèque et utiliser
+                votre espace auteur.
+              </p>
+
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link
+                  href="/register"
+                  className="inline-flex items-center rounded-md bg-[#ff9900] px-4 py-2 text-sm font-medium text-white hover:bg-[#e68900] focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
+                >
+                  Créer un compte
+                </Link>
+                <Link
+                  href="/books"
+                  className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
+                >
+                  Explorer les livres
+                </Link>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-gray-200 bg-[#fafafa] p-4 sm:p-5">
+              <p className="text-sm font-semibold text-gray-900">
+                Accès rapides
+              </p>
+
+              <div className="mt-4 grid gap-2">
+                {quickLinks.map((link) => (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 transition hover:border-[#ff9900] hover:text-[#ff9900]"
+                  >
+                    <span>{link.label}</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-4 rounded-md border border-gray-200 bg-white px-4 py-3">
+                <p className="text-xs uppercase tracking-wide text-gray-500">
+                  Version
+                </p>
+                <p className="mt-1 text-sm font-semibold text-gray-900">
+                  Mars 2026
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+        <SectionCard
+          title="Commencer rapidement"
+          description="Choisissez le parcours qui correspond à votre usage de la plateforme."
+        >
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <Link
+              href="/register"
+              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-[#ff9900]"
+            >
+              <UserRoundPlus className="h-5 w-5 text-[#ff9900]" />
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Créer un compte
+              </p>
+              <p className="mt-1 text-sm text-gray-600">
+                Ouvrir un accès lecteur ou auteur.
+              </p>
+            </Link>
+
+            <Link
+              href="/books"
+              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-[#ff9900]"
+            >
+              <BookOpenText className="h-5 w-5 text-[#ff9900]" />
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Voir les livres
+              </p>
+              <p className="mt-1 text-sm text-gray-600">
+                Parcourir la librairie et les catégories.
+              </p>
+            </Link>
+
+            <Link
+              href="/dashboard/reader"
+              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-[#ff9900]"
+            >
+              <LibraryBig className="h-5 w-5 text-[#ff9900]" />
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Ma bibliothèque
+              </p>
+              <p className="mt-1 text-sm text-gray-600">
+                Retrouver achats, accès et lectures.
+              </p>
+            </Link>
+
+            <Link
+              href="/dashboard/author"
+              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-[#ff9900]"
+            >
+              <Sparkles className="h-5 w-5 text-[#ff9900]" />
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Studio auteur
+              </p>
+              <p className="mt-1 text-sm text-gray-600">
+                Gérer catalogue et performances.
+              </p>
+            </Link>
+          </div>
+        </SectionCard>
+
+        <div className="grid gap-8 xl:grid-cols-2">
+          <SectionCard
+            title="Parcours lecteur"
+            description="Lire, acheter et retrouver ses livres facilement."
+          >
+            <div id="lecteurs">
+              <JourneyList steps={readerJourney} badge="Lecteurs" />
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            title="Parcours auteur"
+            description="Publier, organiser et suivre son catalogue dans un cadre clair."
+          >
+            <div id="auteurs">
+              <JourneyList steps={authorJourney} badge="Auteurs" />
+            </div>
+          </SectionCard>
+        </div>
+
+        <SectionCard
+          title="Questions fréquentes"
+          description="Les réponses les plus utiles pour lecteurs, auteurs et gestion du compte."
+        >
+          <div className="grid gap-6 lg:grid-cols-3">
+            {faqCategories.map((category) => (
+              <div
+                key={category.id}
+                id={category.id}
+                className="rounded-lg border border-gray-200 bg-[#fcfcfc]"
+              >
+                <div className="border-b border-gray-200 px-4 py-4">
+                  <div className="flex items-center gap-2">
+                    <CircleHelp className="h-4 w-4 text-[#ff9900]" />
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[#cc7a00]">
+                      FAQ
+                    </p>
+                  </div>
+
+                  <h3 className="mt-2 text-base font-semibold text-gray-900">
+                    {category.title}
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {category.description}
+                  </p>
+                </div>
+
+                <div className="divide-y divide-gray-200">
                   {category.items.map((item) => (
-                    <details key={item.question} className="border-b border-gray-200 pb-3">
-                      <summary className="cursor-pointer text-sm font-medium text-gray-900 hover:text-[#ff9900]">
+                    <details key={item.question} className="group px-4 py-4">
+                      <summary className="cursor-pointer list-none pr-6 text-sm font-medium text-gray-900 hover:text-[#ff9900]">
                         {item.question}
                       </summary>
-                      <div className="mt-2 text-sm text-gray-600">
-                        <p>{item.answer}</p>
-                      </div>
+                      <p className="mt-3 text-sm leading-6 text-gray-600">
+                        {item.answer}
+                      </p>
                     </details>
                   ))}
                 </div>
-              </section>
+              </div>
             ))}
           </div>
-        </section>
+        </SectionCard>
 
-        <section className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center shadow-sm sm:p-12">
-          <div className="mx-auto max-w-2xl space-y-4">
-            <p className="text-sm font-semibold uppercase tracking-wide text-[#ff9900]">Toujours accompagné</p>
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Une plateforme plus claire pour lire, publier et avancer sérieusement.
-            </h2>
-            <p className="text-gray-600">
-              Si vous êtes lecteur, commencez par la librairie ou votre compte. Si vous êtes auteur, ouvrez votre studio et structurez votre catalogue.
-              Holistique Books doit donner une impression de confiance dès le premier clic.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 pt-4">
+        <section className="rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">
+                Besoin d’aller plus vite ?
+              </p>
+              <p className="mt-1 text-sm text-gray-600">
+                Accédez directement à la librairie, à votre compte ou à votre espace auteur.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
               <Link
                 href="/books"
-                className="inline-flex items-center rounded-md bg-[#ff9900] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#e68900] focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
+                className="inline-flex items-center rounded-md bg-[#ff9900] px-4 py-2 text-sm font-medium text-white hover:bg-[#e68900]"
               >
                 Explorer les livres
               </Link>
               <Link
-                href="/register"
-                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
+                href="/dashboard/author"
+                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
-                Devenir lecteur ou auteur
+                Ouvrir le studio auteur
               </Link>
             </div>
           </div>

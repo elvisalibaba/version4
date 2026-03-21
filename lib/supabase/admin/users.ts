@@ -230,7 +230,7 @@ export async function listAdminUsers(params: {
     userIds.length
       ? supabase
           .from("user_subscriptions")
-          .select("id, user_id, plan_id, status, started_at, expires_at, created_at, updated_at, plan:subscription_plans(id, name, slug, monthly_price, currency_code, is_active)")
+          .select("id, user_id, plan_id, status, started_at, expires_at, created_at, updated_at, plan:subscription_plans!user_subscriptions_plan_id_fkey(id, name, slug, monthly_price, currency_code, is_active)")
           .in("user_id", userIds)
           .returns<UserSubscriptionRow[]>()
       : Promise.resolve({ data: [] as UserSubscriptionRow[], error: null }),
@@ -343,7 +343,7 @@ export async function getAdminUserDetail(userId: string): Promise<AdminUserDetai
       .returns<UserLibraryRow[]>(),
     supabase
       .from("user_subscriptions")
-      .select("id, user_id, plan_id, status, started_at, expires_at, created_at, updated_at, plan:subscription_plans(id, name, slug, monthly_price, currency_code, is_active)")
+      .select("id, user_id, plan_id, status, started_at, expires_at, created_at, updated_at, plan:subscription_plans!user_subscriptions_plan_id_fkey(id, name, slug, monthly_price, currency_code, is_active)")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .returns<UserSubscriptionRow[]>(),

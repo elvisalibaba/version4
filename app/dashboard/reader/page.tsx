@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, Clock3, LibraryBig, Receipt, Sparkles, Star } from "lucide-react";
+import { ArrowRight, BookOpen, CircleDollarSign, Clock3, LibraryBig, Receipt, Sparkles, Star } from "lucide-react";
 import { DashboardTopbar } from "@/components/ui/dashboard-topbar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/ui/stat-card";
@@ -30,15 +30,20 @@ type SubscriptionRow = Pick<
   subscription_plans: MaybeArray<{ name: string; slug: string }>;
 };
 
+type ReaderAffiliateSummary = Pick<
+  Database["public"]["Tables"]["reader_affiliate_profiles"]["Row"],
+  "affiliate_code" | "wallet_balance" | "currency_code"
+>;
+
 function firstOf<T>(value: MaybeArray<T>) {
   if (Array.isArray(value)) return value[0] ?? null;
   return value ?? null;
 }
 
-function formatCurrency(amount: number) {
+function formatCurrency(amount: number, currencyCode = "USD") {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
-    currency: "USD",
+    currency: currencyCode,
     maximumFractionDigits: 2,
   }).format(amount);
 }
@@ -55,7 +60,7 @@ export default async function ReaderDashboardPage() {
   const profile = await requireRole(["reader"]);
   const supabase = await createClient();
 
-  const [{ data: library }, { data: orders }, { data: subscriptions }] = await Promise.all([
+  const [{ data: library }, { data: orders }, { data: subscriptions }, { data: affiliateProfile }] = await Promise.all([
     supabase
       .from("library")
       .select("book_id, purchased_at, access_type, books:book_id(id, title, categories, cover_url, rating_avg)")
@@ -68,14 +73,21 @@ export default async function ReaderDashboardPage() {
       .returns<OrderRow[]>(),
     supabase
       .from("user_subscriptions")
-      .select("id, status, expires_at, subscription_plans(name, slug)")
+      .select("id, status, expires_at, subscription_plans!user_subscriptions_plan_id_fkey(name, slug)")
       .order("created_at", { ascending: false })
       .returns<SubscriptionRow[]>(),
+    supabase
+      .from("reader_affiliate_profiles")
+      .select("affiliate_code, wallet_balance, currency_code")
+      .eq("user_id", profile.id)
+      .returns<ReaderAffiliateSummary>()
+      .maybeSingle(),
   ]);
 
   const libraryItems = (library ?? []) as LibraryPreview[];
   const orderRows = (orders ?? []) as OrderRow[];
   const subscriptionRows = (subscriptions ?? []) as SubscriptionRow[];
+  const affiliateSummary = (affiliateProfile ?? null) as ReaderAffiliateSummary | null;
 
   const paidOrders = orderRows.filter((order) => order.payment_status === "paid");
   const totalSpent = paidOrders.reduce((sum, order) => sum + order.total_price, 0);
@@ -124,6 +136,13 @@ export default async function ReaderDashboardPage() {
             >
               <Receipt className="h-4 w-4" />
               Voir Premium
+            </Link>
+            <Link
+              href="/dashboard/reader/affiliations"
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-[#e7ddd1] bg-white px-4 text-sm font-semibold text-[#26221d] transition hover:border-[#d5c8bb]"
+            >
+              <CircleDollarSign className="h-4 w-4" />
+              Mes affiliations
             </Link>
           </>
         }
@@ -227,6 +246,18 @@ export default async function ReaderDashboardPage() {
                 <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[#8b8177]">Panier moyen</p>
                 <p className="mt-2 text-lg font-semibold tracking-[-0.03em] text-[#171717]">{formatCurrency(averageTicket)}</p>
               </div>
+              <Link
+                href="/dashboard/reader/affiliations"
+                className="rounded-[22px] border border-[#ece3d7] bg-[#fcfaf7] p-4 transition hover:border-[#d5c8bb] hover:bg-white"
+              >
+                <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[#8b8177]">Affiliation</p>
+                <p className="mt-2 text-lg font-semibold tracking-[-0.03em] text-[#171717]">
+                  {formatCurrency(affiliateSummary?.wallet_balance ?? 0, affiliateSummary?.currency_code ?? "USD")}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-[#6f665e]">
+                  {affiliateSummary?.affiliate_code ? `Code ${affiliateSummary.affiliate_code}` : "Votre portefeuille lecteur est pret."}
+                </p>
+              </Link>
             </div>
           </section>
 

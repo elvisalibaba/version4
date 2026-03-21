@@ -72,7 +72,7 @@ export async function listAdminLibrary(params: {
   let query = supabase
     .from("library")
     .select(
-      "id, user_id, book_id, purchased_at, access_type, subscription_id, user:profiles!library_user_id_fkey(id, name, email, role), book:books!library_book_id_fkey(id, title, status, author_id), subscription:user_subscriptions!library_subscription_id_fkey(id, status, expires_at, plan:subscription_plans(id, name, slug))",
+      "id, user_id, book_id, purchased_at, access_type, subscription_id, user:profiles!library_user_id_fkey(id, name, email, role), book:books!library_book_id_fkey(id, title, status, author_id), subscription:user_subscriptions!library_subscription_id_fkey(id, status, expires_at, plan:subscription_plans!user_subscriptions_plan_id_fkey(id, name, slug))",
       { count: "exact" },
     )
     .order("purchased_at", { ascending: false });
@@ -146,7 +146,7 @@ export async function getAdminLibraryEditorOptions() {
     supabase.from("books").select("id, title").order("created_at", { ascending: false }),
     supabase
       .from("user_subscriptions")
-      .select("id, user_id, status, plan:subscription_plans(name)")
+      .select("id, user_id, status, plan:subscription_plans!user_subscriptions_plan_id_fkey(name)")
       .order("created_at", { ascending: false }),
   ]);
 

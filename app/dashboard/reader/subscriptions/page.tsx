@@ -43,7 +43,7 @@ export default async function ReaderSubscriptionsPage() {
       .returns<SubscriptionPlanRow[]>(),
     supabase
       .from("user_subscriptions")
-      .select("id, status, started_at, expires_at, subscription_plans(id, name, slug)")
+      .select("id, status, started_at, expires_at, subscription_plans!user_subscriptions_plan_id_fkey(id, name, slug)")
       .order("created_at", { ascending: false })
       .returns<UserSubscriptionRow[]>(),
   ]);

@@ -274,19 +274,24 @@ async function seedSupabaseFromLegacy(legacyPosts: BlogPost[]) {
 }
 
 async function readBlogPosts() {
-  const supabasePosts = await readSupabaseBlogPosts();
+  const [supabasePosts, legacyPosts] = await Promise.all([readSupabaseBlogPosts(), readLegacyBlogPosts()]);
 
-  if (supabasePosts && supabasePosts.length > 0) {
-    return supabasePosts;
+  if (!supabasePosts) {
+    return legacyPosts;
   }
 
-  const legacyPosts = await readLegacyBlogPosts();
+  if (supabasePosts.length === 0) {
+    if (legacyPosts.length > 0) {
+      await seedSupabaseFromLegacy(legacyPosts);
+    }
 
-  if (supabasePosts && supabasePosts.length === 0 && legacyPosts.length > 0) {
-    await seedSupabaseFromLegacy(legacyPosts);
+    return legacyPosts;
   }
 
-  return legacyPosts;
+  const supabaseSlugs = new Set(supabasePosts.map((post) => post.slug));
+  const mergedPosts = [...supabasePosts, ...legacyPosts.filter((post) => !supabaseSlugs.has(post.slug))];
+
+  return sortBlogPosts(mergedPosts);
 }
 
 export function parseBlogContentInput(raw: string) {

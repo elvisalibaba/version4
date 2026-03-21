@@ -99,7 +99,7 @@ export async function getReaderBookAccessState(params: {
   const libraryPromise = client
     .from("library")
     .select(
-      "id, purchased_at, access_type, subscription_id, user_subscriptions:subscription_id(id, plan_id, status, expires_at, started_at, subscription_plans(id, name, slug, monthly_price, currency_code))",
+      "id, purchased_at, access_type, subscription_id, user_subscriptions:subscription_id(id, plan_id, status, expires_at, started_at, subscription_plans!user_subscriptions_plan_id_fkey(id, name, slug, monthly_price, currency_code))",
     )
     .eq("user_id", params.userId)
     .eq("book_id", params.bookId)
@@ -115,7 +115,7 @@ export async function getReaderBookAccessState(params: {
     uniquePlanIds.length > 0
       ? client
           .from("user_subscriptions")
-          .select("id, plan_id, status, expires_at, started_at, subscription_plans(id, name, slug, monthly_price, currency_code)")
+          .select("id, plan_id, status, expires_at, started_at, subscription_plans!user_subscriptions_plan_id_fkey(id, name, slug, monthly_price, currency_code)")
           .eq("user_id", params.userId)
           .in("plan_id", uniquePlanIds)
           .returns<UserSubscriptionSummary[]>()

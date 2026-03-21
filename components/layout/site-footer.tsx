@@ -1,159 +1,203 @@
 "use client";
 
 import Link from "next/link";
+import {
+  ArrowUp,
+  BookOpen,
+  Facebook,
+  Globe,
+  Instagram,
+  Linkedin,
+  Youtube,
+} from "lucide-react";
+import {
+  footerAboutLinks,
+  footerAccountLinks,
+  footerBlogLinks,
+  footerLegalLinks,
+  footerOpportunityLinks,
+} from "@/lib/marketing-pages";
+
+const socialNetworks = [
+  { name: "Facebook", icon: Facebook, href: "https://facebook.com/holistique" },
+  { name: "Instagram", icon: Instagram, href: "https://instagram.com/holistique" },
+  { name: "YouTube", icon: Youtube, href: "https://youtube.com/holistique" },
+  { name: "LinkedIn", icon: Linkedin, href: "https://linkedin.com/company/holistique" },
+];
+
+function FooterColumn({
+  title,
+  links,
+}: {
+  title: string;
+  links: Array<{ label: string; href: string }>;
+}) {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+        {title}
+      </h3>
+
+      <ul className="space-y-2.5">
+        {links.map((item) => (
+          <li key={`${title}-${item.href}`}>
+            <Link
+              href={item.href}
+              className="text-sm leading-6 text-white/72 transition-colors duration-200 hover:text-[#febd69] focus:outline-none focus:ring-2 focus:ring-[#febd69] focus:ring-offset-2 focus:ring-offset-[#111827] rounded-sm"
+            >
+              {item.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export function SiteFooter() {
-  const aboutLinks = [
-    "A propos de Holistique Books",
-    "Equipe editoriale",
-    "Applications gratuites",
-    "Lecteur Web",
-    "Acheter des cartes-cadeaux",
-    "Aide",
-    "Plan du site",
+  const year = new Date().getFullYear();
+
+  const discoverLinks = [
+    ...(footerAboutLinks?.slice(0, 2) ?? []),
+    ...(footerBlogLinks?.slice(0, 2) ?? []),
+    ...(footerOpportunityLinks?.slice(0, 2) ?? []),
   ];
-  const opportunityLinks = ["Auto-edition", "Affilies", "Offres d emploi", "Partenariats", "Achats d entreprise"];
-  const blogLinks = [
-    "10 lectures pour mieux vivre 2026",
-    "Selection business et spiritualite",
-    "La pile a lire de l equipe Holistique",
-    "Des livres pour ralentir et mieux penser",
-    "Voir tous les billets du blog",
+
+  const accountLinks = [
+    ...(footerAccountLinks ?? []),
+    { label: "Connexion", href: "/login" },
+    { label: "Bibliothèque", href: "/library" },
   ];
-  const paymentMethods = ["Visa", "MasterCard", "PayPal", "Apple Pay", "Google Pay", "Virement"];
+
+  const servicesLinks = [
+    { label: "Centre d’aide", href: "/faq" },
+    { label: "Livraison", href: "/livraison" },
+    { label: "Retours", href: "/retours" },
+    { label: "Suivi de commande", href: "/commandes" },
+  ];
+
+  const companyLinks = [
+    { label: "À propos", href: "/about" },
+    { label: "Blog", href: "/blog" },
+    { label: "Opportunités", href: "/opportunities" },
+    { label: "Contact", href: "/contact" },
+  ];
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    <footer className="bg-[#f3f3f3] text-gray-700">
-      {/* Back to top button (style Amazon) */}
-      <div
-        onClick={scrollToTop}
-        className="cursor-pointer border-b border-gray-300 bg-[#37475a] py-3 text-center text-sm font-medium text-white transition hover:bg-[#485769]"
-      >
-        Haut de page
-      </div>
+    <footer className="relative border-t border-white/10 bg-[#111827] text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(254,189,105,0.07),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.03),transparent_18%)]" />
 
-      {/* Main footer links - Amazon style columns */}
-      <div className="mx-auto max-w-[96rem] px-4 py-12 md:px-8">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-          {/* Column 1 : Get to Know Us (aboutLinks) */}
-          <div className="space-y-2">
-            <h3 className="mb-2 text-sm font-semibold text-gray-800">A propos de Holistique Books</h3>
-            <ul className="space-y-1 text-sm">
-              {aboutLinks.map((item) => (
-                <li key={item}>
-                  <Link href="/home" className="text-gray-600 transition hover:underline">
-                    {item}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+      <div className="relative z-10">
+        <button
+          type="button"
+          onClick={scrollToTop}
+          aria-label="Retour en haut de la page"
+          className="group flex w-full items-center justify-center gap-2 border-b border-white/10 bg-white/[0.04] py-3 text-sm text-white/70 transition hover:bg-white/[0.07] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#febd69]"
+        >
+          <ArrowUp className="h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5" />
+          Haut de page
+        </button>
+
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.1fr_1fr_1fr_1fr]">
+            <div className="space-y-5">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#febd69] text-[#111827] shadow-sm">
+                  <BookOpen className="h-5 w-5" />
+                </span>
+
+                <div>
+                  <p className="text-sm font-semibold tracking-wide text-white">
+                    Holistique Books
+                  </p>
+                  <p className="text-xs text-white/50">
+                    Lire. Publier. Distribuer.
+                  </p>
+                </div>
+              </div>
+
+              <p className="max-w-xs text-sm leading-6 text-white/62">
+                Plateforme éditoriale digitale pour lecteurs, auteurs et partenaires.
+              </p>
+
+              <div className="flex flex-wrap gap-2.5">
+                {socialNetworks.map((social) => {
+                  const Icon = social.icon;
+
+                  return (
+                    <a
+                      key={social.name}
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={social.name}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/70 transition hover:border-[#febd69]/40 hover:text-[#febd69] focus:outline-none focus:ring-2 focus:ring-[#febd69]"
+                    >
+                      <Icon className="h-4 w-4" />
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+
+            <FooterColumn title="Découvrir" links={discoverLinks} />
+            <FooterColumn title="Compte" links={accountLinks} />
+            <FooterColumn title="Support" links={servicesLinks} />
           </div>
 
-          {/* Column 2 : Make Money with Us (opportunityLinks) */}
-          <div className="space-y-2">
-            <h3 className="mb-2 text-sm font-semibold text-gray-800">Opportunités</h3>
-            <ul className="space-y-1 text-sm">
-              {opportunityLinks.map((item) => (
-                <li key={item}>
-                  <Link href="/dashboard/author" className="text-gray-600 transition hover:underline">
-                    {item}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <div className="mt-10 border-t border-white/10 pt-6">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/65 transition hover:text-[#febd69] focus:outline-none focus:ring-2 focus:ring-[#febd69]"
+                >
+                  <Globe className="h-3.5 w-3.5" />
+                  Français
+                </button>
 
-          {/* Column 3 : Blog */}
-          <div className="space-y-2">
-            <h3 className="mb-2 text-sm font-semibold text-gray-800">Derniers billets</h3>
-            <ul className="space-y-1 text-sm">
-              {blogLinks.map((item) => (
-                <li key={item}>
-                  <Link href="/blog" className="text-gray-600 transition hover:underline">
-                    {item}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/65 transition hover:text-[#febd69] focus:outline-none focus:ring-2 focus:ring-[#febd69]"
+                >
+                  RDC
+                </button>
+              </div>
 
-          {/* Column 4 : Payment Methods + Social */}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <h3 className="mb-2 text-sm font-semibold text-gray-800">Moyens de paiement</h3>
-              <div className="flex flex-wrap gap-2">
-                {paymentMethods.map((method) => (
-                  <span key={method} className="rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700">
-                    {method}
-                  </span>
+              <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/50">
+                {footerLegalLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="transition hover:text-[#febd69] focus:outline-none focus:ring-2 focus:ring-[#febd69] rounded-sm"
+                  >
+                    {link.label}
+                  </Link>
                 ))}
               </div>
             </div>
-            <div className="space-y-2">
-              <h3 className="mb-2 text-sm font-semibold text-gray-800">Restez connecté</h3>
-              <div className="flex flex-wrap gap-2">
-                {["Facebook", "Instagram", "YouTube", "LinkedIn"].map((social) => (
-                  <span key={social} className="rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700">
-                    {social}
-                  </span>
+
+            <div className="mt-5 flex flex-col gap-3 border-t border-white/10 pt-5 md:flex-row md:items-center md:justify-between">
+              <div className="text-xs text-white/38">
+                © {year} Holistique Books. Tous droits réservés.
+              </div>
+
+              <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/38">
+                {companyLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="transition hover:text-[#febd69] focus:outline-none focus:ring-2 focus:ring-[#febd69] rounded-sm"
+                  >
+                    {link.label}
+                  </Link>
                 ))}
               </div>
             </div>
-          </div>
-
-          {/* Column 5 : Help (added for Amazon-like completeness, keeps data intact) */}
-          <div className="space-y-2">
-            <h3 className="mb-2 text-sm font-semibold text-gray-800">Aide & services</h3>
-            <ul className="space-y-1 text-sm">
-              <li>
-                <Link href="/faq" className="text-gray-600 transition hover:underline">
-                  Centre d'aide
-                </Link>
-              </li>
-              <li>
-                <Link href="/accessibilite" className="text-gray-600 transition hover:underline">
-                  Accessibilité
-                </Link>
-              </li>
-              <li>
-                <Link href="/conditions" className="text-gray-600 transition hover:underline">
-                  Conditions générales
-                </Link>
-              </li>
-              <li>
-                <Link href="/confidentialite" className="text-gray-600 transition hover:underline">
-                  Confidentialité
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <hr className="my-8 border-gray-300" />
-
-        {/* Bottom bar : country + copyright + legal links */}
-        <div className="flex flex-col items-center justify-between gap-4 text-xs text-gray-500 sm:flex-row">
-          <div className="flex flex-wrap items-center gap-4">
-            <span>Français</span>
-            <span>© 2026 Holistique Books</span>
-          </div>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/conditions" className="hover:underline">
-              Conditions d'utilisation
-            </Link>
-            <Link href="/confidentialite" className="hover:underline">
-              Politique de confidentialité
-            </Link>
-            <Link href="/cookies" className="hover:underline">
-              Paramètres de confidentialité
-            </Link>
-            <Link href="/faq" className="hover:underline">
-              Accessibilité
-            </Link>
           </div>
         </div>
       </div>
