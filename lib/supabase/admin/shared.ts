@@ -1,6 +1,7 @@
+import { resolveBookAuthorName } from "@/lib/book-authors";
 import { formatMoney } from "@/lib/book-offers";
 import { createClient } from "@/lib/supabase/server";
-import type { BookReviewStatus, Database, OrderPaymentStatus, SubscriptionStatus } from "@/types/database";
+import type { BookReviewStatus, CopyrightStatus, Database, OrderPaymentStatus, SubscriptionStatus } from "@/types/database";
 import type { AdminPaginationMeta, AdminRevenueBreakdown } from "@/types/admin";
 
 export const ADMIN_DEFAULT_PAGE_SIZE = 12;
@@ -19,6 +20,7 @@ export type AdminBookMini = Pick<
   | "id"
   | "title"
   | "subtitle"
+  | "author_display_name"
   | "author_id"
   | "status"
   | "cover_url"
@@ -40,6 +42,10 @@ export type AdminBookMini = Pick<
   | "reviewed_at"
   | "reviewed_by"
   | "review_note"
+  | "copyright_status"
+  | "copyright_note"
+  | "copyright_blocked_at"
+  | "copyright_blocked_by"
 >;
 export type AdminPlanMini = Pick<
   Database["public"]["Tables"]["subscription_plans"]["Row"],
@@ -53,6 +59,19 @@ export type AdminSubscriptionMini = Pick<
 export function firstOf<T>(value: MaybeArray<T>): T | null {
   if (Array.isArray(value)) return value[0] ?? null;
   return value ?? null;
+}
+
+export function resolveAdminBookAuthorName(book: {
+  author_display_name?: string | null;
+  author_profile?: MaybeArray<{ display_name: string | null }>;
+  author_profile_fallback?: MaybeArray<{ name: string | null; email?: string | null }>;
+}) {
+  return resolveBookAuthorName(
+    book.author_display_name,
+    firstOf(book.author_profile)?.display_name,
+    firstOf(book.author_profile_fallback)?.name,
+    firstOf(book.author_profile_fallback)?.email,
+  );
 }
 
 export function parsePageParam(value?: string | null) {
@@ -174,6 +193,10 @@ export function isSubscriptionStatus(value: string): value is SubscriptionStatus
 
 export function isBookReviewStatus(value: string): value is BookReviewStatus {
   return value === "draft" || value === "submitted" || value === "approved" || value === "rejected" || value === "changes_requested";
+}
+
+export function isCopyrightStatus(value: string): value is CopyrightStatus {
+  return value === "clear" || value === "review" || value === "blocked";
 }
 
 export function getSupabaseErrorMessage(error: { message?: string } | null | undefined, fallback: string) {

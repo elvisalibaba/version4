@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-type StatusBadgeKind = "role" | "book" | "payment" | "subscription" | "access" | "boolean" | "format" | "review";
+type StatusBadgeKind = "role" | "book" | "payment" | "subscription" | "access" | "boolean" | "format" | "review" | "copyright";
 
 const badgeStyles: Record<StatusBadgeKind, Record<string, string>> = {
   role: {
@@ -36,8 +36,10 @@ const badgeStyles: Record<StatusBadgeKind, Record<string, string>> = {
     false: "bg-slate-100 text-slate-700",
   },
   format: {
+    holistique_store: "bg-indigo-100 text-indigo-700",
     ebook: "bg-violet-100 text-violet-700",
     paperback: "bg-amber-100 text-amber-700",
+    pocket: "bg-orange-100 text-orange-700",
     hardcover: "bg-sky-100 text-sky-700",
     audiobook: "bg-rose-100 text-rose-700",
   },
@@ -47,6 +49,11 @@ const badgeStyles: Record<StatusBadgeKind, Record<string, string>> = {
     approved: "bg-emerald-100 text-emerald-700",
     rejected: "bg-rose-100 text-rose-700",
     changes_requested: "bg-violet-100 text-violet-700",
+  },
+  copyright: {
+    clear: "bg-emerald-100 text-emerald-700",
+    review: "bg-amber-100 text-amber-700",
+    blocked: "bg-rose-100 text-rose-700",
   },
 };
 

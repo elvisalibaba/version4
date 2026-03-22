@@ -27,8 +27,32 @@ type AffiliateTransactionRow = Pick<
   source_plan: MaybeArray<Pick<Database["public"]["Tables"]["subscription_plans"]["Row"], "name" | "slug">>;
 };
 
+type AffiliateOrderTransactionRow = Pick<
+  Database["public"]["Tables"]["affiliate_order_transactions"]["Row"],
+  | "id"
+  | "referral_source_type"
+  | "commission_amount"
+  | "currency_code"
+  | "created_at"
+> & {
+  referred_user: MaybeArray<Pick<Database["public"]["Tables"]["profiles"]["Row"], "name" | "email">>;
+  purchased_book: MaybeArray<Pick<Database["public"]["Tables"]["books"]["Row"], "title">>;
+  referral_book: MaybeArray<Pick<Database["public"]["Tables"]["books"]["Row"], "title">>;
+  referral_plan: MaybeArray<Pick<Database["public"]["Tables"]["subscription_plans"]["Row"], "name" | "slug">>;
+};
+
 type ShareBookRow = Pick<Database["public"]["Tables"]["books"]["Row"], "id" | "title">;
 type SharePlanRow = Pick<Database["public"]["Tables"]["subscription_plans"]["Row"], "id" | "name" | "slug">;
+
+type AffiliateCreditItem = {
+  id: string;
+  created_at: string;
+  commission_amount: number;
+  currency_code: string;
+  badgeLabel: string;
+  referredUserLabel: string;
+  detailLabel: string;
+};
 
 const FALLBACK_APP_URL = "https://holistique-books.com";
 
@@ -65,7 +89,15 @@ export default async function ReaderAffiliationsPage() {
   const supabase = await createClient();
   const appBaseUrl = resolveAppBaseUrl();
 
-  const [{ data: affiliateProfile }, { data: recentTransactions }, { count: creditedSubscriptions }, { data: shareBook }, { data: sharePlan }] =
+  const [
+    { data: affiliateProfile },
+    { data: recentTransactions },
+    { count: creditedSubscriptionTransactions },
+    { data: shareBook },
+    { data: sharePlan },
+    { data: recentOrderTransactions, error: affiliateOrderTransactionsError },
+    { count: creditedOrderTransactions },
+  ] =
     await Promise.all([
       supabase
         .from("reader_affiliate_profiles")
@@ -100,16 +132,27 @@ export default async function ReaderAffiliationsPage() {
         .limit(1)
         .returns<SharePlanRow>()
         .maybeSingle(),
+      supabase
+        .from("affiliate_order_transactions")
+        .select(
+          "id, referral_source_type, commission_amount, currency_code, created_at, referred_user:profiles!affiliate_order_transactions_referred_user_id_fkey(name, email), purchased_book:books!affiliate_order_transactions_purchased_book_id_fkey(title), referral_book:books!affiliate_order_transactions_referral_source_book_id_fkey(title), referral_plan:subscription_plans!affiliate_order_transactions_referral_source_plan_id_fkey(name, slug)",
+        )
+        .eq("affiliate_user_id", profile.id)
+        .order("created_at", { ascending: false })
+        .limit(8)
+        .returns<AffiliateOrderTransactionRow[]>(),
+      supabase.from("affiliate_order_transactions").select("id", { count: "exact", head: true }).eq("affiliate_user_id", profile.id),
     ]);
 
   const wallet = (affiliateProfile ?? null) as ReaderAffiliateProfileRow | null;
   const bookShareCandidate = (shareBook ?? null) as ShareBookRow | null;
   const planShareCandidate = (sharePlan ?? null) as SharePlanRow | null;
   const transactions = (recentTransactions ?? []) as AffiliateTransactionRow[];
+  const orderTransactions = affiliateOrderTransactionsError ? [] : ((recentOrderTransactions ?? []) as AffiliateOrderTransactionRow[]);
   const commissionRate = Math.round((wallet?.commission_rate ?? 0.02) * 100);
   const walletCurrency = wallet?.currency_code ?? "USD";
   const affiliateCode = wallet?.affiliate_code ?? "";
-  const totalCredits = creditedSubscriptions ?? 0;
+  const totalCredits = (creditedSubscriptionTransactions ?? 0) + (creditedOrderTransactions ?? 0);
 
   const genericShareUrl = new URL(
     buildAffiliateRegisterPath({ role: "reader", code: affiliateCode }),
@@ -133,13 +176,58 @@ export default async function ReaderAffiliationsPage() {
     }),
     appBaseUrl,
   ).toString();
+  const normalizedSubscriptionCredits: AffiliateCreditItem[] = transactions.map((transaction) => {
+    const referredUser = firstOf(transaction.referred_user);
+    const plan = firstOf(transaction.plan);
+    const sourceBook = firstOf(transaction.source_book);
+    const sourcePlan = firstOf(transaction.source_plan);
+    const sourceLabel =
+      transaction.source_type === "book"
+        ? sourceBook?.title ?? "Livre partage"
+        : sourcePlan?.name ?? plan?.name ?? "Paquet partage";
+
+    return {
+      id: `subscription-${transaction.id}`,
+      created_at: transaction.created_at,
+      commission_amount: transaction.commission_amount,
+      currency_code: transaction.currency_code,
+      badgeLabel: transaction.source_type === "book" ? "Abonnement via livre" : "Abonnement via paquet",
+      referredUserLabel: referredUser?.name ?? referredUser?.email ?? "Lecteur reference",
+      detailLabel: `${plan?.name ?? "Abonnement Premium"} via ${sourceLabel}`,
+    };
+  });
+  const normalizedOrderCredits: AffiliateCreditItem[] = orderTransactions.map((transaction) => {
+    const referredUser = firstOf(transaction.referred_user);
+    const purchasedBook = firstOf(transaction.purchased_book);
+    const referralBook = firstOf(transaction.referral_book);
+    const referralPlan = firstOf(transaction.referral_plan);
+    const sourceLabel =
+      transaction.referral_source_type === "book"
+        ? referralBook?.title ?? "Livre partage"
+        : transaction.referral_source_type === "plan"
+          ? referralPlan?.name ?? "Paquet partage"
+          : "Lien general";
+
+    return {
+      id: `order-${transaction.id}`,
+      created_at: transaction.created_at,
+      commission_amount: transaction.commission_amount,
+      currency_code: transaction.currency_code,
+      badgeLabel: "Achat livre",
+      referredUserLabel: referredUser?.name ?? referredUser?.email ?? "Lecteur reference",
+      detailLabel: `${purchasedBook?.title ?? "Livre achete"} via ${sourceLabel}`,
+    };
+  });
+  const creditTimeline = [...normalizedSubscriptionCredits, ...normalizedOrderCredits]
+    .sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime())
+    .slice(0, 8);
 
   return (
     <section className="space-y-6">
       <DashboardTopbar
         kicker="Affiliation"
         title="Mon portefeuille d affiliation"
-        description="Chaque nouvel abonnement actif issu de votre code credite 2% dans votre portefeuille lecteur. Vous pouvez partager un lien global, un lien livre ou un lien paquet."
+        description="Chaque achat livre ou abonnement actif issu de votre code credite 2% dans votre portefeuille lecteur. Vous pouvez partager un lien global, un lien livre ou un lien paquet."
         actions={
           <>
             <Link href="/dashboard/reader/subscriptions" className="cta-secondary px-5 py-3 text-sm">
@@ -168,8 +256,8 @@ export default async function ReaderAffiliationsPage() {
           description="Total cumule des commissions creditees"
           tone="violet"
         />
-        <StatCard icon={Users} label="Abonnements" value={totalCredits} description="Souscriptions creditees" tone="sky" />
-        <StatCard icon={Percent} label="Taux" value={`${commissionRate} %`} description="Commission par nouvel abonnement" tone="amber" />
+        <StatCard icon={Users} label="Credits" value={totalCredits} description="Achats et abonnements credites" tone="sky" />
+        <StatCard icon={Percent} label="Taux" value={`${commissionRate} %`} description="Commission par conversion validee" tone="amber" />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_360px]">
@@ -178,7 +266,7 @@ export default async function ReaderAffiliationsPage() {
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#a85b3f]">Liens de partage</p>
             <h2 className="text-[1.45rem] font-semibold tracking-[-0.04em] text-[#171717]">Votre code {affiliateCode || "en cours"}</h2>
             <p className="text-sm leading-7 text-[#6f665e]">
-              Partagez un lien simple d inscription. Quand un nouveau lecteur s abonne ensuite, le portefeuille credite automatiquement {commissionRate} %.
+              Partagez un lien simple d inscription. Quand un nouveau lecteur achete un livre ou active un abonnement ensuite, le portefeuille credite automatiquement {commissionRate} %.
             </p>
           </div>
 
@@ -192,7 +280,7 @@ export default async function ReaderAffiliationsPage() {
               label={bookShareCandidate ? `Lien livre: ${bookShareCandidate.title}` : "Lien livre"}
               description={
                 bookShareCandidate
-                  ? "Le lecteur arrive avec une attribution reliee a ce livre puis son abonnement est compte dans votre portefeuille."
+                  ? "Le lecteur arrive avec une attribution reliee a ce livre. Ses achats et abonnements futurs sont ensuite traces dans votre portefeuille."
                   : "Des qu un livre Premium est disponible, un lien partage livre apparaitra ici."
               }
               href={bookShareUrl}
@@ -201,7 +289,7 @@ export default async function ReaderAffiliationsPage() {
               label={planShareCandidate ? `Lien paquet: ${planShareCandidate.name}` : "Lien paquet"}
               description={
                 planShareCandidate
-                  ? "Le lecteur arrive depuis ce paquet Premium et son nouvel abonnement est attribue a votre code."
+                  ? "Le lecteur arrive depuis ce paquet Premium et ses conversions payantes sont attribuees a votre code."
                   : "Des qu un paquet Premium est actif, un lien partage paquet apparaitra ici."
               }
               href={planShareUrl}
@@ -219,12 +307,12 @@ export default async function ReaderAffiliationsPage() {
               </div>
               <div className="rounded-[22px] border border-[#ece3d7] bg-[#fcfaf7] p-4">
                 <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[#8b8177]">Declencheur</p>
-                <p className="mt-2 text-lg font-semibold tracking-[-0.03em] text-[#171717]">Nouvel abonnement actif</p>
+                <p className="mt-2 text-lg font-semibold tracking-[-0.03em] text-[#171717]">Achat livre ou abonnement actif</p>
               </div>
               <div className="rounded-[22px] border border-[#ece3d7] bg-[#fcfaf7] p-4">
                 <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[#8b8177]">Source suivie</p>
                 <p className="mt-2 text-lg font-semibold tracking-[-0.03em] text-[#171717]">
-                  {bookShareCandidate ? "Livre" : "Livre/paquet"} + {planShareCandidate ? "paquet" : "abonnement"}
+                  {bookShareCandidate ? "Livre" : "Livre ou lien general"} + {planShareCandidate ? "paquet" : "paquet"}
                 </p>
               </div>
             </div>
@@ -235,8 +323,8 @@ export default async function ReaderAffiliationsPage() {
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#ffd9cd]">Activation</p>
               <h2 className="text-[1.65rem] font-semibold tracking-[-0.05em] text-white">Programme lecteur actif</h2>
               <p className="text-sm leading-7 text-white/72">
-                Le schema garde maintenant la source d affiliation dans `profiles`, reporte l attribution dans `user_subscriptions` et credite le
-                portefeuille via `affiliate_wallet_transactions`.
+                Le schema garde maintenant la source d affiliation dans `profiles`, reporte l attribution dans `user_subscriptions`, suit les achats livres
+                et credite le portefeuille via les tables d affiliation.
               </p>
             </div>
           </section>
@@ -248,22 +336,13 @@ export default async function ReaderAffiliationsPage() {
           <div className="space-y-2">
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#a85b3f]">Historique</p>
             <h2 className="text-[1.45rem] font-semibold tracking-[-0.04em] text-[#171717]">Derniers credits d affiliation</h2>
-            <p className="text-sm leading-7 text-[#6f665e]">Les nouveaux abonnements credites apparaissent ici avec leur source.</p>
+            <p className="text-sm leading-7 text-[#6f665e]">Les achats livres et abonnements credites apparaissent ici avec leur source.</p>
           </div>
         </div>
 
         <div className="mt-5 grid gap-3">
-          {transactions.length > 0 ? (
-            transactions.map((transaction) => {
-              const referredUser = firstOf(transaction.referred_user);
-              const plan = firstOf(transaction.plan);
-              const sourceBook = firstOf(transaction.source_book);
-              const sourcePlan = firstOf(transaction.source_plan);
-              const sourceLabel =
-                transaction.source_type === "book"
-                  ? sourceBook?.title ?? "Livre partage"
-                  : sourcePlan?.name ?? plan?.name ?? "Paquet partage";
-
+          {creditTimeline.length > 0 ? (
+            creditTimeline.map((transaction) => {
               return (
                 <article
                   key={transaction.id}
@@ -272,7 +351,7 @@ export default async function ReaderAffiliationsPage() {
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="rounded-full bg-[#fff1ea] px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.15em] text-[#a85b3f]">
-                        {transaction.source_type === "book" ? "Source livre" : "Source paquet"}
+                        {transaction.badgeLabel}
                       </span>
                       <span className="rounded-full bg-white px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.15em] text-[#6f665e]">
                         {formatDate(transaction.created_at)}
@@ -280,11 +359,9 @@ export default async function ReaderAffiliationsPage() {
                     </div>
                     <div>
                       <p className="text-lg font-semibold tracking-[-0.03em] text-[#171717]">
-                        {referredUser?.name ?? referredUser?.email ?? "Lecteur reference"}
+                        {transaction.referredUserLabel}
                       </p>
-                      <p className="text-sm leading-6 text-[#6f665e]">
-                        {plan?.name ?? "Abonnement Premium"} via {sourceLabel}
-                      </p>
+                      <p className="text-sm leading-6 text-[#6f665e]">{transaction.detailLabel}</p>
                     </div>
                   </div>
                   <div className="rounded-[20px] border border-[#e7ddd1] bg-white px-4 py-3 text-right">
@@ -299,7 +376,7 @@ export default async function ReaderAffiliationsPage() {
           ) : (
             <EmptyState
               title="Aucun credit pour le moment"
-              description="Partagez votre lien lecteur, livre ou paquet. Les nouvelles souscriptions actives apparaitront ici automatiquement."
+              description="Partagez votre lien lecteur, livre ou paquet. Les achats livres et nouvelles souscriptions actives apparaitront ici automatiquement."
               action={
                 <Link
                   href="/dashboard/reader/subscriptions"

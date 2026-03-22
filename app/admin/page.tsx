@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import {
   BadgeDollarSign,
   BookOpen,
@@ -26,162 +25,167 @@ import { AdminPanel } from "@/components/admin/shared/admin-panel";
 import { StatusBadge } from "@/components/admin/shared/status-badge";
 import { AdminNotice } from "@/components/admin/shared/admin-notice";
 
-// Skeleton loaders for better perceived performance
-function DashboardSkeleton() {
-  return (
-    <div className="space-y-8 pb-12">
-      <div className="h-24 animate-pulse rounded-lg bg-gray-100" />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {Array(9).fill(0).map((_, i) => (
-          <div key={i} className="h-32 animate-pulse rounded-lg bg-gray-100" />
-        ))}
-      </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        {Array(2).fill(0).map((_, i) => (
-          <div key={i} className="h-20 animate-pulse rounded-lg bg-gray-100" />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function formatPercent(value: number) {
   const precision = Number.isInteger(value) ? 0 : 1;
   return `${value.toFixed(precision)}%`;
 }
 
 export default async function AdminDashboardPage() {
-  // Add error handling with try/catch
-  let data;
+  let data: Awaited<ReturnType<typeof getAdminDashboardData>>;
+
   try {
     data = await getAdminDashboardData();
   } catch (error) {
     console.error("Failed to fetch dashboard data:", error);
-    // You might want to render a fallback UI or throw an error page
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Something went wrong</h1>
-          <p className="mt-2 text-gray-600">We couldn't load the dashboard. Please try again later.</p>
+          <h1 className="text-2xl font-bold text-gray-900">Chargement impossible</h1>
+          <p className="mt-2 text-gray-600">Le cockpit admin ne peut pas etre charge pour le moment.</p>
         </div>
       </div>
     );
   }
 
-  const marketingModules = [
+  const businessSignals = [
     {
       id: "funnel",
       icon: Funnel,
-      label: "Funnel vue → achat",
+      label: "Vue vers achat",
       value: formatPercent(data.marketing.viewToPurchaseRate),
-      hint: `${formatCompactNumber(data.marketing.totalBookPurchases)} achats pour ${formatCompactNumber(data.marketing.totalBookViews)} vues catalogue.`,
+      hint: `${formatCompactNumber(data.marketing.totalBookPurchases)} achats pour ${formatCompactNumber(data.marketing.totalBookViews)} vues catalogue`,
     },
     {
       id: "checkout",
       icon: Target,
-      label: "Checkout payé",
+      label: "Commandes payees",
       value: formatPercent(data.marketing.paidOrderRate),
-      hint: `${formatCompactNumber(data.totals.paidOrders)} commandes payées sur ${formatCompactNumber(data.totals.orders)} commandes.`,
+      hint: `${formatCompactNumber(data.totals.paidOrders)} commandes payees sur ${formatCompactNumber(data.totals.orders)} commandes`,
     },
     {
       id: "subscriptions",
       icon: Sparkles,
-      label: "Activation abonnements",
+      label: "Activation Premium",
       value: formatPercent(data.marketing.activeSubscriptionRate),
-      hint: `${formatCompactNumber(data.totals.activeSubscriptions)} abonnements actifs pour ${formatCompactNumber(data.totals.readers)} lecteurs.`,
+      hint: `${formatCompactNumber(data.totals.activeSubscriptions)} abonnements actifs pour ${formatCompactNumber(data.totals.readers)} lecteurs`,
     },
     {
       id: "pipeline",
       icon: Megaphone,
-      label: "Pression éditoriale",
+      label: "Pression editoriale",
       value: formatPercent(data.marketing.submissionPressureRate),
-      hint: `${formatCompactNumber(data.totals.submittedBooks)} soumissions en attente face au catalogue publié.`,
+      hint: `${formatCompactNumber(data.totals.submittedBooks)} soumissions en attente face au catalogue publie`,
     },
   ] as const;
+
+  const operationalSignals = [
+    {
+      label: "Soumissions a traiter",
+      value: formatCompactNumber(data.totals.submittedBooks),
+      detail: data.recentSubmittedBooks[0]?.title ?? "Aucune soumission urgente",
+    },
+    {
+      label: "Top auteur estime",
+      value: data.topAuthorsBySales[0]?.displayName ?? "Aucun",
+      detail: data.topAuthorsBySales[0]?.estimatedSalesLabel ?? "Pas encore de ventes consolidees",
+    },
+    {
+      label: "Top traction catalogue",
+      value: data.topViewedBooks[0]?.title ?? "Aucun titre",
+      detail: `${formatCompactNumber(data.topViewedBooks[0]?.views_count ?? 0)} vues en tete`,
+    },
+  ];
 
   return (
     <div className="space-y-8 pb-12">
       <AdminPageHeader
-        title="Cockpit admin"
-        description="Vue unifiée des indicateurs business, éditoriaux et opérationnels du schéma Supabase actuel."
+        title="Marketplace control tower"
+        description="Vue unifiee du business, de la moderation catalogue, de la conversion et des signaux auteurs sur le schema Supabase actuel."
         breadcrumbs={[{ label: "Admin" }]}
         actions={
           <>
             <Link
               href="/admin/users"
-              className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
+              className="inline-flex items-center rounded-full border border-[#e4d7c6] bg-white px-4 py-2 text-sm font-semibold text-[#26221d] shadow-sm transition hover:border-[#ccbba7] hover:bg-[#fcfaf7]"
             >
-              Gérer les utilisateurs
+              Gerer les utilisateurs
             </Link>
             <Link
               href="/admin/books"
-              className="inline-flex items-center rounded-md bg-[#ff9900] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#e68900] focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
+              className="inline-flex items-center rounded-full bg-[#ff9900] px-4 py-2 text-sm font-semibold text-[#171717] shadow-sm transition hover:bg-[#f08f00]"
             >
-              Gérer le catalogue
+              Gerer le catalogue
             </Link>
           </>
         }
       />
 
-      {/* KPI Cards Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <AdminKpiCard
           icon={Users}
           label="Utilisateurs"
           value={formatCompactNumber(data.totals.users)}
           hint={`${data.totals.readers} lecteurs / ${data.totals.authors} auteurs / ${data.totals.admins} admins`}
+          tone="sky"
         />
         <AdminKpiCard
           icon={BookOpen}
-          label="Livres"
+          label="Catalogue"
           value={formatCompactNumber(data.totals.books)}
-          hint={`${data.totals.publishedBooks} publiés / ${data.totals.draftBooks} drafts`}
+          hint={`${data.totals.publishedBooks} publies / ${data.totals.draftBooks} brouillons`}
+          tone="violet"
         />
         <AdminKpiCard
           icon={ClipboardCheck}
-          label="À revoir"
+          label="Revue"
           value={formatCompactNumber(data.totals.submittedBooks)}
           hint={data.recentSubmittedBooks[0]?.title ?? "Aucune soumission en attente"}
+          tone="amber"
         />
         <AdminKpiCard
           icon={ShoppingCart}
           label="Commandes"
           value={formatCompactNumber(data.totals.orders)}
-          hint={`${data.totals.paidOrders} payées / ${data.totals.pendingOrders} en attente`}
+          hint={`${data.totals.paidOrders} payees / ${data.totals.pendingOrders} en attente`}
+          tone="emerald"
         />
         <AdminKpiCard
           icon={BadgeDollarSign}
           label="Revenus"
           value={data.totals.revenueLabel}
-          hint="Agrégation par devise sans conversion implicite."
+          hint="Aggregation par devise sans conversion implicite"
+          tone="rose"
         />
         <AdminKpiCard
           icon={CreditCard}
-          label="Abonnements actifs"
+          label="Abonnements"
           value={formatCompactNumber(data.totals.activeSubscriptions)}
-          hint="Statut actif et date d'expiration non échue."
+          hint="Statut actif et date de validite correcte"
+          tone="sky"
         />
         <AdminKpiCard
           icon={Star}
           label="Note moyenne"
           value={data.totals.averageRating ? `${data.totals.averageRating}/5` : "-"}
-          hint="Calculée sur les ratings visibles."
+          hint="Calcul sur les ratings visibles"
+          tone="amber"
         />
         <AdminKpiCard
           icon={Eye}
           label="Top vues"
           value={formatCompactNumber(data.topViewedBooks[0]?.views_count ?? 0)}
           hint={data.topViewedBooks[0]?.title ?? "Aucun livre"}
+          tone="violet"
         />
         <AdminKpiCard
           icon={Layers3}
           label="Coming soon"
           value={formatCompactNumber(data.totals.comingSoonBooks)}
-          hint={`${data.totals.archivedBooks} archivés`}
+          hint={`${data.totals.archivedBooks} archives`}
+          tone="rose"
         />
       </div>
 
-      {/* Notices */}
       {data.notices.length ? (
         <div className="grid gap-4 md:grid-cols-2">
           {data.notices.map((notice) => (
@@ -190,118 +194,133 @@ export default async function AdminDashboardPage() {
         </div>
       ) : null}
 
-      {/* Marketing Section */}
-      <section className="space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#ff9900]">Modules marketing</p>
-            <h2 className="text-2xl font-bold tracking-tight text-gray-900">Pilotage acquisition, conversion et relance</h2>
-            <p className="max-w-3xl text-sm text-gray-500">
-              Cette zone transforme les signaux de ton catalogue en plan d'action clair : quoi pousser, quoi corriger, et où investir l'effort de campagne.
-            </p>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_380px]">
+        <AdminPanel
+          title="Signaux business"
+          description="Lecture rapide de la conversion, du commerce et de la pression editoriale pour arbitrer les priorites."
+        >
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {businessSignals.map((signal) => {
+              const Icon = signal.icon;
+              return (
+                <article
+                  key={signal.id}
+                  className="rounded-[1.4rem] border border-[#ece4d7] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(249,245,239,0.94))] p-4"
+                >
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff1db] text-[#b96e12]">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{signal.label}</p>
+                  <p className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-slate-950">{signal.value}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">{signal.hint}</p>
+                </article>
+              );
+            })}
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/admin/home-positioning"
-              className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
-            >
-              Positionnement home
-            </Link>
-            <Link
-              href="/admin/orders"
-              className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
-            >
-              Ouvrir les commandes
-            </Link>
-          </div>
-        </div>
+        </AdminPanel>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {marketingModules.map((module) => {
-            const Icon = module.icon;
-
-            return (
-              <div
-                key={module.id}
-                className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
-              >
-                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-gray-100">
-                  <Icon className="h-5 w-5 text-gray-600" aria-hidden="true" />
+        <div className="grid gap-6">
+          <AdminPanel title="Focus operations" description="Trois repers pour piloter la journee.">
+            <div className="grid gap-3">
+              {operationalSignals.map((signal) => (
+                <div key={signal.label} className="rounded-[1.25rem] border border-[#ece4d7] bg-[#fcfaf7] p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{signal.label}</p>
+                  <p className="mt-2 text-lg font-semibold text-slate-950">{signal.value}</p>
+                  <p className="mt-2 text-sm text-slate-500">{signal.detail}</p>
                 </div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{module.label}</p>
-                <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900">{module.value}</p>
-                <p className="mt-2 text-sm text-gray-500">{module.hint}</p>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <AdminPanel
-            title="Watchlist conversion"
-            description="Livres avec trafic déjà présent mais conversion faible. Priorité : page produit, offre et argumentaire."
-          >
-            <div className="space-y-3">
-              {data.marketing.watchlist.length ? (
-                data.marketing.watchlist.map((book) => (
-                  <Link
-                    key={book.id}
-                    href={`/admin/books/${book.id}`}
-                    className="flex items-center justify-between gap-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-gray-900">{book.title}</p>
-                      <p className="truncate text-xs uppercase tracking-wide text-gray-500">{book.author_name}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-gray-900">{formatPercent(book.conversion_rate)}</p>
-                      <p className="text-xs text-gray-500">
-                        {formatCompactNumber(book.views_count)} vues / {formatCompactNumber(book.purchases_count)} achats
-                      </p>
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <p className="text-sm text-gray-500">Aucune alerte critique de conversion pour le moment.</p>
-              )}
+              ))}
             </div>
           </AdminPanel>
 
-          <AdminPanel
-            title="Campagnes à pousser maintenant"
-            description="Titres qui convertissent déjà bien. Priorité : amplification paid, social et newsletter."
-          >
-            <div className="space-y-3">
-              {data.marketing.campaignCandidates.length ? (
-                data.marketing.campaignCandidates.map((book) => (
-                  <Link
-                    key={book.id}
-                    href={`/admin/books/${book.id}`}
-                    className="flex items-center justify-between gap-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 transition hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-gray-900">{book.title}</p>
-                      <p className="truncate text-xs uppercase tracking-wide text-gray-500">{book.author_name}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-gray-900">{formatPercent(book.conversion_rate)}</p>
-                      <p className="text-xs text-gray-500">
-                        {formatCompactNumber(book.purchases_count)} achats / {formatCompactNumber(book.views_count)} vues
-                      </p>
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <p className="text-sm text-gray-500">Pas encore assez de data pour recommander une campagne prioritaire.</p>
-              )}
+          <AdminPanel title="Actions rapides" description="Acces direct aux zones qui bougent le plus.">
+            <div className="grid gap-2">
+              <Link
+                href="/admin/orders"
+                className="rounded-[1.15rem] border border-[#ece4d7] bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:border-[#ccbba7] hover:bg-[#fcfaf7]"
+              >
+                Ouvrir les commandes
+              </Link>
+              <Link
+                href="/admin/authors"
+                className="rounded-[1.15rem] border border-[#ece4d7] bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:border-[#ccbba7] hover:bg-[#fcfaf7]"
+              >
+                Ouvrir les auteurs
+              </Link>
+              <Link
+                href="/admin/subscriptions/plans"
+                className="rounded-[1.15rem] border border-[#ece4d7] bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:border-[#ccbba7] hover:bg-[#fcfaf7]"
+              >
+                Ouvrir les plans Premium
+              </Link>
             </div>
           </AdminPanel>
         </div>
-      </section>
+      </div>
 
-      {/* Charts Section */}
-      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <AdminPanel title="Top auteurs en ventes estimées" description="Agrégation actuelle basée sur purchases_count × books.price.">
+      <div className="grid gap-6 lg:grid-cols-2">
+        <AdminPanel
+          title="Watchlist conversion"
+          description="Titres avec trafic present mais conversion faible. Priorite: fiche produit, offre et argumentaire."
+        >
+          <div className="space-y-3">
+            {data.marketing.watchlist.length ? (
+              data.marketing.watchlist.map((book) => (
+                <Link
+                  key={book.id}
+                  href={`/admin/books/${book.id}`}
+                  className="flex items-center justify-between gap-4 rounded-[1.2rem] border border-red-200 bg-red-50 px-4 py-3 transition hover:bg-red-100"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-950">{book.title}</p>
+                    <p className="truncate text-xs uppercase tracking-[0.16em] text-slate-500">{book.author_name}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-slate-950">{formatPercent(book.conversion_rate)}</p>
+                    <p className="text-xs text-slate-500">
+                      {formatCompactNumber(book.views_count)} vues / {formatCompactNumber(book.purchases_count)} achats
+                    </p>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <p className="text-sm text-slate-500">Aucune alerte critique de conversion pour le moment.</p>
+            )}
+          </div>
+        </AdminPanel>
+
+        <AdminPanel
+          title="Campagnes a pousser"
+          description="Titres qui convertissent deja bien. Priorite: amplification paid, social et newsletter."
+        >
+          <div className="space-y-3">
+            {data.marketing.campaignCandidates.length ? (
+              data.marketing.campaignCandidates.map((book) => (
+                <Link
+                  key={book.id}
+                  href={`/admin/books/${book.id}`}
+                  className="flex items-center justify-between gap-4 rounded-[1.2rem] border border-emerald-200 bg-emerald-50 px-4 py-3 transition hover:bg-emerald-100"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-950">{book.title}</p>
+                    <p className="truncate text-xs uppercase tracking-[0.16em] text-slate-500">{book.author_name}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-slate-950">{formatPercent(book.conversion_rate)}</p>
+                    <p className="text-xs text-slate-500">
+                      {formatCompactNumber(book.purchases_count)} achats / {formatCompactNumber(book.views_count)} vues
+                    </p>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <p className="text-sm text-slate-500">Pas encore assez de donnees pour recommander une campagne forte.</p>
+            )}
+          </div>
+        </AdminPanel>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+        <AdminPanel title="Top auteurs en ventes estimees" description="Aggregation actuelle basee sur purchases_count multiplie par books.price.">
           <SimpleBarChart
             data={data.topAuthorsBySales.map((author) => ({
               label: author.displayName,
@@ -311,49 +330,48 @@ export default async function AdminDashboardPage() {
           />
         </AdminPanel>
 
-        <AdminPanel title="Distribution des notes" description="Répartition des notes de 1 à 5 sur l'ensemble des ratings visibles.">
+        <AdminPanel title="Distribution des notes" description="Repartition des ratings visibles de 1 a 5 sur la plateforme.">
           <SimpleBarChart data={data.ratingDistribution} emptyLabel="Aucune note disponible." />
         </AdminPanel>
       </div>
 
-      {/* Top Books Lists */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <AdminPanel title="Top livres les plus vus" description="Basé sur books.views_count.">
+        <AdminPanel title="Top livres les plus vus" description="Base sur books.views_count.">
           <div className="space-y-4">
             {data.topViewedBooks.map((book) => (
               <Link
                 key={book.id}
                 href={`/admin/books/${book.id}`}
-                className="flex items-center justify-between gap-4 rounded-md border border-gray-200 bg-white px-4 py-3 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
+                className="flex items-center justify-between gap-4 rounded-[1.2rem] border border-[#ece4d7] bg-white px-4 py-3 transition hover:bg-[#fcfaf7]"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-gray-900">{book.title}</p>
-                  <p className="truncate text-xs uppercase tracking-wide text-gray-500">{book.author_name}</p>
+                  <p className="truncate text-sm font-semibold text-slate-950">{book.title}</p>
+                  <p className="truncate text-xs uppercase tracking-[0.16em] text-slate-500">{book.author_name}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-gray-900">{formatCompactNumber(book.views_count)}</p>
-                  <p className="text-xs text-gray-500">vues</p>
+                  <p className="text-sm font-semibold text-slate-950">{formatCompactNumber(book.views_count)}</p>
+                  <p className="text-xs text-slate-500">vues</p>
                 </div>
               </Link>
             ))}
           </div>
         </AdminPanel>
 
-        <AdminPanel title="Top livres les plus achetés" description="Basé sur books.purchases_count.">
+        <AdminPanel title="Top livres les plus achetes" description="Base sur books.purchases_count.">
           <div className="space-y-4">
             {data.topPurchasedBooks.map((book) => (
               <Link
                 key={book.id}
                 href={`/admin/books/${book.id}`}
-                className="flex items-center justify-between gap-4 rounded-md border border-gray-200 bg-white px-4 py-3 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
+                className="flex items-center justify-between gap-4 rounded-[1.2rem] border border-[#ece4d7] bg-white px-4 py-3 transition hover:bg-[#fcfaf7]"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-gray-900">{book.title}</p>
-                  <p className="truncate text-xs uppercase tracking-wide text-gray-500">{book.author_name}</p>
+                  <p className="truncate text-sm font-semibold text-slate-950">{book.title}</p>
+                  <p className="truncate text-xs uppercase tracking-[0.16em] text-slate-500">{book.author_name}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-gray-900">{formatCompactNumber(book.purchases_count)}</p>
-                  <p className="text-xs text-gray-500">achats</p>
+                  <p className="text-sm font-semibold text-slate-950">{formatCompactNumber(book.purchases_count)}</p>
+                  <p className="text-xs text-slate-500">achats</p>
                 </div>
               </Link>
             ))}
@@ -361,82 +379,81 @@ export default async function AdminDashboardPage() {
         </AdminPanel>
       </div>
 
-      {/* Tables Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <AdminPanel title="Soumissions à traiter" description="Livres envoyés par les auteurs et en attente d'une revue admin.">
+      <div className="grid gap-6 xl:grid-cols-4">
+        <AdminPanel title="Soumissions a traiter" description="Livres envoyes par les auteurs et en attente de revue.">
           <AdminDataTable columns={["Livre", "Auteur", "Soumission"]}>
             {data.recentSubmittedBooks.map((book) => (
               <tr key={book.id} className="border-t border-gray-100">
                 <td className="px-4 py-3">
-                  <Link href={`/admin/books/${book.id}`} className="font-semibold text-gray-900 hover:text-[#ff9900]">
+                  <Link href={`/admin/books/${book.id}`} className="font-semibold text-slate-950 hover:text-[#ff9900]">
                     {book.title}
                   </Link>
                   <div className="mt-2">
                     <StatusBadge kind="review" value={book.review_status} />
                   </div>
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-500">{book.author_name}</td>
-                <td className="px-4 py-3 text-sm text-gray-500">{formatAdminDateTime(book.submitted_at)}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{book.author_name}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{formatAdminDateTime(book.submitted_at)}</td>
               </tr>
             ))}
           </AdminDataTable>
         </AdminPanel>
 
-        <AdminPanel title="Derniers inscrits" description="Nouveaux profils créés sur la plateforme.">
-          <AdminDataTable columns={["Utilisateur", "Rôle", "Création"]}>
-            {data.recentUsers.map((user) => (
-              <tr key={user.id} className="border-t border-gray-100">
-                <td className="px-4 py-3">
-                  <Link href={`/admin/users/${user.id}`} className="font-semibold text-gray-900 hover:text-[#ff9900]">
-                    {user.name ?? "Sans nom"}
-                  </Link>
-                  <p className="text-sm text-gray-500">{user.email}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge kind="role" value={user.role} />
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-500">{formatAdminDateTime(user.created_at)}</td>
-              </tr>
-            ))}
-          </AdminDataTable>
-        </AdminPanel>
-
-        <AdminPanel title="Dernières commandes" description="Dernières transactions visibles en base.">
+        <AdminPanel title="Dernieres commandes" description="Transactions recentes visibles en base.">
           <AdminDataTable columns={["Commande", "Statut", "Montant"]}>
             {data.recentOrders.map((order) => (
               <tr key={order.id} className="border-t border-gray-100">
                 <td className="px-4 py-3">
-                  <Link href={`/admin/orders/${order.id}`} className="font-semibold text-gray-900 hover:text-[#ff9900]">
+                  <Link href={`/admin/orders/${order.id}`} className="font-semibold text-slate-950 hover:text-[#ff9900]">
                     {order.id.slice(0, 8)}
                   </Link>
-                  <p className="text-sm text-gray-500">{order.user_name}</p>
+                  <p className="text-sm text-slate-500">{order.user_name}</p>
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge kind="payment" value={order.payment_status} />
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-500">
+                <td className="px-4 py-3 text-sm text-slate-500">
                   {formatMoney(order.total_price, order.currency_code)}
-                  <div className="text-xs uppercase tracking-wide text-gray-400">{order.itemCount} article(s)</div>
+                  <div className="text-xs uppercase tracking-wide text-slate-400">{order.itemCount} article(s)</div>
                 </td>
               </tr>
             ))}
           </AdminDataTable>
         </AdminPanel>
 
-        <AdminPanel title="Derniers livres ajoutés" description="Création de titres dans le catalogue.">
-          <AdminDataTable columns={["Livre", "État", "Ajout"]}>
+        <AdminPanel title="Derniers utilisateurs" description="Nouveaux profils crees sur la plateforme.">
+          <AdminDataTable columns={["Utilisateur", "Role", "Creation"]}>
+            {data.recentUsers.map((user) => (
+              <tr key={user.id} className="border-t border-gray-100">
+                <td className="px-4 py-3">
+                  <Link href={`/admin/users/${user.id}`} className="font-semibold text-slate-950 hover:text-[#ff9900]">
+                    {user.name ?? "Sans nom"}
+                  </Link>
+                  <p className="text-sm text-slate-500">{user.email}</p>
+                </td>
+                <td className="px-4 py-3">
+                  <StatusBadge kind="role" value={user.role} />
+                </td>
+                <td className="px-4 py-3 text-sm text-slate-500">{formatAdminDateTime(user.created_at)}</td>
+              </tr>
+            ))}
+          </AdminDataTable>
+        </AdminPanel>
+
+        <AdminPanel title="Derniers livres ajoutes" description="Creation recente de titres dans le catalogue.">
+          <AdminDataTable columns={["Livre", "Etat", "Ajout"]}>
             {data.recentBooks.map((book) => (
               <tr key={book.id} className="border-t border-gray-100">
                 <td className="px-4 py-3">
-                  <Link href={`/admin/books/${book.id}`} className="font-semibold text-gray-900 hover:text-[#ff9900]">
+                  <Link href={`/admin/books/${book.id}`} className="font-semibold text-slate-950 hover:text-[#ff9900]">
                     {book.title}
                   </Link>
-                  <p className="text-sm text-gray-500">{book.author_name}</p>
+                  <p className="text-sm text-slate-500">{book.author_name}</p>
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge kind="book" value={book.status} />
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-500">{formatAdminDateTime(book.created_at)}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{formatAdminDateTime(book.created_at)}</td>
               </tr>
             ))}
           </AdminDataTable>

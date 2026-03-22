@@ -50,18 +50,20 @@ function formatCurrency(amount: number) {
 }
 
 export default async function ReaderPurchasesPage() {
-  await requireRole(["reader"]);
+  const profile = await requireRole(["reader"]);
   const supabase = await createClient();
 
   const [{ data: orders }, { data: library }] = await Promise.all([
     supabase
       .from("orders")
       .select("id, total_price, payment_status, created_at, currency_code, order_items(price, books:book_id(id, title, cover_url, categories))")
+      .eq("user_id", profile.id)
       .order("created_at", { ascending: false })
       .returns<OrderWithItems[]>(),
     supabase
       .from("library")
       .select("book_id, purchased_at, access_type, books:book_id(id, title, price, cover_url, categories), user_subscriptions:subscription_id(status, expires_at, subscription_plans!user_subscriptions_plan_id_fkey(name))")
+      .eq("user_id", profile.id)
       .order("purchased_at", { ascending: false })
       .returns<LibraryEntry[]>(),
   ]);

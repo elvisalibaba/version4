@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { getBookFormatLabel, type CheckoutBookFormat } from "@/lib/book-formats";
 import { channelRequiresCardCustomerFields, type CinetPayChannel } from "@/lib/payments/validation";
 
 type CustomerDefaults = {
@@ -18,7 +19,7 @@ type CustomerDefaults = {
 };
 
 type CheckoutFormatOption = {
-  format: "ebook" | "paperback" | "hardcover";
+  format: CheckoutBookFormat;
   label: string;
   amount: number;
   currencyCode: string;
@@ -148,7 +149,7 @@ export function CinetPayButtons({
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">EasyPay checkout</p>
           <p className="mt-2 text-lg font-semibold text-slate-950">{bookTitle}</p>
           <p className="mt-1 text-sm leading-6 text-slate-500">
-            Paiement en redirection avec verification serveur obligatoire. Les achats ebook debloquent la bibliotheque apres confirmation.
+            Paiement en redirection avec verification serveur obligatoire. Les achats numeriques debloquent la bibliotheque apres confirmation.
           </p>
         </div>
         <span className="catalog-badge">
@@ -174,7 +175,7 @@ export function CinetPayButtons({
                     isActive ? "border-violet-500 bg-violet-100 text-violet-700" : "border-slate-200 bg-white text-slate-600 hover:border-violet-300"
                   }`}
                 >
-                  {option.label} -{" "}
+                  {option.label || getBookFormatLabel(option.format)} -{" "}
                   {new Intl.NumberFormat("en-US", {
                     style: "currency",
                     currency: option.currencyCode,

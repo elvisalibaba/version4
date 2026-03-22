@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { isBookCopyrightBlocked } from "@/lib/book-copyright";
+import { DIGITAL_BOOK_FORMATS } from "@/lib/book-formats";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { createBlogPost, deleteBlogPost, parseBlogContentInput } from "@/lib/blog";
 import { addBookToFlashSale, clearFlashSaleBooks, removeBookFromFlashSale, updateFlashSaleDiscount } from "@/lib/flash-sales";
@@ -12,6 +14,7 @@ import type {
   BookFormatType,
   BookReviewStatus,
   BookStatus,
+  CopyrightStatus,
   LibraryAccessType,
   OrderPaymentStatus,
   SubscriptionStatus,
@@ -52,6 +55,14 @@ function getBoolean(formData: FormData, key: string): boolean {
 
 function getRedirectPath(formData: FormData, fallback: string): string {
   return getString(formData, "redirect_to") || fallback;
+}
+
+function appendRedirectParam(path: string, key: string, value: string) {
+  const [pathname, search = ""] = path.split("?");
+  const searchParams = new URLSearchParams(search);
+  searchParams.set(key, value);
+  const nextSearch = searchParams.toString();
+  return nextSearch ? `${pathname}?${nextSearch}` : pathname;
 }
 
 /* --------------------------------------------------------------------------
@@ -324,13 +335,28 @@ export async function updateBookAction(formData: FormData) {
   const bookId = getString(formData, "book_id");
   const redirectTo = getRedirectPath(formData, `/admin/books/${bookId}`);
   const status = getString(formData, "status") as BookStatus;
+  const reviewStatus = getString(formData, "review_status") as BookReviewStatus;
+  const copyrightStatus = getString(formData, "copyright_status") as CopyrightStatus;
   const publishedAt = getNullableString(formData, "published_at");
+  const submittedAt = getNullableString(formData, "submitted_at");
+  const reviewedAt = getNullableString(formData, "reviewed_at");
+  const reviewNote = getNullableString(formData, "review_note");
+  const copyrightNote = getNullableString(formData, "copyright_note");
+  const isReviewedStatus = reviewStatus === "approved" || reviewStatus === "rejected" || reviewStatus === "changes_requested";
+  const isBlockedForCopyright = isBookCopyrightBlocked(copyrightStatus);
+
+  const { data: currentBook } = await supabase
+    .from("books")
+    .select("published_at, submitted_at, reviewed_at, reviewed_by, copyright_blocked_at, copyright_blocked_by")
+    .eq("id", bookId)
+    .maybeSingle();
 
   await supabase.from("books").update({
     title: getString(formData, "title"),
     subtitle: getNullableString(formData, "subtitle"),
     description: getNullableString(formData, "description"),
     author_id: getString(formData, "author_id"),
+    author_display_name: getNullableString(formData, "author_display_name"),
     status,
     language: getString(formData, "language") || "fr",
     price: getNumber(formData, "price"),
@@ -356,20 +382,31 @@ export async function updateBookAction(formData: FormData) {
     sample_pages: getNullableNumber(formData, "sample_pages"),
     is_single_sale_enabled: getBoolean(formData, "is_single_sale_enabled"),
     is_subscription_available: getBoolean(formData, "is_subscription_available"),
-    published_at: status === "published" ? publishedAt ?? new Date().toISOString() : publishedAt,
-    ...(status !== "draft"
-      ? {
-          review_status: "approved" as BookReviewStatus,
-          reviewed_at: new Date().toISOString(),
-          reviewed_by: admin.id,
-        }
-      : {}),
+    review_status: reviewStatus,
+    submitted_at: reviewStatus === "submitted" ? submittedAt ?? currentBook?.submitted_at ?? new Date().toISOString() : submittedAt,
+    reviewed_at: isReviewedStatus ? reviewedAt ?? currentBook?.reviewed_at ?? new Date().toISOString() : reviewedAt,
+    reviewed_by: isReviewedStatus ? admin.id : null,
+    review_note: reviewNote,
+    copyright_status: copyrightStatus,
+    copyright_note: copyrightNote,
+    copyright_blocked_at: isBlockedForCopyright ? currentBook?.copyright_blocked_at ?? new Date().toISOString() : null,
+    copyright_blocked_by: isBlockedForCopyright ? currentBook?.copyright_blocked_by ?? admin.id : null,
+    views_count: Math.max(0, getNumber(formData, "views_count")),
+    purchases_count: Math.max(0, getNumber(formData, "purchases_count")),
+    rating_avg: getNullableNumber(formData, "rating_avg"),
+    ratings_count: Math.max(0, getNumber(formData, "ratings_count")),
+    published_at: status === "published" ? publishedAt ?? currentBook?.published_at ?? new Date().toISOString() : publishedAt,
   }).eq("id", bookId);
 
   revalidatePath("/admin/books");
   revalidatePath(`/admin/books/${bookId}`);
   revalidatePath(`/admin/books/${bookId}/edit`);
-  redirect(redirectTo);
+  revalidatePath("/home");
+  revalidatePath("/books");
+  revalidatePath(`/book/${bookId}`);
+  revalidatePath("/dashboard/reader/library");
+  revalidatePath("/dashboard/reader/favorites");
+  redirect(appendRedirectParam(redirectTo, "saved", isBlockedForCopyright ? "copyright_blocked" : "updated"));
 }
 
 /**
@@ -382,8 +419,13 @@ export async function reviewBookSubmissionAction(formData: FormData) {
   const redirectTo = getRedirectPath(formData, `/admin/books/${bookId}`);
   const decision = getString(formData, "decision");
   const targetStatus = getString(formData, "target_status") as BookStatus;
-  const shouldPublishEbook = getBoolean(formData, "publish_ebook_format");
+  const shouldPublishDigitalFormats = getBoolean(formData, "publish_ebook_format");
   const reviewNote = getNullableString(formData, "review_note");
+  const { data: currentBook } = await supabase.from("books").select("copyright_status").eq("id", bookId).maybeSingle();
+
+  if (decision === "approve" && isBookCopyrightBlocked(currentBook?.copyright_status as CopyrightStatus | null | undefined)) {
+    redirect(appendRedirectParam(redirectTo, "review", "copyright_blocked"));
+  }
 
   const reviewPayload: {
     review_status: BookReviewStatus;
@@ -415,8 +457,8 @@ export async function reviewBookSubmissionAction(formData: FormData) {
 
   await supabase.from("books").update(reviewPayload).eq("id", bookId);
 
-  if (decision === "approve" && shouldPublishEbook) {
-    await supabase.from("book_formats").update({ is_published: true }).eq("book_id", bookId).eq("format", "ebook");
+  if (decision === "approve" && shouldPublishDigitalFormats) {
+    await supabase.from("book_formats").update({ is_published: true }).eq("book_id", bookId).in("format", [...DIGITAL_BOOK_FORMATS]);
   }
 
   revalidatePath("/admin/books");
@@ -428,7 +470,15 @@ export async function reviewBookSubmissionAction(formData: FormData) {
   revalidatePath("/home");
   revalidatePath("/books");
   revalidatePath("/librairie");
-  redirect(redirectTo);
+  const reviewResult =
+    decision === "approve"
+      ? shouldPublishDigitalFormats
+        ? "approved_published"
+        : "approved"
+      : decision === "request_changes"
+        ? "changes_requested"
+        : "rejected";
+  redirect(appendRedirectParam(redirectTo, "review", reviewResult));
 }
 
 /* --------------------------------------------------------------------------

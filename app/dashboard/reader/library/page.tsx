@@ -17,8 +17,28 @@ type LibraryEntry = {
   access_type: Database["public"]["Tables"]["library"]["Row"]["access_type"];
   subscription_id: string | null;
   books:
-    | { id: string; title: string; description: string | null; cover_url: string | null; price: number; categories: string[]; rating_avg: number | null }
-    | { id: string; title: string; description: string | null; cover_url: string | null; price: number; categories: string[]; rating_avg: number | null }[]
+    | {
+        id: string;
+        title: string;
+        description: string | null;
+        cover_url: string | null;
+        price: number;
+        categories: string[];
+        rating_avg: number | null;
+        status: Database["public"]["Tables"]["books"]["Row"]["status"];
+        copyright_status: Database["public"]["Tables"]["books"]["Row"]["copyright_status"];
+      }
+    | {
+        id: string;
+        title: string;
+        description: string | null;
+        cover_url: string | null;
+        price: number;
+        categories: string[];
+        rating_avg: number | null;
+        status: Database["public"]["Tables"]["books"]["Row"]["status"];
+        copyright_status: Database["public"]["Tables"]["books"]["Row"]["copyright_status"];
+      }[]
     | null;
   user_subscriptions:
     | { status: Database["public"]["Tables"]["user_subscriptions"]["Row"]["status"]; expires_at: string | null; subscription_plans: MaybeArray<{ name: string }> }
@@ -38,8 +58,9 @@ export default async function ReaderLibraryPage() {
   const { data: library } = await supabase
     .from("library")
     .select(
-      "book_id, purchased_at, access_type, subscription_id, books:book_id(id, title, description, cover_url, price, categories, rating_avg), user_subscriptions:subscription_id(status, expires_at, subscription_plans!user_subscriptions_plan_id_fkey(name))",
+      "book_id, purchased_at, access_type, subscription_id, books:book_id(id, title, description, cover_url, price, categories, rating_avg, status, copyright_status), user_subscriptions:subscription_id(status, expires_at, subscription_plans!user_subscriptions_plan_id_fkey(name))",
     )
+    .eq("user_id", profile.id)
     .order("purchased_at", { ascending: false })
     .returns<LibraryEntry[]>();
 
@@ -100,6 +121,7 @@ export default async function ReaderLibraryPage() {
               const subscription = firstOf(item.user_subscriptions);
               const hasActiveSubscription = item.access_type !== "subscription" || isSubscriptionCurrentlyActive(subscription ?? null);
               const planName = firstOf(subscription?.subscription_plans)?.name ?? null;
+              const isTemporarilyUnavailable = !book || book.status !== "published" || book.copyright_status === "blocked";
 
               return (
                 <article
@@ -115,7 +137,9 @@ export default async function ReaderLibraryPage() {
                         <p className="truncate text-lg font-semibold text-slate-950">{book?.title ?? "Titre indisponible"}</p>
                         <span
                           className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                            item.access_type === "subscription"
+                            isTemporarilyUnavailable
+                              ? "bg-rose-100 text-rose-700"
+                              : item.access_type === "subscription"
                               ? hasActiveSubscription
                                 ? "bg-indigo-100 text-indigo-700"
                                 : "bg-rose-100 text-rose-700"
@@ -124,7 +148,7 @@ export default async function ReaderLibraryPage() {
                                 : "bg-sky-100 text-sky-700"
                           }`}
                         >
-                          {getLibraryAccessLabel(item.access_type, hasActiveSubscription)}
+                          {isTemporarilyUnavailable ? "Indisponible" : getLibraryAccessLabel(item.access_type, hasActiveSubscription)}
                         </span>
                       </div>
                       <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">
@@ -141,9 +165,15 @@ export default async function ReaderLibraryPage() {
 
                   <div className="mt-5 flex items-center justify-between gap-3">
                     <p className="text-sm font-semibold text-slate-700">
-                      {item.access_type === "subscription" && !hasActiveSubscription ? "Acces suspendu" : getLibraryAccessLabel(item.access_type, hasActiveSubscription)}
+                      {isTemporarilyUnavailable
+                        ? "Diffusion suspendue par l equipe admin"
+                        : item.access_type === "subscription" && !hasActiveSubscription
+                          ? "Acces suspendu"
+                          : getLibraryAccessLabel(item.access_type, hasActiveSubscription)}
                     </p>
-                    {item.access_type === "subscription" && !hasActiveSubscription ? (
+                    {isTemporarilyUnavailable ? (
+                      <span className="cta-secondary px-4 py-2 text-sm">En attente de reactivation</span>
+                    ) : item.access_type === "subscription" && !hasActiveSubscription ? (
                       <Link href="/dashboard/reader/subscriptions" className="cta-secondary px-4 py-2 text-sm">
                         Reprendre Premium
                         <ArrowRight className="h-4 w-4" />

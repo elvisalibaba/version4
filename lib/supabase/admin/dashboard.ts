@@ -5,6 +5,7 @@ import {
   firstOf,
   formatRevenueBreakdown,
   resolveAssetUrl,
+  resolveAdminBookAuthorName,
   signBookAssetPaths,
   type AdminAuthorMini,
   type AdminBookMini,
@@ -92,7 +93,7 @@ function hydrateBooks(rows: BookWithAuthorRow[], signedMap: Map<string, string>)
   return rows.map((book) => ({
     ...book,
     cover_signed_url: resolveAssetUrl(book.cover_url, signedMap),
-    author_name: firstOf(book.author_profile)?.display_name ?? firstOf(book.author_profile_fallback)?.name ?? "Auteur inconnu",
+    author_name: resolveAdminBookAuthorName(book),
   }));
 }
 
@@ -145,7 +146,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     supabase
       .from("books")
       .select(
-        "id, title, subtitle, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
+        "id, title, subtitle, author_display_name, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
       )
       .order("views_count", { ascending: false })
       .order("published_at", { ascending: false, nullsFirst: false })
@@ -154,7 +155,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     supabase
       .from("books")
       .select(
-        "id, title, subtitle, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
+        "id, title, subtitle, author_display_name, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
       )
       .order("purchases_count", { ascending: false })
       .order("published_at", { ascending: false, nullsFirst: false })
@@ -172,7 +173,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     supabase
       .from("books")
       .select(
-        "id, title, subtitle, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
+        "id, title, subtitle, author_display_name, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
       )
       .order("created_at", { ascending: false })
       .limit(6)
@@ -180,7 +181,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     supabase
       .from("books")
       .select(
-        "id, title, subtitle, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
+        "id, title, subtitle, author_display_name, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
       )
       .eq("review_status", "submitted")
       .order("submitted_at", { ascending: false, nullsFirst: false })
@@ -189,7 +190,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     supabase
       .from("books")
       .select(
-        "id, title, subtitle, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
+        "id, title, subtitle, author_display_name, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
       )
       .returns<BookWithAuthorRow[]>(),
   ]);
@@ -266,7 +267,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     return {
       id: book.id,
       title: book.title,
-      author_name: firstOf(book.author_profile)?.display_name ?? firstOf(book.author_profile_fallback)?.name ?? "Auteur inconnu",
+      author_name: resolveAdminBookAuthorName(book),
       views_count: viewsCount,
       purchases_count: purchasesCount,
       conversion_rate: conversionRate,

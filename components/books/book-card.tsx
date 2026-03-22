@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Star } from "lucide-react";
+import { FavoriteBookButton } from "@/components/books/favorite-book-button";
 
 type Book = {
   id: string;
@@ -16,6 +17,7 @@ type Book = {
   rating_avg?: number | null;
   ratings_count?: number | null;
   is_free?: boolean;
+  is_favorite?: boolean;
   offer_summary_label?: string;
 };
 
@@ -39,25 +41,30 @@ export function BookCard({ book }: { book: Book }) {
       ? `${book.rating_avg.toFixed(1)}${book.ratings_count ? ` • ${book.ratings_count} avis` : ""}`
       : "Nouveau titre";
   const description =
-    book.description?.trim() || "Une fiche plus propre pour afficher clairement le livre, son auteur et son mode d'accès.";
+    book.description?.trim() || "Une fiche plus propre pour afficher clairement le livre, son auteur et son mode d acces.";
 
   return (
-    <article className="group flex h-full flex-col rounded-md border border-gray-200 bg-white shadow-sm transition hover:shadow-md hover:border-gray-300">
-      <Link href={`/book/${book.id}`} className="block overflow-hidden rounded-t-md bg-gray-100" aria-label={`Voir ${book.title}`}>
-        <div className="aspect-[0.74]">
-          {book.cover_signed_url ? (
-            <Image
-              src={book.cover_signed_url}
-              alt={book.title}
-              width={420}
-              height={580}
-              className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
-            />
-          ) : (
-            <div className="grid h-full place-items-center px-4 text-center text-sm font-semibold text-gray-500">{book.title}</div>
-          )}
+    <article className="group flex h-full flex-col rounded-md border border-gray-200 bg-white shadow-sm transition hover:border-gray-300 hover:shadow-md">
+      <div className="relative">
+        <Link href={`/book/${book.id}`} className="block overflow-hidden rounded-t-md bg-gray-100" aria-label={`Voir ${book.title}`}>
+          <div className="aspect-[0.74]">
+            {book.cover_signed_url ? (
+              <Image
+                src={book.cover_signed_url}
+                alt={book.title}
+                width={420}
+                height={580}
+                className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+              />
+            ) : (
+              <div className="grid h-full place-items-center px-4 text-center text-sm font-semibold text-gray-500">{book.title}</div>
+            )}
+          </div>
+        </Link>
+        <div className="absolute right-3 top-3">
+          <FavoriteBookButton bookId={book.id} initialIsFavorite={book.is_favorite} compact />
         </div>
-      </Link>
+      </div>
 
       <div className="flex flex-1 flex-col p-4">
         <div className="space-y-2">
@@ -86,7 +93,7 @@ export function BookCard({ book }: { book: Book }) {
 
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-gray-200 pt-4">
           <div>
-            <p className="text-xs text-gray-500">{book.is_free ? "Accès" : "Prix"}</p>
+            <p className="text-xs text-gray-500">{book.is_free ? "Acces" : "Prix"}</p>
             <p className="text-lg font-bold text-gray-900">{priceLabel}</p>
           </div>
 

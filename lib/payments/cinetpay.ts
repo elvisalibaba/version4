@@ -1,5 +1,7 @@
 import "server-only";
 
+import { isBookCopyrightBlocked } from "@/lib/book-copyright";
+import { CHECKOUT_BOOK_FORMATS, isDigitalBookFormat } from "@/lib/book-formats";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import type { Database, OrderPaymentStatus } from "@/types/database";
 import type { CheckoutBookFormat, CinetPayChannel, ValidatedCheckoutCustomer } from "./validation";
@@ -9,11 +11,11 @@ type OrderInsert = Database["public"]["Tables"]["orders"]["Insert"];
 type OrderUpdate = Database["public"]["Tables"]["orders"]["Update"];
 type OrderItemRow = Database["public"]["Tables"]["order_items"]["Row"];
 type OrderItemInsert = Database["public"]["Tables"]["order_items"]["Insert"];
-type BookTitleRow = Pick<Database["public"]["Tables"]["books"]["Row"], "id" | "title">;
+type BookTitleRow = Pick<Database["public"]["Tables"]["books"]["Row"], "id" | "title" | "status" | "copyright_status">;
 
 type CheckoutBookRow = Pick<
   Database["public"]["Tables"]["books"]["Row"],
-  "id" | "title" | "status" | "price" | "currency_code" | "is_single_sale_enabled"
+  "id" | "title" | "status" | "copyright_status" | "price" | "currency_code" | "is_single_sale_enabled"
 > & {
   book_formats:
     | Array<{
@@ -87,7 +89,7 @@ type EasyPayConfig = {
   publishableKey: string;
 };
 
-const CHECKOUT_FORMAT_PRIORITY: CheckoutBookFormat[] = ["ebook", "paperback", "hardcover"];
+const CHECKOUT_FORMAT_PRIORITY: CheckoutBookFormat[] = [...CHECKOUT_BOOK_FORMATS];
 
 export class PaymentFlowError extends Error {
   status: number;
@@ -233,7 +235,7 @@ async function loadCheckoutBookContext(userId: string, bookId: string, requested
   const [bookResult, libraryResult] = await Promise.all([
     service
       .from("books")
-      .select("id, title, status, price, currency_code, is_single_sale_enabled, book_formats!left(format, price, currency_code, is_published)")
+      .select("id, title, status, copyright_status, price, currency_code, is_single_sale_enabled, book_formats!left(format, price, currency_code, is_published)")
       .filter("id", "eq", bookId)
       .maybeSingle(),
     service
@@ -250,6 +252,10 @@ async function loadCheckoutBookContext(userId: string, bookId: string, requested
 
   if (!book || book.status !== "published") {
     throw new PaymentFlowError("Ce livre n est pas disponible a la vente.", 404);
+  }
+
+  if (isBookCopyrightBlocked(book.copyright_status)) {
+    throw new PaymentFlowError("Ce livre est temporairement bloque pour verification de droits d auteur.", 409);
   }
 
   if (!book.is_single_sale_enabled) {
@@ -272,7 +278,7 @@ async function loadCheckoutBookContext(userId: string, bookId: string, requested
 
   const effectiveFormat = (selectedFormat?.format ?? "ebook") as CheckoutBookFormat;
 
-  if (existingLibraryEntry?.access_type === "purchase" && effectiveFormat === "ebook") {
+  if (existingLibraryEntry?.access_type === "purchase" && isDigitalBookFormat(effectiveFormat)) {
     throw new PaymentFlowError("Ce livre a deja ete achete sur votre compte.", 409);
   }
 
@@ -330,9 +336,24 @@ async function loadPreparedOrderForUser(userId: string, orderId: string): Promis
   const bookIds = Array.from(new Set(items.map((item) => item.book_id)));
   const { data: bookData } = await service
     .from("books")
-    .select("id, title")
+    .select("id, title, status, copyright_status")
     .filter("id", "in", toPostgrestInFilter(bookIds));
-  const titleMap = new Map(((bookData ?? []) as BookTitleRow[]).map((book) => [book.id, book.title]));
+  const books = (bookData ?? []) as BookTitleRow[];
+  const titleMap = new Map(books.map((book) => [book.id, book.title]));
+
+  if (books.length !== bookIds.length) {
+    throw new PaymentFlowError("Un des livres de cette commande n est plus disponible.", 409);
+  }
+
+  const unavailableBook = books.find((book) => book.status !== "published");
+  if (unavailableBook) {
+    throw new PaymentFlowError(`Le livre "${unavailableBook.title}" n est plus publiable dans cette commande.`, 409);
+  }
+
+  const blockedBook = books.find((book) => isBookCopyrightBlocked(book.copyright_status));
+  if (blockedBook) {
+    throw new PaymentFlowError(`Le livre "${blockedBook.title}" est bloque pour verification de droits d auteur.`, 409);
+  }
 
   return {
     order,
@@ -719,7 +740,7 @@ async function persistVerifiedOrderState(params: {
   }
 
   for (const item of params.items) {
-    if ((item.book_format ?? "ebook") !== "ebook") {
+    if (!isDigitalBookFormat(item.book_format ?? "ebook")) {
       continue;
     }
 

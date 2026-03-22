@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { FavoriteBookButton } from "@/components/books/favorite-book-button";
 import { CinetPayButtons } from "@/components/payments/cinetpay-buttons";
 import { ReaderPopup } from "@/components/reader/reader-popup";
 import { getLibraryAccessLabel } from "@/lib/access-labels";
+import { getBookFormatLabel, type CheckoutBookFormat } from "@/lib/book-formats";
 
 type SubscriptionPlan = {
   id: string;
@@ -27,10 +29,11 @@ type BookDetailView = {
   display_price_label: string;
   offer_summary_label: string;
   categories: string[];
+  is_favorite?: boolean;
   is_single_sale_enabled: boolean;
   is_subscription_available: boolean;
   purchase_formats: Array<{
-    format: "ebook" | "paperback" | "hardcover";
+    format: CheckoutBookFormat;
     price: number;
     currency_code: string;
   }>;
@@ -139,6 +142,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, checkoutC
                   {book.subtitle ? <p className="mt-3 text-base leading-7 text-slate-500">{book.subtitle}</p> : null}
                 </div>
                 <p className="max-w-3xl text-[0.96rem] leading-7 text-slate-600">{book.description ?? "Description indisponible."}</p>
+                <FavoriteBookButton bookId={book.id} initialIsFavorite={book.is_favorite} />
               </div>
 
               <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
@@ -179,12 +183,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, checkoutC
                         currencyCode={book.currency_code}
                         formatOptions={book.purchase_formats.map((format) => ({
                           format: format.format,
-                          label:
-                            format.format === "paperback"
-                              ? "Paperback"
-                              : format.format === "hardcover"
-                                ? "Hardcover"
-                                : "Ebook",
+                          label: getBookFormatLabel(format.format),
                           amount: format.price,
                           currencyCode: format.currency_code,
                         }))}

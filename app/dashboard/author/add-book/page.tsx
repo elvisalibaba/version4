@@ -34,7 +34,7 @@ export default async function AddBookPage() {
       <DashboardTopbar
         kicker="Publishing lab"
         title="Ajouter un nouveau livre"
-        description="Renseignez les metadonnees, importez les fichiers, proposez vos formats puis enregistrez le brouillon ou soumettez le livre a l admin pour validation."
+        description="Le parcours commence par l essentiel: titre, auteur, description, categorie, fichiers, prix et mode de vente. Les details avances restent optionnels."
         actions={
           <>
             <Link href="/dashboard/author/books" className="cta-primary px-5 py-3 text-sm">

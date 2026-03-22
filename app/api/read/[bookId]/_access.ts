@@ -1,4 +1,6 @@
 import { getBlockedAccessMessage, getReaderBookAccessState, syncLibraryAccessEntry } from "@/lib/book-access";
+import { isBookCopyrightBlocked } from "@/lib/book-copyright";
+import { DIGITAL_BOOK_FORMATS, findPreferredFormat } from "@/lib/book-formats";
 import { createClient } from "@/lib/supabase/server";
 import type { BookFormatType, Database } from "@/types/database";
 
@@ -10,7 +12,7 @@ export type ReadAccessResult =
 
 type BookWithFormats = Pick<
   Database["public"]["Tables"]["books"]["Row"],
-  "id" | "file_url" | "price" | "status" | "is_single_sale_enabled" | "is_subscription_available"
+  "id" | "file_url" | "price" | "status" | "copyright_status" | "is_single_sale_enabled" | "is_subscription_available"
 > & {
   book_formats?: {
     format: BookFormatType;
@@ -35,7 +37,7 @@ export async function resolveReadAccess(bookId: string, userId: string): Promise
   const { data } = await supabase
     .from("books")
     .select(
-      "id, file_url, price, status, is_single_sale_enabled, is_subscription_available, book_formats!left(format, file_url, price, is_published, currency_code), subscription_plan_books!left(plan_id)",
+      "id, file_url, price, status, copyright_status, is_single_sale_enabled, is_subscription_available, book_formats!left(format, file_url, price, is_published, currency_code), subscription_plan_books!left(plan_id)",
     )
     .eq("id", bookId)
     .eq("status", "published")
@@ -48,8 +50,15 @@ export async function resolveReadAccess(bookId: string, userId: string): Promise
     return { ok: false, status: 404, error: "Livre introuvable." };
   }
 
-  const ebookFormat = (book.book_formats ?? []).find((format) => format.format === "ebook" && format.is_published);
-  const effectivePrice = ebookFormat?.price ?? book.price ?? 0;
+  if (isBookCopyrightBlocked(book.copyright_status)) {
+    return { ok: false, status: 403, error: "La lecture est suspendue sur ce livre pour verification de droits d auteur." };
+  }
+
+  const digitalFormat = findPreferredFormat(
+    (book.book_formats ?? []).filter((format) => format.is_published && DIGITAL_BOOK_FORMATS.includes(format.format as (typeof DIGITAL_BOOK_FORMATS)[number])),
+    DIGITAL_BOOK_FORMATS,
+  );
+  const effectivePrice = digitalFormat?.price ?? book.price ?? 0;
   const accessState = await getReaderBookAccessState({
     userId,
     bookId,
@@ -77,7 +86,7 @@ export async function resolveReadAccess(bookId: string, userId: string): Promise
     supabase,
   });
 
-  const secureFilePath = ebookFormat?.file_url ?? book.file_url;
+  const secureFilePath = digitalFormat?.file_url ?? book.file_url;
   if (!secureFilePath) {
     return { ok: false, status: 404, error: "Aucun fichier lisible disponible." };
   }

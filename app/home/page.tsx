@@ -299,7 +299,7 @@ export default async function HomePage() {
                   href={`/book/${dailyDeal.id}`}
                   className="inline-flex items-center gap-2 rounded-md bg-[#ff9900] px-5 py-2 text-sm font-semibold text-white hover:bg-[#e68900] transition"
                 >
-                  Voir l'offre
+                  Voir l&apos;offre
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
@@ -431,7 +431,7 @@ export default async function HomePage() {
           </div>
 
           <div className="bg-[#232f3e] rounded-md p-6 text-white shadow-sm">
-            <h2 className="text-xl font-bold">Besoin d'aide ?</h2>
+            <h2 className="text-xl font-bold">Besoin d&apos;aide ?</h2>
             <p className="mt-2 text-gray-200">
               Orientez les lecteurs vers la boutique et les auteurs vers le studio, avec un point de contact visible comme sur les grandes plateformes.
             </p>

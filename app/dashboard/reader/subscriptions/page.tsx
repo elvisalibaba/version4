@@ -31,7 +31,7 @@ function firstOf<T>(value: MaybeArray<T>) {
 }
 
 export default async function ReaderSubscriptionsPage() {
-  await requireRole(["reader"]);
+  const profile = await requireRole(["reader"]);
   const supabase = await createClient();
 
   const [{ data: plans }, { data: subscriptions }] = await Promise.all([
@@ -44,6 +44,7 @@ export default async function ReaderSubscriptionsPage() {
     supabase
       .from("user_subscriptions")
       .select("id, status, started_at, expires_at, subscription_plans!user_subscriptions_plan_id_fkey(id, name, slug)")
+      .eq("user_id", profile.id)
       .order("created_at", { ascending: false })
       .returns<UserSubscriptionRow[]>(),
   ]);

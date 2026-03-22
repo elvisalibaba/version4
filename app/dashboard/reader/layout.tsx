@@ -9,9 +9,10 @@ export default async function ReaderDashboardLayout({
 }>) {
   const profile = await getCurrentUserProfile();
   const navigation: Array<{ href: string; label: string; icon: DashboardIconName; exact?: boolean }> = [
-    { href: "/dashboard/reader", label: "Vue d'ensemble", icon: "book-open", exact: true },
+    { href: "/dashboard/reader", label: "Tableau de bord", icon: "book-open", exact: true },
     { href: "/dashboard/reader/library", label: "Bibliotheque", icon: "library-big" },
-    { href: "/dashboard/reader/purchases", label: "Historique", icon: "receipt" },
+    { href: "/dashboard/reader/favorites", label: "Favoris", icon: "heart" },
+    { href: "/dashboard/reader/purchases", label: "Transactions", icon: "receipt" },
     { href: "/dashboard/reader/subscriptions", label: "Premium", icon: "gem" },
     { href: "/dashboard/reader/affiliations", label: "Affiliation", icon: "circle-dollar-sign" },
   ];
@@ -19,11 +20,12 @@ export default async function ReaderDashboardLayout({
   return (
     <DashboardShell
       areaLabel="Reader workspace"
-      headline="Bibliotheque, achats et Premium"
-      description="Un espace lecteur plus clair pour suivre les lectures, les acquisitions et les abonnements sans surcharge visuelle."
+      headline="Bibliotheque, achats et abonnements"
+      description="Une console lecteur plus propre pour reprendre une lecture, verifier un achat et garder le cap sur Premium."
       userName={profile?.name ?? profile?.email ?? "Reader"}
       userRole="Lecteur"
       navigation={navigation}
+      theme="reader"
     >
       {children}
     </DashboardShell>

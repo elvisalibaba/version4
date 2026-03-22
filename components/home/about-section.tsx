@@ -5,9 +5,9 @@ export function AboutSection() {
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-12 items-start">
           {/* Texte principal */}
           <div className="space-y-4">
-            <p className="text-sm font-semibold uppercase tracking-wide text-[#ff9900]">Notre maison d'édition</p>
+            <p className="text-sm font-semibold uppercase tracking-wide text-[#ff9900]">Notre maison d&apos;édition</p>
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Une maison d'édition premium et transformationnelle qui accompagne, produit et diffuse avec exigence.
+              Une maison d&apos;édition premium et transformationnelle qui accompagne, produit et diffuse avec exigence.
             </h2>
             <p className="text-gray-600">
               Holistique Books connecte les lecteurs, auteurs et éditeurs africains avec un modèle hybride :

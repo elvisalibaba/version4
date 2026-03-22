@@ -1,5 +1,6 @@
+import { CHECKOUT_BOOK_FORMATS } from "@/lib/book-formats";
+
 export const CINETPAY_CHANNELS = ["ALL", "MOBILE_MONEY", "CREDIT_CARD"] as const;
-export const CHECKOUT_BOOK_FORMATS = ["ebook", "paperback", "hardcover"] as const;
 
 export type CinetPayChannel = (typeof CINETPAY_CHANNELS)[number];
 export type CheckoutBookFormat = (typeof CHECKOUT_BOOK_FORMATS)[number];
@@ -267,7 +268,7 @@ export function validateCinetPayInitPayload(input: unknown): CinetPayInitPayload
   }
 
   if (rawBookFormat && !bookFormat) {
-    throw new Error("bookFormat doit etre ebook, paperback ou hardcover.");
+    throw new Error("bookFormat doit etre holistique_store, ebook, paperback, pocket ou hardcover.");
   }
 
   if (orderId && bookFormat) {

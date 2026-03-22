@@ -1,3 +1,4 @@
+import { createEmptyFormatBreakdown } from "@/lib/book-formats";
 import { createClient } from "@/lib/supabase/server";
 import {
   ADMIN_DEFAULT_PAGE_SIZE,
@@ -36,12 +37,7 @@ type OrderItemRow = {
 export type AdminOrderListItem = OrderRow & {
   user_name: string;
   itemCount: number;
-  formatBreakdown: {
-    ebook: number;
-    paperback: number;
-    hardcover: number;
-    audiobook: number;
-  };
+  formatBreakdown: Record<BookFormatType, number>;
 };
 
 export type AdminOrdersPageData = AdminPagedResult<AdminOrderListItem> & {
@@ -157,26 +153,13 @@ export async function listAdminOrders(params: {
       : { data: [] as Array<{ order_id: string; book_format: BookFormatType }>, error: null };
 
   const itemCountByOrderId = new Map<string, number>();
-  const formatByOrderId = new Map<
-    string,
-    {
-      ebook: number;
-      paperback: number;
-      hardcover: number;
-      audiobook: number;
-    }
-  >();
+  const formatByOrderId = new Map<string, Record<BookFormatType, number>>();
 
   function ensureFormatBucket(orderId: string) {
     const current = formatByOrderId.get(orderId);
     if (current) return current;
 
-    const next = {
-      ebook: 0,
-      paperback: 0,
-      hardcover: 0,
-      audiobook: 0,
-    };
+    const next = createEmptyFormatBreakdown();
     formatByOrderId.set(orderId, next);
     return next;
   }
@@ -198,7 +181,7 @@ export async function listAdminOrders(params: {
       ...order,
       user_name: firstOf(order.user)?.name ?? firstOf(order.user)?.email ?? "Utilisateur inconnu",
       itemCount: itemCountByOrderId.get(order.id) ?? 0,
-      formatBreakdown: formatByOrderId.get(order.id) ?? { ebook: 0, paperback: 0, hardcover: 0, audiobook: 0 },
+      formatBreakdown: formatByOrderId.get(order.id) ?? createEmptyFormatBreakdown(),
     })),
     pagination: buildPagination(count, page, ADMIN_DEFAULT_PAGE_SIZE),
     notices,
@@ -236,12 +219,7 @@ export async function getAdminOrderDetail(orderId: string): Promise<AdminOrderDe
     .eq("order_id", orderId)
     .returns<OrderItemRow[]>();
 
-  const detailFormatBreakdown = {
-    ebook: 0,
-    paperback: 0,
-    hardcover: 0,
-    audiobook: 0,
-  };
+  const detailFormatBreakdown = createEmptyFormatBreakdown();
 
   (itemsResult.data ?? []).forEach((item) => {
     const key = item.book_format ?? "ebook";

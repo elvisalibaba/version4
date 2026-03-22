@@ -23,9 +23,9 @@ export function SimpleBarChart({ data, emptyLabel = "Aucune donnee disponible." 
               {item.suffix ?? ""}
             </span>
           </div>
-          <div className="h-3 overflow-hidden rounded-full bg-violet-50">
+          <div className="h-3 overflow-hidden rounded-full bg-[#f6efe1]">
             <div
-              className="h-full rounded-full bg-[linear-gradient(90deg,#7d65ff,#ff9c81)]"
+              className="h-full rounded-full bg-[linear-gradient(90deg,#146eb4,#ff9900)]"
               style={{ width: `${Math.max((item.value / maxValue) * 100, 8)}%` }}
             />
           </div>

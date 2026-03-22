@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BOOK_FORMATS, getBookFormatLabel } from "@/lib/book-formats";
 import { formatMoney } from "@/lib/book-offers";
 import { listAdminOrders } from "@/lib/supabase/admin/orders";
 import { formatAdminDateTime } from "@/lib/supabase/admin/shared";
@@ -85,7 +86,7 @@ export default async function AdminOrdersPage({ searchParams }: OrdersPageProps)
         </AdminFilterBar>
       </AdminPanel>
 
-      <AdminPanel title="Toutes les commandes" description="Vue consolidee orders + formats commandes (ebook, paperback, hardcover).">
+      <AdminPanel title="Toutes les commandes" description="Vue consolidee orders + formats commandes numeriques et papier.">
         <AdminDataTable columns={["Commande", "Utilisateur", "Montant", "Statut", "Date", "Formats", "Items"]}>
           {data.items.map((order) => (
             <tr key={order.id} className="border-t border-violet-100/70">
@@ -102,18 +103,11 @@ export default async function AdminOrdersPage({ searchParams }: OrdersPageProps)
               <td className="px-4 py-3 text-sm text-slate-500">{formatAdminDateTime(order.created_at)}</td>
               <td className="px-4 py-3">
                 <div className="flex flex-wrap gap-2">
-                  {order.formatBreakdown.ebook > 0 ? (
-                    <StatusBadge kind="format" value="ebook" label={`ebook x${order.formatBreakdown.ebook}`} />
-                  ) : null}
-                  {order.formatBreakdown.paperback > 0 ? (
-                    <StatusBadge kind="format" value="paperback" label={`paperback x${order.formatBreakdown.paperback}`} />
-                  ) : null}
-                  {order.formatBreakdown.hardcover > 0 ? (
-                    <StatusBadge kind="format" value="hardcover" label={`hardcover x${order.formatBreakdown.hardcover}`} />
-                  ) : null}
-                  {order.formatBreakdown.audiobook > 0 ? (
-                    <StatusBadge kind="format" value="audiobook" label={`audiobook x${order.formatBreakdown.audiobook}`} />
-                  ) : null}
+                  {BOOK_FORMATS.map((format) =>
+                    order.formatBreakdown[format] > 0 ? (
+                      <StatusBadge key={`${order.id}-${format}`} kind="format" value={format} label={`${getBookFormatLabel(format)} x${order.formatBreakdown[format]}`} />
+                    ) : null,
+                  )}
                   {order.itemCount === 0 ? <span className="text-xs text-slate-400">-</span> : null}
                 </div>
               </td>

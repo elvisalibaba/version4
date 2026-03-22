@@ -15,6 +15,7 @@ type EditableBookRow = Pick<
   | "title"
   | "subtitle"
   | "description"
+  | "author_display_name"
   | "isbn"
   | "language"
   | "publisher"
@@ -84,7 +85,7 @@ export default async function EditAuthorBookPage({ params }: PageProps) {
     supabase
       .from("books")
       .select(
-        "id, title, subtitle, description, isbn, language, publisher, publication_date, page_count, co_authors, categories, tags, age_rating, edition, series_name, series_position, cover_alt_text, sample_pages, price, file_format, file_size, cover_url, cover_thumbnail_url, file_url, sample_url, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, review_note, author:author_profiles!books_author_profile_id_fkey(display_name), book_formats(format, price, stock_quantity, downloadable, is_published, printing_cost, file_size_mb, file_url), subscription_plan_books(plan_id)",
+        "id, title, subtitle, description, author_display_name, isbn, language, publisher, publication_date, page_count, co_authors, categories, tags, age_rating, edition, series_name, series_position, cover_alt_text, sample_pages, price, file_format, file_size, cover_url, cover_thumbnail_url, file_url, sample_url, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, review_note, author:author_profiles!books_author_profile_id_fkey(display_name), book_formats(format, price, stock_quantity, downloadable, is_published, printing_cost, file_size_mb, file_url), subscription_plan_books(plan_id)",
       )
       .eq("id", bookId)
       .eq("author_id", profile.id)
@@ -112,7 +113,7 @@ export default async function EditAuthorBookPage({ params }: PageProps) {
       <DashboardTopbar
         kicker="Author studio"
         title={`Modifier "${book.title}"`}
-        description="Ajustez les metadonnees, les formats et la disponibilite Premium avant une nouvelle revue admin."
+        description="Mettez d abord a jour les informations essentielles, puis ouvrez les details optionnels seulement si vous en avez besoin avant une nouvelle revue admin."
         actions={
           <>
             <Link href="/dashboard/author/books" className="cta-primary px-5 py-3 text-sm">
@@ -133,7 +134,7 @@ export default async function EditAuthorBookPage({ params }: PageProps) {
           initialValues={{
             id: book.id,
             title: book.title,
-            authorFullName: firstOf(book.author)?.display_name ?? profile.name ?? "",
+            authorFullName: book.author_display_name ?? firstOf(book.author)?.display_name ?? profile.name ?? "",
             subtitle: book.subtitle ?? "",
             description: book.description ?? "",
             isbn: book.isbn ?? "",
@@ -155,7 +156,9 @@ export default async function EditAuthorBookPage({ params }: PageProps) {
             ebookFileSizeMb: ebookFormat?.file_size_mb ?? (book.file_size ? Math.ceil(book.file_size / (1024 * 1024)) : null),
             ebookStoredFileSize: book.file_size,
             ebookFileFormat: book.file_format,
+            holistiqueStore: buildOptionalFormatState(formats.find((format) => format.format === "holistique_store")),
             paperback: buildOptionalFormatState(formats.find((format) => format.format === "paperback")),
+            pocket: buildOptionalFormatState(formats.find((format) => format.format === "pocket")),
             hardcover: buildOptionalFormatState(formats.find((format) => format.format === "hardcover")),
             audiobook: buildOptionalFormatState(formats.find((format) => format.format === "audiobook")),
             coverPath: book.cover_url,

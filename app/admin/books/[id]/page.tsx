@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getCopyrightStatusLabel } from "@/lib/book-copyright";
+import { getBookFormatLabel } from "@/lib/book-formats";
 import { formatMoney } from "@/lib/book-offers";
 import { getAdminBookDetail } from "@/lib/supabase/admin/books";
 import { formatAdminDateTime } from "@/lib/supabase/admin/shared";
@@ -13,11 +15,71 @@ import { AdminNotice } from "@/components/admin/shared/admin-notice";
 
 type BookDetailPageProps = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ review?: string; saved?: string }>;
 };
 
-export default async function AdminBookDetailPage({ params }: BookDetailPageProps) {
+function getReviewFlash(reviewResult: string | undefined) {
+  switch (reviewResult) {
+    case "approved_published":
+      return {
+        tone: "success" as const,
+        title: "Livre valide et formats numeriques publies",
+        description: "La soumission a ete approuvee, le statut du livre a ete mis a jour et les formats numeriques disponibles ont ete actives.",
+      };
+    case "approved":
+      return {
+        tone: "success" as const,
+        title: "Livre valide",
+        description: "La soumission a ete approuvee. Le livre est maintenant autorise cote admin.",
+      };
+    case "changes_requested":
+      return {
+        tone: "warning" as const,
+        title: "Corrections demandees",
+        description: "Le livre a ete renvoye a l auteur avec une note de revue pour correction.",
+      };
+    case "rejected":
+      return {
+        tone: "danger" as const,
+        title: "Soumission refusee",
+        description: "Le livre a ete refuse et reste hors ligne tant qu une nouvelle soumission n est pas faite.",
+      };
+    case "copyright_blocked":
+      return {
+        tone: "danger" as const,
+        title: "Publication refusee par blocage droits",
+        description: "Ce livre est marque comme bloque pour droit d auteur. Levez d abord le blocage avant de le valider.",
+      };
+    default:
+      return null;
+  }
+}
+
+function getSaveFlash(saveResult: string | undefined) {
+  switch (saveResult) {
+    case "updated":
+      return {
+        tone: "success" as const,
+        title: "Livre mis a jour",
+        description: "Les champs admin du livre ont ete enregistres.",
+      };
+    case "copyright_blocked":
+      return {
+        tone: "danger" as const,
+        title: "Livre bloque pour droits d auteur",
+        description: "Le livre reste visible cote admin mais il n est plus diffusable tant que le blocage n est pas leve.",
+      };
+    default:
+      return null;
+  }
+}
+
+export default async function AdminBookDetailPage({ params, searchParams }: BookDetailPageProps) {
   const { id } = await params;
+  const { review, saved } = await searchParams;
   const data = await getAdminBookDetail(id);
+  const reviewFlash = getReviewFlash(review);
+  const saveFlash = getSaveFlash(saved);
 
   if (!data) {
     notFound();
@@ -53,11 +115,14 @@ export default async function AdminBookDetailPage({ params }: BookDetailPageProp
         </div>
       ) : null}
 
+      {reviewFlash ? <AdminNotice tone={reviewFlash.tone} title={reviewFlash.title} description={reviewFlash.description} /> : null}
+      {saveFlash ? <AdminNotice tone={saveFlash.tone} title={saveFlash.title} description={saveFlash.description} /> : null}
+
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <AdminPanel title="Metadonnees" description="Colonnes principales de la table books.">
           <dl className="grid gap-4 text-sm">
             <div>
-              <dt className="font-semibold text-slate-950">Auteur</dt>
+              <dt className="font-semibold text-slate-950">Auteur affiche</dt>
               <dd className="text-slate-500">{data.book.author_name}</dd>
             </div>
             <div>
@@ -71,6 +136,15 @@ export default async function AdminBookDetailPage({ params }: BookDetailPageProp
               <dd className="mt-2 flex flex-wrap items-center gap-2">
                 <StatusBadge kind="review" value={data.book.review_status} />
                 {data.book.reviewer_name ? <span className="text-xs uppercase tracking-[0.14em] text-slate-400">Par {data.book.reviewer_name}</span> : null}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-slate-950">Droits d auteur</dt>
+              <dd className="mt-2 flex flex-wrap items-center gap-2">
+                <StatusBadge kind="copyright" value={data.book.copyright_status} label={getCopyrightStatusLabel(data.book.copyright_status)} />
+                {data.book.copyright_blocker_name ? (
+                  <span className="text-xs uppercase tracking-[0.14em] text-slate-400">Par {data.book.copyright_blocker_name}</span>
+                ) : null}
               </dd>
             </div>
             <div>
@@ -108,6 +182,10 @@ export default async function AdminBookDetailPage({ params }: BookDetailPageProp
               <dt className="font-semibold text-slate-950">Note de revue</dt>
               <dd className="text-slate-500">{data.book.review_note ?? "Aucune note admin pour le moment."}</dd>
             </div>
+            <div>
+              <dt className="font-semibold text-slate-950">Note droits</dt>
+              <dd className="text-slate-500">{data.book.copyright_note ?? "Aucune note juridique pour le moment."}</dd>
+            </div>
           </dl>
         </AdminPanel>
 
@@ -138,6 +216,11 @@ export default async function AdminBookDetailPage({ params }: BookDetailPageProp
             />
           </label>
           <div className="grid gap-4">
+            {data.book.copyright_status === "blocked" ? (
+              <div className="rounded-[1.3rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+                Publication verrouillee: ce livre est bloque pour droits d auteur. Passez d abord par l edition admin pour lever le blocage ou documenter la correction.
+              </div>
+            ) : null}
             <label className="grid gap-2">
               <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Statut cible si accepte</span>
               <select name="target_status" defaultValue={data.book.status === "coming_soon" ? "coming_soon" : "published"} className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900">
@@ -148,17 +231,23 @@ export default async function AdminBookDetailPage({ params }: BookDetailPageProp
             </label>
             <label className="flex items-center gap-3 rounded-2xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-700">
               <input type="checkbox" name="publish_ebook_format" defaultChecked />
-              Publier aussi le format ebook
+              Publier aussi les formats numeriques (Holistique Store / eBook)
             </label>
             <div className="flex flex-wrap gap-3">
-              <button type="submit" name="decision" value="approve" className="cta-primary px-5 py-3 text-sm">
-                Accepter
+              <button
+                type="submit"
+                name="decision"
+                value="approve"
+                disabled={data.book.copyright_status === "blocked"}
+                className="cta-primary px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Valider le livre
               </button>
               <button type="submit" name="decision" value="request_changes" className="cta-secondary px-5 py-3 text-sm">
-                Demander corrections
+                Demander des corrections
               </button>
               <button type="submit" name="decision" value="reject" className="cta-secondary px-5 py-3 text-sm text-rose-700">
-                Refuser
+                Refuser la soumission
               </button>
             </div>
           </div>
@@ -215,7 +304,7 @@ export default async function AdminBookDetailPage({ params }: BookDetailPageProp
             <tr key={format.id} className="border-t border-violet-100/70">
               <td className="px-4 py-3">
                 <Link href={`/admin/formats/${format.id}`} className="font-semibold text-slate-950 hover:text-violet-700">
-                  {format.format}
+                  {getBookFormatLabel(format.format)}
                 </Link>
               </td>
               <td className="px-4 py-3 text-sm text-slate-500">{formatMoney(format.price, format.currency_code)}</td>

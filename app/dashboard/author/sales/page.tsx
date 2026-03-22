@@ -16,17 +16,18 @@ export default async function AuthorSalesPage() {
   const profile = await requireRole(["author"]);
   const supabase = await createClient();
 
-  const { data } = await supabase
-    .from("order_items")
-    .select("price, books:book_id(title, author_id), orders:order_id(created_at, payment_status)")
-    .order("id", { ascending: false })
-    .returns<OrderItemWithBook[]>();
+  const { data: books } = await supabase.from("books").select("id").eq("author_id", profile.id);
+  const bookIds = (books ?? []).map((book) => book.id);
+  const { data } = bookIds.length
+    ? await supabase
+        .from("order_items")
+        .select("price, books:book_id(title, author_id), orders:order_id(created_at, payment_status)")
+        .in("book_id", bookIds)
+        .order("id", { ascending: false })
+        .returns<OrderItemWithBook[]>()
+    : { data: [] as OrderItemWithBook[] };
 
-  const sales = (data ?? []) as OrderItemWithBook[];
-  const ownSales = sales.filter((item) => {
-    const book = Array.isArray(item.books) ? item.books[0] : item.books;
-    return book?.author_id === profile.id;
-  });
+  const ownSales = (data ?? []) as OrderItemWithBook[];
 
   const paidSales = ownSales.filter((sale) => {
     const order = Array.isArray(sale.orders) ? sale.orders[0] : sale.orders;

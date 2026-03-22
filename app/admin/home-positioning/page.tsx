@@ -169,7 +169,7 @@ export default async function AdminHomePositioningPage() {
             );
           })}
         </AdminDataTable>
-        {data.selectedBooks.length === 0 ? <p className="mt-4 text-sm text-gray-500">Aucun livre n'est actuellement épinglé.</p> : null}
+        {data.selectedBooks.length === 0 ? <p className="mt-4 text-sm text-gray-500">Aucun livre n&apos;est actuellement épinglé.</p> : null}
       </AdminPanel>
 
       <AdminPanel
@@ -191,7 +191,7 @@ export default async function AdminHomePositioningPage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-500">Aucun livre publié disponible pour l'aperçu.</p>
+          <p className="text-sm text-gray-500">Aucun livre publié disponible pour l&apos;aperçu.</p>
         )}
       </AdminPanel>
     </div>

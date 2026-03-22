@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BOOK_FORMATS, getBookFormatLabel } from "@/lib/book-formats";
 import { formatMoney } from "@/lib/book-offers";
 import { deleteBookFormatAction, saveBookFormatAction } from "@/app/admin/actions";
 import { ConfirmSubmitButton } from "@/components/admin/forms/confirm-submit-button";
@@ -23,12 +24,12 @@ export default async function AdminFormatDetailPage({ params }: FormatDetailPage
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        title={`${data.format.format} - ${data.book.title}`}
+        title={`${getBookFormatLabel(data.format.format)} - ${data.book.title}`}
         description="Edition d un format lie a un livre, avec controle de publication, prix et lecture protegee web/app."
         breadcrumbs={[
           { label: "Admin", href: "/admin" },
           { label: "Formats", href: "/admin/formats" },
-          { label: data.format.format },
+          { label: getBookFormatLabel(data.format.format) },
         ]}
       />
 
@@ -69,10 +70,11 @@ export default async function AdminFormatDetailPage({ params }: FormatDetailPage
               <label className="grid gap-2">
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Format</span>
                 <select name="format" defaultValue={data.format.format} className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900">
-                  <option value="ebook">ebook</option>
-                  <option value="paperback">paperback</option>
-                  <option value="hardcover">hardcover</option>
-                  <option value="audiobook">audiobook</option>
+                  {BOOK_FORMATS.map((format) => (
+                    <option key={format} value={format}>
+                      {getBookFormatLabel(format)}
+                    </option>
+                  ))}
                 </select>
               </label>
               <label className="grid gap-2">

@@ -3,7 +3,9 @@ import { BookOpen, CircleDollarSign, Library, Pencil, PlusCircle, Sparkles } fro
 import { DashboardTopbar } from "@/components/ui/dashboard-topbar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/ui/stat-card";
+import { resolveBookAuthorName } from "@/lib/book-authors";
 import { resolveBookOfferDetails } from "@/lib/book-offers";
+import { DIGITAL_BOOK_FORMATS, findPreferredFormat, getBookFormatLabel, sortFormatsByPriority } from "@/lib/book-formats";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { BookFormatType, BookReviewStatus, Database } from "@/types/database";
@@ -15,6 +17,7 @@ type AuthorBookRow = Pick<
   | "id"
   | "title"
   | "subtitle"
+  | "author_display_name"
   | "status"
   | "created_at"
   | "updated_at"
@@ -55,9 +58,9 @@ export default async function AuthorBooksPage() {
   const supabase = await createClient();
 
   const { data } = await supabase
-      .from("books")
+    .from("books")
       .select(
-      "id, title, subtitle, status, created_at, updated_at, categories, language, price, currency_code, is_single_sale_enabled, is_subscription_available, review_status, review_note, book_formats(id, format, price, printing_cost, is_published, currency_code), subscription_plan_books(plan_id, subscription_plans(name, slug))",
+      "id, title, subtitle, author_display_name, status, created_at, updated_at, categories, language, price, currency_code, is_single_sale_enabled, is_subscription_available, review_status, review_note, book_formats(id, format, price, printing_cost, is_published, currency_code), subscription_plan_books(plan_id, subscription_plans(name, slug))",
     )
     .eq("author_id", profile.id)
     .order("created_at", { ascending: false })
@@ -125,13 +128,19 @@ export default async function AuthorBooksPage() {
         <div className="mt-5 space-y-4">
           {books.length > 0 ? (
             books.map((book) => {
-              const ebookFormat = (book.book_formats ?? []).find((format) => format.format === "ebook" && format.is_published);
+              const primaryDigitalFormat = findPreferredFormat(
+                (book.book_formats ?? []).filter(
+                  (format) => format.is_published && DIGITAL_BOOK_FORMATS.includes(format.format as (typeof DIGITAL_BOOK_FORMATS)[number]),
+                ),
+                DIGITAL_BOOK_FORMATS,
+              );
               const offer = resolveBookOfferDetails({
-                price: ebookFormat?.price ?? book.price,
-                currencyCode: ebookFormat?.currency_code ?? book.currency_code,
+                price: primaryDigitalFormat?.price ?? book.price,
+                currencyCode: primaryDigitalFormat?.currency_code ?? book.currency_code,
                 isSingleSaleEnabled: book.is_single_sale_enabled,
                 isSubscriptionAvailable: book.is_subscription_available,
               });
+              const publishedAuthorName = resolveBookAuthorName(book.author_display_name, profile.name);
 
               const planLabels = (book.subscription_plan_books ?? [])
                 .map((entry) => firstOf(entry.subscription_plans)?.name ?? null)
@@ -146,6 +155,7 @@ export default async function AuthorBooksPage() {
                     <div>
                       <h2 className="text-xl font-semibold text-slate-950">{book.title}</h2>
                       {book.subtitle ? <p className="mt-1 text-sm text-slate-500">{book.subtitle}</p> : null}
+                      <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Publie sous {publishedAuthorName}</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusMeta[book.status]?.className ?? statusMeta.draft.className}`}>
@@ -180,9 +190,9 @@ export default async function AuthorBooksPage() {
                     <div className="rounded-[1.35rem] bg-white/85 p-4 shadow-sm">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Formats</p>
                       <p className="mt-3 text-sm leading-7 text-slate-600">
-                        {(book.book_formats ?? [])
+                        {sortFormatsByPriority(book.book_formats ?? [])
                           .map((format) =>
-                            `${format.format} (${format.price.toFixed(2)} ${format.currency_code})${
+                            `${getBookFormatLabel(format.format)} (${format.price.toFixed(2)} ${format.currency_code})${
                               format.printing_cost !== null ? `, impression ${format.printing_cost.toFixed(2)} ${format.currency_code}` : ""
                             }${format.is_published ? "" : " [validation admin]"}`,
                           )

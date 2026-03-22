@@ -5,17 +5,19 @@ import { useRouter } from "next/navigation";
 import { SubscriptionPlanSelector } from "@/components/author/subscription-plan-selector";
 import { FormSection } from "@/components/ui/form-section";
 import { BOOK_CATEGORIES } from "@/lib/book-categories";
+import { getBookFormatLabel, isPhysicalBookFormat } from "@/lib/book-formats";
 import { getSupabaseBrowserConfigErrorMessage, getSupabaseBrowserErrorMessage } from "@/lib/supabase/browser-errors";
 import { createClient } from "@/lib/supabase/client";
 import type { BookFormatType, BookReviewStatus, Database } from "@/types/database";
 
-type OptionalFormat = "paperback" | "hardcover" | "audiobook";
+type OptionalFormat = "holistique_store" | "paperback" | "pocket" | "hardcover" | "audiobook";
 
 type FormatState = {
   enabled: boolean;
   price: string;
   printingCost: string;
   stockQuantity: string;
+  published: boolean;
 };
 
 type SubmissionIntent = "draft" | "submit";
@@ -50,7 +52,9 @@ export type PublishLabInitialValues = {
   ebookFileSizeMb: number | null;
   ebookStoredFileSize: number | null;
   ebookFileFormat: string | null;
+  holistiqueStore: FormatState;
   paperback: FormatState;
+  pocket: FormatState;
   hardcover: FormatState;
   audiobook: FormatState;
   coverPath: string | null;
@@ -71,7 +75,13 @@ type PublishLabFormProps = {
   initialValues?: Partial<PublishLabInitialValues>;
 };
 
-const initialOptionalFormat: FormatState = { enabled: false, price: "0", printingCost: "", stockQuantity: "" };
+const initialOptionalFormat: FormatState = {
+  enabled: false,
+  price: "0",
+  printingCost: "",
+  stockQuantity: "",
+  published: false,
+};
 
 const emptyInitialValues: PublishLabInitialValues = {
   title: "",
@@ -80,14 +90,14 @@ const emptyInitialValues: PublishLabInitialValues = {
   description: "",
   isbn: "",
   language: "fr",
-  publisher: "Holistique Books",
+  publisher: "",
   publicationDate: "",
   pageCount: "",
   coAuthors: "",
   selectedCategory: "",
   tags: "",
-  ageRating: "Tout public",
-  edition: "1ere edition",
+  ageRating: "",
+  edition: "",
   seriesName: "",
   seriesPosition: "",
   coverAltText: "",
@@ -97,7 +107,9 @@ const emptyInitialValues: PublishLabInitialValues = {
   ebookFileSizeMb: null,
   ebookStoredFileSize: null,
   ebookFileFormat: null,
+  holistiqueStore: initialOptionalFormat,
   paperback: initialOptionalFormat,
+  pocket: initialOptionalFormat,
   hardcover: initialOptionalFormat,
   audiobook: initialOptionalFormat,
   coverPath: null,
@@ -132,10 +144,6 @@ function sanitizeFileName(fileName: string) {
   const normalized = fileName.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const safe = normalized.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
   return safe.replace(/^-|-$/g, "") || "file";
-}
-
-function isPhysicalFormat(format: BookFormatType) {
-  return format === "paperback" || format === "hardcover";
 }
 
 function getReviewStatusMeta(status: BookReviewStatus) {
@@ -174,6 +182,7 @@ export function buildOptionalFormatState(
         price: number;
         printing_cost: number | null;
         stock_quantity: number | null;
+        is_published?: boolean;
       }
     | undefined,
 ): FormatState {
@@ -183,6 +192,7 @@ export function buildOptionalFormatState(
     price: String(format.price ?? 0),
     printingCost: format.printing_cost !== null ? String(format.printing_cost) : "",
     stockQuantity: format.stock_quantity ? String(format.stock_quantity) : "",
+    published: Boolean(format.is_published),
   };
 }
 
@@ -225,7 +235,9 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
   const [coverAltText, setCoverAltText] = useState(initial.coverAltText);
   const [samplePages, setSamplePages] = useState(initial.samplePages);
   const [ebookPrice, setEbookPrice] = useState(initial.ebookPrice);
+  const [holistiqueStore, setHolistiqueStore] = useState<FormatState>(initial.holistiqueStore);
   const [paperback, setPaperback] = useState<FormatState>(initial.paperback);
+  const [pocket, setPocket] = useState<FormatState>(initial.pocket);
   const [hardcover, setHardcover] = useState<FormatState>(initial.hardcover);
   const [audiobook, setAudiobook] = useState<FormatState>(initial.audiobook);
   const [isSingleSaleEnabled, setIsSingleSaleEnabled] = useState(initial.isSingleSaleEnabled);
@@ -236,6 +248,33 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
   const [sampleFile, setSampleFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAdvancedDetails, setShowAdvancedDetails] = useState(
+    Boolean(
+      initial.subtitle ||
+        initial.isbn ||
+        initial.publisher ||
+        initial.publicationDate ||
+        initial.pageCount ||
+        initial.coAuthors ||
+        initial.tags ||
+        initial.ageRating ||
+        initial.edition ||
+        initial.seriesName ||
+        initial.seriesPosition ||
+        initial.coverAltText,
+    ),
+  );
+  const [showOptionalFormats, setShowOptionalFormats] = useState(
+    Boolean(
+      initial.holistiqueStore.enabled ||
+        initial.paperback.enabled ||
+        initial.pocket.enabled ||
+        initial.hardcover.enabled ||
+        initial.audiobook.enabled ||
+        initial.samplePath ||
+        initial.samplePages,
+    ),
+  );
 
   const invalidIsbn = useMemo(() => {
     const digits = isbn.replace(/[^0-9]/g, "");
@@ -269,6 +308,8 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
     const submitter = submitEvent.submitter as HTMLButtonElement | null;
     const intent = (submitter?.value as SubmissionIntent | undefined) ?? "draft";
 
+    if (!title.trim()) return setError("Titre requis.");
+    if (!description.trim()) return setError("Description requise.");
     if (!cover && !initial.coverPath) return setError("Couverture requise.");
     if (!ebookFile && !initial.ebookPath) return setError("Fichier ebook requis.");
     if (!authorFullName.trim()) return setError("Nom complet de l auteur requis.");
@@ -278,6 +319,9 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
     if (isSubscriptionAvailable && selectedPlanIds.length === 0) return setError("Selectionne au moins un pack d abonnement.");
     if (paperback.enabled && paperback.printingCost && Number(paperback.printingCost) > Number(paperback.price)) {
       return setError("Le cout d impression du broche ne peut pas depasser le prix public.");
+    }
+    if (pocket.enabled && pocket.printingCost && Number(pocket.printingCost) > Number(pocket.price)) {
+      return setError("Le cout d impression du format poche ne peut pas depasser le prix public.");
     }
     if (hardcover.enabled && hardcover.printingCost && Number(hardcover.printingCost) > Number(hardcover.price)) {
       return setError("Le cout d impression du relie ne peut pas depasser le prix public.");
@@ -301,13 +345,7 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
 
       if (!user) throw new Error("Session expiree. Reconnecte-toi.");
 
-      const { error: profileError } = await supabase.from("profiles").update({ name: authorFullName.trim() }).eq("id", user.id);
-      if (profileError) throw new Error(profileError.message);
-
-      const { error: authorProfileError } = await supabase
-        .from("author_profiles")
-        .upsert({ id: user.id, display_name: authorFullName.trim() }, { onConflict: "id" });
-      if (authorProfileError) throw new Error(authorProfileError.message);
+      const normalizedAuthorName = authorFullName.trim();
 
       const [coverPath, ebookPath, samplePath] = await Promise.all([
         uploadFileIfNeeded(supabase, user.id, cover, initial.coverPath, "covers"),
@@ -317,11 +355,14 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
 
       const nextEbookFile = ebookFile ?? null;
       const reviewStatus: BookReviewStatus = intent === "submit" ? "submitted" : "draft";
+      const normalizedTitle = title.trim();
+      const normalizedDescription = description.trim();
       const bookPayload = {
-        title,
+        title: normalizedTitle,
         subtitle: subtitle || null,
-        description,
+        description: normalizedDescription,
         author_id: user.id,
+        author_display_name: normalizedAuthorName,
         co_authors: splitCsv(coAuthors),
         isbn: isbn ? isbn.replace(/[^0-9]/g, "") : null,
         language,
@@ -376,6 +417,21 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
           downloadable: false,
           is_published: false,
         },
+        ...(holistiqueStore.enabled
+          ? [
+              {
+                book_id: bookId,
+                format: "holistique_store" as const,
+                price: Number(holistiqueStore.price),
+                printing_cost: null,
+                file_url: ebookPath,
+                stock_quantity: null,
+                file_size_mb: nextEbookFile ? Math.ceil(nextEbookFile.size / (1024 * 1024)) : initial.ebookFileSizeMb ?? null,
+                downloadable: false,
+                is_published: false,
+              },
+            ]
+          : []),
         ...(paperback.enabled
           ? [
               {
@@ -383,6 +439,21 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
                 format: "paperback" as const,
                 price: Number(paperback.price),
                 printing_cost: paperback.printingCost ? Number(paperback.printingCost) : null,
+                file_url: null,
+                stock_quantity: null,
+                file_size_mb: null,
+                downloadable: false,
+                is_published: false,
+              },
+            ]
+          : []),
+        ...(pocket.enabled
+          ? [
+              {
+                book_id: bookId,
+                format: "pocket" as const,
+                price: Number(pocket.price),
+                printing_cost: pocket.printingCost ? Number(pocket.printingCost) : null,
                 file_url: null,
                 stock_quantity: null,
                 file_size_mb: null,
@@ -423,15 +494,55 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
           : []),
       ];
 
-      const { error: formatError } = await supabase.from("book_formats").upsert(formatRows, { onConflict: "book_id,format" });
-      if (formatError) throw new Error(formatError.message);
+      const { data: existingFormatsData, error: existingFormatsError } = await supabase
+        .from("book_formats")
+        .select("id, format, is_published")
+        .eq("book_id", bookId);
+      if (existingFormatsError) throw new Error(existingFormatsError.message);
+
+      const existingFormats = new Map(
+        ((existingFormatsData ?? []) as Array<{ id: string; format: BookFormatType; is_published: boolean }>).map((format) => [format.format, format]),
+      );
+
+      for (const formatRow of formatRows) {
+        const existingFormat = existingFormats.get(formatRow.format);
+
+        if (existingFormat) {
+          const { error: updateFormatError } = await supabase
+            .from("book_formats")
+            .update(formatRow)
+            .eq("id", existingFormat.id)
+            .eq("book_id", bookId);
+
+          if (updateFormatError) throw new Error(updateFormatError.message);
+          continue;
+        }
+
+        const { error: insertFormatError } = await supabase.from("book_formats").insert(formatRow);
+        if (insertFormatError) throw new Error(insertFormatError.message);
+      }
 
       const disabledFormats: OptionalFormat[] = [];
+      if (!holistiqueStore.enabled) disabledFormats.push("holistique_store");
       if (!paperback.enabled) disabledFormats.push("paperback");
+      if (!pocket.enabled) disabledFormats.push("pocket");
       if (!hardcover.enabled) disabledFormats.push("hardcover");
       if (!audiobook.enabled) disabledFormats.push("audiobook");
-      if (disabledFormats.length > 0) {
-        const { error: deleteFormatsError } = await supabase.from("book_formats").delete().eq("book_id", bookId).in("format", disabledFormats);
+
+      const blockedPublishedPhysicalFormats = disabledFormats.filter((format) => {
+        const existingFormat = existingFormats.get(format);
+        return Boolean(existingFormat?.is_published && isPhysicalBookFormat(format));
+      });
+
+      if (blockedPublishedPhysicalFormats.length > 0) {
+        throw new Error(
+          `Le retrait de ${blockedPublishedPhysicalFormats.join(", ")} deja publie(s) doit etre confirme par l admin.`,
+        );
+      }
+
+      const deletableFormats = disabledFormats.filter((format) => existingFormats.has(format));
+      if (deletableFormats.length > 0) {
+        const { error: deleteFormatsError } = await supabase.from("book_formats").delete().eq("book_id", bookId).in("format", deletableFormats);
         if (deleteFormatsError) throw new Error(deleteFormatsError.message);
       }
 
@@ -460,7 +571,8 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
     setState: Dispatch<SetStateAction<FormatState>>,
     type: OptionalFormat,
   ) {
-    const physical = isPhysicalFormat(type);
+    const physical = isPhysicalBookFormat(type);
+    const deletionLocked = physical && state.published;
 
     return (
       <div className="rounded-[1.5rem] border border-violet-100 bg-violet-50/70 p-4">
@@ -468,11 +580,17 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
           <input
             type="checkbox"
             checked={state.enabled}
+            disabled={deletionLocked}
             onChange={(event) => setState((previous) => ({ ...previous, enabled: event.target.checked }))}
             className="h-4 w-4 rounded border-slate-300 text-indigo-600"
           />
           {label}
         </label>
+        {deletionLocked ? (
+          <p className="mt-3 rounded-[1rem] border border-[#e7ddd1] bg-white/90 px-4 py-3 text-sm leading-6 text-slate-600">
+            Ce format papier est deja publie. Vous pouvez encore le modifier, mais son retrait doit etre confirme par l admin.
+          </p>
+        ) : null}
         {state.enabled ? (
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             <Input label="Prix public propose">
@@ -498,7 +616,9 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
               </Input>
             ) : (
               <div className="rounded-[1.2rem] border border-dashed border-violet-200 bg-white/80 px-4 py-3 text-sm text-slate-500">
-                Ce format sera aussi revu par l admin avant mise en ligne.
+                {type === "holistique_store"
+                  ? "Lecture protegee type Kindle dans Holistique Store: web et application, sans telechargement lecteur."
+                  : "Ce format sera aussi revu par l admin avant mise en ligne."}
               </div>
             )}
             <div className="rounded-[1.2rem] border border-dashed border-violet-200 bg-white/80 px-4 py-3 text-sm text-slate-500">
@@ -534,32 +654,37 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
       </div>
 
       <FormSection
-        title={isEditMode ? "Metadonnees du livre" : "Metadonnees editoriales"}
-        description={isEditMode ? "Mettez a jour les informations cles du livre avant une nouvelle revue admin." : "Renseignez les informations de base qui structurent la fiche livre et le catalogue auteur."}
+        title={isEditMode ? "Fiche livre simplifiee" : "Ajout rapide du livre"}
+        description={
+          isEditMode
+            ? "Commencez par les infos indispensables. Les details avances restent disponibles si vous en avez besoin."
+            : "Le parcours est volontairement court: titre, auteur, description, categorie, fichiers, prix et mode de vente."
+        }
       >
+        <div className="mb-5 rounded-[1.5rem] border border-[#ece3d7] bg-[#fcfaf7] px-4 py-4 text-sm leading-7 text-slate-600">
+          Champs vraiment requis: titre, nom affiche sur le livre, description, categorie, couverture, fichier ebook et prix.
+        </div>
+
         <div className="grid gap-5 md:grid-cols-2">
-          <Input label="Titre *"><input required value={title} onChange={(event) => setTitle(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <Input label="Nom complet de l auteur *"><input required value={authorFullName} onChange={(event) => setAuthorFullName(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <Input label="Sous-titre"><input value={subtitle} onChange={(event) => setSubtitle(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <Input label="ISBN (13 chiffres)"><input value={isbn} onChange={(event) => setIsbn(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <Input label="Langue *"><input required value={language} onChange={(event) => setLanguage(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <Input label="Maison d edition"><input value={publisher} onChange={(event) => setPublisher(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <Input label="Date de publication souhaitee"><input type="date" value={publicationDate} onChange={(event) => setPublicationDate(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <Input label="Nombre de pages"><input type="number" min="1" value={pageCount} onChange={(event) => setPageCount(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <Input label="Co-auteurs (separes par virgule)"><input value={coAuthors} onChange={(event) => setCoAuthors(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <Input label="Tags (separes par virgule)"><input value={tags} onChange={(event) => setTags(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <Input label="Public cible"><input value={ageRating} onChange={(event) => setAgeRating(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <Input label="Edition"><input value={edition} onChange={(event) => setEdition(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <Input label="Nom de serie"><input value={seriesName} onChange={(event) => setSeriesName(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <Input label="Position dans la serie"><input type="number" min="1" value={seriesPosition} onChange={(event) => setSeriesPosition(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+          <Input label="Titre *">
+            <input required value={title} onChange={(event) => setTitle(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" />
+          </Input>
+          <Input label="Nom affiche sur ce livre *">
+            <input required value={authorFullName} onChange={(event) => setAuthorFullName(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" />
+          </Input>
+          <Input label="Langue *">
+            <input required value={language} onChange={(event) => setLanguage(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" />
+          </Input>
+          <Input label="Prix ebook *">
+            <input type="number" min="0" step="0.01" required value={ebookPrice} onChange={(event) => setEbookPrice(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" />
+          </Input>
           <div className="md:col-span-2">
-            <Input label="Description / 4e de couverture *"><textarea required rows={5} value={description} onChange={(event) => setDescription(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+            <Input label="Description / 4e de couverture *">
+              <textarea required rows={5} value={description} onChange={(event) => setDescription(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" />
+            </Input>
           </div>
           <div className="md:col-span-2">
-            <Input label="Texte alternatif de la couverture"><input value={coverAltText} onChange={(event) => setCoverAltText(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          </div>
-          <div className="md:col-span-2">
-            <span className="block text-sm font-medium text-slate-700">Categorie principale</span>
+            <span className="block text-sm font-medium text-slate-700">Categorie principale *</span>
             <div className="mt-2 flex flex-wrap gap-2">
               {BOOK_CATEGORIES.map((category) => {
                 const active = selectedCategory === category;
@@ -577,28 +702,86 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
             </div>
           </div>
         </div>
+
+        <div className="mt-6 rounded-[1.6rem] border border-[#ece3d7] bg-white/90 p-5">
+          <button
+            type="button"
+            onClick={() => setShowAdvancedDetails((current) => !current)}
+            className="flex w-full items-center justify-between gap-4 text-left"
+          >
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Details optionnels</p>
+              <p className="mt-1 text-sm text-slate-500">ISBN, maison d edition, co-auteurs, serie, tags et autres precisions.</p>
+            </div>
+            <span className="rounded-full border border-violet-200 px-3 py-1 text-xs font-semibold text-slate-600">
+              {showAdvancedDetails ? "Masquer" : "Afficher"}
+            </span>
+          </button>
+
+          {showAdvancedDetails ? (
+            <div className="mt-5 grid gap-5 md:grid-cols-2">
+              <Input label="Sous-titre"><input value={subtitle} onChange={(event) => setSubtitle(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+              <Input label="ISBN (13 chiffres)"><input value={isbn} onChange={(event) => setIsbn(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+              <Input label="Maison d edition"><input value={publisher} onChange={(event) => setPublisher(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+              <Input label="Date de publication souhaitee"><input type="date" value={publicationDate} onChange={(event) => setPublicationDate(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+              <Input label="Nombre de pages"><input type="number" min="1" value={pageCount} onChange={(event) => setPageCount(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+              <Input label="Co-auteurs (separes par virgule)"><input value={coAuthors} onChange={(event) => setCoAuthors(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+              <Input label="Tags (separes par virgule)"><input value={tags} onChange={(event) => setTags(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+              <Input label="Public cible"><input value={ageRating} onChange={(event) => setAgeRating(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+              <Input label="Edition"><input value={edition} onChange={(event) => setEdition(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+              <Input label="Nom de serie"><input value={seriesName} onChange={(event) => setSeriesName(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+              <Input label="Position dans la serie"><input type="number" min="1" value={seriesPosition} onChange={(event) => setSeriesPosition(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+              <div className="md:col-span-2">
+                <Input label="Texte alternatif de la couverture"><input value={coverAltText} onChange={(event) => setCoverAltText(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </FormSection>
 
       <FormSection
         title="Formats & fichiers"
-        description="Chargez les assets numeriques et proposez vos editions physiques avec leur prix public et leur cout d impression."
+        description="Chargez seulement l essentiel pour publier rapidement. Les formats complementaires restent optionnels."
       >
         <div className="grid gap-5 md:grid-cols-2">
           <Input label={`Couverture ${isEditMode ? "(optionnel)" : "*"}`}><input type="file" accept="image/*" required={!isEditMode} onChange={(event) => setCover(event.target.files?.[0] ?? null)} className="block w-full px-4 py-3.5 text-slate-700" /></Input>
           <Input label={`Fichier ebook ${isEditMode ? "(optionnel)" : "*"}`}><input type="file" accept=".epub,.pdf,.mobi,application/epub+zip,application/pdf" required={!isEditMode} onChange={(event) => setEbookFile(event.target.files?.[0] ?? null)} className="block w-full px-4 py-3.5 text-slate-700" /></Input>
-          <Input label="Extrait (optionnel)"><input type="file" accept=".epub,.pdf,application/epub+zip,application/pdf" onChange={(event) => setSampleFile(event.target.files?.[0] ?? null)} className="block w-full px-4 py-3.5 text-slate-700" /></Input>
-          <Input label="Nombre de pages de l extrait"><input type="number" min="1" value={samplePages} onChange={(event) => setSamplePages(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <Input label="Prix ebook *"><input type="number" min="0" step="0.01" required value={ebookPrice} onChange={(event) => setEbookPrice(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
-          <div className="flex items-end">
-            <div className="rounded-[1.4rem] border border-violet-100 bg-violet-50/70 px-4 py-4 text-sm leading-7 text-slate-700">
-              Ebook protege: lecture uniquement sur le site Holistique Books et dans l application. Aucun telechargement lecteur n est propose.
-            </div>
+          <div className="md:col-span-2 rounded-[1.4rem] border border-violet-100 bg-violet-50/70 px-4 py-4 text-sm leading-7 text-slate-700">
+            Le nom saisi ici appartient a ce livre uniquement. Un meme compte editeur peut donc publier plusieurs auteurs differents sans ecraser son profil global.
+          </div>
+          <div className="md:col-span-2 rounded-[1.4rem] border border-violet-100 bg-violet-50/70 px-4 py-4 text-sm leading-7 text-slate-700">
+            Ebook protege: lecture uniquement sur le site Holistique Books et dans l application. Aucun telechargement lecteur n est propose.
           </div>
         </div>
-        <div className="mt-5 space-y-4">
-          {renderOptionalFormat("Paperback (broche)", paperback, setPaperback, "paperback")}
-          {renderOptionalFormat("Hardcover (relie)", hardcover, setHardcover, "hardcover")}
-          {renderOptionalFormat("Audiobook", audiobook, setAudiobook, "audiobook")}
+
+        <div className="mt-6 rounded-[1.6rem] border border-[#ece3d7] bg-white/90 p-5">
+          <button
+            type="button"
+            onClick={() => setShowOptionalFormats((current) => !current)}
+            className="flex w-full items-center justify-between gap-4 text-left"
+          >
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Formats et assets optionnels</p>
+              <p className="mt-1 text-sm text-slate-500">Extrait, Holistique Store, broche, poche, relie ou audiobook si vous voulez aller plus loin.</p>
+            </div>
+            <span className="rounded-full border border-violet-200 px-3 py-1 text-xs font-semibold text-slate-600">
+              {showOptionalFormats ? "Masquer" : "Afficher"}
+            </span>
+          </button>
+
+          {showOptionalFormats ? (
+            <div className="mt-5 space-y-4">
+              <div className="grid gap-5 md:grid-cols-2">
+                <Input label="Extrait (optionnel)"><input type="file" accept=".epub,.pdf,application/epub+zip,application/pdf" onChange={(event) => setSampleFile(event.target.files?.[0] ?? null)} className="block w-full px-4 py-3.5 text-slate-700" /></Input>
+                <Input label="Nombre de pages de l extrait"><input type="number" min="1" value={samplePages} onChange={(event) => setSamplePages(event.target.value)} className="w-full px-4 py-3.5 text-slate-900" /></Input>
+              </div>
+              {renderOptionalFormat(getBookFormatLabel("holistique_store"), holistiqueStore, setHolistiqueStore, "holistique_store")}
+              {renderOptionalFormat("Paperback (broche)", paperback, setPaperback, "paperback")}
+              {renderOptionalFormat("Format poche", pocket, setPocket, "pocket")}
+              {renderOptionalFormat("Hardcover (relie)", hardcover, setHardcover, "hardcover")}
+              {renderOptionalFormat("Audiobook", audiobook, setAudiobook, "audiobook")}
+            </div>
+          ) : null}
         </div>
       </FormSection>
 

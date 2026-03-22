@@ -3,6 +3,7 @@ import {
   BookOpen,
   CircleDollarSign,
   Gem,
+  Heart,
   LibraryBig,
   PlusCircle,
   Receipt,
@@ -13,6 +14,7 @@ export type DashboardIconName =
   | "book-open"
   | "circle-dollar-sign"
   | "gem"
+  | "heart"
   | "library-big"
   | "plus-circle"
   | "receipt";
@@ -32,6 +34,8 @@ export function DashboardIcon({ name, className }: DashboardIconProps) {
       return <CircleDollarSign className={className} />;
     case "gem":
       return <Gem className={className} />;
+    case "heart":
+      return <Heart className={className} />;
     case "library-big":
       return <LibraryBig className={className} />;
     case "plus-circle":

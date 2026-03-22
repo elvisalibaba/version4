@@ -26,7 +26,7 @@ export function HeroSection({ books, comingSoonBooks = [] }: HeroSectionProps) {
               HolistiqueBooks – Bibliothèque de transformation
             </p>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl lg:text-5xl">
-              Lisez des ebooks qui élèvent l'esprit, dans une vitrine claire qui donne envie d'aller plus loin.
+              Lisez des ebooks qui élèvent l&apos;esprit, dans une vitrine claire qui donne envie d&apos;aller plus loin.
             </h1>
             <p className="text-lg text-gray-600">
               Commencez par {freeBooksCount} livres gratuits, puis évoluez vers une sélection premium pensée pour la croissance personnelle et spirituelle.

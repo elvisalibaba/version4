@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getCopyrightStatusLabel } from "@/lib/book-copyright";
 import { formatMoney } from "@/lib/book-offers";
 import { listAdminBooks } from "@/lib/supabase/admin/books";
 import { formatAdminDateTime } from "@/lib/supabase/admin/shared";
@@ -17,6 +18,7 @@ type BooksPageProps = {
     q?: string;
     status?: "draft" | "published" | "archived" | "coming_soon";
     reviewStatus?: "draft" | "submitted" | "approved" | "rejected" | "changes_requested";
+    copyrightStatus?: "clear" | "review" | "blocked";
     language?: string;
     authorId?: string;
     category?: string;
@@ -32,6 +34,7 @@ export default async function AdminBooksPage({ searchParams }: BooksPageProps) {
     q,
     status,
     reviewStatus,
+    copyrightStatus,
     language,
     authorId,
     category,
@@ -46,6 +49,7 @@ export default async function AdminBooksPage({ searchParams }: BooksPageProps) {
     search: q,
     status: status ?? "",
     reviewStatus: reviewStatus ?? "",
+    copyrightStatus: copyrightStatus ?? "",
     language: language ?? "",
     authorId: authorId ?? "",
     category: category ?? "",
@@ -78,6 +82,7 @@ export default async function AdminBooksPage({ searchParams }: BooksPageProps) {
           <AdminSearchInput defaultValue={q} placeholder="Titre, sous-titre, description ou ISBN" />
           <AdminSelect name="status" label="Status" defaultValue={status} options={data.filterOptions.statuses} />
           <AdminSelect name="reviewStatus" label="Revue" defaultValue={reviewStatus} options={data.filterOptions.reviewStatuses} />
+          <AdminSelect name="copyrightStatus" label="Droits" defaultValue={copyrightStatus} options={data.filterOptions.copyrightStatuses} />
           <AdminSelect name="language" label="Langue" defaultValue={language} options={data.filterOptions.languages} />
           <AdminSelect name="authorId" label="Auteur" defaultValue={authorId} options={data.filterOptions.authors} />
           <AdminSelect name="category" label="Categorie" defaultValue={category} options={data.filterOptions.categories} />
@@ -121,8 +126,8 @@ export default async function AdminBooksPage({ searchParams }: BooksPageProps) {
         </AdminFilterBar>
       </AdminPanel>
 
-      <AdminPanel title="Catalogue complet" description="books.price reste le prix vitrine principal ; les prix par format et l'etat de revue sont consultables dans les details du livre.">
-        <AdminDataTable columns={["Livre", "Auteur", "Etat", "Revue", "Prix", "Stats", "Publication", "Actions"]}>
+      <AdminPanel title="Catalogue complet" description="books.price reste le prix vitrine principal ; les prix par format, l'etat de revue et le controle droits sont consultables dans les details du livre.">
+        <AdminDataTable columns={["Livre", "Auteur", "Etat", "Revue", "Droits", "Prix", "Stats", "Publication", "Actions"]}>
           {data.items.map((book) => (
             <tr key={book.id} className="border-t border-violet-100/70 align-top">
               <td className="px-4 py-3">
@@ -137,6 +142,9 @@ export default async function AdminBooksPage({ searchParams }: BooksPageProps) {
               </td>
               <td className="px-4 py-3">
                 <StatusBadge kind="review" value={book.review_status} />
+              </td>
+              <td className="px-4 py-3">
+                <StatusBadge kind="copyright" value={book.copyright_status} label={getCopyrightStatusLabel(book.copyright_status)} />
               </td>
               <td className="px-4 py-3 text-sm text-slate-500">{formatMoney(book.price, book.currency_code)}</td>
               <td className="px-4 py-3 text-sm text-slate-500">
@@ -171,6 +179,7 @@ export default async function AdminBooksPage({ searchParams }: BooksPageProps) {
               q: q ?? "",
               status: status ?? "",
               reviewStatus: reviewStatus ?? "",
+              copyrightStatus: copyrightStatus ?? "",
               language: language ?? "",
               authorId: authorId ?? "",
               category: category ?? "",

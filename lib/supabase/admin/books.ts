@@ -5,9 +5,11 @@ import {
   firstOf,
   getPaginationRange,
   isBookReviewStatus,
+  isCopyrightStatus,
   normalizeSearchTerm,
   parseBooleanFilter,
   resolveAssetUrl,
+  resolveAdminBookAuthorName,
   safeLikeTerm,
   signBookAssetPaths,
   type AdminAuthorMini,
@@ -17,7 +19,7 @@ import {
   type MaybeArray,
 } from "@/lib/supabase/admin/shared";
 import type { AdminNotice, AdminOption, AdminPagedResult } from "@/types/admin";
-import type { BookEngagementEventType, BookFormatType, BookReviewStatus, BookStatus } from "@/types/database";
+import type { BookEngagementEventType, BookFormatType, BookReviewStatus, BookStatus, CopyrightStatus } from "@/types/database";
 
 type BookAuthorRow = AdminBookMini & {
   author_profile: MaybeArray<Pick<AdminAuthorMini, "id" | "display_name" | "avatar_url">>;
@@ -140,6 +142,10 @@ type BookDetailRow = BookAuthorRow & {
   sample_pages: number | null;
   cover_thumbnail_url: string | null;
   cover_alt_text: string | null;
+  copyright_status: CopyrightStatus;
+  copyright_note: string | null;
+  copyright_blocked_at: string | null;
+  copyright_blocked_by: string | null;
 };
 
 export type AdminBookListItem = BookListRow & {
@@ -152,6 +158,7 @@ export type AdminBooksPageData = AdminPagedResult<AdminBookListItem> & {
   filterOptions: {
     statuses: AdminOption[];
     reviewStatuses: AdminOption[];
+    copyrightStatuses: AdminOption[];
     languages: AdminOption[];
     categories: AdminOption[];
     authors: AdminOption[];
@@ -183,6 +190,7 @@ export type AdminBookDetail = {
     cover_signed_url: string | null;
     author_name: string;
     reviewer_name: string | null;
+    copyright_blocker_name: string | null;
   };
   formats: BookFormatRow[];
   orders: Array<RelatedOrderItemRow & { order_meta: OrderMetaRow | null }>;
@@ -204,11 +212,11 @@ export type AdminBookDetail = {
 
 type BooksSortKey = "views" | "purchases" | "rating" | "recent";
 
-async function getReviewerNameMap(supabase: Awaited<ReturnType<typeof createClient>>, reviewerIds: Array<string | null | undefined>) {
-  const validReviewerIds = Array.from(new Set(reviewerIds.filter((value): value is string => Boolean(value))));
-  if (validReviewerIds.length === 0) return new Map<string, string>();
+async function getProfileNameMap(supabase: Awaited<ReturnType<typeof createClient>>, profileIds: Array<string | null | undefined>) {
+  const validProfileIds = Array.from(new Set(profileIds.filter((value): value is string => Boolean(value))));
+  if (validProfileIds.length === 0) return new Map<string, string>();
 
-  const { data } = await supabase.from("profiles").select("id, name, email").in("id", validReviewerIds);
+  const { data } = await supabase.from("profiles").select("id, name, email").in("id", validProfileIds);
   return new Map((data ?? []).map((profile) => [profile.id, profile.name ?? profile.email]));
 }
 
@@ -220,6 +228,7 @@ export async function listAdminBooks(params: {
   authorId?: string;
   category?: string;
   reviewStatus?: BookReviewStatus | "";
+  copyrightStatus?: CopyrightStatus | "";
   singleSaleEnabled?: string;
   subscriptionAvailable?: string;
   sort?: BooksSortKey;
@@ -233,7 +242,7 @@ export async function listAdminBooks(params: {
   let query = supabase
     .from("books")
     .select(
-      "id, title, subtitle, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
+      "id, title, subtitle, author_display_name, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, copyright_status, copyright_note, copyright_blocked_at, copyright_blocked_by, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
       { count: "exact" },
     );
 
@@ -257,6 +266,10 @@ export async function listAdminBooks(params: {
     query = query.eq("review_status", params.reviewStatus);
   }
 
+  if (params.copyrightStatus && isCopyrightStatus(params.copyrightStatus)) {
+    query = query.eq("copyright_status", params.copyrightStatus);
+  }
+
   const singleSaleFilter = parseBooleanFilter(params.singleSaleEnabled);
   if (singleSaleFilter !== null) {
     query = query.eq("is_single_sale_enabled", singleSaleFilter);
@@ -269,7 +282,7 @@ export async function listAdminBooks(params: {
 
   if (search) {
     const term = safeLikeTerm(search);
-    query = query.or(`title.ilike.%${term}%,subtitle.ilike.%${term}%,description.ilike.%${term}%,isbn.ilike.%${term}%`);
+    query = query.or(`title.ilike.%${term}%,subtitle.ilike.%${term}%,description.ilike.%${term}%,isbn.ilike.%${term}%,author_display_name.ilike.%${term}%`);
   }
 
   switch (params.sort) {
@@ -301,6 +314,7 @@ export async function listAdminBooks(params: {
       filterOptions: {
         statuses: [],
         reviewStatuses: [],
+        copyrightStatuses: [],
         languages: [],
         categories: [],
         authors: [],
@@ -320,7 +334,7 @@ export async function listAdminBooks(params: {
     supabase,
     (data ?? []).map((book) => book.cover_url),
   );
-  const reviewerNameMap = await getReviewerNameMap(
+  const reviewerNameMap = await getProfileNameMap(
     supabase,
     (data ?? []).map((book) => book.reviewed_by),
   );
@@ -335,7 +349,7 @@ export async function listAdminBooks(params: {
     items: (data ?? []).map((book) => ({
       ...book,
       cover_signed_url: resolveAssetUrl(book.cover_url, signedMap),
-      author_name: firstOf(book.author_profile)?.display_name ?? firstOf(book.author_profile_fallback)?.name ?? "Auteur inconnu",
+      author_name: resolveAdminBookAuthorName(book),
       reviewer_name: book.reviewed_by ? reviewerNameMap.get(book.reviewed_by) ?? null : null,
     })),
     pagination: buildPagination(count, page, ADMIN_DEFAULT_PAGE_SIZE),
@@ -352,6 +366,11 @@ export async function listAdminBooks(params: {
         { label: "Approved", value: "approved" },
         { label: "Changes requested", value: "changes_requested" },
         { label: "Rejected", value: "rejected" },
+      ],
+      copyrightStatuses: [
+        { label: "Droits OK", value: "clear" },
+        { label: "Verification droits", value: "review" },
+        { label: "Bloque droits", value: "blocked" },
       ],
       languages: uniqueLanguages.map((language) => ({ label: language.toUpperCase(), value: language })),
       categories: uniqueCategories.map((category) => ({ label: category, value: category })),
@@ -385,12 +404,19 @@ export async function getAdminBookDetail(bookId: string): Promise<AdminBookDetai
       description:
         "review_status pilote maintenant la soumission auteur. Les auteurs restent en draft jusqu a validation admin, puis l admin choisit la publication ou la demande de corrections.",
     },
+    {
+      id: "copyright-workflow",
+      tone: "warning",
+      title: "Blocage droits d auteur",
+      description:
+        "Si copyright_status passe a blocked, le livre reste visible cote admin mais il est retire du detail public, de la lecture web et du checkout tant que le blocage n est pas leve.",
+    },
   ];
 
   const bookResult = await supabase
     .from("books")
     .select(
-      "id, title, subtitle, description, price, author_id, cover_url, file_url, status, created_at, updated_at, co_authors, isbn, language, publisher, publication_date, page_count, categories, tags, age_rating, edition, series_name, series_position, file_format, file_size, sample_url, sample_pages, cover_thumbnail_url, cover_alt_text, published_at, views_count, purchases_count, rating_avg, ratings_count, currency_code, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
+      "id, title, subtitle, description, author_display_name, price, author_id, cover_url, file_url, status, created_at, updated_at, co_authors, isbn, language, publisher, publication_date, page_count, categories, tags, age_rating, edition, series_name, series_position, file_format, file_size, sample_url, sample_pages, cover_thumbnail_url, cover_alt_text, published_at, views_count, purchases_count, rating_avg, ratings_count, currency_code, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, copyright_status, copyright_note, copyright_blocked_at, copyright_blocked_by, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
     )
     .eq("id", bookId)
     .returns<BookDetailRow>()
@@ -402,7 +428,7 @@ export async function getAdminBookDetail(bookId: string): Promise<AdminBookDetai
     return null;
   }
 
-  const [formatsResult, ordersResult, libraryResult, ratingsResult, highlightsResult, engagementResult, planMappingsResult, coverMap, reviewerNameMap] = await Promise.all([
+  const [formatsResult, ordersResult, libraryResult, ratingsResult, highlightsResult, engagementResult, planMappingsResult, coverMap, profileNameMap] = await Promise.all([
     supabase
       .from("book_formats")
       .select("id, book_id, format, price, currency_code, downloadable, is_published, stock_quantity, file_size_mb, file_url, printing_cost, created_at, updated_at")
@@ -448,8 +474,18 @@ export async function getAdminBookDetail(bookId: string): Promise<AdminBookDetai
       .eq("book_id", bookId)
       .returns<PlanMappingRow[]>(),
     signBookAssetPaths(supabase, [book.cover_url]),
-    getReviewerNameMap(supabase, [book.reviewed_by]),
+    getProfileNameMap(supabase, [book.reviewed_by, book.copyright_blocked_by]),
   ]);
+
+  if (book.copyright_status === "blocked") {
+    notices.push({
+      id: "book-copyright-blocked",
+      tone: "danger",
+      title: "Livre bloque pour droits d auteur",
+      description:
+        "Le catalogue public, le checkout et la lecture web doivent rester coupes jusqu a resolution du sujet legal.",
+    });
+  }
 
   if (ratingsResult.error) {
     notices.push({
@@ -484,8 +520,9 @@ export async function getAdminBookDetail(bookId: string): Promise<AdminBookDetai
     book: {
       ...book,
       cover_signed_url: resolveAssetUrl(book.cover_url, coverMap),
-      author_name: firstOf(book.author_profile)?.display_name ?? firstOf(book.author_profile_fallback)?.name ?? "Auteur inconnu",
-      reviewer_name: book.reviewed_by ? reviewerNameMap.get(book.reviewed_by) ?? null : null,
+      author_name: resolveAdminBookAuthorName(book),
+      reviewer_name: book.reviewed_by ? profileNameMap.get(book.reviewed_by) ?? null : null,
+      copyright_blocker_name: book.copyright_blocked_by ? profileNameMap.get(book.copyright_blocked_by) ?? null : null,
     },
     formats: formatsResult.data ?? [],
     orders: (ordersResult.data ?? []).map((item) => ({
@@ -523,6 +560,7 @@ export async function getAdminBookDetail(bookId: string): Promise<AdminBookDetai
       { label: "Cree le", value: book.created_at },
       { label: "Soumis le", value: book.submitted_at },
       { label: "Revise le", value: book.reviewed_at },
+      { label: "Bloque droits le", value: book.copyright_blocked_at },
       { label: "Derniere mise a jour", value: book.updated_at },
       { label: "Publie le", value: book.published_at },
       { label: "Date de publication editoriale", value: book.publication_date },

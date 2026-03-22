@@ -5,6 +5,7 @@ import {
   firstOf,
   getPaginationRange,
   normalizeSearchTerm,
+  resolveAdminBookAuthorName,
   safeLikeTerm,
   type AdminAuthorMini,
   type AdminBookMini,
@@ -159,7 +160,7 @@ export async function getAdminSubscriptionPlanDetail(planId: string): Promise<Ad
     supabase
       .from("subscription_plan_books")
       .select(
-        "id, plan_id, book_id, created_at, book:books!subscription_plan_books_book_id_fkey(id, title, status, is_subscription_available, is_single_sale_enabled, cover_url, price, currency_code, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name), author_profile_fallback:profiles!books_author_id_fkey(id, name, email))",
+        "id, plan_id, book_id, created_at, book:books!subscription_plan_books_book_id_fkey(id, title, author_display_name, status, is_subscription_available, is_single_sale_enabled, cover_url, price, currency_code, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name), author_profile_fallback:profiles!books_author_id_fkey(id, name, email))",
       )
       .eq("plan_id", planId)
       .returns<PlanBookMappingRow[]>(),
@@ -190,7 +191,7 @@ export async function getAdminSubscriptionPlanDetail(planId: string): Promise<Ad
     return {
       ...mapping,
       book_title: book?.title ?? "Livre inconnu",
-      author_name: firstOf(book?.author_profile)?.display_name ?? firstOf(book?.author_profile_fallback)?.name ?? "Auteur inconnu",
+      author_name: book ? resolveAdminBookAuthorName(book) : "Auteur inconnu",
       subscriptionWarning: warning,
     };
   });
@@ -308,7 +309,7 @@ export async function getAdminSubscriptionEditorOptions() {
     supabase
       .from("books")
       .select(
-        "id, title, status, is_subscription_available, author_profile:author_profiles!books_author_profile_id_fkey(display_name), author_profile_fallback:profiles!books_author_id_fkey(name, email)",
+        "id, title, author_display_name, status, is_subscription_available, author_profile:author_profiles!books_author_profile_id_fkey(display_name), author_profile_fallback:profiles!books_author_id_fkey(name, email)",
       )
       .order("created_at", { ascending: false }),
   ]);
@@ -324,7 +325,7 @@ export async function getAdminSubscriptionEditorOptions() {
     })),
     books: (booksResult.data ?? []).map((book) => ({
       value: book.id,
-      label: `${book.title} - ${firstOf(book.author_profile)?.display_name ?? firstOf(book.author_profile_fallback)?.name ?? "Auteur inconnu"}`,
+      label: `${book.title} - ${resolveAdminBookAuthorName(book)}`,
     })),
   };
 }

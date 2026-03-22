@@ -186,7 +186,7 @@ export async function listAdminAuthors(params: {
       ? await supabase
           .from("books")
           .select(
-            "id, title, subtitle, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name)",
+            "id, title, subtitle, author_display_name, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name)",
           )
           .in("author_id", authorIds)
           .returns<AuthorBookRow[]>()
@@ -239,7 +239,7 @@ export async function getAdminAuthorDetail(authorId: string): Promise<AdminAutho
     supabase
       .from("books")
       .select(
-        "id, title, subtitle, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name)",
+        "id, title, subtitle, author_display_name, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name)",
       )
       .eq("author_id", authorId)
       .order("created_at", { ascending: false })

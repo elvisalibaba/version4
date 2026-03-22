@@ -76,7 +76,7 @@ export default async function AdminLibraryPage({ searchParams }: LibraryPageProp
             </select>
           </label>
           <label className="grid gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Type d'accès</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Type d&apos;accès</span>
             <select
               name="access_type"
               className="min-h-11 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-[#ff9900] focus:outline-none focus:ring-1 focus:ring-[#ff9900]"

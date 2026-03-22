@@ -9,20 +9,21 @@ export default async function AuthorDashboardLayout({
 }>) {
   const profile = await getCurrentUserProfile();
   const navigation: Array<{ href: string; label: string; icon: DashboardIconName; exact?: boolean }> = [
-    { href: "/dashboard/author", label: "Vue d'ensemble", icon: "bar-chart-3", exact: true },
-    { href: "/dashboard/author/books", label: "Mes livres", icon: "book-open" },
-    { href: "/dashboard/author/add-book", label: "Ajouter un livre", icon: "plus-circle" },
+    { href: "/dashboard/author", label: "Tableau de bord", icon: "bar-chart-3", exact: true },
+    { href: "/dashboard/author/books", label: "Catalogue", icon: "book-open" },
+    { href: "/dashboard/author/add-book", label: "Nouveau titre", icon: "plus-circle" },
     { href: "/dashboard/author/sales", label: "Ventes", icon: "circle-dollar-sign" },
   ];
 
   return (
     <DashboardShell
       areaLabel="Author studio"
-      headline="Catalogue, ventes et mise en ligne"
-      description="Le studio auteur garde les memes donnees Supabase, mais avec une interface plus compacte et plus proche d un outil de publication."
+      headline="Catalogue, ventes et publication"
+      description="Un studio auteur plus net, plus orienté pilotage, avec les memes donnees Supabase et une lecture proche d une console KDP."
       userName={profile?.name ?? profile?.email ?? "Author"}
       userRole="Auteur"
       navigation={navigation}
+      theme="author"
     >
       {children}
     </DashboardShell>

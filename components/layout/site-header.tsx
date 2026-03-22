@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { CircleDollarSign, Heart, Search, ShoppingCart, UserCircle2 } from "lucide-react";
+import { LogoutButton } from "@/components/auth/logout-button";
 import { createClient } from "@/lib/supabase/server";
 
 // Helper to identify dynamic server usage errors
@@ -50,6 +51,12 @@ export async function SiteHeader() {
       : user
       ? "/dashboard/reader"
       : "/login";
+  const favoritesHref =
+    userRole === "reader"
+      ? "/dashboard/reader/favorites"
+      : user
+      ? "/books"
+      : "/login?next=%2Fdashboard%2Freader%2Ffavorites";
 
   // Navigation links (modern layout)
   const primaryLinks = [
@@ -104,11 +111,11 @@ export async function SiteHeader() {
           {/* Icon group */}
           <div className="flex items-center gap-4 text-sm font-medium text-gray-800">
             <Link
-              href="/books"
+              href={favoritesHref}
               className="flex items-center gap-1 rounded-full p-2 transition hover:bg-gray-100 hover:text-[#febd69]"
             >
               <Heart className="h-5 w-5" />
-              <span className="hidden sm:inline">Liste</span>
+              <span className="hidden sm:inline">Favoris</span>
             </Link>
             <Link
               href="/cart"
@@ -133,6 +140,12 @@ export async function SiteHeader() {
                 {user ? "Compte" : "Connexion"}
               </span>
             </Link>
+            {user ? (
+              <LogoutButton
+                label="Deconnexion"
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-800 transition hover:border-[#febd69] hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-70"
+              />
+            ) : null}
           </div>
         </div>
 

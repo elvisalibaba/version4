@@ -1,10 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
+import { BOOK_FORMATS, getBookFormatLabel } from "@/lib/book-formats";
 import {
   ADMIN_DEFAULT_PAGE_SIZE,
   buildPagination,
-  firstOf,
   getPaginationRange,
   normalizeSearchTerm,
+  resolveAdminBookAuthorName,
   safeLikeTerm,
   type AdminAuthorMini,
   type AdminBookMini,
@@ -64,7 +65,7 @@ async function resolveFormatBookIds(search: string) {
   const term = safeLikeTerm(search);
 
   const [bookMatches, authorMatches, profileMatches] = await Promise.all([
-    supabase.from("books").select("id").or(`title.ilike.%${term}%,subtitle.ilike.%${term}%`),
+    supabase.from("books").select("id").or(`title.ilike.%${term}%,subtitle.ilike.%${term}%,author_display_name.ilike.%${term}%`),
     supabase.from("author_profiles").select("id").or(`display_name.ilike.%${term}%,bio.ilike.%${term}%`),
     supabase.from("profiles").select("id").or(`name.ilike.%${term}%,email.ilike.%${term}%`),
   ]);
@@ -127,12 +128,7 @@ export async function listAdminFormats(params: {
         items: [],
         pagination: buildPagination(0, page, ADMIN_DEFAULT_PAGE_SIZE),
         filterOptions: {
-          formats: [
-            { label: "ebook", value: "ebook" },
-            { label: "paperback", value: "paperback" },
-            { label: "hardcover", value: "hardcover" },
-            { label: "audiobook", value: "audiobook" },
-          ],
+          formats: BOOK_FORMATS.map((format) => ({ label: getBookFormatLabel(format), value: format })),
         },
         notices,
       };
@@ -168,7 +164,7 @@ export async function listAdminFormats(params: {
       ? await supabase
           .from("books")
           .select(
-            "id, title, status, author_id, cover_url, price, currency_code, is_subscription_available, is_single_sale_enabled, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
+            "id, title, author_display_name, status, author_id, cover_url, price, currency_code, is_subscription_available, is_single_sale_enabled, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
           )
           .in("id", bookIds)
           .returns<RelatedBookRow[]>()
@@ -186,17 +182,12 @@ export async function listAdminFormats(params: {
         ...row,
         book_title: book?.title ?? "Livre inconnu",
         book_status: book?.status ?? "unknown",
-        author_name: firstOf(book?.author_profile)?.display_name ?? firstOf(book?.author_profile_fallback)?.name ?? "Auteur inconnu",
+        author_name: book ? resolveAdminBookAuthorName(book) : "Auteur inconnu",
       };
     }),
     pagination: buildPagination(count, page, ADMIN_DEFAULT_PAGE_SIZE),
     filterOptions: {
-      formats: [
-        { label: "ebook", value: "ebook" },
-        { label: "paperback", value: "paperback" },
-        { label: "hardcover", value: "hardcover" },
-        { label: "audiobook", value: "audiobook" },
-      ],
+      formats: BOOK_FORMATS.map((format) => ({ label: getBookFormatLabel(format), value: format })),
     },
     notices,
   };
@@ -220,7 +211,7 @@ export async function getAdminFormatDetail(formatId: string): Promise<AdminForma
   const bookResult = await supabase
     .from("books")
     .select(
-      "id, title, status, author_id, cover_url, price, currency_code, is_subscription_available, is_single_sale_enabled, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
+      "id, title, author_display_name, status, author_id, cover_url, price, currency_code, is_subscription_available, is_single_sale_enabled, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
     )
     .eq("id", format.book_id)
     .returns<RelatedBookRow>()
@@ -236,7 +227,7 @@ export async function getAdminFormatDetail(formatId: string): Promise<AdminForma
     format,
     book: {
       ...book,
-      author_name: firstOf(book.author_profile)?.display_name ?? firstOf(book.author_profile_fallback)?.name ?? "Auteur inconnu",
+      author_name: resolveAdminBookAuthorName(book),
     },
     notices: [],
   };
@@ -247,14 +238,14 @@ export async function getAdminFormatEditorOptions() {
   const { data } = await supabase
     .from("books")
     .select(
-      "id, title, status, author_id, cover_url, price, currency_code, is_subscription_available, is_single_sale_enabled, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
+      "id, title, author_display_name, status, author_id, cover_url, price, currency_code, is_subscription_available, is_single_sale_enabled, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
     )
     .order("created_at", { ascending: false })
     .returns<RelatedBookRow[]>();
 
   return {
     books: (data ?? []).map((book) => ({
-      label: `${book.title} - ${firstOf(book.author_profile)?.display_name ?? firstOf(book.author_profile_fallback)?.name ?? "Auteur inconnu"}`,
+      label: `${book.title} - ${resolveAdminBookAuthorName(book)}`,
       value: book.id,
     })),
   };

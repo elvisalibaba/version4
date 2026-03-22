@@ -10,7 +10,7 @@ type AdminPageHeaderProps = {
 
 export function AdminPageHeader({ title, description, breadcrumbs, actions }: AdminPageHeaderProps) {
   return (
-    <header className="overflow-hidden rounded-[2rem] border border-violet-200/70 bg-[radial-gradient(circle_at_top_left,_rgba(193,183,255,0.38),_transparent_24%),linear-gradient(180deg,_rgba(255,255,255,0.96),_rgba(247,242,255,0.94))] p-6 shadow-[0_22px_52px_rgba(89,68,219,0.08)]">
+    <header className="overflow-hidden rounded-[2rem] border border-[#e6dccd] bg-[radial-gradient(circle_at_top_left,_rgba(255,153,0,0.14),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(20,110,180,0.10),_transparent_24%),linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(248,244,237,0.94))] p-6 shadow-[0_22px_52px_rgba(15,23,42,0.06)]">
       <div className="flex flex-wrap items-start justify-between gap-5">
         <div className="max-w-4xl space-y-3">
           {breadcrumbs?.length ? <AdminBreadcrumbs items={breadcrumbs} /> : null}

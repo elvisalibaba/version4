@@ -89,7 +89,7 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-800 mb-2">Type d'accès</h3>
+                  <h3 className="text-sm font-semibold text-gray-800 mb-2">Type d&apos;accès</h3>
                   <ul className="space-y-1">
                     <li>
                       <Link
@@ -112,7 +112,7 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
                         href="/books?access=purchase"
                         className={`text-sm block py-1 ${accessQuery === "purchase" ? "text-[#ff9900] font-medium" : "text-gray-600 hover:text-[#ff9900]"}`}
                       >
-                        Achat à l'unité
+                        Achat à l&apos;unité
                       </Link>
                     </li>
                   </ul>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BOOK_FORMATS, getBookFormatLabel } from "@/lib/book-formats";
 import { formatMoney } from "@/lib/book-offers";
 import { saveBookFormatAction } from "@/app/admin/actions";
 import { listAdminFormats, getAdminFormatEditorOptions } from "@/lib/supabase/admin/formats";
@@ -16,7 +17,7 @@ import { AdminPagination } from "@/components/admin/tables/admin-pagination";
 type FormatsPageProps = {
   searchParams: Promise<{
     q?: string;
-    format?: "ebook" | "paperback" | "hardcover" | "audiobook";
+    format?: "holistique_store" | "ebook" | "paperback" | "pocket" | "hardcover" | "audiobook";
     publication?: string;
     stock?: string;
     page?: string;
@@ -71,10 +72,11 @@ export default async function AdminFormatsPage({ searchParams }: FormatsPageProp
           <label className="grid gap-2">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Format</span>
             <select name="format" className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900">
-              <option value="ebook">ebook</option>
-              <option value="paperback">paperback</option>
-              <option value="hardcover">hardcover</option>
-              <option value="audiobook">audiobook</option>
+              {BOOK_FORMATS.map((format) => (
+                <option key={format} value={format}>
+                  {getBookFormatLabel(format)}
+                </option>
+              ))}
             </select>
           </label>
           <label className="grid gap-2">
