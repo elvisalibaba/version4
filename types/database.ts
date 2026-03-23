@@ -9,6 +9,7 @@ export type SubscriptionStatus = "active" | "cancelled" | "expired" | "past_due"
 export type OrderPaymentStatus = "pending" | "paid" | "failed" | "refunded";
 export type AffiliateSourceType = "book" | "plan";
 export type AffiliateWalletTransactionStatus = "pending" | "credited" | "reversed";
+export type MobileAppTrialStatus = "active" | "expired" | "revoked";
 
 export type Database = {
   public: {
@@ -339,6 +340,109 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      mobile_app_configs: {
+        Row: {
+          scope: string;
+          app_name: string;
+          hero_title: string;
+          hero_description: string;
+          android_cta_label: string;
+          apk_path: string | null;
+          apk_file_name: string | null;
+          version_label: string | null;
+          release_notes: string | null;
+          is_public: boolean;
+          trial_enabled: boolean;
+          trial_days: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          scope?: string;
+          app_name?: string;
+          hero_title?: string;
+          hero_description?: string;
+          android_cta_label?: string;
+          apk_path?: string | null;
+          apk_file_name?: string | null;
+          version_label?: string | null;
+          release_notes?: string | null;
+          is_public?: boolean;
+          trial_enabled?: boolean;
+          trial_days?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          scope?: string;
+          app_name?: string;
+          hero_title?: string;
+          hero_description?: string;
+          android_cta_label?: string;
+          apk_path?: string | null;
+          apk_file_name?: string | null;
+          version_label?: string | null;
+          release_notes?: string | null;
+          is_public?: boolean;
+          trial_enabled?: boolean;
+          trial_days?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "mobile_app_configs_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      mobile_app_trial_grants: {
+        Row: {
+          user_id: string;
+          source: string;
+          granted_at: string;
+          expires_at: string;
+          status: MobileAppTrialStatus;
+          claimed_download_count: number;
+          last_downloaded_at: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          source?: string;
+          granted_at?: string;
+          expires_at: string;
+          status?: MobileAppTrialStatus;
+          claimed_download_count?: number;
+          last_downloaded_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          source?: string;
+          granted_at?: string;
+          expires_at?: string;
+          status?: MobileAppTrialStatus;
+          claimed_download_count?: number;
+          last_downloaded_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "mobile_app_trial_grants_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       books: {
         Row: {
@@ -1454,6 +1558,13 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      claim_current_user_mobile_app_trial: {
+        Args: {
+          p_trial_days?: number;
+          p_source?: string;
+        };
+        Returns: Database["public"]["Tables"]["mobile_app_trial_grants"]["Row"];
+      };
       is_current_user_admin: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;

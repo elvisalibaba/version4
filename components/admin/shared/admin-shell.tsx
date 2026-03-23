@@ -16,6 +16,7 @@ import {
   PenTool,
   Receipt,
   ShieldCheck,
+  Smartphone,
   Star,
   Tag,
   TrendingUp,
@@ -66,6 +67,7 @@ const navigationGroups: Array<{ title: string; items: NavigationItem[] }> = [
       { href: "/admin/blog", label: "Blog", icon: FileText },
       { href: "/admin/flash-sales", label: "Flash sale", icon: Tag },
       { href: "/admin/home-positioning", label: "Mise en avant", icon: BringToFront },
+      { href: "/admin/mobile-app", label: "Application", icon: Smartphone },
     ],
   },
 ];
@@ -90,7 +92,7 @@ export function AdminShell({ profileName, profileEmail, children }: AdminShellPr
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(255,153,0,0.14),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(20,110,180,0.12),_transparent_24%),linear-gradient(180deg,_#fbfaf7_0%,_#f5f0e6_52%,_#f7f4ee_100%)]">
       <div className="mx-auto grid min-h-screen max-w-[1720px] gap-6 px-4 py-4 lg:grid-cols-[325px_minmax(0,1fr)] xl:px-6">
-        <aside className="sticky top-4 self-start rounded-[2.1rem] border border-[#e6dccd] bg-white/90 p-5 shadow-[0_28px_68px_rgba(15,23,42,0.08)] backdrop-blur xl:p-6">
+        <aside className="self-start rounded-[2.1rem] border border-[#e6dccd] bg-white/90 p-4 shadow-[0_28px_68px_rgba(15,23,42,0.08)] backdrop-blur sm:p-5 lg:sticky lg:top-4 xl:p-6">
           <Link href="/admin" className="flex items-center gap-3">
             <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[linear-gradient(135deg,#111827,#146eb4)] text-lg font-extrabold text-white shadow-[0_18px_34px_rgba(17,24,39,0.22)]">
               HB
@@ -127,7 +129,7 @@ export function AdminShell({ profileName, profileEmail, children }: AdminShellPr
             </div>
           </div>
 
-          <div className="mt-6 space-y-5">
+          <div className="mt-6 space-y-4 sm:space-y-5">
             {navigationGroups.map((group) => (
               <div key={group.title} className="space-y-2">
                 <p className="px-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">{group.title}</p>

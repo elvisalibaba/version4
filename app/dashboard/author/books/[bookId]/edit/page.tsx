@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Library } from "lucide-react";
-import { PublishLabForm, buildOptionalFormatState } from "@/components/author/publish-lab-form";
+import { PublishLabForm } from "@/components/author/publish-lab-form";
 import { DashboardTopbar } from "@/components/ui/dashboard-topbar";
 import { requireRole } from "@/lib/auth";
+import { buildOptionalFormatState } from "@/lib/publish-lab";
 import { createClient } from "@/lib/supabase/server";
 import type { BookFormatType, Database } from "@/types/database";
 

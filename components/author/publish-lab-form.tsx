@@ -6,19 +6,14 @@ import { SubscriptionPlanSelector } from "@/components/author/subscription-plan-
 import { FormSection } from "@/components/ui/form-section";
 import { BOOK_CATEGORIES } from "@/lib/book-categories";
 import { getBookFormatLabel, isPhysicalBookFormat } from "@/lib/book-formats";
+import { initialOptionalFormat, type PublishLabFormatState } from "@/lib/publish-lab";
 import { getSupabaseBrowserConfigErrorMessage, getSupabaseBrowserErrorMessage } from "@/lib/supabase/browser-errors";
 import { createClient } from "@/lib/supabase/client";
 import type { BookFormatType, BookReviewStatus, Database } from "@/types/database";
 
 type OptionalFormat = "holistique_store" | "paperback" | "pocket" | "hardcover" | "audiobook";
 
-type FormatState = {
-  enabled: boolean;
-  price: string;
-  printingCost: string;
-  stockQuantity: string;
-  published: boolean;
-};
+type FormatState = PublishLabFormatState;
 
 type SubmissionIntent = "draft" | "submit";
 
@@ -73,14 +68,6 @@ export type PublishLabInitialValues = {
 type PublishLabFormProps = {
   subscriptionPlans: SubscriptionPlan[];
   initialValues?: Partial<PublishLabInitialValues>;
-};
-
-const initialOptionalFormat: FormatState = {
-  enabled: false,
-  price: "0",
-  printingCost: "",
-  stockQuantity: "",
-  published: false,
 };
 
 const emptyInitialValues: PublishLabInitialValues = {
@@ -174,26 +161,6 @@ function getReviewStatusMeta(status: BookReviewStatus) {
         className: "border-slate-200 bg-slate-50 text-slate-700",
       };
   }
-}
-
-export function buildOptionalFormatState(
-  format:
-    | {
-        price: number;
-        printing_cost: number | null;
-        stock_quantity: number | null;
-        is_published?: boolean;
-      }
-    | undefined,
-): FormatState {
-  if (!format) return initialOptionalFormat;
-  return {
-    enabled: true,
-    price: String(format.price ?? 0),
-    printingCost: format.printing_cost !== null ? String(format.printing_cost) : "",
-    stockQuantity: format.stock_quantity ? String(format.stock_quantity) : "",
-    published: Boolean(format.is_published),
-  };
 }
 
 function Input({
@@ -828,5 +795,3 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
     </form>
   );
 }
-
-export { initialOptionalFormat };

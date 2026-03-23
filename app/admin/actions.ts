@@ -4,12 +4,14 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { isBookCopyrightBlocked } from "@/lib/book-copyright";
 import { DIGITAL_BOOK_FORMATS } from "@/lib/book-formats";
+import { saveMobileAppConfig, getMobileAppConfig } from "@/lib/mobile-app";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { createBlogPost, deleteBlogPost, parseBlogContentInput } from "@/lib/blog";
 import { addBookToFlashSale, clearFlashSaleBooks, removeBookFromFlashSale, updateFlashSaleDiscount } from "@/lib/flash-sales";
 import { addBookToHomeFeatured, clearHomeFeaturedBooks, moveHomeFeaturedBook, removeBookFromHomeFeatured } from "@/lib/home-positioning";
 import { splitCommaSeparatedValues } from "@/lib/supabase/admin/shared";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service";
 import type {
   BookFormatType,
   BookReviewStatus,
@@ -63,6 +65,12 @@ function appendRedirectParam(path: string, key: string, value: string) {
   searchParams.set(key, value);
   const nextSearch = searchParams.toString();
   return nextSearch ? `${pathname}?${nextSearch}` : pathname;
+}
+
+function sanitizeStorageFileName(fileName: string) {
+  const normalized = fileName.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const safe = normalized.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
+  return safe.replace(/^-|-$/g, "") || "file";
 }
 
 /* --------------------------------------------------------------------------
@@ -263,6 +271,69 @@ export async function moveHomeFeaturedBookAction(formData: FormData) {
   revalidatePath("/admin");
   revalidatePath("/admin/home-positioning");
   redirect(redirectTo);
+}
+
+/* --------------------------------------------------------------------------
+ *  Mobile app actions
+ * ------------------------------------------------------------------------- */
+
+export async function saveMobileAppConfigAction(formData: FormData) {
+  const admin = await requireAdmin();
+  const redirectTo = getRedirectPath(formData, "/admin/mobile-app");
+  const currentConfig = await getMobileAppConfig();
+  let apkPath = currentConfig.apkPath;
+  let apkFileName = currentConfig.apkFileName;
+
+  const clearApk = getBoolean(formData, "clear_apk");
+  const fileValue = formData.get("apk_file");
+  const apkFile = fileValue instanceof File && fileValue.size > 0 ? fileValue : null;
+
+  if (clearApk) {
+    apkPath = null;
+    apkFileName = null;
+  }
+
+  if (apkFile) {
+    const safeFileName = sanitizeStorageFileName(apkFile.name.toLowerCase().endsWith(".apk") ? apkFile.name : `${apkFile.name}.apk`);
+    const nextPath = `apps/holistique-stores/${Date.now()}-${safeFileName}`;
+    const buffer = new Uint8Array(await apkFile.arrayBuffer());
+    const service = createServiceRoleClient();
+    const { error: uploadError } = await service.storage.from("books").upload(nextPath, buffer, {
+      contentType: "application/vnd.android.package-archive",
+      upsert: false,
+    });
+
+    if (uploadError) {
+      redirect(appendRedirectParam(redirectTo, "saved", "upload_failed"));
+    }
+
+    apkPath = nextPath;
+    apkFileName = apkFile.name;
+  }
+
+  const shouldBePublic = getBoolean(formData, "is_public") && Boolean(apkPath);
+
+  await saveMobileAppConfig({
+    ...currentConfig,
+    appName: getString(formData, "app_name") || currentConfig.appName,
+    heroTitle: getString(formData, "hero_title") || currentConfig.heroTitle,
+    heroDescription: getString(formData, "hero_description") || currentConfig.heroDescription,
+    androidCtaLabel: getString(formData, "android_cta_label") || currentConfig.androidCtaLabel,
+    apkPath,
+    apkFileName,
+    versionLabel: getNullableString(formData, "version_label"),
+    releaseNotes: getNullableString(formData, "release_notes"),
+    isPublic: shouldBePublic,
+    trialEnabled: getBoolean(formData, "trial_enabled"),
+    trialDays: getNumber(formData, "trial_days", currentConfig.trialDays || 7),
+    updatedBy: admin.id,
+    updatedAt: new Date().toISOString(),
+  });
+
+  revalidatePath("/home");
+  revalidatePath("/admin");
+  revalidatePath("/admin/mobile-app");
+  redirect(appendRedirectParam(redirectTo, "saved", shouldBePublic ? "mobile_app_public" : "mobile_app_updated"));
 }
 
 /* --------------------------------------------------------------------------

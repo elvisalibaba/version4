@@ -42,8 +42,13 @@ export const metadata: Metadata = {
   description: "Plateforme de livres numeriques et de lectures de transformation pour grandir, apprendre et agir.",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/icon",
-    apple: "/apple-icon",
+    icon: [
+      { url: "/playstore.png", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: "/playstore.png",
+    apple: [
+      { url: "/playstore.png", type: "image/png", sizes: "512x512" },
+    ],
   },
   appleWebApp: {
     capable: true,

@@ -15,19 +15,19 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "fr",
     icons: [
       {
-        src: "/icon",
+        src: "/playstore.png",
         sizes: "512x512",
         type: "image/png",
       },
       {
-        src: "/icon",
+        src: "/playstore.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/apple-icon",
-        sizes: "180x180",
+        src: "/playstore.png",
+        sizes: "512x512",
         type: "image/png",
       },
     ],

@@ -2,19 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
-  BookOpen,
-  Gift,
-  Headphones,
-  MonitorPlay,
-  PenSquare,
   Search,
-  Sparkles,
   Star,
 } from "lucide-react";
-import { HEADER_CATEGORY_ITEMS } from "@/lib/book-categories";
+import { MobileAppHeroCard } from "@/components/home/mobile-app-hero-card";
 import { getComingSoonBooks, getPublishedBooks } from "@/lib/books";
 import { getFlashSaleState } from "@/lib/flash-sales";
 import { getHomeFeaturedState } from "@/lib/home-positioning";
+import { getMobileAppConfig } from "@/lib/mobile-app";
+import { createClient } from "@/lib/supabase/server";
 
 type HomeBook = Awaited<ReturnType<typeof getPublishedBooks>>[number];
 
@@ -190,8 +186,17 @@ function PromoFeature({ title, description, cta, href }: { title: string; descri
 }
 
 export default async function HomePage() {
-  const [books, comingSoonBooks] = await Promise.all([getPublishedBooks(), getComingSoonBooks()]);
+  const [books, comingSoonBooks, mobileAppConfig, supabase] = await Promise.all([
+    getPublishedBooks(),
+    getComingSoonBooks(),
+    getMobileAppConfig(),
+    createClient(),
+  ]);
   const [homeFeatured, flashSale] = await Promise.all([getHomeFeaturedState(books), getFlashSaleState(books)]);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isAuthenticated = Boolean(user);
 
   const orderedBooks = homeFeatured.orderedBooks;
   const freeBooks = orderedBooks.filter((book) => book.is_free);
@@ -214,8 +219,8 @@ export default async function HomePage() {
     <div className="bg-gray-100 min-h-screen">
       {/* Hero section : large banner with CTA and search */}
       <div className="bg-gradient-to-r from-[#232f3e] to-[#1a2a3a] text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-          <div className="grid gap-8 md:grid-cols-2 items-center">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8 lg:py-20">
+          <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,460px)] lg:gap-10">
             <div className="space-y-6">
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
                 Les histoires fleurissent sur Holistique Books.
@@ -223,22 +228,23 @@ export default async function HomePage() {
               <p className="text-lg text-gray-200">
                 Une librairie en ligne pensée pour les lecteurs exigeants et les auteurs ambitieux.
               </p>
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
                 <Link
                   href="/books"
-                  className="inline-flex items-center rounded-md bg-[#ff9900] px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-[#e68900] transition"
+                  className="inline-flex w-full items-center justify-center rounded-md bg-[#ff9900] px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-[#e68900] sm:w-auto"
                 >
                   Explorer la boutique
                 </Link>
                 <Link
                   href="/dashboard/author"
-                  className="inline-flex items-center rounded-md border border-white/30 bg-transparent px-6 py-3 text-base font-semibold text-white hover:bg-white/10 transition"
+                  className="inline-flex w-full items-center justify-center rounded-md border border-white/30 bg-transparent px-6 py-3 text-base font-semibold text-white transition hover:bg-white/10 sm:w-auto"
                 >
                   Publier un livre
                 </Link>
               </div>
-              <form action="/books" className="flex max-w-lg">
-                <div className="flex-1 flex items-center border border-gray-300 rounded-l-md bg-white">
+              <MobileAppHeroCard config={mobileAppConfig} isAuthenticated={isAuthenticated} />
+              <form action="/books" className="flex w-full max-w-lg flex-col gap-3 sm:flex-row sm:gap-0">
+                <div className="flex min-w-0 flex-1 items-center rounded-md border border-gray-300 bg-white sm:rounded-l-md sm:rounded-r-none">
                   <Search className="h-5 w-5 text-gray-400 ml-3" />
                   <input
                     type="search"
@@ -249,14 +255,14 @@ export default async function HomePage() {
                 </div>
                 <button
                   type="submit"
-                  className="bg-[#ff9900] text-white px-5 py-2 rounded-r-md font-semibold hover:bg-[#e68900] transition"
+                  className="rounded-md bg-[#ff9900] px-5 py-2 font-semibold text-white transition hover:bg-[#e68900] sm:rounded-l-none sm:rounded-r-md"
                 >
                   Rechercher
                 </button>
               </form>
             </div>
             {/* Optional hero image */}
-            <div className="hidden md:block relative h-80">
+            <div className="relative hidden h-72 md:block lg:h-80">
               <Image
                 src="/images/ce2.jpg"
                 alt="Hero"
