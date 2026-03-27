@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import {
+  extractMobileAppFileName,
+  isExternalMobileAppUrl,
+} from "@/lib/mobile-app-path";
 import { createClient } from "@/lib/supabase/client";
 import {
   getSupabaseBrowserConfigErrorMessage,
@@ -82,6 +86,9 @@ export function MobileAppConfigForm({
   const [saving, setSaving] = useState(false);
   const [statusText, setStatusText] = useState<string | null>(null);
   const [uploadedApk, setUploadedApk] = useState<UploadedApkState | null>(null);
+  const defaultExternalApkUrl = isExternalMobileAppUrl(config.apkPath)
+    ? config.apkPath ?? ""
+    : "";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -99,6 +106,14 @@ export function MobileAppConfigForm({
     const apkFile =
       apkFileValue instanceof File && apkFileValue.size > 0 ? apkFileValue : null;
     const clearApk = formData.get("clear_apk") !== null;
+    const rawExternalApkUrl =
+      typeof formData.get("apk_external_url") === "string"
+        ? String(formData.get("apk_external_url")).trim()
+        : "";
+    const externalApkUrl =
+      clearApk && rawExternalApkUrl === defaultExternalApkUrl && !apkFile
+        ? ""
+        : rawExternalApkUrl;
 
     setSaving(true);
     setError(null);
@@ -107,7 +122,16 @@ export function MobileAppConfigForm({
       let apkPath = clearApk ? null : config.apkPath;
       let apkFileName = clearApk ? null : config.apkFileName;
 
-      if (apkFile) {
+      if (externalApkUrl) {
+        apkPath = externalApkUrl;
+        apkFileName =
+          extractMobileAppFileName(externalApkUrl) ??
+          config.apkFileName ??
+          "github-release.apk";
+        setStatusText(
+          "URL GitHub Releases detectee. Aucun upload serveur n est necessaire.",
+        );
+      } else if (apkFile) {
         const cacheKey = getFileCacheKey(apkFile);
 
         if (uploadedApk?.cacheKey === cacheKey) {
@@ -288,6 +312,23 @@ export function MobileAppConfigForm({
             defaultValue={config.androidCtaLabel}
             className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900"
           />
+        </label>
+
+        <label className="grid gap-2">
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+            URL APK GitHub Releases
+          </span>
+          <input
+            type="url"
+            name="apk_external_url"
+            defaultValue={defaultExternalApkUrl}
+            placeholder="https://github.com/.../releases/download/.../app-release.apk"
+            className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900"
+          />
+          <span className="text-xs leading-5 text-slate-500">
+            Colle ici le lien direct de ton asset GitHub Releases. Si ce champ
+            est rempli, il prend la priorite sur l upload local.
+          </span>
         </label>
 
         <label className="grid gap-2">

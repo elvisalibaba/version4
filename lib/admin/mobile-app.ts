@@ -1,5 +1,6 @@
 import { Smartphone, Gift, ShieldCheck } from "lucide-react";
 import { getMobileAppConfig, createMobileAppSignedDownloadUrl } from "@/lib/mobile-app";
+import { isExternalMobileAppUrl } from "@/lib/mobile-app-path";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import type { AdminNotice } from "@/types/admin";
 
@@ -46,7 +47,17 @@ export async function getAdminMobileAppData() {
       tone: "info",
       title: "Aucun APK public pour le moment",
       description:
-        "Ajoute un fichier APK pour activer le bouton de telechargement sur la home. Tant qu aucun fichier n est configure, le CTA reste visible mais non telechargeable.",
+        "Ajoute un fichier APK ou colle une URL GitHub Releases pour activer le bouton de telechargement sur la home. Tant qu aucun fichier n est configure, le CTA reste visible mais non telechargeable.",
+      });
+  }
+
+  if (config.apkPath && isExternalMobileAppUrl(config.apkPath)) {
+    notices.push({
+      id: "mobile-app-external-url",
+      tone: "info",
+      title: "APK pilote par URL externe",
+      description:
+        "Cette configuration pointe vers un asset externe, par exemple GitHub Releases. Le bonus mobile reste attribue via la route publique avant la redirection.",
     });
   }
 
@@ -82,7 +93,11 @@ export async function getAdminMobileAppData() {
         icon: Smartphone,
         label: "APK public",
         value: config.apkPath ? (config.versionLabel ?? "Pret") : "Aucun",
-        hint: config.apkFileName ?? "Charge depuis l admin",
+        hint: config.apkFileName
+          ? config.apkFileName
+          : config.apkPath && isExternalMobileAppUrl(config.apkPath)
+            ? "Lien GitHub Releases"
+            : "Charge depuis l admin",
         tone: config.apkPath ? "emerald" : "amber",
       },
       {

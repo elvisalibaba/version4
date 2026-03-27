@@ -2,6 +2,10 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getAdminApiSession } from "@/lib/auth/get-admin-api-session";
 import {
+  extractMobileAppFileName,
+  isExternalMobileAppUrl,
+} from "@/lib/mobile-app-path";
+import {
   getMobileAppConfig,
   saveMobileAppConfig,
 } from "@/lib/mobile-app";
@@ -71,7 +75,10 @@ export async function POST(request: Request) {
   try {
     const currentConfig = await getMobileAppConfig();
     const nextApkPath = normalizeNullableString(payload.apkPath);
-    const nextApkFileName = normalizeNullableString(payload.apkFileName);
+    const nextApkFileName = nextApkPath
+      ? normalizeNullableString(payload.apkFileName) ??
+        extractMobileAppFileName(nextApkPath)
+      : null;
     const shouldBePublic = Boolean(payload.isPublic) && Boolean(nextApkPath);
 
     const savedConfig = await saveMobileAppConfig({
@@ -102,7 +109,8 @@ export async function POST(request: Request) {
 
     if (
       currentConfig.apkPath &&
-      currentConfig.apkPath !== savedConfig.apkPath
+      currentConfig.apkPath !== savedConfig.apkPath &&
+      !isExternalMobileAppUrl(currentConfig.apkPath)
     ) {
       try {
         const service = createServiceRoleClient();

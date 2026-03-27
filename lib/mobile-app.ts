@@ -1,6 +1,10 @@
 import "server-only";
 
 import { readJsonFile, writeJsonFile } from "@/lib/content-storage";
+import {
+  extractMobileAppFileName,
+  isExternalMobileAppUrl,
+} from "@/lib/mobile-app-path";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import type { Database } from "@/types/database";
 
@@ -50,7 +54,10 @@ function normalizeMobileAppConfig(config: MobileAppConfig): MobileAppConfig {
     heroDescription: config.heroDescription?.trim() || defaultMobileAppConfig.heroDescription,
     androidCtaLabel: config.androidCtaLabel?.trim() || defaultMobileAppConfig.androidCtaLabel,
     apkPath: config.apkPath?.trim() || null,
-    apkFileName: config.apkFileName?.trim() || null,
+    apkFileName:
+      config.apkFileName?.trim() ||
+      extractMobileAppFileName(config.apkPath) ||
+      null,
     versionLabel: config.versionLabel?.trim() || null,
     releaseNotes: config.releaseNotes?.trim() || null,
     isPublic: Boolean(config.isPublic),
@@ -187,9 +194,18 @@ export async function saveMobileAppConfig(config: MobileAppConfig) {
 
 export async function createMobileAppSignedDownloadUrl(apkPath: string, expiresInSeconds = 60 * 10) {
   const normalizedPath = apkPath.trim();
+
+  if (!normalizedPath) {
+    return null;
+  }
+
+  if (isExternalMobileAppUrl(normalizedPath)) {
+    return normalizedPath;
+  }
+
   const supabase = getMobileAppClient();
 
-  if (!normalizedPath || !supabase) {
+  if (!supabase) {
     return null;
   }
 
