@@ -66,7 +66,7 @@ export default async function AdminMobileAppPage({ searchParams }: AdminMobileAp
       </div>
 
       <AdminPanel title="Publication Android" description="Charge ton APK, regle le texte public et decide si le telechargement doit etre ouvert sur la home.">
-        <form action={saveMobileAppConfigAction} className="grid gap-6">
+        <form action={saveMobileAppConfigAction} encType="multipart/form-data" className="grid gap-6">
           <input type="hidden" name="redirect_to" value="/admin/mobile-app" />
 
           <div className="grid gap-5 lg:grid-cols-2">

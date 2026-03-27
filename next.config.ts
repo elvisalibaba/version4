@@ -5,6 +5,14 @@ const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
   : null;
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      // APK uploads go through a server action on /admin/mobile-app.
+      bodySizeLimit: "80mb",
+    },
+    // Admin routes are guarded by proxy.ts, which buffers request bodies.
+    proxyClientMaxBodySize: "80mb",
+  },
   images: {
     remotePatterns: [
       {
