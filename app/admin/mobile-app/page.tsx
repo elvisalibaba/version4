@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Download, Gift, ShieldCheck, Smartphone } from "lucide-react";
-import { saveMobileAppConfigAction } from "@/app/admin/actions";
+import { MobileAppConfigForm } from "@/components/admin/mobile-app/mobile-app-config-form";
 import { AdminKpiCard } from "@/components/admin/dashboard/admin-kpi-card";
 import { AdminNotice } from "@/components/admin/shared/admin-notice";
 import { AdminPageHeader } from "@/components/admin/shared/admin-page-header";
@@ -66,138 +66,10 @@ export default async function AdminMobileAppPage({ searchParams }: AdminMobileAp
       </div>
 
       <AdminPanel title="Publication Android" description="Charge ton APK, regle le texte public et decide si le telechargement doit etre ouvert sur la home.">
-        <form action={saveMobileAppConfigAction} encType="multipart/form-data" className="grid gap-6">
-          <input type="hidden" name="redirect_to" value="/admin/mobile-app" />
-
-          <div className="grid gap-5 lg:grid-cols-2">
-            <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Nom de l application</span>
-              <input
-                type="text"
-                name="app_name"
-                defaultValue={data.config.appName}
-                className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900"
-              />
-            </label>
-
-            <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Version affichee</span>
-              <input
-                type="text"
-                name="version_label"
-                placeholder="v1.0.0"
-                defaultValue={data.config.versionLabel ?? ""}
-                className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900"
-              />
-            </label>
-
-            <label className="grid gap-2 lg:col-span-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Titre hero</span>
-              <input
-                type="text"
-                name="hero_title"
-                defaultValue={data.config.heroTitle}
-                className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900"
-              />
-            </label>
-
-            <label className="grid gap-2 lg:col-span-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Description hero</span>
-              <textarea
-                name="hero_description"
-                rows={4}
-                defaultValue={data.config.heroDescription}
-                className="rounded-[1.4rem] border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900"
-              />
-            </label>
-
-            <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Label bouton Android</span>
-              <input
-                type="text"
-                name="android_cta_label"
-                defaultValue={data.config.androidCtaLabel}
-                className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900"
-              />
-            </label>
-
-            <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Nouveau fichier APK</span>
-              <input
-                type="file"
-                name="apk_file"
-                accept=".apk,application/vnd.android.package-archive"
-                className="min-h-11 rounded-2xl border border-dashed border-violet-200 bg-white px-4 py-3 text-sm text-slate-700 file:mb-3 file:mr-0 file:block file:rounded-full file:border-0 file:bg-[#171717] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white sm:file:mb-0 sm:file:mr-3 sm:file:inline-flex"
-              />
-            </label>
-
-            <label className="grid gap-2 lg:col-span-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Release notes</span>
-              <textarea
-                name="release_notes"
-                rows={4}
-                defaultValue={data.config.releaseNotes ?? ""}
-                placeholder="Nouveautes de la build Android, correctifs, infos lecteur..."
-                className="rounded-[1.4rem] border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900"
-              />
-            </label>
-          </div>
-
-          <div className="grid gap-5 rounded-[1.8rem] border border-[#ece4d7] bg-[#fcfaf7] p-4 sm:p-5 lg:grid-cols-2">
-            <label className="flex items-start gap-3 rounded-[1.4rem] border border-[#ece4d7] bg-white p-4">
-              <input type="checkbox" name="is_public" value="true" defaultChecked={data.config.isPublic} className="mt-1 h-4 w-4 rounded border-slate-300" />
-              <span className="min-w-0">
-                <span className="block text-sm font-semibold text-slate-950">Activer le telechargement public</span>
-                <span className="mt-1 block text-sm leading-6 text-slate-500">
-                  Le bouton hero devient telechargeable seulement si un APK existe. Sans APK, la publication reste automatiquement coupee.
-                </span>
-              </span>
-            </label>
-
-            <label className="flex items-start gap-3 rounded-[1.4rem] border border-[#ece4d7] bg-white p-4">
-              <input type="checkbox" name="trial_enabled" value="true" defaultChecked={data.config.trialEnabled} className="mt-1 h-4 w-4 rounded border-slate-300" />
-              <span className="min-w-0">
-                <span className="block text-sm font-semibold text-slate-950">Activer le bonus mobile</span>
-                <span className="mt-1 block text-sm leading-6 text-slate-500">
-                  Quand un lecteur connecte telecharge l application, il recoit automatiquement un acces lecture temporaire sans engagement.
-                </span>
-              </span>
-            </label>
-
-            <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Duree du bonus</span>
-              <input
-                type="number"
-                min="1"
-                max="30"
-                name="trial_days"
-                defaultValue={String(data.config.trialDays)}
-                className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900"
-              />
-            </label>
-
-            <label className="flex items-start gap-3 rounded-[1.4rem] border border-[#f5d7d7] bg-white p-4">
-              <input type="checkbox" name="clear_apk" value="true" className="mt-1 h-4 w-4 rounded border-slate-300" />
-              <span className="min-w-0">
-                <span className="block text-sm font-semibold text-slate-950">Retirer l APK actuel</span>
-                <span className="mt-1 block text-sm leading-6 text-slate-500">
-                  Cette option coupe aussi la publication publique tant qu un nouveau fichier n est pas charge.
-                </span>
-              </span>
-            </label>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <button type="submit" className="cta-primary w-full px-5 py-3 text-sm sm:w-auto">
-              Enregistrer l application
-            </button>
-            {data.publicDownloadHref ? (
-              <Link href={data.publicDownloadHref} className="cta-secondary w-full px-5 py-3 text-center text-sm sm:w-auto">
-                Tester le telechargement public
-              </Link>
-            ) : null}
-          </div>
-        </form>
+        <MobileAppConfigForm
+          config={data.config}
+          publicDownloadHref={data.publicDownloadHref}
+        />
       </AdminPanel>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_320px] xl:grid-cols-[minmax(0,1.15fr)_360px]">
