@@ -47,7 +47,7 @@ export async function getAdminMobileAppData() {
       tone: "info",
       title: "Aucun APK public pour le moment",
       description:
-        "Ajoute un fichier APK ou colle une URL GitHub Releases pour activer le bouton de telechargement sur la home. Tant qu aucun fichier n est configure, le CTA reste visible mais non telechargeable.",
+        "Ajoute un fichier APK ou colle une URL externe comme Google Drive ou GitHub Releases pour activer le bouton de telechargement sur la home. Tant qu aucun fichier n est configure, le CTA reste visible mais non telechargeable.",
       });
   }
 
@@ -57,7 +57,7 @@ export async function getAdminMobileAppData() {
       tone: "info",
       title: "APK pilote par URL externe",
       description:
-        "Cette configuration pointe vers un asset externe, par exemple GitHub Releases. Le bonus mobile reste attribue via la route publique avant la redirection.",
+        "Cette configuration pointe vers un asset externe, par exemple Google Drive ou GitHub Releases. Le bonus mobile reste attribue via la route publique avant la redirection.",
     });
   }
 
@@ -96,7 +96,7 @@ export async function getAdminMobileAppData() {
         hint: config.apkFileName
           ? config.apkFileName
           : config.apkPath && isExternalMobileAppUrl(config.apkPath)
-            ? "Lien GitHub Releases"
+            ? "Lien externe"
             : "Charge depuis l admin",
         tone: config.apkPath ? "emerald" : "amber",
       },

@@ -127,9 +127,9 @@ export function MobileAppConfigForm({
         apkFileName =
           extractMobileAppFileName(externalApkUrl) ??
           config.apkFileName ??
-          "github-release.apk";
+          "external-release.apk";
         setStatusText(
-          "URL GitHub Releases detectee. Aucun upload serveur n est necessaire.",
+          "URL externe detectee. Aucun upload serveur n est necessaire.",
         );
       } else if (apkFile) {
         const cacheKey = getFileCacheKey(apkFile);
@@ -316,18 +316,19 @@ export function MobileAppConfigForm({
 
         <label className="grid gap-2">
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-            URL APK GitHub Releases
+            URL APK externe
           </span>
           <input
             type="url"
             name="apk_external_url"
             defaultValue={defaultExternalApkUrl}
-            placeholder="https://github.com/.../releases/download/.../app-release.apk"
+            placeholder="https://drive.usercontent.google.com/... ou https://github.com/.../releases/download/.../app-release.apk"
             className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900"
           />
           <span className="text-xs leading-5 text-slate-500">
-            Colle ici le lien direct de ton asset GitHub Releases. Si ce champ
-            est rempli, il prend la priorite sur l upload local.
+            Colle ici un lien direct Google Drive, GitHub Releases ou toute
+            autre URL publique. Si ce champ est rempli, il prend la priorite
+            sur l upload local.
           </span>
         </label>
 
