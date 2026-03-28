@@ -124,6 +124,13 @@ export function SiteFooter() {
                 Plateforme éditoriale digitale pour lecteurs, auteurs et partenaires.
               </p>
 
+              <Link
+                href="/formation-editoriale"
+                className="inline-flex items-center justify-center rounded-full bg-[#febd69] px-4 py-2 text-sm font-semibold text-[#111827] transition hover:bg-[#f4b24f] focus:outline-none focus:ring-2 focus:ring-[#febd69] focus:ring-offset-2 focus:ring-offset-[#111827]"
+              >
+                Inscription
+              </Link>
+
               <div className="flex flex-wrap gap-2.5">
                 {socialNetworks.map((social) => {
                   const Icon = social.icon;

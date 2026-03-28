@@ -10,6 +10,26 @@ export type OrderPaymentStatus = "pending" | "paid" | "failed" | "refunded";
 export type AffiliateSourceType = "book" | "plan";
 export type AffiliateWalletTransactionStatus = "pending" | "credited" | "reversed";
 export type MobileAppTrialStatus = "active" | "expired" | "revoked";
+export type EditorialTrainingProfileType =
+  | "author"
+  | "aspiring_editor"
+  | "publisher"
+  | "entrepreneur"
+  | "student"
+  | "other";
+export type EditorialTrainingExperienceLevel =
+  | "beginner"
+  | "intermediate"
+  | "advanced";
+export type EditorialTrainingProjectStage =
+  | "idea"
+  | "drafting"
+  | "manuscript_ready"
+  | "existing_catalog";
+export type EditorialTrainingPreferredFormat =
+  | "online"
+  | "onsite"
+  | "hybrid";
 
 export type Database = {
   public: {
@@ -301,6 +321,80 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      editorial_training_requests: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          first_name: string;
+          last_name: string;
+          email: string;
+          phone: string | null;
+          country: string | null;
+          city: string | null;
+          organization_name: string | null;
+          profile_type: EditorialTrainingProfileType;
+          experience_level: EditorialTrainingExperienceLevel;
+          project_stage: EditorialTrainingProjectStage;
+          preferred_format: EditorialTrainingPreferredFormat;
+          objectives: string;
+          message: string | null;
+          consent_to_contact: boolean;
+          source: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          first_name: string;
+          last_name: string;
+          email: string;
+          phone?: string | null;
+          country?: string | null;
+          city?: string | null;
+          organization_name?: string | null;
+          profile_type: EditorialTrainingProfileType;
+          experience_level: EditorialTrainingExperienceLevel;
+          project_stage: EditorialTrainingProjectStage;
+          preferred_format: EditorialTrainingPreferredFormat;
+          objectives: string;
+          message?: string | null;
+          consent_to_contact?: boolean;
+          source?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          first_name?: string;
+          last_name?: string;
+          email?: string;
+          phone?: string | null;
+          country?: string | null;
+          city?: string | null;
+          organization_name?: string | null;
+          profile_type?: EditorialTrainingProfileType;
+          experience_level?: EditorialTrainingExperienceLevel;
+          project_stage?: EditorialTrainingProjectStage;
+          preferred_format?: EditorialTrainingPreferredFormat;
+          objectives?: string;
+          message?: string | null;
+          consent_to_contact?: boolean;
+          source?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "editorial_training_requests_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       flash_sale_configs: {
         Row: {

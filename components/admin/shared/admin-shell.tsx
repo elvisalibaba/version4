@@ -9,6 +9,7 @@ import {
   BringToFront,
   CreditCard,
   FileText,
+  GraduationCap,
   Highlighter,
   LayoutDashboard,
   LibraryBig,
@@ -57,6 +58,7 @@ const navigationGroups: Array<{ title: string; items: NavigationItem[] }> = [
     title: "Communaute",
     items: [
       { href: "/admin/users", label: "Utilisateurs", icon: Users },
+      { href: "/admin/editorial-training", label: "Formation editoriale", icon: GraduationCap },
       { href: "/admin/ratings", label: "Notes", icon: Star },
       { href: "/admin/highlights", label: "Highlights", icon: Highlighter },
     ],
