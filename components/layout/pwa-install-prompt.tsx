@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, MonitorSmartphone, X } from "lucide-react";
+import { Download, MonitorSmartphone, PackageCheck, X } from "lucide-react";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -10,6 +10,16 @@ type BeforeInstallPromptEvent = Event & {
 
 type NavigatorWithStandalone = Navigator & {
   standalone?: boolean;
+};
+
+type MobileAppStatus = {
+  downloadReady: boolean;
+  downloadHref: string | null;
+  androidCtaLabel: string;
+  apkFileName: string | null;
+  versionLabel: string | null;
+  trialEnabled: boolean;
+  trialDays: number;
 };
 
 const DISMISS_STORAGE_KEY = "hb-pwa-install-dismissed";
@@ -49,9 +59,10 @@ function isAndroidDevice() {
 
 export function PwaInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(isStandaloneDisplay);
+  const [isInstalled, setIsInstalled] = useState(false);
   const [isDismissed, setIsDismissed] = useState(hasRecentlyDismissedPrompt);
-  const isAndroid = isAndroidDevice();
+  const [isAndroid, setIsAndroid] = useState(false);
+  const [mobileAppStatus, setMobileAppStatus] = useState<MobileAppStatus | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -61,6 +72,21 @@ export function PwaInstallPrompt() {
     if ("serviceWorker" in navigator) {
       void navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" }).catch(() => undefined);
     }
+
+    const frame = window.requestAnimationFrame(() => {
+      setIsInstalled(isStandaloneDisplay());
+      setIsDismissed(hasRecentlyDismissedPrompt());
+      setIsAndroid(isAndroidDevice());
+    });
+
+    void fetch("/api/mobile-app/status", { headers: { accept: "application/json" } })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: MobileAppStatus | null) => {
+        if (payload) {
+          setMobileAppStatus(payload);
+        }
+      })
+      .catch(() => undefined);
 
     function handleBeforeInstallPrompt(event: Event) {
       const installEvent = event as BeforeInstallPromptEvent;
@@ -89,6 +115,7 @@ export function PwaInstallPrompt() {
     standaloneQuery.addEventListener("change", handleDisplayModeChange);
 
     return () => {
+      window.cancelAnimationFrame(frame);
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleAppInstalled);
       standaloneQuery.removeEventListener("change", handleDisplayModeChange);
@@ -119,12 +146,15 @@ export function PwaInstallPrompt() {
     window.localStorage.setItem(DISMISS_STORAGE_KEY, String(Date.now()));
   }
 
-  if (isInstalled || isDismissed || !deferredPrompt) {
+  const hasApkDownload = isAndroid && Boolean(mobileAppStatus?.downloadReady && mobileAppStatus.downloadHref);
+  const canInstallPwa = Boolean(deferredPrompt);
+
+  if (isInstalled || isDismissed || (!canInstallPwa && !hasApkDownload)) {
     return null;
   }
 
   return (
-    <aside className="hb-install-banner" aria-label="Installer Holistique Books">
+    <aside className="hb-install-banner" aria-label="Installation Android Holistique Books">
       <button type="button" onClick={dismissPrompt} className="hb-install-close" aria-label="Fermer">
         <X className="h-4 w-4" />
       </button>
@@ -132,18 +162,39 @@ export function PwaInstallPrompt() {
         <MonitorSmartphone className="h-5 w-5" />
       </div>
       <div className="hb-install-copy">
-        <p className="hb-install-kicker">{isAndroid ? "Application Android" : "Application web"}</p>
-        <p className="hb-install-title">Installer Holistique Books</p>
+        <p className="hb-install-kicker">{isAndroid ? "Android" : "Application"}</p>
+        <p className="hb-install-title">Holistique sur votre telephone</p>
         <p className="hb-install-text">
-          {isAndroid
-            ? "Ajoutez l icone a votre ecran d accueil et ouvrez Holistique Books dans sa propre fenetre."
-            : "Ouvrez Holistique Books dans une fenetre separee, comme une application installee."}
+          {hasApkDownload
+            ? "APK direct ou icone d accueil: choisissez l installation la plus rapide."
+            : "Ajoutez l icone a votre ecran d accueil et ouvrez Holistique dans sa propre fenetre."}
         </p>
+        {hasApkDownload ? (
+          <p className="hb-install-note">
+            Pret en moins d une minute{mobileAppStatus?.trialEnabled ? `, avec ${mobileAppStatus.trialDays} jours offerts apres connexion.` : "."}
+          </p>
+        ) : null}
       </div>
-      <button type="button" onClick={handleInstall} className="hb-install-button">
-        <Download className="h-4 w-4" />
-        Installer
-      </button>
+      <div className="hb-install-actions">
+        {canInstallPwa ? (
+          <button type="button" onClick={handleInstall} className="hb-install-button">
+            <MonitorSmartphone className="h-4 w-4" />
+            Ajouter l app
+          </button>
+        ) : null}
+        {hasApkDownload ? (
+          <a href={mobileAppStatus?.downloadHref ?? "/api/mobile-app/download"} className="hb-install-button hb-install-button-secondary">
+            <PackageCheck className="h-4 w-4" />
+            {mobileAppStatus?.androidCtaLabel || "APK Android"}
+          </a>
+        ) : null}
+        {!hasApkDownload && isAndroid ? (
+          <span className="hb-install-speed">
+            <Download className="h-3.5 w-3.5" />
+            Pret en moins d une minute
+          </span>
+        ) : null}
+      </div>
     </aside>
   );
 }
