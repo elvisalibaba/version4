@@ -35,6 +35,7 @@ function resolveMetadataBase() {
 
 export const metadata: Metadata = {
   metadataBase: resolveMetadataBase(),
+  applicationName: "Holistique Books",
   title: {
     default: "HolistiqueBooks",
     template: "%s | HolistiqueBooks",
@@ -43,11 +44,13 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/playstore.png", type: "image/png", sizes: "512x512" },
+      { url: "/pwa-icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/pwa-icon-512.png", type: "image/png", sizes: "512x512" },
     ],
-    shortcut: "/playstore.png",
+    shortcut: "/pwa-icon-192.png",
     apple: [
-      { url: "/playstore.png", type: "image/png", sizes: "512x512" },
+      { url: "/pwa-icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/pwa-icon-512.png", type: "image/png", sizes: "512x512" },
     ],
   },
   appleWebApp: {
@@ -58,6 +61,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
   themeColor: "#17130f",
 };
 
