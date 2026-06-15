@@ -5,6 +5,9 @@ const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
   : null;
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: process.cwd(),
+  },
   experimental: {
     serverActions: {
       // APK uploads go through a server action on /admin/mobile-app.
