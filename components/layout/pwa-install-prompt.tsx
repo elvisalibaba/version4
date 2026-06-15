@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, MonitorSmartphone, PackageCheck, X } from "lucide-react";
+import { MonitorSmartphone, X } from "lucide-react";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -10,16 +10,6 @@ type BeforeInstallPromptEvent = Event & {
 
 type NavigatorWithStandalone = Navigator & {
   standalone?: boolean;
-};
-
-type MobileAppStatus = {
-  downloadReady: boolean;
-  downloadHref: string | null;
-  androidCtaLabel: string;
-  apkFileName: string | null;
-  versionLabel: string | null;
-  trialEnabled: boolean;
-  trialDays: number;
 };
 
 const DISMISS_STORAGE_KEY = "hb-pwa-install-dismissed";
@@ -62,7 +52,6 @@ export function PwaInstallPrompt() {
   const [isInstalled, setIsInstalled] = useState(false);
   const [isDismissed, setIsDismissed] = useState(hasRecentlyDismissedPrompt);
   const [isAndroid, setIsAndroid] = useState(false);
-  const [mobileAppStatus, setMobileAppStatus] = useState<MobileAppStatus | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -78,15 +67,6 @@ export function PwaInstallPrompt() {
       setIsDismissed(hasRecentlyDismissedPrompt());
       setIsAndroid(isAndroidDevice());
     });
-
-    void fetch("/api/mobile-app/status", { headers: { accept: "application/json" } })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((payload: MobileAppStatus | null) => {
-        if (payload) {
-          setMobileAppStatus(payload);
-        }
-      })
-      .catch(() => undefined);
 
     function handleBeforeInstallPrompt(event: Event) {
       const installEvent = event as BeforeInstallPromptEvent;
@@ -146,10 +126,9 @@ export function PwaInstallPrompt() {
     window.localStorage.setItem(DISMISS_STORAGE_KEY, String(Date.now()));
   }
 
-  const hasApkDownload = isAndroid && Boolean(mobileAppStatus?.downloadReady && mobileAppStatus.downloadHref);
   const canInstallPwa = Boolean(deferredPrompt);
 
-  if (isInstalled || isDismissed || (!canInstallPwa && !hasApkDownload)) {
+  if (isInstalled || isDismissed || !canInstallPwa) {
     return null;
   }
 
@@ -165,35 +144,16 @@ export function PwaInstallPrompt() {
         <p className="hb-install-kicker">{isAndroid ? "Android" : "Application"}</p>
         <p className="hb-install-title">Holistique sur votre telephone</p>
         <p className="hb-install-text">
-          {hasApkDownload
-            ? "APK direct ou icone d accueil: choisissez l installation la plus rapide."
-            : "Ajoutez l icone a votre ecran d accueil et ouvrez Holistique dans sa propre fenetre."}
+          Ajoutez l icone a votre ecran d accueil et ouvrez Holistique dans sa propre fenetre.
         </p>
-        {hasApkDownload ? (
-          <p className="hb-install-note">
-            Pret en moins d une minute{mobileAppStatus?.trialEnabled ? `, avec ${mobileAppStatus.trialDays} jours offerts apres connexion.` : "."}
-          </p>
-        ) : null}
+        <p className="hb-install-note">Pret en moins d une minute.</p>
       </div>
       <div className="hb-install-actions">
-        {canInstallPwa ? (
-          <button type="button" onClick={handleInstall} className="hb-install-button">
-            <MonitorSmartphone className="h-4 w-4" />
-            Ajouter l app
-          </button>
-        ) : null}
-        {hasApkDownload ? (
-          <a href={mobileAppStatus?.downloadHref ?? "/api/mobile-app/download"} className="hb-install-button hb-install-button-secondary">
-            <PackageCheck className="h-4 w-4" />
-            {mobileAppStatus?.androidCtaLabel || "APK Android"}
-          </a>
-        ) : null}
-        {!hasApkDownload && isAndroid ? (
-          <span className="hb-install-speed">
-            <Download className="h-3.5 w-3.5" />
-            Pret en moins d une minute
-          </span>
-        ) : null}
+        <button type="button" onClick={handleInstall} className="hb-install-button">
+          <MonitorSmartphone className="h-4 w-4" />
+          Ajouter l app
+        </button>
+        {isAndroid ? <span className="hb-install-speed">Installation rapide Android</span> : null}
       </div>
     </aside>
   );

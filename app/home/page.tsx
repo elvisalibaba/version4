@@ -5,12 +5,9 @@ import {
   Search,
   Star,
 } from "lucide-react";
-import { MobileAppHeroCard } from "@/components/home/mobile-app-hero-card";
 import { getComingSoonBooks, getPublishedBooks } from "@/lib/books";
 import { getFlashSaleState } from "@/lib/flash-sales";
 import { getHomeFeaturedState } from "@/lib/home-positioning";
-import { getMobileAppConfig } from "@/lib/mobile-app";
-import { createClient } from "@/lib/supabase/server";
 
 type HomeBook = Awaited<ReturnType<typeof getPublishedBooks>>[number];
 
@@ -186,17 +183,11 @@ function PromoFeature({ title, description, cta, href }: { title: string; descri
 }
 
 export default async function HomePage() {
-  const [books, comingSoonBooks, mobileAppConfig, supabase] = await Promise.all([
+  const [books, comingSoonBooks] = await Promise.all([
     getPublishedBooks(),
     getComingSoonBooks(),
-    getMobileAppConfig(),
-    createClient(),
   ]);
   const [homeFeatured, flashSale] = await Promise.all([getHomeFeaturedState(books), getFlashSaleState(books)]);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const isAuthenticated = Boolean(user);
 
   const orderedBooks = homeFeatured.orderedBooks;
   const freeBooks = orderedBooks.filter((book) => book.is_free);
@@ -242,7 +233,6 @@ export default async function HomePage() {
                   Publier un livre
                 </Link>
               </div>
-              <MobileAppHeroCard config={mobileAppConfig} isAuthenticated={isAuthenticated} />
               <form action="/books" className="flex w-full max-w-lg flex-col gap-3 sm:flex-row sm:gap-0">
                 <div className="flex min-w-0 flex-1 items-center rounded-md border border-gray-300 bg-white sm:rounded-l-md sm:rounded-r-none">
                   <Search className="h-5 w-5 text-gray-400 ml-3" />
