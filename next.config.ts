@@ -1,0 +1,56 @@
+import type { NextConfig } from "next";
+
+const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
+  : null;
+
+const nextConfig: NextConfig = {
+  // Make production-only browser failures actionable from their stack traces.
+  productionBrowserSourceMaps: true,
+  turbopack: {
+    root: process.cwd(),
+  },
+  experimental: {
+    serverActions: {
+      // APK uploads go through a server action on /admin/mobile-app.
+      bodySizeLimit: "80mb",
+    },
+    // Admin routes are guarded by proxy.ts, which buffers request bodies.
+    proxyClientMaxBodySize: "80mb",
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+      ...(supabaseHostname
+        ? [
+            {
+              protocol: "https" as const,
+              hostname: supabaseHostname,
+              port: "",
+              pathname: "/**",
+            },
+          ]
+        : []),
+    ],
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+    ];
+  },
+};
+
+export default nextConfig;

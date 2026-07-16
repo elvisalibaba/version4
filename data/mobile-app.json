@@ -1,0 +1,15 @@
+{
+  "appName": "Holistique Stores",
+  "heroTitle": "Telecharger Holistique Stores",
+  "heroDescription": "Installez l application Android et activez 7 jours offerts sur tous les contenus numeriques, sans engagement.",
+  "androidCtaLabel": "Telecharger l APK",
+  "apkPath": null,
+  "apkFileName": null,
+  "versionLabel": null,
+  "releaseNotes": null,
+  "isPublic": false,
+  "trialEnabled": true,
+  "trialDays": 7,
+  "updatedAt": "2026-03-23T00:00:00.000Z",
+  "updatedBy": null
+}

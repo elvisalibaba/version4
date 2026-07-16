@@ -1,0 +1,1712 @@
+export type UserRole = "reader" | "author" | "admin";
+export type BookStatus = "draft" | "published" | "archived" | "coming_soon";
+export type BookReviewStatus = "draft" | "submitted" | "approved" | "rejected" | "changes_requested";
+export type CopyrightStatus = "clear" | "review" | "blocked";
+export type BookFormatType = "holistique_store" | "ebook" | "paperback" | "pocket" | "hardcover" | "audiobook";
+export type BookEngagementEventType = "detail_view" | "reader_open" | "file_access";
+export type LibraryAccessType = "purchase" | "subscription" | "free";
+export type SubscriptionStatus = "active" | "cancelled" | "expired" | "past_due";
+export type OrderPaymentStatus = "pending" | "paid" | "failed" | "refunded";
+export type AffiliateSourceType = "book" | "plan";
+export type AffiliateWalletTransactionStatus = "pending" | "credited" | "reversed";
+export type MobileAppTrialStatus = "active" | "expired" | "revoked";
+export type EditorialTrainingProfileType =
+  | "author"
+  | "aspiring_editor"
+  | "publisher"
+  | "entrepreneur"
+  | "student"
+  | "other";
+export type EditorialTrainingExperienceLevel =
+  | "beginner"
+  | "intermediate"
+  | "advanced";
+export type EditorialTrainingProjectStage =
+  | "idea"
+  | "drafting"
+  | "manuscript_ready"
+  | "existing_catalog";
+export type EditorialTrainingPreferredFormat =
+  | "online"
+  | "onsite"
+  | "hybrid";
+
+export type Database = {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string;
+          email: string;
+          name: string | null;
+          role: UserRole;
+          first_name: string | null;
+          last_name: string | null;
+          phone: string | null;
+          country: string | null;
+          city: string | null;
+          preferred_language: string;
+          favorite_categories: string[];
+          marketing_opt_in: boolean;
+          referred_by_affiliate_user_id: string | null;
+          referred_by_affiliate_code: string | null;
+          affiliate_source_type: AffiliateSourceType | null;
+          affiliate_source_book_id: string | null;
+          affiliate_source_plan_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          name?: string | null;
+          role?: UserRole;
+          first_name?: string | null;
+          last_name?: string | null;
+          phone?: string | null;
+          country?: string | null;
+          city?: string | null;
+          preferred_language?: string;
+          favorite_categories?: string[];
+          marketing_opt_in?: boolean;
+          referred_by_affiliate_user_id?: string | null;
+          referred_by_affiliate_code?: string | null;
+          affiliate_source_type?: AffiliateSourceType | null;
+          affiliate_source_book_id?: string | null;
+          affiliate_source_plan_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          email?: string;
+          name?: string | null;
+          role?: UserRole;
+          first_name?: string | null;
+          last_name?: string | null;
+          phone?: string | null;
+          country?: string | null;
+          city?: string | null;
+          preferred_language?: string;
+          favorite_categories?: string[];
+          marketing_opt_in?: boolean;
+          referred_by_affiliate_user_id?: string | null;
+          referred_by_affiliate_code?: string | null;
+          affiliate_source_type?: AffiliateSourceType | null;
+          affiliate_source_book_id?: string | null;
+          affiliate_source_plan_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_wallet_transactions_affiliate_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_wallet_transactions";
+            referencedColumns: ["affiliate_user_id"];
+          },
+          {
+            foreignKeyName: "affiliate_order_transactions_affiliate_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_order_transactions";
+            referencedColumns: ["affiliate_user_id"];
+          },
+          {
+            foreignKeyName: "affiliate_order_transactions_referred_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_order_transactions";
+            referencedColumns: ["referred_user_id"];
+          },
+          {
+            foreignKeyName: "affiliate_wallet_transactions_referred_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_wallet_transactions";
+            referencedColumns: ["referred_user_id"];
+          },
+          {
+            foreignKeyName: "book_favorites_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "book_favorites";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "author_profiles_id_fkey";
+            columns: ["id"];
+            isOneToOne: true;
+            referencedRelation: "author_profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "books_author_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["author_id"];
+          },
+          {
+            foreignKeyName: "book_engagement_events_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "book_engagement_events";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "highlights_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "highlights";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "library_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "library";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "orders_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "profiles_referred_by_affiliate_user_id_fkey";
+            columns: ["referred_by_affiliate_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ratings_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "ratings";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "reader_affiliate_profiles_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: true;
+            referencedRelation: "reader_affiliate_profiles";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_affiliate_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "user_subscriptions";
+            referencedColumns: ["affiliate_user_id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_user_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "user_subscriptions";
+            referencedColumns: ["user_id"];
+          },
+        ];
+      };
+      author_profiles: {
+        Row: {
+          id: string;
+          display_name: string;
+          avatar_url: string | null;
+          bio: string | null;
+          website: string | null;
+          location: string | null;
+          professional_headline: string | null;
+          phone: string | null;
+          genres: string[];
+          publishing_goals: string | null;
+          social_links: Record<string, unknown>;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          display_name: string;
+          avatar_url?: string | null;
+          bio?: string | null;
+          website?: string | null;
+          location?: string | null;
+          professional_headline?: string | null;
+          phone?: string | null;
+          genres?: string[];
+          publishing_goals?: string | null;
+          social_links?: Record<string, unknown>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          display_name?: string;
+          avatar_url?: string | null;
+          bio?: string | null;
+          website?: string | null;
+          location?: string | null;
+          professional_headline?: string | null;
+          phone?: string | null;
+          genres?: string[];
+          publishing_goals?: string | null;
+          social_links?: Record<string, unknown>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "author_profiles_id_fkey";
+            columns: ["id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "books_author_profile_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["author_id"];
+          },
+        ];
+      };
+      blog_posts: {
+        Row: {
+          id: string;
+          slug: string;
+          title: string;
+          excerpt: string;
+          tag: string;
+          author: string;
+          read_time: string;
+          cover_label: string;
+          cover_image_url: string | null;
+          cover_image_alt: string | null;
+          published_at: string;
+          content_blocks: Record<string, unknown>[];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          title: string;
+          excerpt: string;
+          tag: string;
+          author: string;
+          read_time: string;
+          cover_label?: string;
+          cover_image_url?: string | null;
+          cover_image_alt?: string | null;
+          published_at?: string;
+          content_blocks?: Record<string, unknown>[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          slug?: string;
+          title?: string;
+          excerpt?: string;
+          tag?: string;
+          author?: string;
+          read_time?: string;
+          cover_label?: string;
+          cover_image_url?: string | null;
+          cover_image_alt?: string | null;
+          published_at?: string;
+          content_blocks?: Record<string, unknown>[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      editorial_training_requests: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          first_name: string;
+          last_name: string;
+          email: string;
+          phone: string | null;
+          country: string | null;
+          city: string | null;
+          organization_name: string | null;
+          profile_type: EditorialTrainingProfileType;
+          experience_level: EditorialTrainingExperienceLevel;
+          project_stage: EditorialTrainingProjectStage;
+          preferred_format: EditorialTrainingPreferredFormat;
+          objectives: string;
+          message: string | null;
+          consent_to_contact: boolean;
+          source: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          first_name: string;
+          last_name: string;
+          email: string;
+          phone?: string | null;
+          country?: string | null;
+          city?: string | null;
+          organization_name?: string | null;
+          profile_type: EditorialTrainingProfileType;
+          experience_level: EditorialTrainingExperienceLevel;
+          project_stage: EditorialTrainingProjectStage;
+          preferred_format: EditorialTrainingPreferredFormat;
+          objectives: string;
+          message?: string | null;
+          consent_to_contact?: boolean;
+          source?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          first_name?: string;
+          last_name?: string;
+          email?: string;
+          phone?: string | null;
+          country?: string | null;
+          city?: string | null;
+          organization_name?: string | null;
+          profile_type?: EditorialTrainingProfileType;
+          experience_level?: EditorialTrainingExperienceLevel;
+          project_stage?: EditorialTrainingProjectStage;
+          preferred_format?: EditorialTrainingPreferredFormat;
+          objectives?: string;
+          message?: string | null;
+          consent_to_contact?: boolean;
+          source?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "editorial_training_requests_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      flash_sale_configs: {
+        Row: {
+          scope: string;
+          selected_book_ids: string[];
+          discount_percentage: number;
+          updated_at: string;
+        };
+        Insert: {
+          scope?: string;
+          selected_book_ids?: string[];
+          discount_percentage?: number;
+          updated_at?: string;
+        };
+        Update: {
+          scope?: string;
+          selected_book_ids?: string[];
+          discount_percentage?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      home_featured_configs: {
+        Row: {
+          scope: string;
+          selected_book_ids: string[];
+          updated_at: string;
+        };
+        Insert: {
+          scope?: string;
+          selected_book_ids?: string[];
+          updated_at?: string;
+        };
+        Update: {
+          scope?: string;
+          selected_book_ids?: string[];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      mobile_app_configs: {
+        Row: {
+          scope: string;
+          app_name: string;
+          hero_title: string;
+          hero_description: string;
+          android_cta_label: string;
+          apk_path: string | null;
+          apk_file_name: string | null;
+          version_label: string | null;
+          release_notes: string | null;
+          is_public: boolean;
+          trial_enabled: boolean;
+          trial_days: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          scope?: string;
+          app_name?: string;
+          hero_title?: string;
+          hero_description?: string;
+          android_cta_label?: string;
+          apk_path?: string | null;
+          apk_file_name?: string | null;
+          version_label?: string | null;
+          release_notes?: string | null;
+          is_public?: boolean;
+          trial_enabled?: boolean;
+          trial_days?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          scope?: string;
+          app_name?: string;
+          hero_title?: string;
+          hero_description?: string;
+          android_cta_label?: string;
+          apk_path?: string | null;
+          apk_file_name?: string | null;
+          version_label?: string | null;
+          release_notes?: string | null;
+          is_public?: boolean;
+          trial_enabled?: boolean;
+          trial_days?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "mobile_app_configs_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      mobile_app_trial_grants: {
+        Row: {
+          user_id: string;
+          source: string;
+          granted_at: string;
+          expires_at: string;
+          status: MobileAppTrialStatus;
+          claimed_download_count: number;
+          last_downloaded_at: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          source?: string;
+          granted_at?: string;
+          expires_at: string;
+          status?: MobileAppTrialStatus;
+          claimed_download_count?: number;
+          last_downloaded_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          source?: string;
+          granted_at?: string;
+          expires_at?: string;
+          status?: MobileAppTrialStatus;
+          claimed_download_count?: number;
+          last_downloaded_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "mobile_app_trial_grants_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      books: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          price: number;
+          author_id: string;
+          author_display_name: string | null;
+          cover_url: string | null;
+          file_url: string | null;
+          status: BookStatus;
+          created_at: string;
+          subtitle: string | null;
+          co_authors: string[];
+          isbn: string | null;
+          language: string;
+          publisher: string | null;
+          publication_date: string | null;
+          page_count: number | null;
+          categories: string[];
+          tags: string[];
+          age_rating: string | null;
+          edition: string | null;
+          series_name: string | null;
+          series_position: number | null;
+          file_format: string | null;
+          file_size: number | null;
+          sample_url: string | null;
+          sample_pages: number | null;
+          cover_thumbnail_url: string | null;
+          cover_alt_text: string | null;
+          updated_at: string;
+          published_at: string | null;
+          views_count: number;
+          purchases_count: number;
+          rating_avg: number | null;
+          ratings_count: number;
+          currency_code: string;
+          is_single_sale_enabled: boolean;
+          is_subscription_available: boolean;
+          review_status: BookReviewStatus;
+          submitted_at: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          review_note: string | null;
+          copyright_status: CopyrightStatus;
+          copyright_note: string | null;
+          copyright_blocked_at: string | null;
+          copyright_blocked_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          price: number;
+          author_id: string;
+          author_display_name?: string | null;
+          cover_url?: string | null;
+          file_url?: string | null;
+          status?: BookStatus;
+          created_at?: string;
+          subtitle?: string | null;
+          co_authors?: string[];
+          isbn?: string | null;
+          language?: string;
+          publisher?: string | null;
+          publication_date?: string | null;
+          page_count?: number | null;
+          categories?: string[];
+          tags?: string[];
+          age_rating?: string | null;
+          edition?: string | null;
+          series_name?: string | null;
+          series_position?: number | null;
+          file_format?: string | null;
+          file_size?: number | null;
+          sample_url?: string | null;
+          sample_pages?: number | null;
+          cover_thumbnail_url?: string | null;
+          cover_alt_text?: string | null;
+          updated_at?: string;
+          published_at?: string | null;
+          views_count?: number;
+          purchases_count?: number;
+          rating_avg?: number | null;
+          ratings_count?: number;
+          currency_code?: string;
+          is_single_sale_enabled?: boolean;
+          is_subscription_available?: boolean;
+          review_status?: BookReviewStatus;
+          submitted_at?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          review_note?: string | null;
+          copyright_status?: CopyrightStatus;
+          copyright_note?: string | null;
+          copyright_blocked_at?: string | null;
+          copyright_blocked_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string | null;
+          price?: number;
+          author_id?: string;
+          author_display_name?: string | null;
+          cover_url?: string | null;
+          file_url?: string | null;
+          status?: BookStatus;
+          created_at?: string;
+          subtitle?: string | null;
+          co_authors?: string[];
+          isbn?: string | null;
+          language?: string;
+          publisher?: string | null;
+          publication_date?: string | null;
+          page_count?: number | null;
+          categories?: string[];
+          tags?: string[];
+          age_rating?: string | null;
+          edition?: string | null;
+          series_name?: string | null;
+          series_position?: number | null;
+          file_format?: string | null;
+          file_size?: number | null;
+          sample_url?: string | null;
+          sample_pages?: number | null;
+          cover_thumbnail_url?: string | null;
+          cover_alt_text?: string | null;
+          updated_at?: string;
+          published_at?: string | null;
+          views_count?: number;
+          purchases_count?: number;
+          rating_avg?: number | null;
+          ratings_count?: number;
+          currency_code?: string;
+          is_single_sale_enabled?: boolean;
+          is_subscription_available?: boolean;
+          review_status?: BookReviewStatus;
+          submitted_at?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          review_note?: string | null;
+          copyright_status?: CopyrightStatus;
+          copyright_note?: string | null;
+          copyright_blocked_at?: string | null;
+          copyright_blocked_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_wallet_transactions_source_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_wallet_transactions";
+            referencedColumns: ["source_book_id"];
+          },
+          {
+            foreignKeyName: "affiliate_order_transactions_purchased_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_order_transactions";
+            referencedColumns: ["purchased_book_id"];
+          },
+          {
+            foreignKeyName: "affiliate_order_transactions_referral_source_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_order_transactions";
+            referencedColumns: ["referral_source_book_id"];
+          },
+          {
+            foreignKeyName: "book_formats_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "book_formats";
+            referencedColumns: ["book_id"];
+          },
+          {
+            foreignKeyName: "book_favorites_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "book_favorites";
+            referencedColumns: ["book_id"];
+          },
+          {
+            foreignKeyName: "book_engagement_events_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "book_engagement_events";
+            referencedColumns: ["book_id"];
+          },
+          {
+            foreignKeyName: "books_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "books_author_profile_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "author_profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "books_reviewed_by_fkey";
+            columns: ["reviewed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "books_copyright_blocked_by_fkey";
+            columns: ["copyright_blocked_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "highlights_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "highlights";
+            referencedColumns: ["book_id"];
+          },
+          {
+            foreignKeyName: "library_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "library";
+            referencedColumns: ["book_id"];
+          },
+          {
+            foreignKeyName: "order_items_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "order_items";
+            referencedColumns: ["book_id"];
+          },
+          {
+            foreignKeyName: "profiles_affiliate_source_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["affiliate_source_book_id"];
+          },
+          {
+            foreignKeyName: "ratings_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "ratings";
+            referencedColumns: ["book_id"];
+          },
+          {
+            foreignKeyName: "subscription_plan_books_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plan_books";
+            referencedColumns: ["book_id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_affiliate_source_book_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "user_subscriptions";
+            referencedColumns: ["affiliate_source_book_id"];
+          },
+        ];
+      };
+      book_formats: {
+        Row: {
+          id: string;
+          book_id: string;
+          format: BookFormatType;
+          price: number;
+          file_url: string | null;
+          stock_quantity: number | null;
+          file_size_mb: number | null;
+          downloadable: boolean;
+          is_published: boolean;
+          printing_cost: number | null;
+          created_at: string;
+          updated_at: string;
+          currency_code: string;
+        };
+        Insert: {
+          id?: string;
+          book_id: string;
+          format: BookFormatType;
+          price: number;
+          file_url?: string | null;
+          stock_quantity?: number | null;
+          file_size_mb?: number | null;
+          downloadable?: boolean;
+          is_published?: boolean;
+          printing_cost?: number | null;
+          created_at?: string;
+          updated_at?: string;
+          currency_code?: string;
+        };
+        Update: {
+          id?: string;
+          book_id?: string;
+          format?: BookFormatType;
+          price?: number;
+          file_url?: string | null;
+          stock_quantity?: number | null;
+          file_size_mb?: number | null;
+          downloadable?: boolean;
+          is_published?: boolean;
+          printing_cost?: number | null;
+          created_at?: string;
+          updated_at?: string;
+          currency_code?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "book_formats_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      book_engagement_events: {
+        Row: {
+          id: string;
+          book_id: string;
+          user_id: string | null;
+          event_type: BookEngagementEventType;
+          source: string | null;
+          user_role: UserRole | null;
+          is_authenticated: boolean;
+          metadata: Record<string, unknown>;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          book_id: string;
+          user_id?: string | null;
+          event_type: BookEngagementEventType;
+          source?: string | null;
+          user_role?: UserRole | null;
+          is_authenticated?: boolean;
+          metadata?: Record<string, unknown>;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          book_id?: string;
+          user_id?: string | null;
+          event_type?: BookEngagementEventType;
+          source?: string | null;
+          user_role?: UserRole | null;
+          is_authenticated?: boolean;
+          metadata?: Record<string, unknown>;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "book_engagement_events_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "book_engagement_events_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      book_favorites: {
+        Row: {
+          user_id: string;
+          book_id: string;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          book_id: string;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          book_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "book_favorites_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "book_favorites_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      highlights: {
+        Row: {
+          id: string;
+          user_id: string;
+          book_id: string;
+          page: number;
+          text: string | null;
+          note: string | null;
+          color: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          book_id: string;
+          page: number;
+          text?: string | null;
+          note?: string | null;
+          color?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          book_id?: string;
+          page?: number;
+          text?: string | null;
+          note?: string | null;
+          color?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "highlights_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "highlights_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      library: {
+        Row: {
+          id: string;
+          user_id: string;
+          book_id: string;
+          purchased_at: string;
+          access_type: LibraryAccessType;
+          subscription_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          book_id: string;
+          purchased_at?: string;
+          access_type?: LibraryAccessType;
+          subscription_id?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          book_id?: string;
+          purchased_at?: string;
+          access_type?: LibraryAccessType;
+          subscription_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "library_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "library_subscription_id_fkey";
+            columns: ["subscription_id"];
+            isOneToOne: false;
+            referencedRelation: "user_subscriptions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "library_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      orders: {
+        Row: {
+          id: string;
+          user_id: string;
+          total_price: number;
+          payment_status: OrderPaymentStatus;
+          created_at: string;
+          currency_code: string;
+          payment_provider: string | null;
+          payment_transaction_id: string | null;
+          payment_channel: string | null;
+          payment_provider_status: string | null;
+          payment_verified_at: string | null;
+          payment_metadata: Record<string, unknown>;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          total_price: number;
+          payment_status?: OrderPaymentStatus;
+          created_at?: string;
+          currency_code?: string;
+          payment_provider?: string | null;
+          payment_transaction_id?: string | null;
+          payment_channel?: string | null;
+          payment_provider_status?: string | null;
+          payment_verified_at?: string | null;
+          payment_metadata?: Record<string, unknown>;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          total_price?: number;
+          payment_status?: OrderPaymentStatus;
+          created_at?: string;
+          currency_code?: string;
+          payment_provider?: string | null;
+          payment_transaction_id?: string | null;
+          payment_channel?: string | null;
+          payment_provider_status?: string | null;
+          payment_verified_at?: string | null;
+          payment_metadata?: Record<string, unknown>;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_order_transactions_order_id_fkey";
+            columns: ["id"];
+            isOneToOne: true;
+            referencedRelation: "affiliate_order_transactions";
+            referencedColumns: ["order_id"];
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "order_items";
+            referencedColumns: ["order_id"];
+          },
+          {
+            foreignKeyName: "orders_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      order_items: {
+        Row: {
+          id: string;
+          order_id: string;
+          book_id: string;
+          price: number;
+          currency_code: string;
+          book_format: BookFormatType;
+        };
+        Insert: {
+          id?: string;
+          order_id: string;
+          book_id: string;
+          price: number;
+          currency_code?: string;
+          book_format?: BookFormatType;
+        };
+        Update: {
+          id?: string;
+          order_id?: string;
+          book_id?: string;
+          price?: number;
+          currency_code?: string;
+          book_format?: BookFormatType;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "order_items_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      ratings: {
+        Row: {
+          id: string;
+          user_id: string;
+          book_id: string;
+          rating: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          book_id: string;
+          rating: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          book_id?: string;
+          rating?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ratings_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ratings_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      reader_affiliate_profiles: {
+        Row: {
+          user_id: string;
+          affiliate_code: string;
+          commission_rate: number;
+          wallet_balance: number;
+          lifetime_credited: number;
+          currency_code: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          affiliate_code: string;
+          commission_rate?: number;
+          wallet_balance?: number;
+          lifetime_credited?: number;
+          currency_code?: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          affiliate_code?: string;
+          commission_rate?: number;
+          wallet_balance?: number;
+          lifetime_credited?: number;
+          currency_code?: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reader_affiliate_profiles_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      affiliate_wallet_transactions: {
+        Row: {
+          id: string;
+          affiliate_user_id: string;
+          referred_user_id: string;
+          subscription_id: string;
+          plan_id: string;
+          source_type: AffiliateSourceType;
+          source_book_id: string | null;
+          source_plan_id: string | null;
+          commission_rate: number;
+          subscription_amount: number;
+          commission_amount: number;
+          currency_code: string;
+          status: AffiliateWalletTransactionStatus;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          affiliate_user_id: string;
+          referred_user_id: string;
+          subscription_id: string;
+          plan_id: string;
+          source_type: AffiliateSourceType;
+          source_book_id?: string | null;
+          source_plan_id?: string | null;
+          commission_rate?: number;
+          subscription_amount: number;
+          commission_amount: number;
+          currency_code?: string;
+          status?: AffiliateWalletTransactionStatus;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          affiliate_user_id?: string;
+          referred_user_id?: string;
+          subscription_id?: string;
+          plan_id?: string;
+          source_type?: AffiliateSourceType;
+          source_book_id?: string | null;
+          source_plan_id?: string | null;
+          commission_rate?: number;
+          subscription_amount?: number;
+          commission_amount?: number;
+          currency_code?: string;
+          status?: AffiliateWalletTransactionStatus;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_wallet_transactions_affiliate_user_id_fkey";
+            columns: ["affiliate_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_wallet_transactions_plan_id_fkey";
+            columns: ["plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_wallet_transactions_referred_user_id_fkey";
+            columns: ["referred_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_wallet_transactions_source_book_id_fkey";
+            columns: ["source_book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_wallet_transactions_source_plan_id_fkey";
+            columns: ["source_plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_wallet_transactions_subscription_id_fkey";
+            columns: ["subscription_id"];
+            isOneToOne: true;
+            referencedRelation: "user_subscriptions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      affiliate_order_transactions: {
+        Row: {
+          id: string;
+          affiliate_user_id: string;
+          referred_user_id: string;
+          order_id: string;
+          purchased_book_id: string;
+          referral_source_type: AffiliateSourceType | null;
+          referral_source_book_id: string | null;
+          referral_source_plan_id: string | null;
+          commission_rate: number;
+          order_amount: number;
+          commission_amount: number;
+          currency_code: string;
+          status: AffiliateWalletTransactionStatus;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          affiliate_user_id: string;
+          referred_user_id: string;
+          order_id: string;
+          purchased_book_id: string;
+          referral_source_type?: AffiliateSourceType | null;
+          referral_source_book_id?: string | null;
+          referral_source_plan_id?: string | null;
+          commission_rate?: number;
+          order_amount: number;
+          commission_amount: number;
+          currency_code?: string;
+          status?: AffiliateWalletTransactionStatus;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          affiliate_user_id?: string;
+          referred_user_id?: string;
+          order_id?: string;
+          purchased_book_id?: string;
+          referral_source_type?: AffiliateSourceType | null;
+          referral_source_book_id?: string | null;
+          referral_source_plan_id?: string | null;
+          commission_rate?: number;
+          order_amount?: number;
+          commission_amount?: number;
+          currency_code?: string;
+          status?: AffiliateWalletTransactionStatus;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_order_transactions_affiliate_user_id_fkey";
+            columns: ["affiliate_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_order_transactions_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: true;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_order_transactions_purchased_book_id_fkey";
+            columns: ["purchased_book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_order_transactions_referral_source_book_id_fkey";
+            columns: ["referral_source_book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_order_transactions_referral_source_plan_id_fkey";
+            columns: ["referral_source_plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "affiliate_order_transactions_referred_user_id_fkey";
+            columns: ["referred_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      subscription_plans: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          monthly_price: number;
+          currency_code: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          description?: string | null;
+          monthly_price: number;
+          currency_code?: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          description?: string | null;
+          monthly_price?: number;
+          currency_code?: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_wallet_transactions_plan_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_wallet_transactions";
+            referencedColumns: ["plan_id"];
+          },
+          {
+            foreignKeyName: "affiliate_wallet_transactions_source_plan_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_wallet_transactions";
+            referencedColumns: ["source_plan_id"];
+          },
+          {
+            foreignKeyName: "profiles_affiliate_source_plan_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["affiliate_source_plan_id"];
+          },
+          {
+            foreignKeyName: "subscription_plan_books_plan_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plan_books";
+            referencedColumns: ["plan_id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_affiliate_source_plan_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "user_subscriptions";
+            referencedColumns: ["affiliate_source_plan_id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "user_subscriptions";
+            referencedColumns: ["plan_id"];
+          },
+        ];
+      };
+      subscription_plan_books: {
+        Row: {
+          id: string;
+          plan_id: string;
+          book_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          plan_id: string;
+          book_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          plan_id?: string;
+          book_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "subscription_plan_books_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subscription_plan_books_plan_id_fkey";
+            columns: ["plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      user_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          plan_id: string;
+          status: SubscriptionStatus;
+          started_at: string;
+          expires_at: string | null;
+          affiliate_user_id: string | null;
+          affiliate_code_used: string | null;
+          affiliate_source_type: AffiliateSourceType | null;
+          affiliate_source_book_id: string | null;
+          affiliate_source_plan_id: string | null;
+          affiliate_commission_rate: number;
+          affiliate_commission_amount: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          plan_id: string;
+          status: SubscriptionStatus;
+          started_at?: string;
+          expires_at?: string | null;
+          affiliate_user_id?: string | null;
+          affiliate_code_used?: string | null;
+          affiliate_source_type?: AffiliateSourceType | null;
+          affiliate_source_book_id?: string | null;
+          affiliate_source_plan_id?: string | null;
+          affiliate_commission_rate?: number;
+          affiliate_commission_amount?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          plan_id?: string;
+          status?: SubscriptionStatus;
+          started_at?: string;
+          expires_at?: string | null;
+          affiliate_user_id?: string | null;
+          affiliate_code_used?: string | null;
+          affiliate_source_type?: AffiliateSourceType | null;
+          affiliate_source_book_id?: string | null;
+          affiliate_source_plan_id?: string | null;
+          affiliate_commission_rate?: number;
+          affiliate_commission_amount?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_wallet_transactions_subscription_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "affiliate_wallet_transactions";
+            referencedColumns: ["subscription_id"];
+          },
+          {
+            foreignKeyName: "library_subscription_id_fkey";
+            columns: ["id"];
+            isOneToOne: false;
+            referencedRelation: "library";
+            referencedColumns: ["subscription_id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_affiliate_source_book_id_fkey";
+            columns: ["affiliate_source_book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_affiliate_source_plan_id_fkey";
+            columns: ["affiliate_source_plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_affiliate_user_id_fkey";
+            columns: ["affiliate_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey";
+            columns: ["plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_subscriptions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: {
+      claim_current_user_book_access: {
+        Args: {
+          p_book_id: string;
+        };
+        Returns: Database["public"]["Tables"]["library"]["Row"];
+      };
+      claim_current_user_mobile_app_trial: {
+        Args: {
+          p_trial_days?: number;
+          p_source?: string;
+        };
+        Returns: Database["public"]["Tables"]["mobile_app_trial_grants"]["Row"];
+      };
+      get_current_author_sales: {
+        Args: Record<PropertyKey, never>;
+        Returns: Array<{
+          id: string;
+          order_id: string;
+          book_id: string;
+          price: number;
+          currency_code: string;
+          book_format: BookFormatType;
+          title: string;
+          created_at: string;
+          payment_status: OrderPaymentStatus;
+        }>;
+      };
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
+      sync_library_access_for_order: {
+        Args: {
+          p_order_id: string;
+        };
+        Returns: undefined;
+      };
+      track_book_engagement: {
+        Args: {
+          p_book_id: string;
+          p_event_type: BookEngagementEventType;
+          p_source?: string | null;
+          p_metadata?: Record<string, unknown>;
+        };
+        Returns: undefined;
+      };
+      user_has_access_to_book: {
+        Args: {
+          p_user_id: string;
+          p_book_id: string;
+        };
+        Returns: boolean;
+      };
+    };
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
+  };
+};
