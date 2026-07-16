@@ -44,10 +44,7 @@ body {
 
 @media (display-mode: standalone), (display-mode: fullscreen) {
   body {
-    padding-top: env(safe-area-inset-top);
-    padding-right: env(safe-area-inset-right);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
+    padding: 0;
   }
 }
 
@@ -165,7 +162,7 @@ body {
   left: max(0.75rem, env(safe-area-inset-left));
   z-index: 82;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.3rem;
   max-width: 34rem;
   margin: 0 auto;
@@ -202,6 +199,66 @@ body {
   background: #17130f;
   color: #fff8f2;
   box-shadow: 0 12px 24px rgba(23, 19, 15, 0.22);
+}
+
+.hb-mobile-site-header {
+  padding-top: env(safe-area-inset-top);
+  border-bottom: 1px solid rgba(23, 23, 23, 0.08);
+  background: rgba(253, 250, 246, 0.94);
+  box-shadow: 0 12px 32px rgba(23, 23, 23, 0.08);
+  backdrop-filter: blur(20px);
+}
+
+@media (max-width: 1023px) {
+  body {
+    overscroll-behavior-y: none;
+  }
+
+  .hb-browser-shell {
+    padding-bottom: calc(5.45rem + env(safe-area-inset-bottom));
+  }
+
+  .hb-mobile-main {
+    min-height: calc(100dvh - 11rem);
+  }
+
+  .hb-app-bottom-nav {
+    right: max(0.5rem, env(safe-area-inset-right));
+    bottom: max(0.5rem, env(safe-area-inset-bottom));
+    left: max(0.5rem, env(safe-area-inset-left));
+    gap: 0.15rem;
+    padding: 0.32rem;
+    border-radius: 1.2rem;
+  }
+
+  .hb-app-nav-item {
+    min-height: 3.4rem;
+    border-radius: 0.9rem;
+    font-size: 0.6rem;
+  }
+
+  .hb-cookie-banner {
+    bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    z-index: 90;
+  }
+
+  .hb-install-banner {
+    top: auto;
+    bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    z-index: 88;
+  }
+}
+
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  .site-main > .hb-home-page {
+    margin: -1.5rem -0.85rem 0;
+  }
 }
 
 ::selection {
@@ -2574,7 +2631,7 @@ textarea:focus {
 
 @media (max-width: 640px) {
   .metric-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .dashboard-nav {
@@ -5891,5 +5948,66 @@ textarea:focus {
   .hb-faq-support,
   .hb-faq-quick-panel {
     padding: 1.1rem;
+  }
+}
+
+/* Final mobile application layer: keep overlays above the thumb navigation. */
+@media (max-width: 1023px) {
+  .hb-cookie-banner {
+    bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    z-index: 90;
+  }
+
+  .hb-install-banner {
+    top: auto;
+    bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    z-index: 88;
+  }
+}
+
+@media (max-width: 639px) {
+  .reader-window {
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .hb-cookie-banner {
+    gap: 0.7rem;
+    max-height: calc(100dvh - 6.25rem - env(safe-area-inset-bottom));
+    overflow-y: auto;
+    border-radius: 1.35rem;
+    padding: 0.85rem;
+  }
+
+  .hb-cookie-banner-text {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .hb-cookie-banner-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .hb-cookie-banner-actions .cta-primary,
+  .hb-cookie-banner-actions .cta-secondary {
+    min-height: 2.75rem;
+    padding: 0.65rem 0.8rem;
+  }
+
+  .hb-cookie-banner-link {
+    grid-column: 1 / -1;
+    min-height: 2rem;
+    text-align: center;
+  }
+
+  .reader-mobile-toolbar {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+
+  .reader-mobile-tools {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
 }

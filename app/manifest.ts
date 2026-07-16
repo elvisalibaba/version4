@@ -65,7 +65,7 @@ export default function manifest(): WebAppManifest {
         name: "Librairie",
         short_name: "Librairie",
         description: "Parcourir les livres disponibles",
-        url: "/librairie",
+        url: "/books",
         icons: [{ src: "/pwa-icon-192.png", sizes: "192x192", type: "image/png" }],
       },
       {

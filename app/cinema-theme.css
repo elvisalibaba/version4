@@ -16,6 +16,18 @@
   --store-shadow-soft: 0 10px 22px rgba(19, 39, 67, 0.06);
 }
 
+/* The reading surface deliberately stays dark so the toolbar remains legible
+   above bright PDF pages and EPUB themes on small screens. */
+.reader-window {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background: #111827 !important;
+}
+
+.reader-toolbar.reader-mobile-toolbar {
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+  background: #0f172a !important;
+}
+
 body {
   background:
     radial-gradient(circle at top right, rgba(201, 61, 71, 0.05), transparent 20%),

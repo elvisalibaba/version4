@@ -71,7 +71,7 @@ export default async function ReaderSubscriptionsPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
         {activeSubscriptions.length > 0 ? (
           activeSubscriptions.map((subscription) => {
             const plan = firstOf(subscription.subscription_plans);

@@ -167,11 +167,11 @@ export async function syncLibraryAccessEntry(params: {
   let nextAccessType: LibraryAccessType | null = null;
   let nextSubscriptionId: string | null = null;
 
-  if (params.activeSubscriptionId) {
+  if (params.shouldGrantFreeAccess) {
+    nextAccessType = "free";
+  } else if (params.activeSubscriptionId) {
     nextAccessType = "subscription";
     nextSubscriptionId = params.activeSubscriptionId;
-  } else if (params.shouldGrantFreeAccess) {
-    nextAccessType = "free";
   }
 
   if (!nextAccessType) return;
@@ -183,12 +183,13 @@ export async function syncLibraryAccessEntry(params: {
     return;
   }
 
-  const payload: Database["public"]["Tables"]["library"]["Insert"] = {
-    user_id: params.userId,
-    book_id: params.bookId,
-    access_type: nextAccessType,
-    subscription_id: nextSubscriptionId,
-  };
+  // Entitlements must never be writable directly by the browser. The RPC
+  // derives free/subscription access from trusted catalogue and plan data.
+  const { error } = await client.rpc("claim_current_user_book_access", {
+    p_book_id: params.bookId,
+  });
 
-  await client.from("library").upsert(payload, { onConflict: "user_id,book_id" });
+  if (error) {
+    throw new Error(`Impossible de synchroniser l’accès de lecture : ${error.message}`);
+  }
 }

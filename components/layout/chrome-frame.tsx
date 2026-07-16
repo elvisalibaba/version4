@@ -1,11 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Home, Library, Search, ShoppingCart, UserCircle2, WifiOff } from "lucide-react";
+import { BookOpen, Home, Library, Search, ShoppingCart, UserCircle2 } from "lucide-react";
 
 type ChromeFrameProps = {
   header: ReactNode;
@@ -13,129 +11,97 @@ type ChromeFrameProps = {
   children: ReactNode;
 };
 
+const appNavItems = [
+  { label: "Accueil", href: "/home", icon: Home },
+  { label: "Livres", href: "/books", icon: Search },
+  { label: "Bibliothèque", href: "/library", icon: Library },
+  { label: "Panier", href: "/cart", icon: ShoppingCart },
+  { label: "Compte", href: "/dashboard", icon: UserCircle2 },
+];
+
 export function ChromeFrame({ header, footer, children }: ChromeFrameProps) {
   const pathname = usePathname();
-  const isAdminRoute = pathname.startsWith("/admin");
-  const isStandalone = useStandaloneDisplayMode();
-  const isOnline = useNetworkStatus();
+  const isAuthRoute = ["/login", "/register", "/forgot-password", "/reset-password"].some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
 
-  if (isAdminRoute) {
-    return <main className="min-h-screen">{children}</main>;
+  if (pathname.startsWith("/admin")) {
+    return <div className="min-h-screen">{children}</div>;
   }
 
-  if (isStandalone) {
+  if (pathname.startsWith("/dashboard")) {
     return (
-      <div className="hb-app-shell">
-        <header className="hb-app-topbar">
-          <Link href="/home" className="hb-app-brand" aria-label="Holistique Books">
-            <span className="hb-app-logo">
-              <Image src="/logo.svg" alt="" width={28} height={28} className="h-7 w-7 object-contain" priority />
-            </span>
-            <span className="hb-app-brand-copy">
-              <span className="hb-app-brand-name">Holistique</span>
-              <span className="hb-app-brand-state">{isOnline ? currentSectionLabel(pathname) : "Hors ligne"}</span>
-            </span>
-          </Link>
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(255,153,0,0.10),transparent_24%),radial-gradient(circle_at_top_right,rgba(20,110,180,0.08),transparent_24%),linear-gradient(180deg,#fbfaf7_0%,#f4efe6_100%)]">
+        <a
+          href="#dashboard-content"
+          className="fixed left-3 top-3 z-[200] -translate-y-24 rounded-xl bg-[#171717] px-4 py-3 text-sm font-bold text-white transition focus:translate-y-0"
+        >
+          Aller au contenu
+        </a>
+        <main id="dashboard-content" className="mx-auto min-h-screen w-full max-w-[100rem] px-2.5 pb-28 pt-2.5 sm:px-4 sm:pb-10 sm:pt-4 lg:px-6">
+          {children}
+        </main>
+      </div>
+    );
+  }
 
-          <div className="hb-app-top-actions">
-            {!isOnline ? (
-              <span className="hb-app-offline-pill" aria-label="Mode hors ligne">
-                <WifiOff className="h-4 w-4" />
+  if (isAuthRoute) {
+    return (
+      <div className="min-h-screen bg-[#f8f5f0]">
+        <header className="sticky top-0 z-50 border-b border-[#eadfd4] bg-[#fffdf9]/95 backdrop-blur-xl">
+          <div className="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-3 px-3 sm:min-h-16 sm:px-6">
+            <Link href="/home" className="flex min-w-0 items-center gap-2.5" aria-label="Accueil Holistique Books">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#171717] text-white">
+                <BookOpen aria-hidden="true" className="h-5 w-5" />
               </span>
-            ) : null}
-            <Link href="/books" className="hb-app-icon-button" aria-label="Rechercher">
-              <Search className="h-5 w-5" />
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-bold tracking-[-0.02em] text-[#171717] sm:text-base">Holistique Books</span>
+                <span className="block text-[0.6rem] font-bold uppercase tracking-[0.17em] text-[#a85b3f]">Espace sécurisé</span>
+              </span>
             </Link>
-            <Link href="/dashboard" className="hb-app-icon-button" aria-label="Compte">
-              <UserCircle2 className="h-5 w-5" />
+            <Link href="/library" className="inline-flex min-h-11 items-center rounded-full px-3 text-xs font-bold text-[#8f4b38] transition hover:bg-[#fff0ec] sm:px-4 sm:text-sm">
+              Lire sans compte
             </Link>
           </div>
         </header>
-
-        <main className="hb-app-main">{children}</main>
-
-        <nav className="hb-app-bottom-nav" aria-label="Navigation principale">
-          {appNavItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = isActivePath(pathname, item.href);
-
-            return (
-              <Link key={item.href} href={item.href} className={isActive ? "hb-app-nav-item is-active" : "hb-app-nav-item"} aria-current={isActive ? "page" : undefined}>
-                <Icon className="h-5 w-5" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+        <main className="site-main min-h-[calc(100dvh-4rem)] pb-8">{children}</main>
       </div>
     );
   }
 
   return (
-    <>
+    <div className="hb-browser-shell">
       {header}
-      <main className="site-main min-h-[60vh]">{children}</main>
+      <main className="site-main hb-mobile-main min-h-[60vh]">{children}</main>
       {footer}
-    </>
+      <div className="lg:hidden">
+        <AppBottomNavigation pathname={pathname} />
+      </div>
+    </div>
   );
 }
 
-const appNavItems = [
-  { label: "Accueil", href: "/home", icon: Home },
-  { label: "Librairie", href: "/librairie", icon: Library },
-  { label: "Lire", href: "/dashboard/reader/library", icon: BookOpen },
-  { label: "Panier", href: "/cart", icon: ShoppingCart },
-];
+function AppBottomNavigation({ pathname }: { pathname: string }) {
+  return (
+    <nav className="hb-app-bottom-nav" aria-label="Navigation mobile principale">
+      {appNavItems.map((item) => {
+        const Icon = item.icon;
+        const active = isActivePath(pathname, item.href);
 
-function useStandaloneDisplayMode() {
-  const [isStandalone, setIsStandalone] = useState(false);
-
-  useEffect(() => {
-    const updateDisplayMode = () => {
-      const navigatorWithStandalone = window.navigator as Navigator & { standalone?: boolean };
-      setIsStandalone(
-        window.matchMedia("(display-mode: standalone)").matches ||
-          window.matchMedia("(display-mode: fullscreen)").matches ||
-          navigatorWithStandalone.standalone === true ||
-          document.referrer.startsWith("android-app://"),
-      );
-    };
-
-    updateDisplayMode();
-
-    const standaloneQuery = window.matchMedia("(display-mode: standalone)");
-    const fullscreenQuery = window.matchMedia("(display-mode: fullscreen)");
-    standaloneQuery.addEventListener("change", updateDisplayMode);
-    fullscreenQuery.addEventListener("change", updateDisplayMode);
-
-    return () => {
-      standaloneQuery.removeEventListener("change", updateDisplayMode);
-      fullscreenQuery.removeEventListener("change", updateDisplayMode);
-    };
-  }, []);
-
-  return isStandalone;
-}
-
-function useNetworkStatus() {
-  const [isOnline, setIsOnline] = useState(true);
-
-  useEffect(() => {
-    function updateStatus() {
-      setIsOnline(window.navigator.onLine);
-    }
-
-    updateStatus();
-    window.addEventListener("online", updateStatus);
-    window.addEventListener("offline", updateStatus);
-
-    return () => {
-      window.removeEventListener("online", updateStatus);
-      window.removeEventListener("offline", updateStatus);
-    };
-  }, []);
-
-  return isOnline;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={active ? "hb-app-nav-item is-active" : "hb-app-nav-item"}
+            aria-current={active ? "page" : undefined}
+          >
+            <Icon aria-hidden="true" className="h-5 w-5" />
+            <span>{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
 }
 
 function isActivePath(pathname: string, href: string) {
@@ -143,25 +109,13 @@ function isActivePath(pathname: string, href: string) {
     return pathname === "/" || pathname === "/home";
   }
 
+  if (href === "/books") {
+    return pathname.startsWith("/books") || pathname.startsWith("/book/") || pathname.startsWith("/librairie");
+  }
+
+  if (href === "/dashboard") {
+    return pathname.startsWith("/dashboard");
+  }
+
   return pathname === href || pathname.startsWith(`${href}/`);
-}
-
-function currentSectionLabel(pathname: string) {
-  if (pathname.startsWith("/librairie") || pathname.startsWith("/books")) {
-    return "Librairie";
-  }
-
-  if (pathname.startsWith("/dashboard")) {
-    return "Espace";
-  }
-
-  if (pathname.startsWith("/cart")) {
-    return "Panier";
-  }
-
-  if (pathname.startsWith("/blog")) {
-    return "Blog";
-  }
-
-  return "Accueil";
 }

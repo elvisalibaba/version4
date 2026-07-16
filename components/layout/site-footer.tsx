@@ -2,48 +2,65 @@
 
 import Link from "next/link";
 import {
+  ArrowRight,
   ArrowUp,
   BookOpen,
-  Facebook,
-  Globe,
-  Instagram,
-  Linkedin,
-  Youtube,
+  ChevronDown,
+  Globe2,
 } from "lucide-react";
-import {
-  footerAboutLinks,
-  footerAccountLinks,
-  footerBlogLinks,
-  footerLegalLinks,
-  footerOpportunityLinks,
-} from "@/lib/marketing-pages";
 
-const socialNetworks = [
-  { name: "Facebook", icon: Facebook, href: "https://facebook.com/holistique" },
-  { name: "Instagram", icon: Instagram, href: "https://instagram.com/holistique" },
-  { name: "YouTube", icon: Youtube, href: "https://youtube.com/holistique" },
-  { name: "LinkedIn", icon: Linkedin, href: "https://linkedin.com/company/holistique" },
+type FooterLink = {
+  label: string;
+  href: string;
+};
+
+const footerGroups: Array<{ title: string; links: FooterLink[] }> = [
+  {
+    title: "Découvrir",
+    links: [
+      { label: "Tous les livres", href: "/books" },
+      { label: "Bibliothèque ouverte", href: "/library" },
+      { label: "Tous les auteurs", href: "/authors" },
+      { label: "Le blog", href: "/blog" },
+    ],
+  },
+  {
+    title: "Votre lecture",
+    links: [
+      { label: "Ma bibliothèque", href: "/dashboard/reader/library" },
+      { label: "Holistique Plus", href: "/dashboard/reader/subscriptions" },
+      { label: "Créer un compte lecteur", href: "/register?role=reader" },
+      { label: "Se connecter", href: "/login" },
+    ],
+  },
+  {
+    title: "Écrire & publier",
+    links: [
+      { label: "Créer un espace auteur", href: "/register?role=author" },
+      { label: "Services éditoriaux", href: "/services" },
+      { label: "Conseils et ressources", href: "/ressources" },
+      { label: "Qui sommes-nous ?", href: "/qui-sommes-nous" },
+    ],
+  },
 ];
 
-function FooterColumn({
-  title,
-  links,
-}: {
-  title: string;
-  links: Array<{ label: string; href: string }>;
-}) {
-  return (
-    <div className="space-y-4">
-      <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-        {title}
-      </h3>
+const legalLinks: FooterLink[] = [
+  { label: "Conditions", href: "/conditions" },
+  { label: "Confidentialité", href: "/confidentialite" },
+  { label: "Cookies", href: "/cookies" },
+  { label: "Accessibilité", href: "/accessibilite" },
+];
 
-      <ul className="space-y-2.5">
+function DesktopFooterColumn({ title, links }: { title: string; links: FooterLink[] }) {
+  return (
+    <div>
+      <h3 className="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-white/42">{title}</h3>
+      <ul className="mt-4 space-y-3">
         {links.map((item) => (
-          <li key={`${title}-${item.href}`}>
+          <li key={item.href}>
             <Link
               href={item.href}
-              className="text-sm leading-6 text-white/72 transition-colors duration-200 hover:text-[#febd69] focus:outline-none focus:ring-2 focus:ring-[#febd69] focus:ring-offset-2 focus:ring-offset-[#111827] rounded-sm"
+              className="rounded-sm text-sm leading-6 text-white/68 transition hover:text-[#ff9b84] focus:outline-none focus:ring-2 focus:ring-[#ff7a5c]"
             >
               {item.label}
             </Link>
@@ -54,158 +71,120 @@ function FooterColumn({
   );
 }
 
+function MobileFooterAccordion({ title, links }: { title: string; links: FooterLink[] }) {
+  return (
+    <details className="group border-b border-white/10">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 py-3 text-sm font-bold text-white [&::-webkit-details-marker]:hidden">
+        {title}
+        <ChevronDown
+          aria-hidden="true"
+          className="h-4 w-4 text-white/45 transition-transform duration-200 group-open:rotate-180"
+        />
+      </summary>
+      <ul className="space-y-1 pb-3">
+        {links.map((item) => (
+          <li key={item.href}>
+            <Link
+              href={item.href}
+              className="flex min-h-11 items-center rounded-xl px-3 text-sm text-white/68 transition hover:bg-white/[0.06] hover:text-[#ff9b84] focus:outline-none focus:ring-2 focus:ring-[#ff7a5c]"
+            >
+              {item.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
 export function SiteFooter() {
   const year = new Date().getFullYear();
-
-  const discoverLinks = [
-    ...(footerAboutLinks?.slice(0, 2) ?? []),
-    ...(footerBlogLinks?.slice(0, 2) ?? []),
-    ...(footerOpportunityLinks?.slice(0, 2) ?? []),
-  ];
-
-  const accountLinks = [
-    ...(footerAccountLinks ?? []),
-    { label: "Connexion", href: "/login" },
-    { label: "Bibliothèque", href: "/library" },
-  ];
-
-  const servicesLinks = [
-    { label: "Centre d’aide", href: "/faq" },
-    { label: "Livraison", href: "/livraison" },
-    { label: "Retours", href: "/retours" },
-    { label: "Suivi de commande", href: "/commandes" },
-  ];
-
-  const companyLinks = [
-    { label: "À propos", href: "/about" },
-    { label: "Blog", href: "/blog" },
-    { label: "Opportunités", href: "/opportunities" },
-    { label: "Contact", href: "/contact" },
-  ];
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    <footer className="relative border-t border-white/10 bg-[#111827] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(254,189,105,0.07),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.03),transparent_18%)]" />
+    <footer className="relative overflow-hidden border-t border-white/10 bg-[#171717] text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,122,92,0.12),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.04),transparent_25%)]" />
 
-      <div className="relative z-10">
-        <button
-          type="button"
-          onClick={scrollToTop}
-          aria-label="Retour en haut de la page"
-          className="group flex w-full items-center justify-center gap-2 border-b border-white/10 bg-white/[0.04] py-3 text-sm text-white/70 transition hover:bg-white/[0.07] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#febd69]"
-        >
-          <ArrowUp className="h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5" />
-          Haut de page
-        </button>
+      <button
+        type="button"
+        onClick={scrollToTop}
+        aria-label="Retour en haut de la page"
+        className="group relative z-10 flex min-h-11 w-full items-center justify-center gap-2 border-b border-white/10 bg-white/[0.035] px-4 text-xs font-semibold text-white/65 transition hover:bg-white/[0.07] hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#ff7a5c]"
+      >
+        <ArrowUp aria-hidden="true" className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
+        Retour en haut
+      </button>
 
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.1fr_1fr_1fr_1fr]">
-            <div className="space-y-5">
-              <div className="flex items-center gap-3">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#febd69] text-[#111827] shadow-sm">
-                  <BookOpen className="h-5 w-5" />
-                </span>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-28 pt-7 sm:px-6 lg:px-8 lg:pb-8 lg:pt-12">
+        <div className="grid gap-10 lg:grid-cols-[1.2fr_repeat(3,minmax(0,1fr))]">
+          <div>
+            <Link href="/home" className="inline-flex items-center gap-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7a5c]">
+              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#ff7a5c] text-white shadow-[0_12px_30px_rgba(255,122,92,0.2)]">
+                <BookOpen aria-hidden="true" className="h-5 w-5" />
+              </span>
+              <span>
+                <span className="block text-sm font-bold tracking-[-0.01em] text-white">Holistique Books</span>
+                <span className="mt-0.5 block text-xs text-white/45">Des livres qui accompagnent.</span>
+              </span>
+            </Link>
 
-                <div>
-                  <p className="text-sm font-semibold tracking-wide text-white">
-                    Holistique Books
-                  </p>
-                  <p className="text-xs text-white/50">
-                    Lire. Publier. Distribuer.
-                  </p>
-                </div>
-              </div>
+            <p className="mt-4 max-w-sm text-sm leading-6 text-white/62">
+              Une maison éditoriale mobile pour découvrir des voix, lire sans distraction et publier avec exigence.
+            </p>
 
-              <p className="max-w-xs text-sm leading-6 text-white/62">
-                Plateforme éditoriale digitale pour lecteurs, auteurs et partenaires.
-              </p>
-
+            <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap">
               <Link
-                href="/formation-editoriale"
-                className="inline-flex items-center justify-center rounded-full bg-[#febd69] px-4 py-2 text-sm font-semibold text-[#111827] transition hover:bg-[#f4b24f] focus:outline-none focus:ring-2 focus:ring-[#febd69] focus:ring-offset-2 focus:ring-offset-[#111827]"
+                href="/library"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#ff7a5c] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#ed6b4e] focus:outline-none focus:ring-2 focus:ring-[#ff9b84]"
               >
-                Inscription
+                Lire gratuitement
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </Link>
-
-              <div className="flex flex-wrap gap-2.5">
-                {socialNetworks.map((social) => {
-                  const Icon = social.icon;
-
-                  return (
-                    <a
-                      key={social.name}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={social.name}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/70 transition hover:border-[#febd69]/40 hover:text-[#febd69] focus:outline-none focus:ring-2 focus:ring-[#febd69]"
-                    >
-                      <Icon className="h-4 w-4" />
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-
-            <FooterColumn title="Découvrir" links={discoverLinks} />
-            <FooterColumn title="Compte" links={accountLinks} />
-            <FooterColumn title="Support" links={servicesLinks} />
-          </div>
-
-          <div className="mt-10 border-t border-white/10 pt-6">
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/65 transition hover:text-[#febd69] focus:outline-none focus:ring-2 focus:ring-[#febd69]"
-                >
-                  <Globe className="h-3.5 w-3.5" />
-                  Français
-                </button>
-
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/65 transition hover:text-[#febd69] focus:outline-none focus:ring-2 focus:ring-[#febd69]"
-                >
-                  RDC
-                </button>
-              </div>
-
-              <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/50">
-                {footerLegalLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="transition hover:text-[#febd69] focus:outline-none focus:ring-2 focus:ring-[#febd69] rounded-sm"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-5 flex flex-col gap-3 border-t border-white/10 pt-5 md:flex-row md:items-center md:justify-between">
-              <div className="text-xs text-white/38">
-                © {year} Holistique Books. Tous droits réservés.
-              </div>
-
-              <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/38">
-                {companyLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="transition hover:text-[#febd69] focus:outline-none focus:ring-2 focus:ring-[#febd69] rounded-sm"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
+              <Link
+                href="/register?role=author"
+                className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/15 px-4 py-3 text-sm font-bold text-white transition hover:border-white/30 hover:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-[#ff7a5c]"
+              >
+                Publier un livre
+              </Link>
             </div>
           </div>
+
+          <div className="mt-1 lg:hidden">
+            {footerGroups.map((group) => (
+              <MobileFooterAccordion key={group.title} title={group.title} links={group.links} />
+            ))}
+          </div>
+
+          {footerGroups.map((group) => (
+            <div key={group.title} className="hidden lg:block">
+              <DesktopFooterColumn title={group.title} links={group.links} />
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 border-t border-white/10 pt-5 lg:mt-10 lg:pt-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <p className="inline-flex items-center gap-2 text-xs text-white/42">
+              <Globe2 aria-hidden="true" className="h-3.5 w-3.5" />
+              Français · République démocratique du Congo
+            </p>
+
+            <nav aria-label="Liens juridiques" className="flex flex-wrap gap-x-4 gap-y-2">
+              {legalLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-sm text-xs text-white/42 transition hover:text-[#ff9b84] focus:outline-none focus:ring-2 focus:ring-[#ff7a5c]"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+          <p className="mt-4 text-xs text-white/32">© {year} Holistique Books. Tous droits réservés.</p>
         </div>
       </div>
     </footer>

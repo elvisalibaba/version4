@@ -191,7 +191,7 @@ export default async function ReaderDashboardPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-5">
         <StatCard icon={BookOpen} label="Bibliotheque" value={totalBooks} description="Titres disponibles" tone="violet" />
         <StatCard icon={Sparkles} label="Premium" value={activeSubscriptions.length} description="Abonnements actifs" tone="sky" />
         <StatCard icon={Highlighter} label="Highlights" value={highlightCount} description="Notes de lecture" tone="amber" />
@@ -253,7 +253,7 @@ export default async function ReaderDashboardPage() {
                       </div>
                     </div>
                     <Link
-                      href={`/book/${item.book_id}`}
+                      href={`/book/${item.book_id}?read=1`}
                       className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#171717] px-4 text-sm font-semibold text-white transition hover:bg-[#0f172a]"
                     >
                       Ouvrir

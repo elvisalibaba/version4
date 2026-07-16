@@ -31,7 +31,7 @@ function getFileType(path: string): FileType | null {
   return null;
 }
 
-export async function resolveReadAccess(bookId: string, userId: string): Promise<ReadAccessResult> {
+export async function resolveReadAccess(bookId: string, userId: string | null): Promise<ReadAccessResult> {
   const supabase = await createClient();
 
   const { data } = await supabase
@@ -51,7 +51,7 @@ export async function resolveReadAccess(bookId: string, userId: string): Promise
   }
 
   if (isBookCopyrightBlocked(book.copyright_status)) {
-    return { ok: false, status: 403, error: "La lecture est suspendue sur ce livre pour verification de droits d auteur." };
+    return { ok: false, status: 403, error: "La lecture est suspendue sur ce livre pour vérification des droits d’auteur." };
   }
 
   const digitalFormat = findPreferredFormat(
@@ -59,6 +59,30 @@ export async function resolveReadAccess(bookId: string, userId: string): Promise
     DIGITAL_BOOK_FORMATS,
   );
   const effectivePrice = digitalFormat?.price ?? book.price ?? 0;
+  const isFreeBook = book.is_single_sale_enabled && effectivePrice <= 0;
+
+  if (!userId) {
+    if (!isFreeBook) {
+      return {
+        ok: false,
+        status: 401,
+        error: "Connectez-vous pour accéder à ce livre.",
+      };
+    }
+
+    const secureFilePath = digitalFormat?.file_url ?? book.file_url;
+    if (!secureFilePath) {
+      return { ok: false, status: 404, error: "Aucun fichier lisible disponible." };
+    }
+
+    const fileType = getFileType(secureFilePath);
+    if (!fileType) {
+      return { ok: false, status: 400, error: "Type de fichier non supporté." };
+    }
+
+    return { ok: true, filePath: secureFilePath, fileType };
+  }
+
   const accessState = await getReaderBookAccessState({
     userId,
     bookId,
@@ -82,7 +106,7 @@ export async function resolveReadAccess(bookId: string, userId: string): Promise
     bookId,
     currentEntry: accessState.libraryEntry,
     activeSubscriptionId: accessState.activeSubscription?.id ?? null,
-    shouldGrantFreeAccess: book.is_single_sale_enabled && effectivePrice <= 0,
+    shouldGrantFreeAccess: isFreeBook,
     supabase,
   });
 
@@ -93,7 +117,7 @@ export async function resolveReadAccess(bookId: string, userId: string): Promise
 
   const fileType = getFileType(secureFilePath);
   if (!fileType) {
-    return { ok: false, status: 400, error: "Type de fichier non supporte." };
+    return { ok: false, status: 400, error: "Type de fichier non supporté." };
   }
 
   return { ok: true, filePath: secureFilePath, fileType };

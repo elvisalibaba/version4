@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { trackBookEngagement } from "@/lib/book-engagement";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service";
 import { resolveReadAccess } from "../_access";
 
 type RouteProps = { params: Promise<{ bookId: string }> };
@@ -17,15 +18,11 @@ export async function GET(_request: Request, { params }: RouteProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Connectez-vous pour lire ce livre." }, { status: 401 });
-  }
-
   if (readerChannel !== "web" && readerChannel !== "app") {
-    return NextResponse.json({ error: "Lecture reservee au lecteur Holistique Books." }, { status: 403 });
+    return NextResponse.json({ error: "Lecture réservée au lecteur Holistique Books." }, { status: 403 });
   }
 
-  const access = await resolveReadAccess(bookId, user.id);
+  const access = await resolveReadAccess(bookId, user?.id ?? null);
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status });
   }
@@ -37,10 +34,12 @@ export async function GET(_request: Request, { params }: RouteProps) {
     requestHeaders: _request.headers,
     metadata: {
       file_type: access.fileType,
+      access_mode: user ? "account" : "guest_free",
     },
   });
 
-  const { data: signedData, error: signedError } = await supabase.storage.from("books").createSignedUrl(access.filePath, 60);
+  const storageClient = user ? supabase : createServiceRoleClient();
+  const { data: signedData, error: signedError } = await storageClient.storage.from("books").createSignedUrl(access.filePath, 60);
   if (signedError || !signedData?.signedUrl) {
     return NextResponse.json({ error: "Impossible de charger le fichier." }, { status: 500 });
   }
@@ -50,8 +49,7 @@ export async function GET(_request: Request, { params }: RouteProps) {
     return NextResponse.json({ error: "Lecture indisponible." }, { status: 500 });
   }
 
-  const buffer = await fileRes.arrayBuffer();
-  return new NextResponse(buffer, {
+  return new NextResponse(fileRes.body, {
     headers: {
       "Content-Type": contentTypeFrom(access.fileType),
       "Content-Disposition": "inline",

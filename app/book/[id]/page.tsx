@@ -8,6 +8,7 @@ import { BookDetailClient } from "./book-detail-client";
 
 type Props = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ read?: string }>;
 };
 
 function deriveCheckoutNames(profile: {
@@ -31,8 +32,9 @@ function deriveCheckoutNames(profile: {
   };
 }
 
-export default async function BookDetailPage({ params }: Props) {
+export default async function BookDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const { read } = await searchParams;
   const [book, profile] = await Promise.all([getBookById(id), getCurrentUserProfile()]);
 
   if (!book || book.status !== "published") {
@@ -66,6 +68,7 @@ export default async function BookDetailPage({ params }: Props) {
       book={book}
       accessState={accessState}
       isAuthenticated={Boolean(profile)}
+      autoOpenReader={read === "1" && (book.is_free || Boolean(accessState?.hasAccess))}
       checkoutCustomer={
         profile
           ? {

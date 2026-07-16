@@ -241,7 +241,7 @@ export default async function ReaderAffiliationsPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           icon={CircleDollarSign}
           label="Portefeuille"

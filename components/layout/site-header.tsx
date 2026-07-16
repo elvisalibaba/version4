@@ -61,6 +61,7 @@ export async function SiteHeader() {
   // Navigation links (modern layout)
   const primaryLinks = [
     { label: "Promotions", href: "/books" },
+    { label: "Auteurs", href: "/authors" },
     { label: "Exclusivites", href: "/dashboard/reader/subscriptions" },
     { label: "Publier", href: "/dashboard/author/add-book" },
     { label: "Blog", href: "/blog" },
@@ -68,8 +69,40 @@ export async function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50">
-      {/* Glass-morphic header with backdrop blur */}
-      <div className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
+      <div className="hb-mobile-site-header lg:hidden">
+        <div className="flex min-h-14 items-center justify-between gap-3 px-3 py-2">
+          <Link href="/home" className="flex min-w-0 items-center gap-2.5" aria-label="Accueil Holistique Books">
+            <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-[#eadfd4] bg-white shadow-sm">
+              <Image src="/logo.svg" alt="" width={30} height={30} className="h-7 w-7 object-contain" priority />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-base font-bold tracking-[-0.03em] text-[#171717]">Holistique</span>
+              <span className="block text-[0.62rem] font-bold uppercase tracking-[0.18em] text-[#a85b3f]">Books mobile</span>
+            </span>
+          </Link>
+
+          <div className="flex shrink-0 items-center gap-1.5">
+            <Link
+              href={favoritesHref}
+              className="grid h-11 w-11 place-items-center rounded-xl border border-[#eadfd4] bg-white text-[#403a34] shadow-sm"
+              aria-label="Mes favoris"
+            >
+              <Heart aria-hidden="true" className="h-5 w-5" />
+            </Link>
+            <Link
+              href={dashboardHref}
+              className="grid h-11 w-11 place-items-center rounded-xl bg-[#171717] text-white shadow-sm"
+              aria-label={user ? "Mon compte" : "Se connecter"}
+            >
+              <UserCircle2 aria-hidden="true" className="h-5 w-5" />
+            </Link>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Navigation complete conservee pour les ecrans plus larges. */}
+      <div className="hidden border-b border-gray-200/50 bg-white/80 shadow-sm backdrop-blur-md lg:block">
         <div className="mx-auto flex max-w-[96rem] flex-wrap items-center justify-between gap-4 px-4 py-2 md:px-6">
           {/* Logo with custom image */}
           <Link

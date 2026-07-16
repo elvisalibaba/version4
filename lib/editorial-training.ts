@@ -165,7 +165,9 @@ export function getEditorialTrainingPreferredFormatLabel(
 
 function escapeCsvCell(value: string | number | boolean | null | undefined) {
   const normalized = value == null ? "" : String(value);
-  return `"${normalized.replace(/"/g, '""')}"`;
+  // Spreadsheet applications may evaluate formulas even in quoted CSV cells.
+  const safeValue = /^[=+\-@\t\r]/.test(normalized) ? `'${normalized}` : normalized;
+  return `"${safeValue.replace(/"/g, '""')}"`;
 }
 
 export function buildEditorialTrainingCsv(rows: EditorialTrainingRequestRow[]) {

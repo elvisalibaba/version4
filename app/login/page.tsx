@@ -3,68 +3,80 @@ import { BookOpen, PenTool, ShieldCheck } from "lucide-react";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/login-form";
 import { getCurrentUserProfile } from "@/lib/auth";
+import { getSafeNextPath, withNextPath } from "@/lib/safe-next-path";
 
-const lanes = [
-  {
-    icon: BookOpen,
-    title: "Lecteur",
-    text: "Bibliotheque, achats, historique et packs Premium depuis un espace plus compact.",
-  },
-  {
-    icon: PenTool,
-    title: "Auteur",
-    text: "Catalogue, mises en ligne, ventes et pilotage du studio auteur dans une seule interface.",
-  },
-];
+type LoginPageProps = {
+  searchParams: Promise<{
+    next?: string;
+    verification?: string;
+    reset?: string;
+  }>;
+};
 
-export default async function LoginPage() {
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams;
+  const nextPath = getSafeNextPath(params.next);
   const profile = await getCurrentUserProfile();
+
   if (profile) {
-    redirect("/dashboard");
+    redirect(nextPath);
   }
 
+  const notice =
+    params.verification === "failed"
+      ? {
+          tone: "error" as const,
+          text: "Le lien de confirmation est invalide ou a expiré. Demandez un nouveau lien ou reconnectez-vous.",
+        }
+      : params.reset === "success"
+        ? {
+            tone: "success" as const,
+            text: "Votre mot de passe a été modifié. Vous pouvez maintenant vous connecter.",
+          }
+        : null;
+
   return (
-    <section className="mx-auto max-w-5xl space-y-5">
-      <div className="grid gap-5 lg:grid-cols-[0.92fr_minmax(0,1fr)]">
-        <div className="rounded-[34px] border border-[#e7ddd1] bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(249,245,239,0.95))] p-6 shadow-[0_26px_70px_rgba(15,23,42,0.08)] sm:p-8">
-          <div className="space-y-5">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[#fff1ea] px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#a85b3f]">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              Acces centralise
-            </span>
-            <div className="space-y-3">
-              <h1 className="max-w-lg text-[2rem] font-semibold tracking-[-0.05em] text-[#171717] sm:text-[2.55rem]">
-                Un point d entree unique pour lire, publier et administrer.
-              </h1>
-              <p className="max-w-xl text-sm leading-7 text-[#6f665e] sm:text-[0.95rem]">
-                Le compte ouvre automatiquement le bon espace selon le role stocke dans Supabase, sans multiplier les parcours.
-              </p>
+    <section className="mx-auto max-w-6xl px-0 py-3 sm:px-6 sm:py-8 lg:py-12">
+      <div className="grid gap-4 sm:gap-7 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-10">
+        <aside className="order-last hidden overflow-hidden rounded-[24px] border border-[#eadfd4] bg-[linear-gradient(155deg,#fffaf5,#f5ede4)] p-5 shadow-[0_20px_55px_rgba(23,23,23,0.07)] sm:p-8 lg:order-none lg:block lg:rounded-[36px] lg:p-10">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#f0dfd3] bg-white/80 px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.22em] text-[#9a583f]">
+            <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />
+            Votre espace privé
+          </span>
+
+          <h2 className="mt-5 font-serif text-2xl font-semibold leading-tight tracking-[-0.03em] text-[#171717] sm:text-3xl">
+            Lire, retrouver et publier sans quitter votre univers éditorial.
+          </h2>
+          <p className="mt-3 text-sm leading-6 text-[#6f665e]">
+            Un compte unique relie votre bibliothèque et, si vous publiez, votre studio auteur.
+          </p>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            <div className="flex items-center gap-3 rounded-2xl border border-[#eadfd4] bg-white/75 p-3.5">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#fff0e9] text-[#c05f43]">
+                <BookOpen aria-hidden="true" className="h-4 w-4" />
+              </span>
+              <p className="text-sm font-semibold text-[#302b27]">Vos lectures au même endroit</p>
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl border border-[#eadfd4] bg-white/75 p-3.5">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#171717] text-white">
+                <PenTool aria-hidden="true" className="h-4 w-4" />
+              </span>
+              <p className="text-sm font-semibold text-[#302b27]">Un studio dédié aux auteurs</p>
             </div>
           </div>
+        </aside>
 
-          <div className="mt-8 grid gap-3">
-            {lanes.map(({ icon: Icon, title, text }) => (
-              <article key={title} className="rounded-[26px] border border-[#ece3d7] bg-white/88 p-4">
-                <div className="flex items-start gap-3">
-                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff1ea] text-[#ff6a4c]">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <div className="space-y-1">
-                    <h2 className="text-sm font-semibold text-[#171717]">{title}</h2>
-                    <p className="text-sm leading-6 text-[#6f665e]">{text}</p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
+        <div className="order-first space-y-4 lg:order-none">
+          <LoginForm nextPath={nextPath} notice={notice} />
 
-        <div className="space-y-4">
-          <LoginForm />
-          <div className="rounded-[24px] border border-[#e7ddd1] bg-white/92 px-4 py-4 text-center text-sm text-[#6f665e] shadow-[0_18px_40px_rgba(15,23,42,0.05)]">
-            Pas encore de compte ?{" "}
-            <Link href="/register" className="font-semibold text-[#171717] transition hover:text-[#ff6a4c]">
-              Creer un compte
+          <div className="rounded-[22px] border border-[#eadfd4] bg-white/90 px-5 py-4 text-center text-sm text-[#6f665e] shadow-[0_14px_35px_rgba(23,23,23,0.05)]">
+            Nouveau chez Holistique Books ?{" "}
+            <Link
+              href={withNextPath("/register", nextPath)}
+              className="font-bold text-[#171717] underline decoration-[#ff7a5c]/50 underline-offset-4 transition hover:text-[#b5533d]"
+            >
+              Créer un compte
             </Link>
           </div>
         </div>

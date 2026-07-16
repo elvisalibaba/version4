@@ -44,11 +44,11 @@ export default function QuiSommesNousPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
         {sections.map((item) => {
           const Icon = item.icon;
           return (
-            <div key={item.title} className="ios-surface ios-card-hover rounded-3xl p-6">
+            <div key={item.title} className="ios-surface ios-card-hover rounded-2xl p-4 sm:rounded-3xl sm:p-6">
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-rose-100 text-rose-600">
                 <Icon className="h-5 w-5" />
               </span>

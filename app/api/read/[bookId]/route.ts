@@ -13,10 +13,7 @@ export async function GET(_request: Request, { params }: RouteProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Connectez-vous pour lire ce livre." }, { status: 401 });
-  }
-  const access = await resolveReadAccess(bookId, user.id);
+  const access = await resolveReadAccess(bookId, user?.id ?? null);
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status });
   }
@@ -28,6 +25,7 @@ export async function GET(_request: Request, { params }: RouteProps) {
     requestHeaders: _request.headers,
     metadata: {
       file_type: access.fileType,
+      access_mode: user ? "account" : "guest_free",
     },
   });
 

@@ -56,7 +56,10 @@ function getBoolean(formData: FormData, key: string): boolean {
 }
 
 function getRedirectPath(formData: FormData, fallback: string): string {
-  return getString(formData, "redirect_to") || fallback;
+  const candidate = getString(formData, "redirect_to");
+  if (!candidate || candidate.startsWith("//")) return fallback;
+
+  return /^\/admin(?:\/|\?|$)/.test(candidate) ? candidate : fallback;
 }
 
 function appendRedirectParam(path: string, key: string, value: string) {
@@ -344,20 +347,44 @@ export async function saveMobileAppConfigAction(formData: FormData) {
  * Met à jour le rôle d'un utilisateur (admin uniquement).
  */
 export async function updateUserRoleAction(formData: FormData) {
-  await requireAdmin();
+  const currentAdmin = await requireAdmin();
   const supabase = await createClient();
   const userId = getString(formData, "user_id");
   const role = getString(formData, "role") as UserRole;
   const redirectTo = getRedirectPath(formData, `/admin/users/${userId}`);
 
-  await supabase.from("profiles").update({ role }).eq("id", userId);
+  if (!userId || !(["reader", "author", "admin"] as UserRole[]).includes(role)) {
+    throw new Error("Utilisateur ou rôle invalide.");
+  }
+
+  if (userId === currentAdmin.id && role !== "admin") {
+    throw new Error("Vous ne pouvez pas retirer votre propre accès administrateur.");
+  }
+
+  const [{ data: targetProfile, error: targetError }, { count: adminCount, error: countError }] = await Promise.all([
+    supabase.from("profiles").select("role").eq("id", userId).maybeSingle(),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "admin"),
+  ]);
+
+  if (targetError || countError || !targetProfile) {
+    throw new Error(targetError?.message ?? countError?.message ?? "Utilisateur introuvable.");
+  }
+
+  if (targetProfile.role === "admin" && role !== "admin" && (adminCount ?? 0) <= 1) {
+    throw new Error("Le dernier administrateur ne peut pas être rétrogradé.");
+  }
+
+  const { error: roleError } = await supabase.from("profiles").update({ role }).eq("id", userId);
+  if (roleError) throw new Error(`Mise à jour du rôle impossible : ${roleError.message}`);
 
   if (role === "author" || role === "admin") {
-    const { data: profile } = await supabase.from("profiles").select("name").eq("id", userId).maybeSingle();
-    await supabase.from("author_profiles").upsert({
+    const { data: profile, error: profileError } = await supabase.from("profiles").select("name").eq("id", userId).maybeSingle();
+    if (profileError) throw new Error(`Profil introuvable : ${profileError.message}`);
+    const { error: authorProfileError } = await supabase.from("author_profiles").upsert({
       id: userId,
       display_name: profile?.name?.trim() || "Auteur",
     });
+    if (authorProfileError) throw new Error(`Profil auteur impossible à créer : ${authorProfileError.message}`);
   }
 
   revalidatePath("/admin/users");
@@ -628,9 +655,15 @@ export async function updateOrderStatusAction(formData: FormData) {
   const paymentStatus = getString(formData, "payment_status") as OrderPaymentStatus;
   const redirectTo = getRedirectPath(formData, `/admin/orders/${orderId}`);
 
-  await supabase.from("orders").update({ payment_status: paymentStatus }).eq("id", orderId);
+  if (!orderId || !(["pending", "paid", "failed", "refunded"] as OrderPaymentStatus[]).includes(paymentStatus)) {
+    throw new Error("Commande ou statut de paiement invalide.");
+  }
+
+  const { error: updateError } = await supabase.from("orders").update({ payment_status: paymentStatus }).eq("id", orderId);
+  if (updateError) throw new Error(`Statut de commande non mis à jour : ${updateError.message}`);
   if (orderId && paymentStatus === "paid") {
-    await supabase.rpc("sync_library_access_for_order", { p_order_id: orderId });
+    const { error: syncError } = await supabase.rpc("sync_library_access_for_order", { p_order_id: orderId });
+    if (syncError) throw new Error(`Accès bibliothèque non synchronisé : ${syncError.message}`);
   }
 
   revalidatePath("/admin/orders");
@@ -651,7 +684,7 @@ export async function addLibraryAccessAction(formData: FormData) {
   const supabase = await createClient();
   const redirectTo = getRedirectPath(formData, "/admin/library");
 
-  await supabase.from("library").upsert(
+  const { error } = await supabase.from("library").upsert(
     {
       user_id: getString(formData, "user_id"),
       book_id: getString(formData, "book_id"),
@@ -661,6 +694,7 @@ export async function addLibraryAccessAction(formData: FormData) {
     },
     { onConflict: "user_id,book_id" },
   );
+  if (error) throw new Error(`Accès bibliothèque non ajouté : ${error.message}`);
 
   revalidatePath("/admin/library");
   redirect(redirectTo);
@@ -675,7 +709,8 @@ export async function removeLibraryAccessAction(formData: FormData) {
   const libraryId = getString(formData, "library_id");
   const redirectTo = getRedirectPath(formData, "/admin/library");
 
-  await supabase.from("library").delete().eq("id", libraryId);
+  const { error } = await supabase.from("library").delete().eq("id", libraryId);
+  if (error) throw new Error(`Accès bibliothèque non supprimé : ${error.message}`);
 
   revalidatePath("/admin/library");
   redirect(redirectTo);

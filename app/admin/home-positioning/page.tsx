@@ -67,9 +67,9 @@ export default async function AdminHomePositioningPage() {
         description="Le livre ajouté rejoint la file prioritaire et remonte automatiquement dans les blocs principaux de la home."
       >
         <div className="flex flex-wrap gap-4">
-          <form action={addHomeFeaturedBookAction} className="flex min-w-[320px] flex-1 flex-wrap items-end gap-4">
+          <form action={addHomeFeaturedBookAction} className="flex w-full min-w-0 flex-1 flex-wrap items-end gap-4 sm:min-w-[320px]">
             <input type="hidden" name="redirect_to" value="/admin/home-positioning" />
-            <label className="grid min-w-[320px] flex-1 gap-2">
+            <label className="grid w-full min-w-0 flex-1 gap-2 sm:min-w-[320px]">
               <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Livre</span>
               <select
                 name="book_id"

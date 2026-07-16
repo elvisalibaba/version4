@@ -33,7 +33,7 @@ export default function RessourcesPage() {
             </span>
             <h2 className="text-lg font-semibold text-slate-900">Blog</h2>
           </div>
-          <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-700">
+          <div className="mt-5 grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
             {blogTopics.map((topic) => (
               <div key={topic} className="ios-surface-strong rounded-2xl p-4">
                 <p className="text-sm font-semibold text-slate-800">{topic}</p>

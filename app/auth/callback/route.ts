@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { getSafeNextPath } from "@/lib/safe-next-path";
 import { createClient } from "@/lib/supabase/server";
 
 type OtpType = "signup" | "invite" | "recovery" | "email_change" | "email";
@@ -10,14 +11,6 @@ function getBaseUrl(request: NextRequest) {
   }
 
   return request.nextUrl.origin;
-}
-
-function getSafeNextPath(value: string | null) {
-  if (!value || !value.startsWith("/")) {
-    return "/dashboard";
-  }
-
-  return value;
 }
 
 function isOtpType(value: string | null): value is OtpType {
@@ -50,5 +43,8 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(`${baseUrl}/login?verification=failed`);
+  const failedUrl = new URL("/login", baseUrl);
+  failedUrl.searchParams.set("verification", "failed");
+  failedUrl.searchParams.set("next", next);
+  return NextResponse.redirect(failedUrl);
 }

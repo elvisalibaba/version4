@@ -1652,12 +1652,32 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      claim_current_user_book_access: {
+        Args: {
+          p_book_id: string;
+        };
+        Returns: Database["public"]["Tables"]["library"]["Row"];
+      };
       claim_current_user_mobile_app_trial: {
         Args: {
           p_trial_days?: number;
           p_source?: string;
         };
         Returns: Database["public"]["Tables"]["mobile_app_trial_grants"]["Row"];
+      };
+      get_current_author_sales: {
+        Args: Record<PropertyKey, never>;
+        Returns: Array<{
+          id: string;
+          order_id: string;
+          book_id: string;
+          price: number;
+          currency_code: string;
+          book_format: BookFormatType;
+          title: string;
+          created_at: string;
+          payment_status: OrderPaymentStatus;
+        }>;
       };
       is_current_user_admin: {
         Args: Record<PropertyKey, never>;

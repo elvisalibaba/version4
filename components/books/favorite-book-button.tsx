@@ -29,6 +29,7 @@ export function FavoriteBookButton({
   const searchParams = useSearchParams();
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
   const [isPending, startTransition] = useTransition();
+  const accessibleLabel = label ?? (isFavorite ? "Retirer ce livre des favoris" : "Ajouter ce livre aux favoris");
 
   function buildNextPath() {
     const search = searchParams?.toString();
@@ -81,6 +82,7 @@ export function FavoriteBookButton({
       onClick={handleToggle}
       disabled={isPending}
       aria-pressed={isFavorite}
+      aria-label={compact ? accessibleLabel : undefined}
       className={joinClassNames(
         compact
           ? "inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ece3d7] bg-white text-slate-700 transition hover:border-[#d7c8b8] hover:text-[#a85b3f] disabled:cursor-not-allowed disabled:opacity-60"
@@ -89,8 +91,8 @@ export function FavoriteBookButton({
         className,
       )}
     >
-      <Heart className={joinClassNames("h-4 w-4", isFavorite ? "fill-current" : undefined)} />
-      {!compact ? <span>{label ?? (isFavorite ? "Ajoute aux favoris" : "Aimer ce livre")}</span> : null}
+      <Heart aria-hidden="true" className={joinClassNames("h-4 w-4", isFavorite ? "fill-current" : undefined)} />
+      {!compact ? <span>{label ?? (isFavorite ? "Ajouté aux favoris" : "Aimer ce livre")}</span> : null}
     </button>
   );
 }

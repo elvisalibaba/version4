@@ -1,19 +1,34 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { BookOpen, ChevronDown, PenTool, ShieldCheck, type LucideIcon } from "lucide-react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import Link from "next/link";
+import {
+  ArrowRight,
+  BookOpen,
+  Check,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  MailCheck,
+  PenTool,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
 import { BOOK_CATEGORIES } from "@/lib/book-categories";
-import { getSupabaseBrowserConfigErrorMessage, getSupabaseBrowserErrorMessage } from "@/lib/supabase/browser-errors";
+import { getSafeNextPath } from "@/lib/safe-next-path";
+import {
+  getSupabaseBrowserConfigErrorMessage,
+  getSupabaseBrowserErrorMessage,
+} from "@/lib/supabase/browser-errors";
 import { createClient } from "@/lib/supabase/client";
 import type { AffiliateSourceType, UserRole } from "@/types/database";
 
 type RoleOption = Exclude<UserRole, "admin">;
 
 const inputClassName =
-  "h-11 w-full rounded-lg border border-[#a6a6a6] bg-white px-3 text-sm text-[#0f1111] outline-none transition placeholder:text-[#6b7280] focus:border-[#e77600] focus:ring-2 focus:ring-[#fbd8a5]";
-
+  "h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 text-base text-[#171717] outline-none transition placeholder:text-[#a79b90] focus:border-[#ff7a5c]/60 focus:ring-4 focus:ring-[#ff7a5c]/10 sm:text-sm";
 const textareaClassName =
-  "w-full rounded-lg border border-[#a6a6a6] bg-white px-3 py-2.5 text-sm text-[#0f1111] outline-none transition placeholder:text-[#6b7280] focus:border-[#e77600] focus:ring-2 focus:ring-[#fbd8a5]";
+  "w-full rounded-2xl border border-[#eadfd4] bg-white px-4 py-3 text-base text-[#171717] outline-none transition placeholder:text-[#a79b90] focus:border-[#ff7a5c]/60 focus:ring-4 focus:ring-[#ff7a5c]/10 sm:text-sm";
 
 function toggleSelection(values: string[], value: string) {
   return values.includes(value) ? values.filter((entry) => entry !== value) : [...values, value];
@@ -23,51 +38,19 @@ function buildSocialLinks(input: Record<string, string>) {
   return Object.fromEntries(Object.entries(input).filter(([, value]) => value.trim().length > 0));
 }
 
-function Field({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
+function Field({ id, label, hint, children }: { id: string; label: string; hint?: string; children: ReactNode }) {
   return (
-    <label className="grid gap-1.5">
-      <span className="text-sm font-medium text-[#0f1111]">{label}</span>
+    <label className="grid gap-2" htmlFor={id}>
+      <span className="flex items-center justify-between gap-3">
+        <span className="text-[0.7rem] font-bold uppercase tracking-[0.17em] text-[#6f665e]">{label}</span>
+        {hint ? <span className="text-xs text-[#988b80]">{hint}</span> : null}
+      </span>
       {children}
-      {hint ? <span className="text-xs leading-5 text-[#565959]">{hint}</span> : null}
     </label>
   );
 }
 
-function SectionCard({
-  title,
-  hint,
-  children,
-}: {
-  title: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-xl border border-[#d5d9d9] bg-white p-4">
-      <div className="space-y-1">
-        <h2 className="text-lg font-semibold text-[#0f1111]">{title}</h2>
-        {hint ? <p className="text-sm leading-6 text-[#565959]">{hint}</p> : null}
-      </div>
-      <div className="mt-4 grid gap-4">{children}</div>
-    </section>
-  );
-}
-
-function RoleCard({
-  active,
-  icon: Icon,
-  title,
-  description,
-  onClick,
-}: {
+function RoleChoice({ active, icon: Icon, title, description, onClick }: {
   active: boolean;
   icon: LucideIcon;
   title: string;
@@ -77,51 +60,61 @@ function RoleCard({
   return (
     <button
       type="button"
+      role="radio"
+      aria-checked={active}
       onClick={onClick}
-      className={`rounded-xl border p-4 text-left transition ${
+      className={`min-w-0 rounded-2xl border p-3 text-left transition sm:p-4 ${
         active
-          ? "border-[#f3a847] bg-[#fff8e8] shadow-sm"
-          : "border-[#d5d9d9] bg-white hover:border-[#c7cccc] hover:bg-[#fcfcfc]"
+          ? "border-[#ff7a5c]/60 bg-[#fff1eb] shadow-[0_10px_25px_rgba(192,95,67,0.09)]"
+          : "border-[#eadfd4] bg-white hover:border-[#d8c8ba]"
       }`}
     >
-      <div className="flex items-start gap-3">
-        <span
-          className={`inline-flex h-10 w-10 items-center justify-center rounded-lg ${
-            active ? "bg-[#232f3e] text-white" : "bg-[#f7fafa] text-[#232f3e]"
-          }`}
-        >
-          <Icon className="h-4 w-4" />
+      <span className="flex items-center gap-2.5">
+        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${active ? "bg-[#171717] text-white" : "bg-[#f6eee7] text-[#8b5d4d]"}`}>
+          <Icon aria-hidden="true" className="h-4 w-4" />
         </span>
-        <div className="space-y-1">
-          <p className="text-sm font-semibold text-[#0f1111]">{title}</p>
-          <p className="text-sm leading-6 text-[#565959]">{description}</p>
-        </div>
-      </div>
+        <span className="min-w-0">
+          <span className="block text-sm font-bold text-[#171717]">{title}</span>
+          <span className="mt-0.5 block text-[0.7rem] leading-4 text-[#746a62]">{description}</span>
+        </span>
+      </span>
     </button>
   );
 }
 
-function CategoryChip({
-  active,
-  label,
-  onClick,
-}: {
-  active: boolean;
+function PasswordField({ id, label, value, onChange, visible, onToggle, autoComplete }: {
+  id: string;
   label: string;
-  onClick: () => void;
+  value: string;
+  onChange: (value: string) => void;
+  visible: boolean;
+  onToggle: () => void;
+  autoComplete: "new-password";
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-        active
-          ? "border-[#232f3e] bg-[#232f3e] text-white"
-          : "border-[#d5d9d9] bg-white text-[#374151] hover:border-[#c7cccc] hover:bg-[#f7fafa]"
-      }`}
-    >
-      {label}
-    </button>
+    <Field id={id} label={label}>
+      <span className="relative">
+        <input
+          id={id}
+          type={visible ? "text" : "password"}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={`${inputClassName} pr-12`}
+          autoComplete={autoComplete}
+          minLength={8}
+          required
+        />
+        <button
+          type="button"
+          onClick={onToggle}
+          className="absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl text-[#71675f] transition hover:bg-[#f6eee7] hover:text-[#171717]"
+          aria-label={visible ? `Masquer ${label.toLowerCase()}` : `Afficher ${label.toLowerCase()}`}
+          aria-pressed={visible}
+        >
+          {visible ? <EyeOff aria-hidden="true" className="h-4 w-4" /> : <Eye aria-hidden="true" className="h-4 w-4" />}
+        </button>
+      </span>
+    </Field>
   );
 }
 
@@ -131,6 +124,7 @@ type RegisterFormProps = {
   affiliateSourceType?: AffiliateSourceType | null;
   affiliateSourceBookId?: string | null;
   affiliateSourcePlanId?: string | null;
+  nextPath: string;
 };
 
 export function RegisterForm({
@@ -139,18 +133,17 @@ export function RegisterForm({
   affiliateSourceType = null,
   affiliateSourceBookId = null,
   affiliateSourcePlanId = null,
+  nextPath,
 }: RegisterFormProps) {
+  const safeNextPath = getSafeNextPath(nextPath);
   const [role, setRole] = useState<RoleOption>(initialRole);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [country, setCountry] = useState("");
-  const [city, setCity] = useState("");
-  const [preferredLanguage, setPreferredLanguage] = useState("fr");
-  const [favoriteCategories, setFavoriteCategories] = useState<string[]>([]);
-  const [marketingOptIn, setMarketingOptIn] = useState(false);
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmationVisible, setConfirmationVisible] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [professionalHeadline, setProfessionalHeadline] = useState("");
   const [bio, setBio] = useState("");
@@ -163,8 +156,10 @@ export function RegisterForm({
   const [facebookUrl, setFacebookUrl] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   const fullName = useMemo(() => `${firstName} ${lastName}`.trim(), [firstName, lastName]);
 
@@ -173,31 +168,36 @@ export function RegisterForm({
   }, [initialRole]);
 
   function getEmailRedirectTo() {
-    const configuredUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
-    const baseUrl = configuredUrl && configuredUrl.length > 0 ? configuredUrl.replace(/\/$/, "") : window.location.origin;
-    return `${baseUrl}/auth/callback?next=${encodeURIComponent("/dashboard")}`;
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    callbackUrl.searchParams.set("next", safeNextPath);
+    return callbackUrl.toString();
   }
 
-  async function onSubmit(event: React.FormEvent) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccess(null);
 
     if (!firstName.trim() || !lastName.trim()) {
-      setError("Renseigne le prenom et le nom pour continuer.");
+      setError("Renseignez votre prénom et votre nom pour continuer.");
       setLoading(false);
       return;
     }
 
-    if (password.trim().length < 8) {
-      setError("Le mot de passe doit contenir au moins 8 caracteres.");
+    if (password.length < 8) {
+      setError("Le mot de passe doit contenir au moins 8 caractères.");
+      setLoading(false);
+      return;
+    }
+
+    if (password !== passwordConfirmation) {
+      setError("Les deux mots de passe ne correspondent pas.");
       setLoading(false);
       return;
     }
 
     if (role === "author" && !displayName.trim()) {
-      setError("Ajoute ton nom public auteur pour activer le studio.");
+      setError("Ajoutez votre nom public pour créer votre espace auteur.");
       setLoading(false);
       return;
     }
@@ -219,7 +219,7 @@ export function RegisterForm({
       });
 
       const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           emailRedirectTo: getEmailRedirectTo(),
@@ -228,12 +228,12 @@ export function RegisterForm({
             role,
             first_name: firstName.trim(),
             last_name: lastName.trim(),
-            phone: phone.trim() || null,
-            country: country.trim() || null,
-            city: city.trim() || null,
-            preferred_language: preferredLanguage,
-            favorite_categories: favoriteCategories,
-            marketing_opt_in: marketingOptIn,
+            phone: null,
+            country: null,
+            city: null,
+            preferred_language: "fr",
+            favorite_categories: [],
+            marketing_opt_in: false,
             referred_by_affiliate_code: affiliateCode,
             affiliate_source_type: affiliateSourceType,
             affiliate_source_book_id: affiliateSourceBookId,
@@ -256,306 +256,233 @@ export function RegisterForm({
       });
 
       if (signUpError) {
-        setError(getSupabaseBrowserErrorMessage(signUpError, "l inscription"));
+        setError(getSupabaseBrowserErrorMessage(signUpError, "l’inscription"));
         return;
       }
+
+      setPassword("");
+      setPasswordConfirmation("");
 
       if (!data.session) {
-        setSuccess("Compte cree. Verifie ton email puis reviens sur la plateforme pour activer ton espace.");
+        setAwaitingConfirmation(true);
         return;
       }
 
-      window.location.assign("/dashboard");
+      window.location.assign(safeNextPath);
     } catch (submitError) {
-      setError(getSupabaseBrowserErrorMessage(submitError, "l inscription"));
+      setError(getSupabaseBrowserErrorMessage(submitError, "l’inscription"));
     } finally {
       setLoading(false);
     }
   }
 
-  return (
-    <form onSubmit={onSubmit} className="rounded-2xl border border-[#d5d9d9] bg-white p-5 shadow-sm sm:p-6">
-      <div className="space-y-3">
-        <span className="inline-flex items-center gap-2 rounded-full bg-[#232f3e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">
-          <ShieldCheck className="h-3.5 w-3.5" />
-          {role === "author" ? "Inscription auteur" : "Inscription lecteur"}
+  async function resendConfirmation() {
+    setResending(true);
+    setResendMessage(null);
+
+    try {
+      const supabase = createClient();
+      const { error: resendError } = await supabase.auth.resend({
+        type: "signup",
+        email: email.trim(),
+        options: { emailRedirectTo: getEmailRedirectTo() },
+      });
+
+      setResendMessage(
+        resendError
+          ? getSupabaseBrowserErrorMessage(resendError, "l’envoi du lien")
+          : "Un nouveau lien vient d’être envoyé.",
+      );
+    } catch (resendError) {
+      setResendMessage(getSupabaseBrowserErrorMessage(resendError, "l’envoi du lien"));
+    } finally {
+      setResending(false);
+    }
+  }
+
+  if (awaitingConfirmation) {
+    return (
+      <section className="mx-auto w-full max-w-xl rounded-[24px] border border-[#eadfd4] bg-[#fdfaf6] p-5 text-center shadow-[0_20px_60px_rgba(23,23,23,0.08)] sm:rounded-[36px] sm:p-10" aria-labelledby="registration-confirmation-title">
+        <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#fff0e9] text-[#b5533d]">
+          <MailCheck aria-hidden="true" className="h-6 w-6" />
         </span>
-        <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#0f1111]">Creer votre compte</h1>
-          <p className="text-sm leading-6 text-[#565959]">
-            Renseignez les informations principales. Les details optionnels peuvent etre ajoutes ensuite.
-          </p>
+        <h1 id="registration-confirmation-title" className="mt-5 text-3xl font-semibold tracking-[-0.04em] text-[#171717]">
+          Consultez votre email
+        </h1>
+        <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#6f665e]">
+          Nous avons envoyé un lien de confirmation à <strong className="text-[#171717]">{email}</strong>. Ouvrez-le pour activer votre compte.
+        </p>
+
+        {resendMessage ? <p role="status" className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-[#5d554d]">{resendMessage}</p> : null}
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={resendConfirmation}
+            disabled={resending}
+            className="inline-flex h-11 items-center justify-center rounded-full border border-[#d9c9bc] bg-white px-4 text-sm font-semibold text-[#171717] transition hover:bg-[#f8f1eb] disabled:opacity-60"
+          >
+            {resending ? "Envoi en cours…" : "Renvoyer le lien"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setAwaitingConfirmation(false)}
+            className="inline-flex h-11 items-center justify-center rounded-full bg-[#171717] px-4 text-sm font-semibold text-white transition hover:bg-[#332c27]"
+          >
+            Modifier l’adresse
+          </button>
         </div>
+      </section>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={onSubmit}
+      aria-busy={loading}
+      className="relative mx-auto w-full max-w-xl overflow-hidden rounded-[24px] border border-[#eadfd4] bg-[#fdfaf6] p-4 shadow-[0_20px_60px_rgba(23,23,23,0.08)] sm:rounded-[36px] sm:p-9 lg:p-10"
+    >
+      <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#ff7a5c]/10 blur-3xl" />
+
+      <div className="relative">
+        <header className="space-y-3">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#f0dfd3] bg-white px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.22em] text-[#9a583f]">
+            <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />
+            Compte personnel
+          </span>
+          <div className="space-y-2">
+            <h1 className="text-[1.9rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[#171717] sm:text-[2.6rem]">
+              Créer mon compte
+            </h1>
+            <p className="text-sm leading-6 text-[#6f665e]">Quelques informations suffisent pour commencer.</p>
+          </div>
+        </header>
+
         {affiliateCode ? (
-          <div className="rounded-xl border border-[#d5d9d9] bg-[#f7fafa] px-4 py-3 text-sm leading-6 text-[#374151]">
-            Code affiliation applique : <span className="font-semibold text-[#0f1111]">{affiliateCode}</span>
-            {affiliateSourceType === "book" ? " depuis un livre partage." : null}
-            {affiliateSourceType === "plan" ? " depuis un paquet partage." : null}
-          </div>
+          <p className="mt-5 rounded-2xl border border-[#eadfd4] bg-white px-4 py-3 text-sm leading-6 text-[#5d554d]">
+            Code partenaire appliqué : <strong className="text-[#171717]">{affiliateCode}</strong>
+          </p>
         ) : null}
-      </div>
 
-      <div className="mt-6 space-y-4">
-        <SectionCard title="Type de compte" hint="Choisissez le parcours qui correspond a votre usage principal.">
-          <div className="grid gap-3">
-            <RoleCard
-              active={role === "reader"}
-              icon={BookOpen}
-              title="Lecteur"
-              description="Pour acheter, lire, gerer votre bibliotheque et acceder au lecteur web."
-              onClick={() => setRole("reader")}
-            />
-            <RoleCard
-              active={role === "author"}
-              icon={PenTool}
-              title="Auteur"
-              description="Pour publier, administrer vos livres et retrouver votre espace auteur."
-              onClick={() => setRole("author")}
-            />
-          </div>
-        </SectionCard>
+        <div className="mt-6 grid gap-5">
+          <fieldset className="grid gap-2">
+            <legend className="text-[0.7rem] font-bold uppercase tracking-[0.17em] text-[#6f665e]">Je souhaite</legend>
+            <div role="radiogroup" aria-label="Type de compte" className="grid grid-cols-2 gap-2.5">
+              <RoleChoice active={role === "reader"} icon={BookOpen} title="Lire" description="Compte lecteur" onClick={() => setRole("reader")} />
+              <RoleChoice active={role === "author"} icon={PenTool} title="Publier" description="Espace auteur" onClick={() => setRole("author")} />
+            </div>
+          </fieldset>
 
-        <SectionCard title="Informations du compte" hint="Ce sont les seules informations necessaires pour demarrer.">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Prenom">
-              <input
-                value={firstName}
-                onChange={(event) => setFirstName(event.target.value)}
-                className={inputClassName}
-                autoComplete="given-name"
-                required
-              />
+            <Field id="register-first-name" label="Prénom">
+              <input id="register-first-name" value={firstName} onChange={(event) => setFirstName(event.target.value)} className={inputClassName} autoComplete="given-name" required />
             </Field>
-            <Field label="Nom">
-              <input
-                value={lastName}
-                onChange={(event) => setLastName(event.target.value)}
-                className={inputClassName}
-                autoComplete="family-name"
-                required
-              />
+            <Field id="register-last-name" label="Nom">
+              <input id="register-last-name" value={lastName} onChange={(event) => setLastName(event.target.value)} className={inputClassName} autoComplete="family-name" required />
             </Field>
           </div>
 
-          <Field label="Adresse email">
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className={inputClassName}
-              autoComplete="email"
-              placeholder="nom@domaine.com"
-              required
-            />
+          <Field id="register-email" label="Adresse email">
+            <input id="register-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={inputClassName} autoComplete="email" autoCapitalize="none" inputMode="email" placeholder="nom@domaine.com" required />
           </Field>
 
-          <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_180px]">
-            <Field label="Mot de passe" hint="Minimum 8 caracteres.">
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className={inputClassName}
-                autoComplete="new-password"
-                minLength={8}
-                required
-              />
-            </Field>
-            <Field label="Langue">
-              <select value={preferredLanguage} onChange={(event) => setPreferredLanguage(event.target.value)} className={inputClassName}>
-                <option value="fr">Francais</option>
-                <option value="en">Anglais</option>
-                <option value="es">Espagnol</option>
-              </select>
-            </Field>
-          </div>
-        </SectionCard>
+          <PasswordField id="register-password" label="Mot de passe" value={password} onChange={setPassword} visible={passwordVisible} onToggle={() => setPasswordVisible((visible) => !visible)} autoComplete="new-password" />
+          <PasswordField id="register-password-confirmation" label="Confirmer le mot de passe" value={passwordConfirmation} onChange={setPasswordConfirmation} visible={confirmationVisible} onToggle={() => setConfirmationVisible((visible) => !visible)} autoComplete="new-password" />
 
-        {role === "author" ? (
-          <SectionCard title="Base du profil auteur" hint="Ces champs servent a ouvrir proprement votre espace auteur.">
-            <div className="rounded-lg border border-[#f3a847] bg-[#fff8e8] px-4 py-3 text-sm leading-6 text-[#5c3b00]">
-              Le nom public auteur est requis pour activer votre profil et votre studio.
-            </div>
+          <p className="flex items-start gap-2 text-xs leading-5 text-[#7d7268]">
+            <Check aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#b5533d]" />
+            Utilisez au moins 8 caractères. Les deux saisies doivent être identiques.
+          </p>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Nom public auteur">
-                <input
-                  value={displayName}
-                  onChange={(event) => setDisplayName(event.target.value)}
-                  className={inputClassName}
-                  placeholder="Nom de plume ou marque auteur"
-                  required
-                />
-              </Field>
-              <Field label="Positionnement" hint="Optionnel">
-                <input
-                  value={professionalHeadline}
-                  onChange={(event) => setProfessionalHeadline(event.target.value)}
-                  className={inputClassName}
-                  placeholder="Ex: Fiction africaine contemporaine"
-                />
-              </Field>
-            </div>
-
-            <Field label="Bio courte" hint="Optionnel">
-              <textarea
-                value={bio}
-                onChange={(event) => setBio(event.target.value)}
-                rows={4}
-                className={textareaClassName}
-                placeholder="Deux ou trois phrases pour presenter votre univers."
-              />
-            </Field>
-
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-[#0f1111]">Genres</p>
-              <p className="text-xs leading-5 text-[#565959]">Selectionnez les categories les plus proches de votre catalogue.</p>
-              <div className="flex flex-wrap gap-2">
-                {BOOK_CATEGORIES.map((category) => {
-                  const active = authorGenres.includes(category);
-                  return (
-                    <CategoryChip
-                      key={`author-${category}`}
-                      active={active}
-                      label={category}
-                      onClick={() => setAuthorGenres((previous) => toggleSelection(previous, category))}
-                    />
-                  );
-                })}
+          {role === "author" ? (
+            <div className="grid gap-4 rounded-[22px] border border-[#eadfd4] bg-white/65 p-4">
+              <div>
+                <h2 className="text-base font-bold text-[#171717]">Profil auteur</h2>
+                <p className="mt-1 text-xs leading-5 text-[#756b62]">Votre nom public suffit pour ouvrir le studio.</p>
               </div>
+
+              <Field id="author-display-name" label="Nom public auteur">
+                <input id="author-display-name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} className={inputClassName} placeholder="Nom de plume" required />
+              </Field>
+
+              <details className="group rounded-2xl border border-[#eadfd4] bg-white">
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-[#302b27] marker:hidden">
+                  Ajouter les détails du profil
+                  <ChevronDown aria-hidden="true" className="h-4 w-4 transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="grid gap-4 border-t border-[#eadfd4] p-4">
+                  <Field id="author-headline" label="Positionnement" hint="Facultatif">
+                    <input id="author-headline" value={professionalHeadline} onChange={(event) => setProfessionalHeadline(event.target.value)} className={inputClassName} placeholder="Ex. Fiction africaine contemporaine" />
+                  </Field>
+                  <Field id="author-bio" label="Bio courte" hint="Facultatif">
+                    <textarea id="author-bio" value={bio} onChange={(event) => setBio(event.target.value)} rows={3} className={textareaClassName} placeholder="Présentez votre univers en quelques phrases." />
+                  </Field>
+
+                  <div className="grid gap-2">
+                    <p className="text-[0.7rem] font-bold uppercase tracking-[0.17em] text-[#6f665e]">Genres</p>
+                    <div className="flex flex-wrap gap-2">
+                      {BOOK_CATEGORIES.map((category) => {
+                        const active = authorGenres.includes(category);
+                        return (
+                          <button
+                            key={category}
+                            type="button"
+                            aria-pressed={active}
+                            onClick={() => setAuthorGenres((previous) => toggleSelection(previous, category))}
+                            className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${active ? "border-[#171717] bg-[#171717] text-white" : "border-[#eadfd4] bg-white text-[#5d554d] hover:border-[#cbb9aa]"}`}
+                          >
+                            {category}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field id="author-website" label="Site web" hint="Facultatif">
+                      <input id="author-website" type="url" value={website} onChange={(event) => setWebsite(event.target.value)} className={inputClassName} placeholder="https://…" />
+                    </Field>
+                    <Field id="author-location" label="Localisation" hint="Facultatif">
+                      <input id="author-location" value={authorLocation} onChange={(event) => setAuthorLocation(event.target.value)} className={inputClassName} placeholder="Ville, pays" />
+                    </Field>
+                  </div>
+
+                  <Field id="author-goals" label="Objectifs de publication" hint="Facultatif">
+                    <textarea id="author-goals" value={publishingGoals} onChange={(event) => setPublishingGoals(event.target.value)} rows={3} className={textareaClassName} />
+                  </Field>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field id="author-instagram" label="Instagram" hint="Facultatif"><input id="author-instagram" type="url" value={instagramUrl} onChange={(event) => setInstagramUrl(event.target.value)} className={inputClassName} placeholder="https://…" /></Field>
+                    <Field id="author-x" label="X / Twitter" hint="Facultatif"><input id="author-x" type="url" value={xUrl} onChange={(event) => setXUrl(event.target.value)} className={inputClassName} placeholder="https://…" /></Field>
+                    <Field id="author-facebook" label="Facebook" hint="Facultatif"><input id="author-facebook" type="url" value={facebookUrl} onChange={(event) => setFacebookUrl(event.target.value)} className={inputClassName} placeholder="https://…" /></Field>
+                    <Field id="author-linkedin" label="LinkedIn" hint="Facultatif"><input id="author-linkedin" type="url" value={linkedinUrl} onChange={(event) => setLinkedinUrl(event.target.value)} className={inputClassName} placeholder="https://…" /></Field>
+                  </div>
+                </div>
+              </details>
             </div>
+          ) : null}
+        </div>
 
-            <details className="rounded-lg border border-[#d5d9d9] bg-[#f7fafa]">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-sm font-semibold text-[#0f1111] marker:hidden">
-                Ajouter des details auteur
-                <ChevronDown className="h-4 w-4 text-[#565959]" />
-              </summary>
-              <div className="grid gap-4 border-t border-[#d5d9d9] px-4 py-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Site web">
-                    <input
-                      value={website}
-                      onChange={(event) => setWebsite(event.target.value)}
-                      className={inputClassName}
-                      placeholder="https://..."
-                    />
-                  </Field>
-                  <Field label="Localisation">
-                    <input
-                      value={authorLocation}
-                      onChange={(event) => setAuthorLocation(event.target.value)}
-                      className={inputClassName}
-                      placeholder="Ex: Cotonou, Benin"
-                    />
-                  </Field>
-                </div>
-
-                <Field label="Objectifs de publication">
-                  <textarea
-                    value={publishingGoals}
-                    onChange={(event) => setPublishingGoals(event.target.value)}
-                    rows={3}
-                    className={textareaClassName}
-                    placeholder="Ex: publier une premiere collection, ouvrir le catalogue Premium..."
-                  />
-                </Field>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Instagram">
-                    <input value={instagramUrl} onChange={(event) => setInstagramUrl(event.target.value)} className={inputClassName} />
-                  </Field>
-                  <Field label="X / Twitter">
-                    <input value={xUrl} onChange={(event) => setXUrl(event.target.value)} className={inputClassName} />
-                  </Field>
-                  <Field label="Facebook">
-                    <input value={facebookUrl} onChange={(event) => setFacebookUrl(event.target.value)} className={inputClassName} />
-                  </Field>
-                  <Field label="LinkedIn">
-                    <input value={linkedinUrl} onChange={(event) => setLinkedinUrl(event.target.value)} className={inputClassName} />
-                  </Field>
-                </div>
-              </div>
-            </details>
-          </SectionCard>
+        {error ? (
+          <p role="alert" aria-live="assertive" className="mt-5 rounded-2xl border border-[#f2b9aa] bg-[#fff0eb] px-4 py-3 text-sm leading-6 text-[#8f3f2e]">
+            {error}
+          </p>
         ) : null}
 
-        <details className="rounded-xl border border-[#d5d9d9] bg-white">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-sm font-semibold text-[#0f1111] marker:hidden">
-            Ajouter des informations optionnelles
-            <ChevronDown className="h-4 w-4 text-[#565959]" />
-          </summary>
-          <div className="grid gap-4 border-t border-[#d5d9d9] px-4 py-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Telephone" hint="Optionnel">
-                <input value={phone} onChange={(event) => setPhone(event.target.value)} className={inputClassName} autoComplete="tel" />
-              </Field>
-              <Field label="Ville et pays" hint="Optionnel">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <input
-                    value={city}
-                    onChange={(event) => setCity(event.target.value)}
-                    className={inputClassName}
-                    placeholder="Ville"
-                    autoComplete="address-level2"
-                  />
-                  <input
-                    value={country}
-                    onChange={(event) => setCountry(event.target.value)}
-                    className={inputClassName}
-                    placeholder="Pays"
-                    autoComplete="country-name"
-                  />
-                </div>
-              </Field>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-[#0f1111]">Categories preferees</p>
-              <p className="text-xs leading-5 text-[#565959]">Ces preferences aident les recommandations sans bloquer la creation du compte.</p>
-              <div className="flex flex-wrap gap-2">
-                {BOOK_CATEGORIES.map((category) => {
-                  const active = favoriteCategories.includes(category);
-                  return (
-                    <CategoryChip
-                      key={category}
-                      active={active}
-                      label={category}
-                      onClick={() => setFavoriteCategories((previous) => toggleSelection(previous, category))}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-
-            <label className="flex items-start gap-3 rounded-lg border border-[#d5d9d9] bg-[#f7fafa] px-4 py-3 text-sm leading-6 text-[#374151]">
-              <input
-                type="checkbox"
-                checked={marketingOptIn}
-                onChange={(event) => setMarketingOptIn(event.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-[#a6a6a6] text-[#232f3e] focus:ring-[#fbd8a5]"
-              />
-              <span>Je veux recevoir les sorties, recommandations editoriales et offres adaptees a mon profil.</span>
-            </label>
-          </div>
-        </details>
-      </div>
-
-      {error ? (
-        <p className="mt-4 rounded-lg border border-[#d13212] bg-[#fff2f2] px-4 py-3 text-sm text-[#b12704]">{error}</p>
-      ) : null}
-      {success ? (
-        <p className="mt-4 rounded-lg border border-[#067d62] bg-[#f1fff8] px-4 py-3 text-sm text-[#067d62]">{success}</p>
-      ) : null}
-
-      <div className="mt-5 space-y-3">
         <button
+          type="submit"
           disabled={loading}
-          className="inline-flex h-11 w-full items-center justify-center rounded-full border border-[#fcd200] bg-[#ffd814] px-4 text-sm font-semibold text-[#0f1111] transition hover:bg-[#f7ca00] disabled:cursor-not-allowed disabled:opacity-60"
+          className="group mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#171717] px-6 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(23,23,23,0.18)] transition hover:bg-[#332c27] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Creation du compte..." : role === "author" ? "Creer mon espace auteur" : "Creer mon compte lecteur"}
+          {loading ? "Création du compte…" : role === "author" ? "Créer mon espace auteur" : "Créer mon compte lecteur"}
+          {!loading ? <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-1" /> : null}
         </button>
-        <p className="text-xs leading-6 text-[#565959]">
-          En continuant, vous acceptez la creation de votre compte Holistique Books et la confirmation par email.
+
+        <p className="mt-4 text-center text-xs leading-5 text-[#7d7268]">
+          En créant votre compte, vous acceptez nos{" "}
+          <Link href="/conditions" className="font-semibold text-[#8f4b38] underline underline-offset-3">conditions d’utilisation</Link>{" "}
+          et notre{" "}
+          <Link href="/confidentialite" className="font-semibold text-[#8f4b38] underline underline-offset-3">politique de confidentialité</Link>.
         </p>
       </div>
     </form>

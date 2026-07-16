@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { Maximize2, Settings2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { PdfReaderSurface } from "@/components/reader/pdf-reader-surface";
 import type { Database } from "@/types/database";
@@ -156,8 +158,12 @@ export function ReaderPopup({
 }) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const toolsPanelRef = useRef<HTMLElement | null>(null);
+  const toolsButtonRef = useRef<HTMLButtonElement | null>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
   const renditionRef = useRef<EpubRendition | null>(null);
   const bookRef = useRef<EpubBook | null>(null);
+  const dialogTitleId = useId();
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<"epub" | "pdf" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -179,8 +185,10 @@ export function ReaderPopup({
   const [pdfPageNumber, setPdfPageNumber] = useState(1);
   const [pdfPageCount, setPdfPageCount] = useState(0);
   const [pdfScale, setPdfScale] = useState(1.1);
-  const [pdfSpreadMode, setPdfSpreadMode] = useState(true);
+  const [pdfSpreadMode, setPdfSpreadMode] = useState(false);
   const [pdfJumpInput, setPdfJumpInput] = useState("1");
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
+  const [isGuestReader, setIsGuestReader] = useState(false);
 
   const isEpub = useMemo(() => fileType === "epub", [fileType]);
   const isPdf = useMemo(() => fileType === "pdf", [fileType]);
@@ -195,6 +203,100 @@ export function ReaderPopup({
     pdfPageCount > 0 && pdfSpreadMode && pdfPageNumber < pdfPageCount
       ? `Pages ${pdfPageNumber}-${Math.min(pdfPageCount, pdfPageNumber + 1)} / ${pdfPageCount}`
       : `Page ${pdfPageNumber}${pdfPageCount > 0 ? ` / ${pdfPageCount}` : ""}`;
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    previouslyFocusedRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusFrame = window.requestAnimationFrame(() => containerRef.current?.focus());
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      previouslyFocusedRef.current?.focus();
+      previouslyFocusedRef.current = null;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function handleDialogKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        if (mobileToolsOpen) {
+          closeMobileTools();
+        } else {
+          onClose();
+        }
+        return;
+      }
+
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const focusRoot = mobileToolsOpen ? toolsPanelRef.current : containerRef.current;
+      if (!focusRoot) {
+        return;
+      }
+
+      const focusableElements = Array.from(
+        focusRoot.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => element.getAttribute("aria-hidden") !== "true" && element.offsetParent !== null);
+
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        focusRoot.focus();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement;
+
+      if (event.shiftKey && (activeElement === firstElement || !focusRoot.contains(activeElement))) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && (activeElement === lastElement || !focusRoot.contains(activeElement))) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleDialogKeyDown);
+    return () => document.removeEventListener("keydown", handleDialogKeyDown);
+  }, [mobileToolsOpen, onClose, open]);
+
+  useEffect(() => {
+    if (!mobileToolsOpen) {
+      return;
+    }
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      toolsPanelRef.current?.querySelector<HTMLElement>("button, a[href], input, select, textarea")?.focus();
+    });
+
+    return () => window.cancelAnimationFrame(focusFrame);
+  }, [mobileToolsOpen]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
 
   useEffect(() => {
     async function bootstrapReader() {
@@ -213,6 +315,9 @@ export function ReaderPopup({
       setPdfPageNumber(1);
       setPdfPageCount(0);
       setPdfScale(1.1);
+      setPdfSpreadMode(false);
+      setMobileToolsOpen(false);
+      setIsGuestReader(false);
       setPdfJumpInput("1");
       setEpubProgress(0);
       setEpubCurrentPage(1);
@@ -233,6 +338,7 @@ export function ReaderPopup({
         setFileType(readerPayload.fileType);
 
         const user = authResult.data.user;
+        setIsGuestReader(!user);
         if (!user) {
           return;
         }
@@ -410,6 +516,11 @@ export function ReaderPopup({
     void containerRef.current.requestFullscreen();
   }
 
+  function closeMobileTools() {
+    setMobileToolsOpen(false);
+    window.requestAnimationFrame(() => toolsButtonRef.current?.focus());
+  }
+
   function goToPdfPage() {
     const parsedPage = Number(pdfJumpInput);
     if (!Number.isFinite(parsedPage)) {
@@ -502,69 +613,90 @@ export function ReaderPopup({
   }
 
   return (
-    <div className="reader-modal fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-2 backdrop-blur-sm sm:p-4">
-      <div ref={containerRef} className="reader-window flex h-[96vh] w-full max-w-[92rem] flex-col overflow-hidden rounded-[2rem] border border-[#221d17] bg-[#111827]">
-        <div className="reader-toolbar flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-[#0f172a] px-3 py-3 text-white sm:px-4 sm:py-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#f7c78f]">Reader Pro</p>
-            <h3 className="mt-1 text-lg font-semibold">Lecteur web securise</h3>
-            <p className="mt-1 text-xs text-white/60">
+    <div className="reader-modal fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/80 p-0 backdrop-blur-sm sm:p-4">
+      <div
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={dialogTitleId}
+        tabIndex={-1}
+        className="reader-window flex h-[100dvh] w-full max-w-[92rem] flex-col overflow-hidden rounded-none border-0 border-[#221d17] bg-[#111827] outline-none sm:h-[96vh] sm:rounded-[2rem] sm:border"
+      >
+        <h2 id={dialogTitleId} className="sr-only">Lecteur Holistique Books</h2>
+        <div className="reader-toolbar reader-mobile-toolbar grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-white/10 bg-[#0f172a] px-2.5 py-2 text-white sm:flex sm:flex-wrap sm:justify-between sm:gap-3 sm:px-4 sm:py-4">
+          <div className="min-w-0">
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#f7c78f] sm:text-xs sm:tracking-[0.2em]">Reader Pro</p>
+            <h3 className="mt-1 hidden text-lg font-semibold sm:block">Lecteur web sécurisé</h3>
+            <p className="mt-0.5 truncate text-[0.68rem] text-white/60 sm:mt-1 sm:text-xs">
               {isPdf ? pdfPageLabel : `Progression ${epubProgress}%${epubTotalPages > 0 ? ` • Page ${epubCurrentPage}/${epubTotalPages}` : ""}`}
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:flex-wrap sm:gap-2">
             {isEpub ? (
               <>
-                <button type="button" onClick={() => renditionRef.current?.prev()} className="cta-secondary px-3 py-2 text-xs sm:text-sm">
-                  Precedent
+                <button type="button" onClick={() => renditionRef.current?.prev()} className="cta-secondary min-h-11 px-2.5 py-2 text-xs sm:px-3 sm:text-sm">
+                  Préc.
                 </button>
-                <button type="button" onClick={() => renditionRef.current?.next()} className="cta-secondary px-3 py-2 text-xs sm:text-sm">
-                  Suivant
+                <button type="button" onClick={() => renditionRef.current?.next()} className="cta-secondary min-h-11 px-2.5 py-2 text-xs sm:px-3 sm:text-sm">
+                  Suiv.
                 </button>
               </>
             ) : null}
 
             {isPdf ? (
               <>
-                <button type="button" onClick={() => setPdfPageNumber((prev) => Math.max(1, prev - pdfStep))} className="cta-secondary px-3 py-2 text-xs sm:text-sm">
-                  Pages precedentes
+                <button type="button" onClick={() => setPdfPageNumber((prev) => Math.max(1, prev - pdfStep))} className="cta-secondary min-h-11 px-2.5 py-2 text-xs sm:px-3 sm:text-sm">
+                  <span className="sm:hidden">Préc.</span>
+                  <span className="hidden sm:inline">Pages précédentes</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPdfPageNumber((prev) => Math.min(Math.max(1, pdfPageCount - (pdfSpreadMode ? 1 : 0)), prev + pdfStep))}
-                  className="cta-secondary px-3 py-2 text-xs sm:text-sm"
+                  className="cta-secondary min-h-11 px-2.5 py-2 text-xs sm:px-3 sm:text-sm"
                 >
-                  Pages suivantes
+                  <span className="sm:hidden">Suiv.</span>
+                  <span className="hidden sm:inline">Pages suivantes</span>
                 </button>
               </>
             ) : null}
 
-            <button type="button" onClick={openFullScreen} className="cta-secondary px-3 py-2 text-xs sm:text-sm">
-              Plein ecran
+            <button type="button" onClick={openFullScreen} className="cta-secondary hidden min-h-11 items-center gap-2 px-3 py-2 text-xs sm:inline-flex sm:text-sm">
+              <Maximize2 aria-hidden="true" className="h-4 w-4" />
+              Plein écran
             </button>
-            <button type="button" onClick={onClose} className="cta-primary px-3 py-2 text-xs sm:text-sm">
-              Fermer
+            <button
+              ref={toolsButtonRef}
+              type="button"
+              onClick={() => setMobileToolsOpen(true)}
+              className="grid h-11 w-11 place-items-center rounded-xl border border-white/15 bg-white/10 text-white xl:hidden"
+              aria-label="Ouvrir les outils de lecture"
+            >
+              <Settings2 aria-hidden="true" className="h-4 w-4" />
+            </button>
+            <button type="button" onClick={onClose} className="grid h-11 w-11 place-items-center rounded-xl bg-[#f7c78f] text-[#111827] sm:inline-flex sm:w-auto sm:px-3 sm:text-sm" aria-label="Fermer le lecteur">
+              <X aria-hidden="true" className="h-4 w-4 sm:hidden" />
+              <span className="hidden sm:inline">Fermer</span>
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden p-2 sm:p-4">
+        <div className="min-h-0 flex-1 overflow-hidden p-0 sm:p-4">
           {error ? (
-            <div className="mb-4 rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <div role="alert" className="mb-4 rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
               {error}
             </div>
           ) : null}
 
           {!error && !fileUrl ? (
-            <div className="flex h-full items-center justify-center rounded-[1.75rem] border border-white/10 bg-[#0f172a] text-sm text-white/70">
+            <div role="status" aria-live="polite" className="flex h-full items-center justify-center rounded-[1.75rem] border border-white/10 bg-[#0f172a] text-sm text-white/70">
               Chargement du lecteur...
             </div>
           ) : null}
 
           {!error && fileUrl ? (
-            <div className="grid h-full gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-              <div className="min-h-0 overflow-hidden rounded-[1.75rem] border border-white/10 bg-[linear-gradient(180deg,_rgba(15,23,42,0.96),_rgba(17,24,39,0.98))] p-3">
+            <div className="relative grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+              <div className="min-h-0 overflow-hidden rounded-none border-0 border-white/10 bg-[linear-gradient(180deg,_rgba(15,23,42,0.96),_rgba(17,24,39,0.98))] p-1 sm:rounded-[1.75rem] sm:border sm:p-3">
                 {fileType === "pdf" ? (
                   <PdfReaderSurface
                     fileUrl={fileUrl}
@@ -575,13 +707,27 @@ export function ReaderPopup({
                     onError={setError}
                   />
                 ) : (
-                  <div className="flex h-full min-h-[70vh] flex-col overflow-hidden rounded-[1.5rem] bg-[#f5efe6] p-2 shadow-[0_20px_40px_rgba(15,23,42,0.22)]">
-                    <div ref={mountRef} className="h-full w-full overflow-hidden rounded-[1.1rem] bg-white" onContextMenu={(event) => event.preventDefault()} />
+                  <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-none bg-[#f5efe6] p-1 shadow-[0_20px_40px_rgba(15,23,42,0.22)] sm:rounded-[1.5rem] sm:p-2">
+                    <div ref={mountRef} className="h-full min-h-0 w-full overflow-hidden rounded-lg bg-white sm:rounded-[1.1rem]" onContextMenu={(event) => event.preventDefault()} />
                   </div>
                 )}
               </div>
 
-              <aside className="min-h-0 overflow-auto rounded-[1.75rem] border border-white/10 bg-[#0f172a] p-4 text-white">
+              <aside ref={toolsPanelRef} tabIndex={-1} className={`${mobileToolsOpen ? "absolute inset-0 z-20 block" : "hidden"} reader-mobile-tools min-h-0 overflow-auto rounded-none border border-white/10 bg-[#0f172a] p-3 text-white outline-none sm:rounded-[1.75rem] sm:p-4 xl:static xl:block`}>
+                <div className="mb-3 flex items-center justify-between xl:hidden">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#f7c78f]">Réglages</p>
+                    <p className="mt-1 text-xs text-white/55">Lecture, navigation et notes</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeMobileTools}
+                    className="grid h-11 w-11 place-items-center rounded-xl border border-white/15 bg-white/10"
+                    aria-label="Fermer les outils"
+                  >
+                    <X aria-hidden="true" className="h-4 w-4" />
+                  </button>
+                </div>
                 <section className="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f7c78f]">Outils lecture</p>
 
@@ -591,11 +737,11 @@ export function ReaderPopup({
                         <label className="grid gap-2">
                           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-white/60">Taille du texte</span>
                           <div className="flex items-center gap-2">
-                            <button type="button" onClick={() => setEpubFontSize((prev) => Math.max(85, prev - 10))} className="cta-secondary px-3 py-2 text-xs">
+                            <button type="button" onClick={() => setEpubFontSize((prev) => Math.max(85, prev - 10))} className="cta-secondary px-3 py-2 text-xs" aria-label="Réduire la taille du texte">
                               A-
                             </button>
                             <span className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/70">{epubFontSize}%</span>
-                            <button type="button" onClick={() => setEpubFontSize((prev) => Math.min(170, prev + 10))} className="cta-secondary px-3 py-2 text-xs">
+                            <button type="button" onClick={() => setEpubFontSize((prev) => Math.min(170, prev + 10))} className="cta-secondary px-3 py-2 text-xs" aria-label="Augmenter la taille du texte">
                               A+
                             </button>
                           </div>
@@ -686,6 +832,7 @@ export function ReaderPopup({
                               type="button"
                               onClick={() => setPdfScale((prev) => Math.max(0.8, Number((prev - 0.1).toFixed(2))))}
                               className="cta-secondary px-3 py-2 text-xs"
+                              aria-label="Réduire le zoom du PDF"
                             >
                               -
                             </button>
@@ -696,6 +843,7 @@ export function ReaderPopup({
                               type="button"
                               onClick={() => setPdfScale((prev) => Math.min(2.2, Number((prev + 0.1).toFixed(2))))}
                               className="cta-secondary px-3 py-2 text-xs"
+                              aria-label="Augmenter le zoom du PDF"
                             >
                               +
                             </button>
@@ -737,6 +885,21 @@ export function ReaderPopup({
                     </span>
                   </div>
 
+                  {isGuestReader ? (
+                    <div className="mt-4 rounded-[1.15rem] border border-[#f7c78f]/25 bg-[#f7c78f]/10 p-4">
+                      <p className="text-sm font-semibold text-white">Vous lisez librement, en mode invité.</p>
+                      <p className="mt-2 text-sm leading-6 text-white/65">
+                        Les réglages, le sommaire et toute la lecture restent disponibles. Un compte est utile uniquement pour conserver vos notes et retrouver le livre plus tard.
+                      </p>
+                      <Link
+                        href={`/register?role=reader&next=${encodeURIComponent(`/book/${bookId}`)}`}
+                        className="mt-4 inline-flex min-h-11 items-center justify-center rounded-full bg-[#f7c78f] px-4 text-sm font-semibold text-[#111827]"
+                      >
+                        Créer un compte lecteur
+                      </Link>
+                    </div>
+                  ) : (
+                    <>
                   {selectedQuote ? (
                     <div className="mt-4 rounded-[1.1rem] border border-[#f7c78f]/30 bg-[#f7c78f]/10 px-4 py-3 text-sm leading-6 text-white/80">
                       {selectedQuote}
@@ -813,10 +976,12 @@ export function ReaderPopup({
                       <p className="text-sm text-white/45">Aucune note enregistree pour ce livre pour le moment.</p>
                     )}
                   </div>
+                    </>
+                  )}
                 </section>
 
                 <p className="mt-4 text-xs leading-6 text-white/40">
-                  Lecture protegee reservee au site et a l application Holistique Books. Le telechargement direct du fichier reste desactive.
+                  Lecture diffusée dans le lecteur Holistique Books. Le téléchargement direct du fichier reste désactivé.
                 </p>
               </aside>
             </div>

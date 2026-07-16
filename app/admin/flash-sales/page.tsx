@@ -59,9 +59,9 @@ export default async function AdminFlashSalesPage() {
 
       <AdminPanel title="Ajouter un livre a la flash sale" description="Seuls les livres eligibles a la vente unitaire payante sont proposes.">
         <div className="flex flex-wrap gap-4">
-          <form action={addFlashSaleBookAction} className="flex min-w-[320px] flex-1 flex-wrap items-end gap-4">
+          <form action={addFlashSaleBookAction} className="flex w-full min-w-0 flex-1 flex-wrap items-end gap-4 sm:min-w-[320px]">
             <input type="hidden" name="redirect_to" value="/admin/flash-sales" />
-            <label className="grid min-w-[320px] flex-1 gap-2">
+            <label className="grid w-full min-w-0 flex-1 gap-2 sm:min-w-[320px]">
               <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Livre</span>
               <select name="book_id" className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900">
                 {data.eligibleOptions.map((book) => (

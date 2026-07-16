@@ -2,6 +2,8 @@ import { DashboardShell } from "@/components/ui/dashboard-shell";
 import type { DashboardIconName } from "@/components/ui/dashboard-icons";
 import { getCurrentUserProfile } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export default async function AuthorDashboardLayout({
   children,
 }: Readonly<{

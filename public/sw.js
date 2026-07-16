@@ -69,6 +69,8 @@ function isSensitivePath(pathname) {
     "/admin",
     "/dashboard",
     "/auth",
+    "/login",
+    "/register",
     "/payment",
     "/book/",
     "/library",

@@ -18,7 +18,7 @@ export function AdminSelect({
   className = "",
 }: AdminSelectProps) {
   return (
-    <label className={`grid min-w-[180px] gap-2 ${className}`.trim()}>
+    <label className={`grid w-full min-w-0 gap-2 sm:min-w-[180px] ${className}`.trim()}>
       <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</span>
       <select name={name} defaultValue={defaultValue ?? ""} className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900">
         <option value="">{placeholder}</option>

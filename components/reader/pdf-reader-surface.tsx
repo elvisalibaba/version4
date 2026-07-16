@@ -173,7 +173,7 @@ export function PdfReaderSurface({ fileUrl, pageNumbers, scale, spreadMode, onPa
 
   return (
     <div
-      className="relative flex h-full min-h-[60vh] w-full items-start justify-center overflow-auto rounded-[1.35rem] bg-[#2b211b] p-4"
+      className="relative flex h-full min-h-0 w-full items-start justify-center overflow-auto rounded-none bg-[#2b211b] p-1.5 sm:rounded-[1.35rem] sm:p-4"
       onContextMenu={(event) => event.preventDefault()}
     >
       {(isLoadingDocument || isRenderingPages) && (
@@ -186,7 +186,7 @@ export function PdfReaderSurface({ fileUrl, pageNumbers, scale, spreadMode, onPa
         {visiblePages.map((pageNumber) => (
           <figure
             key={pageNumber}
-            className="rounded-[1.5rem] border border-[#d8c7b2] bg-[#f8f1e7] p-4 shadow-[0_24px_60px_rgba(15,23,42,0.38)]"
+            className="rounded-xl border border-[#d8c7b2] bg-[#f8f1e7] p-1.5 shadow-[0_24px_60px_rgba(15,23,42,0.38)] sm:rounded-[1.5rem] sm:p-4"
           >
             <div className="flex justify-center">
               <canvas ref={(node) => registerCanvas(pageNumber, node)} className="max-w-full rounded-[0.85rem] shadow-[0_12px_30px_rgba(15,23,42,0.16)]" />

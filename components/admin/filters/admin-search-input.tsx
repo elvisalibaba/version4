@@ -14,7 +14,7 @@ export function AdminSearchInput({
   className = "",
 }: AdminSearchInputProps) {
   return (
-    <label className={`grid min-w-[220px] gap-2 ${className}`.trim()}>
+    <label className={`grid w-full min-w-0 gap-2 sm:min-w-[220px] ${className}`.trim()}>
       <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</span>
       <input
         type="search"

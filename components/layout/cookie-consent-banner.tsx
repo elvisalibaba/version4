@@ -46,7 +46,7 @@ export function CookieConsentBanner() {
   return (
     <aside className="hb-cookie-banner" role="dialog" aria-live="polite" aria-label="Consentement cookies">
       <div className="hb-cookie-banner-copy">
-        <p className="hb-cookie-banner-title">Votre confidentialite compte</p>
+        <p className="hb-cookie-banner-title">Votre confidentialité compte</p>
         <p className="hb-cookie-banner-text">
           Nous utilisons les cookies essentiels pour la connexion et le bon fonctionnement de la plateforme. Vous pouvez
           accepter ou refuser les cookies optionnels.
