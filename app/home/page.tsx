@@ -214,10 +214,11 @@ export default async function HomePage() {
           <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,460px)] lg:gap-10">
             <div className="space-y-6">
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-                Les histoires fleurissent sur Holistique Books.
+                Lire des œuvres qui comptent. Publier avec ambition.
               </h1>
               <p className="text-lg text-gray-200">
-                Une librairie en ligne pensée pour les lecteurs exigeants et les auteurs ambitieux.
+                Holistique Books réunit une librairie en ligne moderne et un accompagnement éditorial exigeant pour
+                rapprocher chaque livre de son public.
               </p>
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
                 <Link
