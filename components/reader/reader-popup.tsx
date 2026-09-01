@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Maximize2, Settings2, X } from "lucide-react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Maximize2, Settings2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { PdfReaderSurface } from "@/components/reader/pdf-reader-surface";
 import type { Database } from "@/types/database";
@@ -203,6 +203,17 @@ export function ReaderPopup({
     pdfPageCount > 0 && pdfSpreadMode && pdfPageNumber < pdfPageCount
       ? `Pages ${pdfPageNumber}-${Math.min(pdfPageCount, pdfPageNumber + 1)} / ${pdfPageCount}`
       : `Page ${pdfPageNumber}${pdfPageCount > 0 ? ` / ${pdfPageCount}` : ""}`;
+  const readerProgress = isPdf && pdfPageCount > 0 ? Math.round((pdfPageNumber / pdfPageCount) * 100) : epubProgress;
+
+  const goPrevious = useCallback(() => {
+    if (isEpub) renditionRef.current?.prev();
+    if (isPdf) setPdfPageNumber((previous) => Math.max(1, previous - pdfStep));
+  }, [isEpub, isPdf, pdfStep]);
+
+  const goNext = useCallback(() => {
+    if (isEpub) renditionRef.current?.next();
+    if (isPdf) setPdfPageNumber((previous) => Math.min(Math.max(1, pdfPageCount - (pdfSpreadMode ? 1 : 0)), previous + pdfStep));
+  }, [isEpub, isPdf, pdfPageCount, pdfSpreadMode, pdfStep]);
 
   useEffect(() => {
     if (!open) {
@@ -232,6 +243,15 @@ export function ReaderPopup({
         } else {
           onClose();
         }
+        return;
+      }
+
+      const target = event.target;
+      const isEditing = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement;
+      if (!isEditing && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
+        event.preventDefault();
+        if (event.key === "ArrowLeft") goPrevious();
+        else goNext();
         return;
       }
 
@@ -271,7 +291,7 @@ export function ReaderPopup({
 
     document.addEventListener("keydown", handleDialogKeyDown);
     return () => document.removeEventListener("keydown", handleDialogKeyDown);
-  }, [mobileToolsOpen, onClose, open]);
+  }, [goNext, goPrevious, mobileToolsOpen, onClose, open]);
 
   useEffect(() => {
     if (!mobileToolsOpen) {
@@ -613,21 +633,21 @@ export function ReaderPopup({
   }
 
   return (
-    <div className="reader-modal fixed inset-0 z-[120] flex items-center justify-center bg-[#081b14]/90 p-0 backdrop-blur-sm sm:p-4">
+    <div className="reader-modal fixed inset-0 z-[120] flex items-center justify-center bg-[#0c1713]/85 p-0 backdrop-blur-md sm:p-3">
       <div
         ref={containerRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={dialogTitleId}
         tabIndex={-1}
-        className="reader-window flex h-[100dvh] w-full max-w-[96rem] flex-col overflow-hidden rounded-none border-0 border-[#355748] bg-[#102d21] outline-none sm:h-[96vh] sm:rounded-[2rem] sm:border"
+        className="reader-window flex h-[100dvh] w-full max-w-[100rem] flex-col overflow-hidden rounded-none border-0 border-black/10 bg-[#e9e7e2] shadow-[0_35px_100px_rgba(0,0,0,.45)] outline-none sm:h-[97vh] sm:rounded-[1.4rem] sm:border"
       >
         <h2 id={dialogTitleId} className="sr-only">Lecteur Holistique Books</h2>
-        <div className="reader-toolbar reader-mobile-toolbar grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-white/10 bg-[#173d2c] px-2.5 py-2 text-white sm:flex sm:flex-wrap sm:justify-between sm:gap-3 sm:px-4 sm:py-4">
+        <div className="reader-toolbar reader-mobile-toolbar grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-[#ddd8d0] bg-white px-3 py-2 text-[#173d2c] sm:flex sm:flex-wrap sm:justify-between sm:gap-3 sm:px-5 sm:py-3">
           <div className="min-w-0">
-            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#f2c66f] sm:text-xs sm:tracking-[0.2em]">Holistique Books</p>
-            <h3 className="mt-1 hidden font-serif text-lg font-semibold sm:block">Votre espace de lecture</h3>
-            <p className="mt-0.5 truncate text-[0.68rem] text-white/60 sm:mt-1 sm:text-xs">
+            <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.18em] text-[#b66b20] sm:text-xs sm:tracking-[0.2em]">Holistique Reader</p>
+            <h3 className="mt-0.5 hidden font-serif text-lg font-semibold sm:block">Lecture immersive</h3>
+            <p className="mt-0.5 truncate text-[0.68rem] text-[#766f66] sm:text-xs">
               {isPdf ? pdfPageLabel : `Progression ${epubProgress}%${epubTotalPages > 0 ? ` • Page ${epubCurrentPage}/${epubTotalPages}` : ""}`}
             </p>
           </div>
@@ -635,33 +655,32 @@ export function ReaderPopup({
           <div className="flex shrink-0 items-center gap-1.5 sm:flex-wrap sm:gap-2">
             {isEpub ? (
               <>
-                <button type="button" onClick={() => renditionRef.current?.prev()} className="cta-secondary min-h-11 px-2.5 py-2 text-xs sm:px-3 sm:text-sm">
-                  Préc.
+                <button type="button" onClick={goPrevious} className="grid h-10 w-10 place-items-center rounded-xl border border-[#ddd8d0] bg-[#f7f5f1]" aria-label="Page précédente">
+                  <ChevronLeft className="h-5 w-5" />
                 </button>
-                <button type="button" onClick={() => renditionRef.current?.next()} className="cta-secondary min-h-11 px-2.5 py-2 text-xs sm:px-3 sm:text-sm">
-                  Suiv.
+                <button type="button" onClick={goNext} className="grid h-10 w-10 place-items-center rounded-xl border border-[#ddd8d0] bg-[#f7f5f1]" aria-label="Page suivante">
+                  <ChevronRight className="h-5 w-5" />
                 </button>
               </>
             ) : null}
 
             {isPdf ? (
               <>
-                <button type="button" onClick={() => setPdfPageNumber((prev) => Math.max(1, prev - pdfStep))} className="cta-secondary min-h-11 px-2.5 py-2 text-xs sm:px-3 sm:text-sm">
-                  <span className="sm:hidden">Préc.</span>
-                  <span className="hidden sm:inline">Pages précédentes</span>
+                <button type="button" onClick={goPrevious} className="grid h-10 w-10 place-items-center rounded-xl border border-[#ddd8d0] bg-[#f7f5f1]" aria-label="Page précédente">
+                  <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
                   type="button"
-                  onClick={() => setPdfPageNumber((prev) => Math.min(Math.max(1, pdfPageCount - (pdfSpreadMode ? 1 : 0)), prev + pdfStep))}
-                  className="cta-secondary min-h-11 px-2.5 py-2 text-xs sm:px-3 sm:text-sm"
+                  onClick={goNext}
+                  className="grid h-10 w-10 place-items-center rounded-xl border border-[#ddd8d0] bg-[#f7f5f1]"
+                  aria-label="Page suivante"
                 >
-                  <span className="sm:hidden">Suiv.</span>
-                  <span className="hidden sm:inline">Pages suivantes</span>
+                  <ChevronRight className="h-5 w-5" />
                 </button>
               </>
             ) : null}
 
-            <button type="button" onClick={openFullScreen} className="cta-secondary hidden min-h-11 items-center gap-2 px-3 py-2 text-xs sm:inline-flex sm:text-sm">
+            <button type="button" onClick={openFullScreen} className="hidden h-10 items-center gap-2 rounded-xl border border-[#ddd8d0] bg-[#f7f5f1] px-3 text-xs font-bold sm:inline-flex">
               <Maximize2 aria-hidden="true" className="h-4 w-4" />
               Plein écran
             </button>
@@ -669,19 +688,19 @@ export function ReaderPopup({
               ref={toolsButtonRef}
               type="button"
               onClick={() => setMobileToolsOpen(true)}
-              className="grid h-11 w-11 place-items-center rounded-xl border border-white/15 bg-white/10 text-white xl:hidden"
+              className="grid h-10 w-10 place-items-center rounded-xl border border-[#ddd8d0] bg-[#f7f5f1] text-[#173d2c] xl:hidden"
               aria-label="Ouvrir les outils de lecture"
             >
               <Settings2 aria-hidden="true" className="h-4 w-4" />
             </button>
-            <button type="button" onClick={onClose} className="grid h-11 w-11 place-items-center rounded-full bg-[#e8ac42] text-[#173d2c] sm:inline-flex sm:w-auto sm:px-4 sm:text-sm sm:font-bold" aria-label="Fermer le lecteur">
+            <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl bg-[#173d2c] text-white sm:inline-flex sm:w-auto sm:px-4 sm:text-sm sm:font-bold" aria-label="Fermer le lecteur">
               <X aria-hidden="true" className="h-4 w-4 sm:hidden" />
               <span className="hidden sm:inline">Fermer</span>
             </button>
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-hidden p-0 sm:p-4">
+        <div className="min-h-0 flex-1 overflow-hidden p-0 sm:p-3">
           {error ? (
             <div role="alert" className="mb-4 rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
               {error}
@@ -695,8 +714,8 @@ export function ReaderPopup({
           ) : null}
 
           {!error && fileUrl ? (
-            <div className="relative grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-              <div className="min-h-0 overflow-hidden rounded-none border-0 border-white/10 bg-[#0b241a] p-1 sm:rounded-[1.75rem] sm:border sm:p-3">
+            <div className="relative grid h-full min-h-0 gap-3 xl:grid-cols-[minmax(0,1fr)_340px]">
+              <div className="relative min-h-0 overflow-hidden rounded-none border-0 border-black/10 bg-[#d5d2cc] p-1 sm:rounded-[1rem] sm:border sm:p-3">
                 {fileType === "pdf" ? (
                   <PdfReaderSurface
                     fileUrl={fileUrl}
@@ -711,6 +730,8 @@ export function ReaderPopup({
                     <div ref={mountRef} className="h-full min-h-0 w-full overflow-hidden rounded-lg bg-white sm:rounded-[1.1rem]" onContextMenu={(event) => event.preventDefault()} />
                   </div>
                 )}
+                <button type="button" onClick={goPrevious} aria-label="Revenir à la page précédente" className="absolute left-3 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-black/10 bg-white/90 text-[#173d2c] shadow-lg transition hover:scale-105 lg:grid"><ChevronLeft className="h-6 w-6" /></button>
+                <button type="button" onClick={goNext} aria-label="Passer à la page suivante" className="absolute right-3 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-black/10 bg-white/90 text-[#173d2c] shadow-lg transition hover:scale-105 lg:grid"><ChevronRight className="h-6 w-6" /></button>
               </div>
 
               <aside ref={toolsPanelRef} tabIndex={-1} className={`${mobileToolsOpen ? "absolute inset-0 z-20 block" : "hidden"} reader-mobile-tools min-h-0 overflow-auto rounded-none border border-white/10 bg-[#173d2c] p-3 text-white outline-none sm:rounded-[1.75rem] sm:p-4 xl:static xl:block`}>
@@ -987,6 +1008,7 @@ export function ReaderPopup({
             </div>
           ) : null}
         </div>
+        {fileUrl ? <div className="relative h-1.5 shrink-0 bg-[#d5d2cc]" aria-label={`Progression ${readerProgress}%`}><div className="h-full bg-[#e8ac42] transition-[width] duration-300" style={{ width: `${Math.max(0, Math.min(100, readerProgress))}%` }} /></div> : null}
       </div>
     </div>
   );

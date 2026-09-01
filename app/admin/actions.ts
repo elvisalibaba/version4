@@ -517,6 +517,57 @@ export async function createAdminBooksAction(formData: FormData) {
   redirect(appendRedirectParam("/admin/books", "created", String(createdCount)));
 }
 
+/** Supprime en une fois les livres sélectionnés et leurs fichiers importés. */
+export async function deleteAdminBooksAction(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createClient();
+  const bookIds = Array.from(
+    new Set(
+      formData
+        .getAll("book_ids")
+        .filter((value): value is string => typeof value === "string")
+        .map((value) => value.trim())
+        .filter((value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)),
+    ),
+  ).slice(0, 100);
+
+  if (!bookIds.length) {
+    redirect(appendRedirectParam("/admin/books", "delete_error", "selection"));
+  }
+
+  const [{ data: books }, { data: formats }] = await Promise.all([
+    supabase.from("books").select("cover_url, cover_thumbnail_url, file_url, sample_url").in("id", bookIds),
+    supabase.from("book_formats").select("file_url").in("book_id", bookIds),
+  ]);
+
+  const { error } = await supabase.from("books").delete().in("id", bookIds);
+  if (error) {
+    redirect(appendRedirectParam("/admin/books", "delete_error", "failed"));
+  }
+
+  const storagePaths = [...(books ?? []).flatMap((book) => [book.cover_url, book.cover_thumbnail_url, book.file_url, book.sample_url]), ...(formats ?? []).map((format) => format.file_url)]
+    .filter((value): value is string => Boolean(value))
+    .map((value) => {
+      if (!/^https?:\/\//i.test(value)) return value.replace(/^\/+/, "");
+      const match = value.match(/\/storage\/v1\/object\/(?:public|sign)\/books\/([^?]+)/i);
+      return match?.[1] ? decodeURIComponent(match[1]) : "";
+    })
+    .filter(Boolean);
+
+  if (storagePaths.length) {
+    await supabase.storage.from("books").remove(Array.from(new Set(storagePaths)));
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/books");
+  revalidatePath("/admin/formats");
+  revalidatePath("/admin/library");
+  revalidatePath("/home");
+  revalidatePath("/books");
+  revalidatePath("/library");
+  redirect(appendRedirectParam("/admin/books", "deleted", String(bookIds.length)));
+}
+
 /**
  * Met à jour un livre (admin uniquement).
  */

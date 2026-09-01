@@ -5,6 +5,7 @@ import {
   ArrowRight,
   BookOpen,
   ChevronRight,
+  Eye,
   Globe2,
   Headphones,
   PenTool,
@@ -42,6 +43,18 @@ function bookHref(book: HomeBook) {
   return book.is_free ? `/book/${book.id}?read=1` : `/book/${book.id}`;
 }
 
+function formatAudienceCount(value: number | null | undefined) {
+  return new Intl.NumberFormat("fr-FR", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value ?? 0));
+}
+
+function rankByAudience(a: HomeBook, b: HomeBook) {
+  const aReads = Number(a.purchases_count ?? 0);
+  const bReads = Number(b.purchases_count ?? 0);
+  const aViews = Number(a.views_count ?? 0);
+  const bViews = Number(b.views_count ?? 0);
+  return bReads - aReads || bViews - aViews || new Date(b.published_at ?? b.created_at).getTime() - new Date(a.published_at ?? a.created_at).getTime();
+}
+
 function BookTile({ book, priority = false }: { book: HomeBook; priority?: boolean }) {
   return (
     <article className="group min-w-0">
@@ -69,6 +82,10 @@ function BookTile({ book, priority = false }: { book: HomeBook; priority?: boole
           <Link href={bookHref(book)} className="transition hover:text-[#c34d35]">{book.title}</Link>
         </h3>
         <p className="mt-1 line-clamp-1 text-xs text-[#766b61]">{book.author_name || "Auteur Holistique"}</p>
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.68rem] font-semibold text-[#83776c]">
+          <span className="inline-flex items-center gap-1"><Eye className="h-3.5 w-3.5" />{formatAudienceCount(book.views_count)} vues</span>
+          <span className="inline-flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" />{formatAudienceCount(book.purchases_count)} lectures</span>
+        </div>
         <div className="mt-2 flex items-center justify-between gap-2">
           <p className={`text-sm font-extrabold ${book.is_free ? "text-[#176052]" : "text-[#1d1a17]"}`}>{formatPrice(book)}</p>
           {book.rating_avg ? (
@@ -104,13 +121,11 @@ function Shelf({ title, eyebrow, description, books, href }: { title: string; ey
 
 export default async function HomePage() {
   const [books, authors] = await Promise.all([getPublishedBooks(), getPublicAuthors()]);
-  const freeBooks = books.filter((book) => book.is_free);
+  const popularBooks = [...books].sort(rankByAudience);
+  const freeBooks = books.filter((book) => book.is_free).sort(rankByAudience);
   const paidBooks = books.filter((book) => !book.is_free);
-  const popularBooks = [...books].sort((a, b) =>
-    Number(b.purchases_count || 0) - Number(a.purchases_count || 0) ||
-    Number(b.views_count || 0) - Number(a.views_count || 0),
-  );
-  const heroBooks = (freeBooks.length >= 3 ? freeBooks : books).slice(0, 3);
+  const popularFreeBooks = popularBooks.filter((book) => book.is_free);
+  const heroBooks = (popularFreeBooks.length >= 3 ? popularFreeBooks : popularBooks).slice(0, 3);
   const leadBook = heroBooks[0] ?? null;
 
   return (
@@ -168,6 +183,14 @@ export default async function HomePage() {
 
       <main className="mx-auto max-w-7xl space-y-20 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
         <Shelf
+          eyebrow="Les vedettes du moment"
+          title="Les livres qui captivent les lecteurs."
+          description="Un classement vivant, fondé sur les lectures puis sur les consultations de chaque livre."
+          books={popularBooks}
+          href="/books"
+        />
+
+        <Shelf
           eyebrow="La bibliothèque ouverte"
           title="Lisez gratuitement, dès maintenant."
           description="Entrez dans la lecture numérique, découvrez un auteur et laissez-vous surprendre par un nouvel univers. Aucun paiement nécessaire."
@@ -189,14 +212,6 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
-
-        <Shelf
-          eyebrow="Les choix des lecteurs"
-          title="Les livres qui circulent."
-          description="Les titres les plus consultés et les plus appréciés par la communauté Holistique Books."
-          books={popularBooks}
-          href="/books"
-        />
 
         <AllAuthorsSection authors={authors} />
 
