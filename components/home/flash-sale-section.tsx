@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { formatMoney } from "@/lib/book-offers";
 import type { PublishedBook } from "@/lib/books";
@@ -78,7 +79,7 @@ export function FlashSaleSection({ books, discountPercentage }: FlashSaleSection
                 <span className="hb-sale-badge">{discountLabel}</span>
                 <div className="hb-sale-cover">
                   {book?.cover_signed_url ? (
-                    <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                    <Image src={book.cover_signed_url} alt={book.title} width={320} height={480} className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full items-center justify-center px-3 text-center text-xs font-semibold text-slate-500">
                       Lecture a saisir

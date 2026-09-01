@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRef } from "react";
 import type { PublishedBook } from "@/lib/books";
 
@@ -70,7 +71,7 @@ export function BookShelfSection({ title, subtitle, books, variant = "default", 
                   <div className="hb-book-cover">
                     <span className="hb-book-rank">{String(index + 1).padStart(2, "0")}</span>
                     {book.cover_signed_url ? (
-                      <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                      <Image src={book.cover_signed_url} alt={book.title} width={320} height={480} className="h-full w-full object-cover" />
                     ) : (
                       <div className="hb-book-fallback">{book.title}</div>
                     )}

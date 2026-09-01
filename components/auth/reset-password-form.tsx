@@ -5,6 +5,7 @@ import { Check, Eye, EyeOff, KeyRound, ShieldCheck } from "lucide-react";
 import { getSafeNextPath } from "@/lib/safe-next-path";
 import { getSupabaseBrowserErrorMessage } from "@/lib/supabase/browser-errors";
 import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 type ResetPasswordFormProps = {
   nextPath: string;
@@ -33,6 +34,7 @@ function SecurePasswordInput({ id, label, value, visible, onChange, onToggle }: 
 }
 
 export function ResetPasswordForm({ nextPath }: ResetPasswordFormProps) {
+  const router = useRouter();
   const safeNextPath = getSafeNextPath(nextPath);
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -70,7 +72,8 @@ export function ResetPasswordForm({ nextPath }: ResetPasswordFormProps) {
       const loginUrl = new URL("/login", window.location.origin);
       loginUrl.searchParams.set("reset", "success");
       loginUrl.searchParams.set("next", safeNextPath);
-      window.location.assign(`${loginUrl.pathname}${loginUrl.search}`);
+      router.replace(`${loginUrl.pathname}${loginUrl.search}`);
+      router.refresh();
     } catch (updateError) {
       setError(getSupabaseBrowserErrorMessage(updateError, "la mise à jour du mot de passe"));
     } finally {

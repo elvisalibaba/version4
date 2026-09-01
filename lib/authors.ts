@@ -13,6 +13,11 @@ type AuthorProfileRow = Pick<
   | "professional_headline"
   | "genres"
   | "publishing_goals"
+  | "favorite_book"
+  | "favorite_author"
+  | "favorite_character"
+  | "press_mentions"
+  | "social_links"
   | "created_at"
   | "updated_at"
 >;
@@ -71,7 +76,7 @@ export async function getPublicAuthors() {
     const [{ data, error }, publishedBooks] = await Promise.all([
       supabase
         .from("author_profiles")
-        .select("id, display_name, avatar_url, bio, website, location, professional_headline, genres, publishing_goals, created_at, updated_at")
+        .select("id, display_name, avatar_url, bio, website, location, professional_headline, genres, publishing_goals, favorite_book, favorite_author, favorite_character, press_mentions, social_links, created_at, updated_at")
         .order("display_name", { ascending: true })
         .returns<AuthorProfileRow[]>(),
       getPublishedBooks(),

@@ -60,7 +60,7 @@ function DesktopFooterColumn({ title, links }: { title: string; links: FooterLin
           <li key={item.href}>
             <Link
               href={item.href}
-              className="rounded-sm text-sm leading-6 text-white/68 transition hover:text-[#ff9b84] focus:outline-none focus:ring-2 focus:ring-[#ff7a5c]"
+              className="rounded-sm text-sm leading-6 text-white/68 transition hover:text-[#f2c66f] focus:outline-none focus:ring-2 focus:ring-[#e8ac42]"
             >
               {item.label}
             </Link>
@@ -86,7 +86,7 @@ function MobileFooterAccordion({ title, links }: { title: string; links: FooterL
           <li key={item.href}>
             <Link
               href={item.href}
-              className="flex min-h-11 items-center rounded-xl px-3 text-sm text-white/68 transition hover:bg-white/[0.06] hover:text-[#ff9b84] focus:outline-none focus:ring-2 focus:ring-[#ff7a5c]"
+              className="flex min-h-11 items-center rounded-xl px-3 text-sm text-white/68 transition hover:bg-white/[0.06] hover:text-[#f2c66f] focus:outline-none focus:ring-2 focus:ring-[#e8ac42]"
             >
               {item.label}
             </Link>
@@ -105,14 +105,15 @@ export function SiteFooter() {
   };
 
   return (
-    <footer className="relative overflow-hidden border-t border-white/10 bg-[#171717] text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,122,92,0.12),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.04),transparent_25%)]" />
+    <footer className="relative overflow-hidden border-t border-white/10 bg-[#102d21] text-white">
+      <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[65px] border-[#e8ac42]/80" />
+      <div className="pointer-events-none absolute bottom-0 left-[28%] h-24 w-44 -skew-x-12 bg-[#c95d3e]/80" />
 
       <button
         type="button"
         onClick={scrollToTop}
         aria-label="Retour en haut de la page"
-        className="group relative z-10 flex min-h-11 w-full items-center justify-center gap-2 border-b border-white/10 bg-white/[0.035] px-4 text-xs font-semibold text-white/65 transition hover:bg-white/[0.07] hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#ff7a5c]"
+        className="group relative z-10 flex min-h-11 w-full items-center justify-center gap-2 border-b border-white/10 bg-white/[0.035] px-4 text-xs font-semibold text-white/65 transition hover:bg-white/[0.07] hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#e8ac42]"
       >
         <ArrowUp aria-hidden="true" className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
         Retour en haut
@@ -122,12 +123,12 @@ export function SiteFooter() {
         <div className="grid gap-10 lg:grid-cols-[1.2fr_repeat(3,minmax(0,1fr))]">
           <div>
             <Link href="/home" className="inline-flex items-center gap-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7a5c]">
-              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#ff7a5c] text-white shadow-[0_12px_30px_rgba(255,122,92,0.2)]">
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-[#e8ac42] text-[#173d2c] shadow-[0_12px_30px_rgba(232,172,66,0.2)]">
                 <BookOpen aria-hidden="true" className="h-5 w-5" />
               </span>
               <span>
-                <span className="block text-sm font-bold tracking-[-0.01em] text-white">Holistique Books</span>
-                <span className="mt-0.5 block text-xs text-white/45">Des livres qui accompagnent.</span>
+                <span className="block font-serif text-lg tracking-[-0.01em] text-white">Holistique Books</span>
+                <span className="mt-0.5 block text-[.6rem] font-bold uppercase tracking-[.16em] text-[#f2c66f]">Maison éditoriale africaine</span>
               </span>
             </Link>
 
@@ -138,14 +139,14 @@ export function SiteFooter() {
             <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap">
               <Link
                 href="/library"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#ff7a5c] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#ed6b4e] focus:outline-none focus:ring-2 focus:ring-[#ff9b84]"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#e8ac42] px-5 py-3 text-sm font-bold text-[#173d2c] transition hover:bg-[#f2c66f] focus:outline-none focus:ring-2 focus:ring-[#f2c66f]"
               >
                 Lire gratuitement
                 <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </Link>
               <Link
                 href="/register?role=author"
-                className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/15 px-4 py-3 text-sm font-bold text-white transition hover:border-white/30 hover:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-[#ff7a5c]"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/20 px-5 py-3 text-sm font-bold text-white transition hover:border-white/40 hover:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-[#e8ac42]"
               >
                 Publier un livre
               </Link>
@@ -177,7 +178,7 @@ export function SiteFooter() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="rounded-sm text-xs text-white/42 transition hover:text-[#ff9b84] focus:outline-none focus:ring-2 focus:ring-[#ff7a5c]"
+                  className="rounded-sm text-xs text-white/42 transition hover:text-[#f2c66f] focus:outline-none focus:ring-2 focus:ring-[#e8ac42]"
                 >
                   {link.label}
                 </Link>

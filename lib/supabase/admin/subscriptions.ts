@@ -237,7 +237,7 @@ export async function listAdminUserSubscriptions(params: {
   let query = supabase
     .from("user_subscriptions")
     .select(
-      "id, user_id, plan_id, status, started_at, expires_at, created_at, updated_at, user:profiles!user_subscriptions_user_id_fkey(id, name, email, role), plan:subscription_plans!user_subscriptions_plan_id_fkey(id, name, slug, monthly_price, currency_code, is_active)",
+      "id, user_id, plan_id, status, started_at, expires_at, created_at, updated_at",
       { count: "exact" },
     )
     .order("created_at", { ascending: false });
@@ -290,11 +290,23 @@ export async function listAdminUserSubscriptions(params: {
     };
   }
 
+  const rows = data ?? [];
+  const userIds = Array.from(new Set(rows.map((row) => row.user_id)));
+  const planIds = Array.from(new Set(rows.map((row) => row.plan_id)));
+  const [usersResult, plansResult] = await Promise.all([
+    userIds.length ? supabase.from("profiles").select("id, name, email, role").in("id", userIds) : Promise.resolve({ data: [] }),
+    planIds.length ? supabase.from("subscription_plans").select("id, name, slug, monthly_price, currency_code, is_active").in("id", planIds) : Promise.resolve({ data: [] }),
+  ]);
+  const users = new Map((usersResult.data ?? []).map((user) => [user.id, user]));
+  const plans = new Map((plansResult.data ?? []).map((plan) => [plan.id, plan]));
+
   return {
-    items: (data ?? []).map((subscription) => ({
+    items: rows.map((subscription) => ({
       ...subscription,
-      user_name: firstOf(subscription.user)?.name ?? firstOf(subscription.user)?.email ?? "Utilisateur inconnu",
-      plan_name: firstOf(subscription.plan)?.name ?? "Plan inconnu",
+      user: users.get(subscription.user_id) ?? null,
+      plan: plans.get(subscription.plan_id) ?? null,
+      user_name: users.get(subscription.user_id)?.name ?? users.get(subscription.user_id)?.email ?? "Utilisateur inconnu",
+      plan_name: plans.get(subscription.plan_id)?.name ?? "Plan inconnu",
     })),
     pagination: buildPagination(count, page, ADMIN_DEFAULT_PAGE_SIZE),
     notices: [],
@@ -306,12 +318,7 @@ export async function getAdminSubscriptionEditorOptions() {
   const [plansResult, usersResult, booksResult] = await Promise.all([
     supabase.from("subscription_plans").select("id, name, slug").order("created_at", { ascending: false }),
     supabase.from("profiles").select("id, name, email").order("created_at", { ascending: false }),
-    supabase
-      .from("books")
-      .select(
-        "id, title, author_display_name, status, is_subscription_available, author_profile:author_profiles!books_author_profile_id_fkey(display_name), author_profile_fallback:profiles!books_author_id_fkey(name, email)",
-      )
-      .order("created_at", { ascending: false }),
+    supabase.from("books").select("id, title, author_display_name, author_id, status, is_subscription_available").order("created_at", { ascending: false }),
   ]);
 
   return {
@@ -325,7 +332,7 @@ export async function getAdminSubscriptionEditorOptions() {
     })),
     books: (booksResult.data ?? []).map((book) => ({
       value: book.id,
-      label: `${book.title} - ${resolveAdminBookAuthorName(book)}`,
+      label: `${book.title} - ${book.author_display_name || "Auteur"}`,
     })),
   };
 }

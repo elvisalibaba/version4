@@ -613,20 +613,20 @@ export function ReaderPopup({
   }
 
   return (
-    <div className="reader-modal fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/80 p-0 backdrop-blur-sm sm:p-4">
+    <div className="reader-modal fixed inset-0 z-[120] flex items-center justify-center bg-[#081b14]/90 p-0 backdrop-blur-sm sm:p-4">
       <div
         ref={containerRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={dialogTitleId}
         tabIndex={-1}
-        className="reader-window flex h-[100dvh] w-full max-w-[92rem] flex-col overflow-hidden rounded-none border-0 border-[#221d17] bg-[#111827] outline-none sm:h-[96vh] sm:rounded-[2rem] sm:border"
+        className="reader-window flex h-[100dvh] w-full max-w-[96rem] flex-col overflow-hidden rounded-none border-0 border-[#355748] bg-[#102d21] outline-none sm:h-[96vh] sm:rounded-[2rem] sm:border"
       >
         <h2 id={dialogTitleId} className="sr-only">Lecteur Holistique Books</h2>
-        <div className="reader-toolbar reader-mobile-toolbar grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-white/10 bg-[#0f172a] px-2.5 py-2 text-white sm:flex sm:flex-wrap sm:justify-between sm:gap-3 sm:px-4 sm:py-4">
+        <div className="reader-toolbar reader-mobile-toolbar grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-white/10 bg-[#173d2c] px-2.5 py-2 text-white sm:flex sm:flex-wrap sm:justify-between sm:gap-3 sm:px-4 sm:py-4">
           <div className="min-w-0">
-            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#f7c78f] sm:text-xs sm:tracking-[0.2em]">Reader Pro</p>
-            <h3 className="mt-1 hidden text-lg font-semibold sm:block">Lecteur web sécurisé</h3>
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#f2c66f] sm:text-xs sm:tracking-[0.2em]">Holistique Books</p>
+            <h3 className="mt-1 hidden font-serif text-lg font-semibold sm:block">Votre espace de lecture</h3>
             <p className="mt-0.5 truncate text-[0.68rem] text-white/60 sm:mt-1 sm:text-xs">
               {isPdf ? pdfPageLabel : `Progression ${epubProgress}%${epubTotalPages > 0 ? ` • Page ${epubCurrentPage}/${epubTotalPages}` : ""}`}
             </p>
@@ -674,7 +674,7 @@ export function ReaderPopup({
             >
               <Settings2 aria-hidden="true" className="h-4 w-4" />
             </button>
-            <button type="button" onClick={onClose} className="grid h-11 w-11 place-items-center rounded-xl bg-[#f7c78f] text-[#111827] sm:inline-flex sm:w-auto sm:px-3 sm:text-sm" aria-label="Fermer le lecteur">
+            <button type="button" onClick={onClose} className="grid h-11 w-11 place-items-center rounded-full bg-[#e8ac42] text-[#173d2c] sm:inline-flex sm:w-auto sm:px-4 sm:text-sm sm:font-bold" aria-label="Fermer le lecteur">
               <X aria-hidden="true" className="h-4 w-4 sm:hidden" />
               <span className="hidden sm:inline">Fermer</span>
             </button>
@@ -689,14 +689,14 @@ export function ReaderPopup({
           ) : null}
 
           {!error && !fileUrl ? (
-            <div role="status" aria-live="polite" className="flex h-full items-center justify-center rounded-[1.75rem] border border-white/10 bg-[#0f172a] text-sm text-white/70">
-              Chargement du lecteur...
+            <div role="status" aria-live="polite" className="flex h-full items-center justify-center rounded-[1.75rem] border border-white/10 bg-[#173d2c] text-sm text-white/70">
+              Préparation de votre livre…
             </div>
           ) : null}
 
           {!error && fileUrl ? (
             <div className="relative grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-              <div className="min-h-0 overflow-hidden rounded-none border-0 border-white/10 bg-[linear-gradient(180deg,_rgba(15,23,42,0.96),_rgba(17,24,39,0.98))] p-1 sm:rounded-[1.75rem] sm:border sm:p-3">
+              <div className="min-h-0 overflow-hidden rounded-none border-0 border-white/10 bg-[#0b241a] p-1 sm:rounded-[1.75rem] sm:border sm:p-3">
                 {fileType === "pdf" ? (
                   <PdfReaderSurface
                     fileUrl={fileUrl}
@@ -713,7 +713,7 @@ export function ReaderPopup({
                 )}
               </div>
 
-              <aside ref={toolsPanelRef} tabIndex={-1} className={`${mobileToolsOpen ? "absolute inset-0 z-20 block" : "hidden"} reader-mobile-tools min-h-0 overflow-auto rounded-none border border-white/10 bg-[#0f172a] p-3 text-white outline-none sm:rounded-[1.75rem] sm:p-4 xl:static xl:block`}>
+              <aside ref={toolsPanelRef} tabIndex={-1} className={`${mobileToolsOpen ? "absolute inset-0 z-20 block" : "hidden"} reader-mobile-tools min-h-0 overflow-auto rounded-none border border-white/10 bg-[#173d2c] p-3 text-white outline-none sm:rounded-[1.75rem] sm:p-4 xl:static xl:block`}>
                 <div className="mb-3 flex items-center justify-between xl:hidden">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#f7c78f]">Réglages</p>
@@ -729,7 +729,7 @@ export function ReaderPopup({
                   </button>
                 </div>
                 <section className="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f7c78f]">Outils lecture</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f2c66f]">Confort de lecture</p>
 
                   {isEpub ? (
                     <div className="mt-4 space-y-4">
@@ -873,7 +873,7 @@ export function ReaderPopup({
                 <section className="mt-4 rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f7c78f]">Notes & surlignages</p>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f2c66f]">Carnet de lecture</p>
                       <p className="mt-2 text-sm text-white/70">
                         {isEpub
                           ? "Selectionnez un passage dans l EPUB ou ajoutez une note sur la page courante."

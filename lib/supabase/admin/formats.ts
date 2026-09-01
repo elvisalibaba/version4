@@ -33,7 +33,7 @@ type FormatRow = {
 
 type RelatedBookRow = Pick<
   AdminBookMini,
-  "id" | "title" | "status" | "author_id" | "cover_url" | "price" | "currency_code" | "is_subscription_available" | "is_single_sale_enabled"
+  "id" | "title" | "author_display_name" | "status" | "author_id" | "cover_url" | "price" | "currency_code" | "is_subscription_available" | "is_single_sale_enabled"
 > & {
   author_profile: MaybeArray<Pick<AdminAuthorMini, "id" | "display_name">>;
   author_profile_fallback: MaybeArray<Pick<AdminProfileMini, "id" | "name" | "email">>;
@@ -59,6 +59,35 @@ export type AdminFormatDetail = {
   };
   notices: AdminNotice[];
 };
+
+async function loadBooksWithAuthors(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  bookIds?: string[],
+) {
+  let query = supabase
+    .from("books")
+    .select("id, title, author_display_name, status, author_id, cover_url, price, currency_code, is_subscription_available, is_single_sale_enabled")
+    .order("created_at", { ascending: false });
+
+  if (bookIds) query = query.in("id", bookIds);
+  const { data } = await query;
+  const books = data ?? [];
+  const authorIds = Array.from(new Set(books.map((book) => book.author_id)));
+  const [authorsResult, profilesResult] = authorIds.length
+    ? await Promise.all([
+        supabase.from("author_profiles").select("id, display_name").in("id", authorIds),
+        supabase.from("profiles").select("id, name, email").in("id", authorIds),
+      ])
+    : [{ data: [] }, { data: [] }];
+  const authors = new Map((authorsResult.data ?? []).map((author) => [author.id, author]));
+  const profiles = new Map((profilesResult.data ?? []).map((profile) => [profile.id, profile]));
+
+  return books.map<RelatedBookRow>((book) => ({
+    ...book,
+    author_profile: authors.get(book.author_id) ?? null,
+    author_profile_fallback: profiles.get(book.author_id) ?? null,
+  }));
+}
 
 async function resolveFormatBookIds(search: string) {
   const supabase = await createClient();
@@ -159,19 +188,10 @@ export async function listAdminFormats(params: {
 
   const rows = data ?? [];
   const bookIds = rows.map((row) => row.book_id);
-  const relatedBooksResult =
-    bookIds.length > 0
-      ? await supabase
-          .from("books")
-          .select(
-            "id, title, author_display_name, status, author_id, cover_url, price, currency_code, is_subscription_available, is_single_sale_enabled, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
-          )
-          .in("id", bookIds)
-          .returns<RelatedBookRow[]>()
-      : { data: [] as RelatedBookRow[], error: null };
+  const relatedBooks = bookIds.length > 0 ? await loadBooksWithAuthors(supabase, bookIds) : [];
 
   const relatedBooksById = new Map<string, RelatedBookRow>();
-  (relatedBooksResult.data ?? []).forEach((book) => {
+  relatedBooks.forEach((book) => {
     relatedBooksById.set(book.id, book);
   });
 
@@ -208,16 +228,7 @@ export async function getAdminFormatDetail(formatId: string): Promise<AdminForma
     return null;
   }
 
-  const bookResult = await supabase
-    .from("books")
-    .select(
-      "id, title, author_display_name, status, author_id, cover_url, price, currency_code, is_subscription_available, is_single_sale_enabled, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
-    )
-    .eq("id", format.book_id)
-    .returns<RelatedBookRow>()
-    .maybeSingle();
-
-  const book = (bookResult.data ?? null) as RelatedBookRow | null;
+  const book = (await loadBooksWithAuthors(supabase, [format.book_id]))[0] ?? null;
 
   if (!book) {
     return null;
@@ -235,16 +246,10 @@ export async function getAdminFormatDetail(formatId: string): Promise<AdminForma
 
 export async function getAdminFormatEditorOptions() {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("books")
-    .select(
-      "id, title, author_display_name, status, author_id, cover_url, price, currency_code, is_subscription_available, is_single_sale_enabled, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
-    )
-    .order("created_at", { ascending: false })
-    .returns<RelatedBookRow[]>();
+  const data = await loadBooksWithAuthors(supabase);
 
   return {
-    books: (data ?? []).map((book) => ({
+    books: data.map((book) => ({
       label: `${book.title} - ${resolveAdminBookAuthorName(book)}`,
       value: book.id,
     })),

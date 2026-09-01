@@ -1,6 +1,5 @@
 import { resolveBookOfferDetails } from "@/lib/book-offers";
 import { resolveBookAuthorName } from "@/lib/book-authors";
-import { isBookCopyrightBlocked } from "@/lib/book-copyright";
 import {
   CHECKOUT_BOOK_FORMATS,
   DIGITAL_BOOK_FORMATS,
@@ -33,6 +32,7 @@ type PublishedBookRow = Pick<
   | "author_display_name"
   | "price"
   | "cover_url"
+  | "cover_alt_text"
   | "status"
   | "author_id"
   | "created_at"
@@ -80,6 +80,8 @@ type BookDetailRow = Pick<
   | "categories"
   | "tags"
   | "age_rating"
+  | "isbn"
+  | "cover_alt_text"
   | "currency_code"
   | "is_single_sale_enabled"
   | "is_subscription_available"
@@ -296,10 +298,10 @@ export async function getPublishedBooks(options: GetPublishedBooksOptions = {}) 
     let query = supabase
       .from("books")
       .select(
-        "id, title, subtitle, description, author_display_name, price, cover_url, status, author_id, created_at, copyright_status, published_at, publication_date, page_count, categories, views_count, purchases_count, rating_avg, ratings_count, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(format, price, is_published, currency_code)",
+        "id, title, subtitle, description, author_display_name, price, cover_url, cover_alt_text, status, author_id, created_at, copyright_status, published_at, publication_date, page_count, categories, views_count, purchases_count, rating_avg, ratings_count, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(format, price, is_published, currency_code)",
       )
       .eq("status", "published")
-      .neq("copyright_status", "blocked")
+      .eq("copyright_status", "clear")
       .order("published_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false });
 
@@ -337,10 +339,10 @@ export async function getComingSoonBooks() {
     const { data, error } = await supabase
       .from("books")
       .select(
-        "id, title, subtitle, description, author_display_name, price, cover_url, status, author_id, created_at, copyright_status, published_at, publication_date, page_count, categories, views_count, purchases_count, rating_avg, ratings_count, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(format, price, is_published, currency_code)",
+        "id, title, subtitle, description, author_display_name, price, cover_url, cover_alt_text, status, author_id, created_at, copyright_status, published_at, publication_date, page_count, categories, views_count, purchases_count, rating_avg, ratings_count, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(format, price, is_published, currency_code)",
       )
       .eq("status", "coming_soon")
-      .neq("copyright_status", "blocked")
+      .eq("copyright_status", "clear")
       .order("publication_date", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: false })
       .returns<PublishedBookRow[]>();
@@ -366,14 +368,14 @@ export async function getBookById(bookId: string) {
     const { data } = await supabase
       .from("books")
       .select(
-        "id, title, subtitle, description, author_display_name, price, cover_url, status, author_id, file_url, copyright_status, language, publisher, publication_date, page_count, categories, tags, age_rating, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(id, format, price, file_url, downloadable, is_published, currency_code)",
+        "id, title, subtitle, description, author_display_name, price, cover_url, cover_alt_text, status, author_id, file_url, copyright_status, language, publisher, publication_date, page_count, isbn, categories, tags, age_rating, currency_code, is_single_sale_enabled, is_subscription_available, author:author_profiles!books_author_profile_id_fkey(display_name, avatar_url), book_formats!left(id, format, price, file_url, downloadable, is_published, currency_code)",
       )
       .eq("id", bookId)
       .returns<BookDetailRow>()
       .single();
 
     const book = (data ?? null) as BookDetailRow | null;
-    if (!book || isBookCopyrightBlocked(book.copyright_status)) return null;
+    if (!book || book.copyright_status !== "clear") return null;
 
     const digitalFormat = getDetailedDigitalFormat(book.book_formats);
     const purchasableFormats = getPublishedPurchaseFormats(book.book_formats);

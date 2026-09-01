@@ -1,182 +1,27 @@
 import Link from "next/link";
+import { ArrowLeft, BookOpen, ChevronDown, Search, UserPlus } from "lucide-react";
 import { addLibraryAccessAction, removeLibraryAccessAction } from "@/app/admin/actions";
 import { ConfirmSubmitButton } from "@/components/admin/forms/confirm-submit-button";
-import { AdminFilterBar } from "@/components/admin/filters/admin-filter-bar";
-import { AdminSearchInput } from "@/components/admin/filters/admin-search-input";
-import { AdminSelect } from "@/components/admin/filters/admin-select";
-import { AdminPageHeader } from "@/components/admin/shared/admin-page-header";
-import { AdminPanel } from "@/components/admin/shared/admin-panel";
 import { StatusBadge } from "@/components/admin/shared/status-badge";
-import { AdminDataTable } from "@/components/admin/tables/admin-data-table";
 import { AdminPagination } from "@/components/admin/tables/admin-pagination";
-import { listAdminLibrary, getAdminLibraryEditorOptions } from "@/lib/supabase/admin/library";
+import { getAdminLibraryEditorOptions, listAdminLibrary } from "@/lib/supabase/admin/library";
 import { formatAdminDateTime } from "@/lib/supabase/admin/shared";
 
-type LibraryPageProps = {
-  searchParams: Promise<{
-    q?: string;
-    accessType?: string;
-    userId?: string;
-    bookId?: string;
-    page?: string;
-  }>;
-};
+type Props = { searchParams: Promise<{ q?: string; accessType?: string; userId?: string; bookId?: string; page?: string }> };
 
-export default async function AdminLibraryPage({ searchParams }: LibraryPageProps) {
-  const { q, accessType, userId, bookId, page } = await searchParams;
-  const [data, editorOptions] = await Promise.all([
-    listAdminLibrary({
-      page: page ? Number(page) : 1,
-      search: q,
-      accessType: accessType ?? "",
-      userId: userId ?? "",
-      bookId: bookId ?? "",
-    }),
-    getAdminLibraryEditorOptions(),
-  ]);
+export default async function AdminLibraryPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const [data, options] = await Promise.all([listAdminLibrary({ page: params.page ? Number(params.page) : 1, search: params.q, accessType: params.accessType ?? "", userId: params.userId ?? "", bookId: params.bookId ?? "" }), getAdminLibraryEditorOptions()]);
 
-  return (
-    <div className="space-y-8 pb-12">
-      <AdminPageHeader
-        title="Bibliothèque"
-        description="Gestion des accès library avec provenance d'accès et correction manuelle des entrées."
-        breadcrumbs={[
-          { label: "Admin", href: "/admin" },
-          { label: "Bibliothèque" },
-        ]}
-      />
+  return <div className="space-y-5 pb-10">
+    <header className="flex flex-col gap-5 rounded-[28px] bg-[#173d2c] p-6 text-white sm:flex-row sm:items-end sm:justify-between sm:p-8"><div><Link href="/admin" className="inline-flex items-center gap-2 text-sm font-bold text-white/65"><ArrowLeft className="h-4 w-4" />Vue d’ensemble</Link><p className="mt-7 text-xs font-bold uppercase tracking-[.2em] text-[#f2c66f]">Accès lecteurs</p><h1 className="mt-3 font-serif text-3xl sm:text-4xl">Bibliothèques</h1><p className="mt-2 text-sm text-white/65">Consultez les livres accessibles à chaque lecteur et corrigez un accès si nécessaire.</p></div><span className="rounded-full border border-white/20 px-4 py-2 text-sm font-bold">{data.pagination.total} accès</span></header>
 
-      <AdminPanel title="Ajouter un accès manuel" description="Injection manuelle d'un accès purchase, subscription ou free pour corriger une situation métier.">
-        <form action={addLibraryAccessAction} className="grid gap-4 xl:grid-cols-5">
-          <input type="hidden" name="redirect_to" value="/admin/library" />
-          <label className="grid gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Utilisateur</span>
-            <select
-              name="user_id"
-              className="min-h-11 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-[#ff9900] focus:outline-none focus:ring-1 focus:ring-[#ff9900]"
-            >
-              {editorOptions.users.map((user) => (
-                <option key={user.value} value={user.value}>
-                  {user.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Livre</span>
-            <select
-              name="book_id"
-              className="min-h-11 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-[#ff9900] focus:outline-none focus:ring-1 focus:ring-[#ff9900]"
-            >
-              {editorOptions.books.map((book) => (
-                <option key={book.value} value={book.value}>
-                  {book.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Type d&apos;accès</span>
-            <select
-              name="access_type"
-              className="min-h-11 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-[#ff9900] focus:outline-none focus:ring-1 focus:ring-[#ff9900]"
-            >
-              <option value="purchase">purchase</option>
-              <option value="subscription">subscription</option>
-              <option value="free">free</option>
-            </select>
-          </label>
-          <label className="grid gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Subscription liée</span>
-            <select
-              name="subscription_id"
-              className="min-h-11 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-[#ff9900] focus:outline-none focus:ring-1 focus:ring-[#ff9900]"
-            >
-              <option value="">Aucune</option>
-              {editorOptions.subscriptions.map((subscription) => (
-                <option key={subscription.value} value={subscription.value}>
-                  {subscription.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="flex items-end">
-            <button
-              type="submit"
-              className="inline-flex w-full items-center justify-center rounded-md bg-[#ff9900] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#e68900] focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
-            >
-              Ajouter
-            </button>
-          </div>
-        </form>
-      </AdminPanel>
+    <details className="group rounded-[24px] border border-[#ded3c2] bg-[#fffaf2] p-4"><summary className="flex cursor-pointer list-none items-center justify-between font-bold text-[#17231d] [&::-webkit-details-marker]:hidden"><span className="flex items-center gap-2"><UserPlus className="h-4 w-4 text-[#b85135]" />Accorder un accès</span><ChevronDown className="h-4 w-4 transition group-open:rotate-180" /></summary><form action={addLibraryAccessAction} className="mt-5 grid gap-3 border-t border-[#e3d8c8] pt-5 md:grid-cols-2 xl:grid-cols-5"><input type="hidden" name="redirect_to" value="/admin/library" /><label className="grid gap-1.5"><span className="text-xs font-bold text-[#766e64]">Lecteur</span><select name="user_id" className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3 text-sm">{options.users.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label><label className="grid gap-1.5"><span className="text-xs font-bold text-[#766e64]">Livre</span><select name="book_id" className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3 text-sm">{options.books.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label><label className="grid gap-1.5"><span className="text-xs font-bold text-[#766e64]">Origine</span><select name="access_type" className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3 text-sm"><option value="purchase">Achat</option><option value="subscription">Premium</option><option value="free">Gratuit</option></select></label><label className="grid gap-1.5"><span className="text-xs font-bold text-[#766e64]">Abonnement associé</span><select name="subscription_id" className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3 text-sm"><option value="">Aucun</option>{options.subscriptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label><button className="h-11 self-end rounded-full bg-[#173d2c] px-5 text-sm font-bold text-white">Accorder</button></form></details>
 
-      <AdminPanel title="Filtres" description="Recherche par utilisateur ou livre, avec filtres sur le type d'accès.">
-        <AdminFilterBar action="/admin/library">
-          <AdminSearchInput defaultValue={q} placeholder="Utilisateur ou livre" />
-          <AdminSelect
-            name="accessType"
-            label="Type"
-            defaultValue={accessType}
-            options={[
-              { label: "purchase", value: "purchase" },
-              { label: "subscription", value: "subscription" },
-              { label: "free", value: "free" },
-            ]}
-          />
-          <AdminSelect name="userId" label="Utilisateur" defaultValue={userId} options={editorOptions.users} />
-          <AdminSelect name="bookId" label="Livre" defaultValue={bookId} options={editorOptions.books} />
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              className="inline-flex items-center rounded-md bg-[#ff9900] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#e68900] focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
-            >
-              Appliquer
-            </button>
-            <Link
-              href="/admin/library"
-              className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
-            >
-              Réinitialiser
-            </Link>
-          </div>
-        </AdminFilterBar>
-      </AdminPanel>
+    <form action="/admin/library" className="rounded-[24px] border border-[#ded3c2] bg-white p-4"><div className="grid gap-3 lg:grid-cols-[1fr_180px_220px_auto]"><label className="relative"><Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#887f74]" /><input name="q" defaultValue={params.q} placeholder="Lecteur ou livre" className="h-11 w-full rounded-full border border-[#d9cebd] bg-[#fffaf2] pl-10 pr-4" /></label><select name="accessType" defaultValue={params.accessType ?? ""} className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3 text-sm"><option value="">Tous les accès</option><option value="purchase">Achat</option><option value="subscription">Premium</option><option value="free">Gratuit</option></select><select name="bookId" defaultValue={params.bookId ?? ""} className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3 text-sm"><option value="">Tous les livres</option>{options.books.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><button className="h-11 rounded-full bg-[#173d2c] px-5 text-sm font-bold text-white">Filtrer</button></div></form>
 
-      <AdminPanel title="Accès library" description="Lecture des accès existants et retrait manuel en cas d'erreur.">
-        <AdminDataTable columns={["Utilisateur", "Livre", "Type", "Date", "Provenance", "Action"]}>
-          {data.items.map((entry) => (
-            <tr key={entry.id} className="border-t border-gray-200 hover:bg-gray-50">
-              <td className="px-4 py-3 text-sm text-gray-600">{entry.user_name}</td>
-              <td className="px-4 py-3 text-sm text-gray-600">{entry.book_title}</td>
-              <td className="px-4 py-3">
-                <StatusBadge kind="access" value={entry.access_type} />
-              </td>
-              <td className="px-4 py-3 text-sm text-gray-500">{formatAdminDateTime(entry.purchased_at)}</td>
-              <td className="px-4 py-3 text-sm text-gray-500">{entry.plan_name ?? "Manuel / achat / gratuit"}</td>
-              <td className="px-4 py-3">
-                <form action={removeLibraryAccessAction}>
-                  <input type="hidden" name="library_id" value={entry.id} />
-                  <input type="hidden" name="redirect_to" value="/admin/library" />
-                  <ConfirmSubmitButton
-                    label="Retirer"
-                    confirmMessage="Retirer cet accès de la bibliothèque ?"
-                    className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-red-600 shadow-sm hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                  />
-                </form>
-              </td>
-            </tr>
-          ))}
-        </AdminDataTable>
+    <section className="overflow-hidden rounded-[28px] border border-[#ded3c2] bg-white px-5 sm:px-6">{data.items.map((entry) => <article key={entry.id} className="flex flex-col gap-4 border-b border-[#e8dfd2] py-5 last:border-0 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><StatusBadge kind="access" value={entry.access_type} />{entry.plan_name ? <span className="rounded-full bg-[#f1ece4] px-2.5 py-1 text-[.65rem] font-bold text-[#665f56]">{entry.plan_name}</span> : null}</div><h2 className="mt-3 truncate font-serif text-xl text-[#17231d]">{entry.book_title}</h2><p className="mt-1 truncate text-sm text-[#766e64]">Lecteur : {entry.user_name}</p><p className="mt-2 text-xs text-[#92887c]">Accès accordé le {formatAdminDateTime(entry.purchased_at)}</p></div><form action={removeLibraryAccessAction}><input type="hidden" name="library_id" value={entry.id} /><input type="hidden" name="redirect_to" value="/admin/library" /><ConfirmSubmitButton label="Retirer" confirmMessage="Retirer ce livre de la bibliothèque du lecteur ?" className="inline-flex h-10 items-center rounded-full border border-red-200 px-4 text-sm font-bold text-red-700 hover:bg-red-50" /></form></article>)}{!data.items.length ? <div className="py-20 text-center"><BookOpen className="mx-auto h-8 w-8 text-[#b7aa9a]" /><h2 className="mt-4 font-serif text-2xl">Aucun accès trouvé</h2><p className="mt-2 text-sm text-[#766e64]">Modifiez la recherche ou accordez un nouvel accès.</p></div> : null}</section>
 
-        <div className="mt-4">
-          <AdminPagination
-            basePath="/admin/library"
-            pagination={data.pagination}
-            params={{ q: q ?? "", accessType: accessType ?? "", userId: userId ?? "", bookId: bookId ?? "" }}
-          />
-        </div>
-      </AdminPanel>
-    </div>
-  );
+    <AdminPagination basePath="/admin/library" pagination={data.pagination} params={{ q: params.q ?? "", accessType: params.accessType ?? "", userId: params.userId ?? "", bookId: params.bookId ?? "" }} />
+  </div>;
 }

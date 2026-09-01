@@ -148,7 +148,7 @@ export function AdminShell({ profileName, profileEmail, children }: AdminShellPr
         Aller au contenu principal
       </a>
 
-      <div className="mx-auto grid min-h-screen max-w-[1720px] gap-3 px-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] pt-[max(0.625rem,env(safe-area-inset-top))] sm:gap-6 sm:px-4 sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:pt-[max(1rem,env(safe-area-inset-top))] lg:grid-cols-[325px_minmax(0,1fr)] xl:px-6">
+      <div className="mx-auto grid min-h-screen max-w-[1720px] gap-3 px-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] pt-[max(0.625rem,env(safe-area-inset-top))] sm:gap-6 sm:px-4 sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:pt-[max(1rem,env(safe-area-inset-top))] lg:grid-cols-[265px_minmax(0,1fr)] xl:px-6">
         <aside
           aria-label="Navigation et session administrateur"
           className="sticky top-[max(0.5rem,env(safe-area-inset-top))] z-40 min-w-0 self-start rounded-[1.35rem] border border-[#e6dccd] bg-white/95 p-3 shadow-[0_18px_44px_rgba(15,23,42,0.08)] backdrop-blur sm:rounded-[2.1rem] sm:p-5 sm:shadow-[0_28px_68px_rgba(15,23,42,0.08)] lg:top-4 xl:p-6"
@@ -159,7 +159,7 @@ export function AdminShell({ profileName, profileEmail, children }: AdminShellPr
               aria-label="HolistiqueBooks — accueil de l'administration"
               className="flex min-w-0 items-center gap-2.5 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#146eb4] focus-visible:ring-offset-2 sm:gap-3"
             >
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[linear-gradient(135deg,#111827,#146eb4)] text-sm font-extrabold text-white shadow-[0_14px_28px_rgba(17,24,39,0.2)] sm:h-12 sm:w-12 sm:rounded-2xl sm:text-lg sm:shadow-[0_18px_34px_rgba(17,24,39,0.22)]">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#173d2c] text-sm font-extrabold text-[#f2c66f] sm:h-12 sm:w-12 sm:text-lg">
                 HB
               </span>
               <span className="min-w-0">
@@ -191,14 +191,14 @@ export function AdminShell({ profileName, profileEmail, children }: AdminShellPr
             </span>
           </div>
 
-          <div className="mt-6 hidden rounded-[1.7rem] border border-[#ece4d7] bg-[radial-gradient(circle_at_top_right,_rgba(255,153,0,0.12),_transparent_28%),linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(248,244,237,0.98))] p-5 lg:block">
+          <div className="hidden">
             <span className="inline-flex items-center gap-2 rounded-full bg-[#fff1db] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#b96e12]">
               <ShieldCheck aria-hidden={true} className="h-3.5 w-3.5" />
               Admin
             </span>
             <h2 className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-slate-950">Poste de controle</h2>
             <p className="mt-2 text-sm leading-6 text-slate-500">
-              Supervision business, editoriale et operationnelle dans une experience plus proche d une marketplace publishing.
+              Gérez les livres, les commandes et les utilisateurs depuis un espace sécurisé.
             </p>
 
             <div className="mt-5 rounded-[1.4rem] border border-[#ece4d7] bg-white/95 p-4">
@@ -211,7 +211,7 @@ export function AdminShell({ profileName, profileEmail, children }: AdminShellPr
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full bg-[#e9f3fb] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-[#146eb4]">
                   <TrendingUp aria-hidden={true} className="h-3.5 w-3.5" />
-                  Pilotage live
+                  Administration
                 </span>
               </div>
             </div>
@@ -248,7 +248,7 @@ export function AdminShell({ profileName, profileEmail, children }: AdminShellPr
             <AdminNavigation pathname={pathname} />
           </div>
 
-          <div className="mt-6 hidden rounded-[1.5rem] border border-[#ece4d7] bg-white/95 p-4 lg:block">
+          <div className="hidden">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#b96e12]">Passerelles</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Link
@@ -271,17 +271,17 @@ export function AdminShell({ profileName, profileEmail, children }: AdminShellPr
         </aside>
 
         <main id="admin-main" tabIndex={-1} className="min-w-0 py-1 outline-none">
-          <div className="mb-3 rounded-[1.4rem] border border-[#e6dccd] bg-[radial-gradient(circle_at_top_left,_rgba(255,153,0,0.10),_transparent_22%),linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(248,244,237,0.95))] p-3 shadow-[0_18px_40px_rgba(15,23,42,0.05)] sm:mb-6 sm:rounded-[2rem] sm:p-4 sm:shadow-[0_22px_54px_rgba(15,23,42,0.05)]">
+          <div className="hidden">
             <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="hidden flex-wrap items-center gap-2 sm:flex">
                 <span className="rounded-full bg-[#fff1db] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#b96e12]">
-                  Admin marketplace
+                  Administration
                 </span>
                 <span className="rounded-full border border-[#e5ddd1] bg-white px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                  Workflow propre
+                  Accès sécurisé
                 </span>
                 <span className="hidden rounded-full border border-[#d9eadf] bg-[#eefaf2] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#237a43] sm:inline-flex">
-                  Supabase connecte
+                  Session active
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
@@ -289,7 +289,7 @@ export function AdminShell({ profileName, profileEmail, children }: AdminShellPr
                   href="/admin/books"
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#ff9900] px-3 text-xs font-semibold text-[#171717] transition hover:bg-[#f08f00] sm:h-10 sm:min-h-0 sm:rounded-full sm:px-4 sm:text-sm"
                 >
-                  Catalogue admin
+                  Gérer les livres
                 </Link>
                 <Link
                   href="/admin/orders"

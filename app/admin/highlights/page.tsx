@@ -1,125 +1,24 @@
 import Link from "next/link";
+import { ArrowLeft, Highlighter, Search } from "lucide-react";
 import { deleteHighlightAction } from "@/app/admin/actions";
 import { ConfirmSubmitButton } from "@/components/admin/forms/confirm-submit-button";
-import { SimpleBarChart } from "@/components/admin/charts/simple-bar-chart";
-import { AdminFilterBar } from "@/components/admin/filters/admin-filter-bar";
-import { AdminSearchInput } from "@/components/admin/filters/admin-search-input";
-import { AdminSelect } from "@/components/admin/filters/admin-select";
-import { AdminPageHeader } from "@/components/admin/shared/admin-page-header";
-import { AdminPanel } from "@/components/admin/shared/admin-panel";
 import { AdminNotice } from "@/components/admin/shared/admin-notice";
-import { AdminDataTable } from "@/components/admin/tables/admin-data-table";
 import { AdminPagination } from "@/components/admin/tables/admin-pagination";
 import { listAdminHighlights } from "@/lib/supabase/admin/highlights";
 import { formatAdminDateTime } from "@/lib/supabase/admin/shared";
 
-type HighlightsPageProps = {
-  searchParams: Promise<{
-    q?: string;
-    color?: string;
-    userId?: string;
-    bookId?: string;
-    page?: string;
-  }>;
-};
+type Props = { searchParams: Promise<{ q?: string; color?: string; page?: string }> };
+const colors: Record<string, { label: string; style: string }> = { yellow: { label: "Jaune", style: "bg-amber-100 text-amber-800" }, blue: { label: "Bleu", style: "bg-sky-100 text-sky-800" }, green: { label: "Vert", style: "bg-emerald-100 text-emerald-800" }, pink: { label: "Rose", style: "bg-rose-100 text-rose-800" } };
 
-export default async function AdminHighlightsPage({ searchParams }: HighlightsPageProps) {
-  const { q, color, userId, bookId, page } = await searchParams;
-  const data = await listAdminHighlights({
-    page: page ? Number(page) : 1,
-    search: q,
-    color: color ?? "",
-    userId: userId ?? "",
-    bookId: bookId ?? "",
-  });
-
-  return (
-    <div className="space-y-8 pb-12">
-      <AdminPageHeader
-        title="Highlights"
-        description="Consultation, modération et analyse d'engagement lecture à partir des highlights lecteurs."
-        breadcrumbs={[
-          { label: "Admin", href: "/admin" },
-          { label: "Highlights" },
-        ]}
-      />
-
-      {data.notices.length ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {data.notices.map((notice) => (
-            <AdminNotice key={notice.id} tone={notice.tone} title={notice.title} description={notice.description} />
-          ))}
-        </div>
-      ) : null}
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <AdminPanel title="Couleurs utilisées" description="Distribution des couleurs d'annotation.">
-          <SimpleBarChart data={data.stats.byColor} />
-        </AdminPanel>
-        <AdminPanel title="Livres les plus annotés" description="Indicateur simple d'engagement sur le corpus visible.">
-          <SimpleBarChart data={data.stats.topBooks} />
-        </AdminPanel>
-      </div>
-
-      <AdminPanel title="Filtres" description="Recherche textuelle par utilisateur ou livre, plus filtre par couleur.">
-        <AdminFilterBar action="/admin/highlights">
-          <AdminSearchInput defaultValue={q} placeholder="Utilisateur ou livre" />
-          <AdminSelect
-            name="color"
-            label="Couleur"
-            defaultValue={color}
-            options={[
-              { label: "yellow", value: "yellow" },
-              { label: "blue", value: "blue" },
-              { label: "green", value: "green" },
-              { label: "pink", value: "pink" },
-            ]}
-          />
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              className="inline-flex items-center rounded-md bg-[#ff9900] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#e68900] focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
-            >
-              Appliquer
-            </button>
-            <Link
-              href="/admin/highlights"
-              className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
-            >
-              Réinitialiser
-            </Link>
-          </div>
-        </AdminFilterBar>
-      </AdminPanel>
-
-      <AdminPanel title="Tous les highlights" description="Suppression possible si le contenu devient problématique.">
-        <AdminDataTable columns={["Utilisateur", "Livre", "Extrait", "Couleur", "Date", "Action"]}>
-          {data.items.map((entry) => (
-            <tr key={entry.id} className="border-t border-gray-200 align-top hover:bg-gray-50">
-              <td className="px-4 py-3 text-sm text-gray-600">{entry.user_name}</td>
-              <td className="px-4 py-3 text-sm text-gray-600">{entry.book_title}</td>
-              <td className="px-4 py-3 text-sm text-gray-600">{entry.text?.slice(0, 90) || entry.note || "Sans texte"}</td>
-              <td className="px-4 py-3 text-sm font-medium text-gray-900">{entry.color}</td>
-              <td className="px-4 py-3 text-sm text-gray-500">{formatAdminDateTime(entry.created_at)}</td>
-              <td className="px-4 py-3">
-                <form action={deleteHighlightAction}>
-                  <input type="hidden" name="highlight_id" value={entry.id} />
-                  <input type="hidden" name="redirect_to" value="/admin/highlights" />
-                  <ConfirmSubmitButton
-                    label="Supprimer"
-                    confirmMessage="Supprimer ce highlight ?"
-                    className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-red-600 shadow-sm hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                  />
-                </form>
-              </td>
-            </tr>
-          ))}
-        </AdminDataTable>
-
-        <div className="mt-4">
-          <AdminPagination basePath="/admin/highlights" pagination={data.pagination} params={{ q: q ?? "", color: color ?? "" }} />
-        </div>
-      </AdminPanel>
-    </div>
-  );
+export default async function Page({ searchParams }: Props) {
+  const params = await searchParams;
+  const data = await listAdminHighlights({ page: params.page ? Number(params.page) : 1, search: params.q, color: params.color ?? "" });
+  return <div className="space-y-5 pb-10">
+    <header className="flex flex-col gap-5 rounded-[28px] bg-[#173d2c] p-6 text-white sm:flex-row sm:items-end sm:justify-between sm:p-8"><div><Link href="/admin" className="inline-flex items-center gap-2 text-sm font-bold text-white/65"><ArrowLeft className="h-4 w-4" />Vue d’ensemble</Link><p className="mt-7 text-xs font-bold uppercase tracking-[.2em] text-[#f2c66f]">Activité de lecture</p><h1 className="mt-3 font-serif text-3xl sm:text-4xl">Annotations</h1><p className="mt-2 text-sm text-white/65">Consultez les passages enregistrés par les lecteurs et intervenez seulement si nécessaire.</p></div><span className="rounded-full border border-white/20 px-4 py-2 text-sm font-bold">{data.pagination.total} annotation{data.pagination.total > 1 ? "s" : ""}</span></header>
+    {data.notices.length ? <div className="grid gap-3 md:grid-cols-2">{data.notices.map((notice) => <AdminNotice key={notice.id} tone={notice.tone} title={notice.title} description={notice.description} />)}</div> : null}
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{data.stats.byColor.map((item) => <article key={item.label} className="rounded-2xl border border-[#ded3c2] bg-white p-4"><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${colors[item.label]?.style ?? "bg-[#f1ece4]"}`}>{colors[item.label]?.label ?? item.label}</span><p className="mt-4 text-2xl font-bold text-[#17231d]">{item.value}</p><p className="text-xs text-[#766e64]">annotations</p></article>)}</div>
+    <form action="/admin/highlights" className="grid gap-3 rounded-[24px] border border-[#ded3c2] bg-white p-4 lg:grid-cols-[1fr_200px_auto]"><label className="relative"><Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#887f74]" /><input name="q" defaultValue={params.q} placeholder="Lecteur ou livre" className="h-11 w-full rounded-full border border-[#d9cebd] bg-[#fffaf2] pl-10 pr-4" /></label><select name="color" defaultValue={params.color ?? ""} className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3 text-sm"><option value="">Toutes les couleurs</option>{Object.entries(colors).map(([value, item]) => <option key={value} value={value}>{item.label}</option>)}</select><button className="h-11 rounded-full bg-[#173d2c] px-5 text-sm font-bold text-white">Filtrer</button></form>
+    <section className="grid gap-4 md:grid-cols-2">{data.items.map((entry) => <article key={entry.id} className="rounded-[24px] border border-[#ded3c2] bg-white p-5"><div className="flex items-center justify-between gap-3"><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${colors[entry.color]?.style ?? "bg-[#f1ece4]"}`}>{colors[entry.color]?.label ?? entry.color}</span><span className="text-xs text-[#92887c]">Page {entry.page}</span></div><blockquote className="mt-5 border-l-2 border-[#e8ac42] pl-4 font-serif text-lg leading-7 text-[#403a34]">{entry.text?.slice(0, 220) || entry.note || "Annotation sans texte"}</blockquote>{entry.note && entry.text ? <p className="mt-4 rounded-xl bg-[#fffaf2] p-3 text-sm text-[#766e64]">{entry.note}</p> : null}<div className="mt-5 flex items-end justify-between gap-3 border-t border-[#e8dfd2] pt-4"><div className="min-w-0"><p className="truncate text-sm font-bold text-[#17231d]">{entry.book_title}</p><p className="mt-1 truncate text-xs text-[#837a70]">{entry.user_name} · {formatAdminDateTime(entry.created_at)}</p></div><form action={deleteHighlightAction}><input type="hidden" name="highlight_id" value={entry.id} /><input type="hidden" name="redirect_to" value="/admin/highlights" /><ConfirmSubmitButton label="Supprimer" confirmMessage="Supprimer cette annotation ?" className="text-xs font-bold text-red-700" /></form></div></article>)}{!data.items.length ? <div className="col-span-full rounded-[28px] border border-[#ded3c2] bg-white py-20 text-center"><Highlighter className="mx-auto h-8 w-8 text-[#b7aa9a]" /><h2 className="mt-4 font-serif text-2xl">Aucune annotation trouvée</h2></div> : null}</section>
+    <AdminPagination basePath="/admin/highlights" pagination={data.pagination} params={{ q: params.q ?? "", color: params.color ?? "" }} />
+  </div>;
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, BookOpenText, Library } from "lucide-react";
 import type { PublishedBook } from "@/lib/books";
 
@@ -42,7 +43,7 @@ export function LibraryExtractsSection({ books }: LibraryExtractsSectionProps) {
             <article key={book.id} className="ios-surface ios-card-hover group overflow-hidden rounded-[2rem]">
               <div className="hb-shimmer relative aspect-[3/2] w-full bg-slate-100 shadow-2xl">
                 {book.cover_signed_url ? (
-                  <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                  <Image src={book.cover_signed_url} alt={book.title} width={720} height={480} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 ) : (
                   <div className="flex h-full items-center justify-center p-6 text-center">
                     <div>
@@ -81,7 +82,7 @@ export function LibraryExtractsSection({ books }: LibraryExtractsSectionProps) {
             <article key={book.id} className="ios-surface ios-card-hover group overflow-hidden rounded-[1.75rem]">
               <div className="hb-shimmer relative h-40 overflow-hidden bg-gradient-to-br from-slate-100 via-white to-rose-50 shadow-2xl">
                 {book.cover_signed_url ? (
-                  <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                  <Image src={book.cover_signed_url} alt={book.title} width={720} height={480} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 ) : (
                   <div className="flex h-full items-center justify-center p-6 text-center">
                     <div>

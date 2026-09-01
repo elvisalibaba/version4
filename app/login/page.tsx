@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { BookOpen, PenTool, ShieldCheck } from "lucide-react";
+import type { Metadata } from "next";
+import { BookOpen, Check, PenTool, Quote, ShieldCheck } from "lucide-react";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/login-form";
 import { getCurrentUserProfile } from "@/lib/auth";
@@ -11,6 +12,12 @@ type LoginPageProps = {
     verification?: string;
     reset?: string;
   }>;
+};
+
+export const metadata: Metadata = {
+  title: "Connexion",
+  description: "Connectez-vous à votre bibliothèque ou à votre espace auteur Holistique Books.",
+  robots: { index: false, follow: false },
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
@@ -37,44 +44,53 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <section className="mx-auto max-w-6xl px-0 py-3 sm:px-6 sm:py-8 lg:py-12">
-      <div className="grid gap-4 sm:gap-7 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-10">
-        <aside className="order-last hidden overflow-hidden rounded-[24px] border border-[#eadfd4] bg-[linear-gradient(155deg,#fffaf5,#f5ede4)] p-5 shadow-[0_20px_55px_rgba(23,23,23,0.07)] sm:p-8 lg:order-none lg:block lg:rounded-[36px] lg:p-10">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#f0dfd3] bg-white/80 px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.22em] text-[#9a583f]">
+      <div className="grid overflow-hidden rounded-[28px] border border-[#d9cebd] bg-[#fffaf2] shadow-[0_30px_90px_rgba(45,35,25,.12)] lg:min-h-[680px] lg:grid-cols-[1.02fr_.98fr] lg:rounded-[42px]">
+        <aside className="relative order-last hidden overflow-hidden bg-[#173d2c] p-8 text-white lg:order-none lg:flex lg:flex-col lg:justify-between lg:p-12">
+          <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[62px] border-[#e8ac42]" />
+          <div className="pointer-events-none absolute -bottom-12 -left-10 h-40 w-64 -skew-x-12 bg-[#c95d3e]" />
+          <div className="relative">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.22em] text-[#f2c66f]">
             <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />
             Votre espace privé
           </span>
 
-          <h2 className="mt-5 font-serif text-2xl font-semibold leading-tight tracking-[-0.03em] text-[#171717] sm:text-3xl">
-            Lire, retrouver et publier sans quitter votre univers éditorial.
+          <h2 className="mt-8 max-w-md font-serif text-4xl font-semibold leading-[1.08] tracking-[-0.04em]">
+            Votre bibliothèque et vos projets, au même endroit.
           </h2>
-          <p className="mt-3 text-sm leading-6 text-[#6f665e]">
-            Un compte unique relie votre bibliothèque et, si vous publiez, votre studio auteur.
+          <p className="mt-5 max-w-md text-sm leading-7 text-white/68">
+            Retrouvez vos livres, votre progression de lecture et tous les outils nécessaires pour publier avec exigence.
           </p>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            <div className="flex items-center gap-3 rounded-2xl border border-[#eadfd4] bg-white/75 p-3.5">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#fff0e9] text-[#c05f43]">
+          <div className="mt-9 grid gap-3">
+            <div className="flex items-center gap-3 rounded-2xl border border-white/12 bg-white/[.06] p-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#e8ac42] text-[#173d2c]">
                 <BookOpen aria-hidden="true" className="h-4 w-4" />
               </span>
-              <p className="text-sm font-semibold text-[#302b27]">Vos lectures au même endroit</p>
+              <p className="text-sm font-semibold">Vos lectures et favoris synchronisés</p>
             </div>
-            <div className="flex items-center gap-3 rounded-2xl border border-[#eadfd4] bg-white/75 p-3.5">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#171717] text-white">
+            <div className="flex items-center gap-3 rounded-2xl border border-white/12 bg-white/[.06] p-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#c95d3e] text-white">
                 <PenTool aria-hidden="true" className="h-4 w-4" />
               </span>
-              <p className="text-sm font-semibold text-[#302b27]">Un studio dédié aux auteurs</p>
+              <p className="text-sm font-semibold">Un véritable studio professionnel pour les auteurs</p>
             </div>
           </div>
+          </div>
+          <blockquote className="relative mt-10 border-l border-[#f2c66f]/50 pl-5">
+            <Quote className="h-5 w-5 text-[#f2c66f]" />
+            <p className="mt-3 font-serif text-lg leading-7 text-white/88">Des voix africaines, des œuvres qui voyagent et une lecture pensée pour vous.</p>
+            <p className="mt-3 flex items-center gap-2 text-[.65rem] font-bold uppercase tracking-[.18em] text-white/45"><Check className="h-3.5 w-3.5" /> Holistique Books</p>
+          </blockquote>
         </aside>
 
-        <div className="order-first space-y-4 lg:order-none">
+        <div className="order-first flex flex-col justify-center space-y-4 p-3 sm:p-8 lg:order-none lg:p-12">
           <LoginForm nextPath={nextPath} notice={notice} />
 
-          <div className="rounded-[22px] border border-[#eadfd4] bg-white/90 px-5 py-4 text-center text-sm text-[#6f665e] shadow-[0_14px_35px_rgba(23,23,23,0.05)]">
+          <div className="px-5 py-3 text-center text-sm text-[#6f665e]">
             Nouveau chez Holistique Books ?{" "}
             <Link
               href={withNextPath("/register", nextPath)}
-              className="font-bold text-[#171717] underline decoration-[#ff7a5c]/50 underline-offset-4 transition hover:text-[#b5533d]"
+              className="font-bold text-[#173d2c] underline decoration-[#e8ac42] underline-offset-4 transition hover:text-[#b5533d]"
             >
               Créer un compte
             </Link>

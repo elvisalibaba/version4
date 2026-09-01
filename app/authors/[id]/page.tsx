@@ -1,323 +1,112 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ArrowLeft,
-  ArrowRight,
-  BookOpen,
-  ExternalLink,
-  Globe,
-  MapPin,
-  Quote,
-  Sparkles,
-  Star,
-  TrendingUp,
-} from "lucide-react";
-import { BookCard } from "@/components/books/book-card";
+import { ArrowLeft, ArrowRight, BookOpen, ExternalLink, Globe2, MapPin, Newspaper, Quote, Sparkles } from "lucide-react";
 import { getPublicAuthorById } from "@/lib/authors";
 
-type AuthorProfilePageProps = {
-  params: Promise<{ id: string }>;
-};
+type Props = { params: Promise<{ id: string }> };
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
-
-function formatCount(value: number) {
-  return new Intl.NumberFormat("fr-FR", {
-    notation: value >= 1_000 ? "compact" : "standard",
-    maximumFractionDigits: 1,
-  }).format(value);
-}
-
-function getSafeWebsiteUrl(value: string | null) {
-  const cleanValue = value?.trim();
-  if (!cleanValue) return null;
-
+function safeUrl(value: unknown) {
+  if (typeof value !== "string" || !value.trim()) return null;
   try {
-    const url = new URL(/^https?:\/\//i.test(cleanValue) ? cleanValue : `https://${cleanValue}`);
+    const url = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
     return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
-export default async function AuthorProfilePage({ params }: AuthorProfilePageProps) {
-  const { id } = await params;
-  const author = await getPublicAuthorById(id);
+function initials(name: string) {
+  return name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+}
 
-  if (!author) {
-    notFound();
-  }
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const author = await getPublicAuthorById((await params).id);
+  if (!author) return { title: "Auteur introuvable", robots: { index: false } };
+  const description = author.bio?.trim().slice(0, 160) || `Découvrez les livres et l’univers de ${author.display_name}.`;
+  return {
+    title: author.display_name,
+    description,
+    alternates: { canonical: `/authors/${author.id}` },
+    openGraph: { type: "profile", title: author.display_name, description, url: `/authors/${author.id}`, images: author.avatar_signed_url ? [author.avatar_signed_url] : undefined },
+  };
+}
 
-  const latestBook = author.latest_book;
-  const websiteUrl = getSafeWebsiteUrl(author.website);
-  const genres = Array.from(new Set([author.top_category, ...(author.genres ?? [])].filter(Boolean))).slice(0, 8);
-  const biography =
-    author.bio?.trim() ||
-    "Cette signature Holistique Books construit actuellement sa présentation éditoriale.";
-  const publishingGoals = author.publishing_goals?.trim();
-  const latestBookPrice = latestBook
-    ? latestBook.display_price_label ??
-      (latestBook.price <= 0 ? "Gratuit" : `${latestBook.price.toFixed(2)} ${latestBook.currency_code ?? "USD"}`)
-    : null;
+export default async function AuthorPage({ params }: Props) {
+  const author = await getPublicAuthorById((await params).id);
+  if (!author) notFound();
+
+  const website = safeUrl(author.website);
+  const socials = Object.entries(author.social_links ?? {}).flatMap(([name, value]) => {
+    const url = safeUrl(value);
+    return url ? [{ name: name === "x" ? "X / Twitter" : name[0].toUpperCase() + name.slice(1), url }] : [];
+  });
+  const press = (author.press_mentions ?? []).flatMap((item) => {
+    const title = typeof item.title === "string" ? item.title : "";
+    const url = safeUrl(item.url);
+    return title && url ? [{ title, url }] : [];
+  });
+  const favorites = [
+    { label: "Livre favori", value: author.favorite_book },
+    { label: "Auteur favori", value: author.favorite_author },
+    { label: "Héros ou héroïne favori(te)", value: author.favorite_character },
+  ].filter((item) => item.value);
 
   return (
-    <div className="min-h-screen bg-[#f8f5f0]">
-      <section className="relative overflow-hidden bg-[#171717] text-white">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,122,92,0.23),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.06),transparent_30%)]" />
-        <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-9 lg:px-8 lg:py-12">
-          <Link
-            href="/authors"
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl text-xs font-bold text-white/65 transition hover:text-white"
-          >
-            <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-            Tous les auteurs
-          </Link>
-
-          <div className="mt-4 grid gap-6 lg:grid-cols-[180px_minmax(0,1fr)_auto] lg:items-center lg:gap-8">
-            <div className="flex items-start gap-4 lg:block">
-              <div className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-[1.5rem] bg-white/10 text-2xl font-bold text-white ring-1 ring-white/15 sm:h-32 sm:w-32 lg:h-[180px] lg:w-[180px] lg:rounded-[2rem]">
-                {author.avatar_signed_url ? (
-                  <Image
-                    src={author.avatar_signed_url}
-                    alt={author.display_name}
-                    width={180}
-                    height={180}
-                    priority
-                    sizes="(max-width: 639px) 96px, (max-width: 1023px) 128px, 180px"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  getInitials(author.display_name)
-                )}
+    <div className="min-h-screen bg-[#f8f4ed] text-[#1d1a17]">
+      <section className="relative overflow-hidden border-b border-[#dfd2c5] bg-[#fffdf9]">
+        <div className="absolute right-0 top-0 h-full w-2/5 bg-[#173f38] max-lg:hidden" />
+        <div className="absolute right-[32%] top-0 h-full w-40 -skew-x-12 bg-[#e85d3f] max-lg:hidden" />
+        <div className="relative mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+          <Link href="/authors" className="inline-flex min-h-10 items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[#8c5545] hover:text-[#bd452e]"><ArrowLeft className="h-4 w-4" /> Tous les auteurs</Link>
+          <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-center lg:gap-20">
+            <div className="max-w-3xl">
+              <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-[#c34d35]">Auteur Holistique Books</p>
+              <h1 className="mt-4 font-display text-4xl font-extrabold leading-[1.02] tracking-[-0.055em] sm:text-6xl">{author.display_name}</h1>
+              <p className="mt-4 text-lg font-semibold text-[#5f554d] sm:text-xl">{author.professional_headline || author.top_category}</p>
+              <div className="mt-6 flex flex-wrap items-center gap-4 text-sm font-semibold text-[#766a60]">
+                {author.location ? <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-[#d25238]" />{author.location}</span> : null}
+                {website ? <a href={website} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:text-[#c34d35]"><Globe2 className="h-4 w-4 text-[#d25238]" />Site internet <ExternalLink className="h-3.5 w-3.5" /></a> : null}
               </div>
-
-              <div className="min-w-0 pt-1 lg:hidden">
-                <p className="text-[0.64rem] font-bold uppercase tracking-[0.16em] text-[#ff9b84]">Profil auteur</p>
-                <h1 className="mt-1 text-[1.7rem] font-bold leading-[1.08] tracking-[-0.04em]">{author.display_name}</h1>
-                <p className="mt-2 line-clamp-2 text-sm leading-5 text-white/68">
-                  {author.professional_headline ?? author.top_category}
-                </p>
+              {socials.length > 0 ? <div className="mt-5 flex flex-wrap gap-2">{socials.map((social) => <a key={social.name} href={social.url} target="_blank" rel="noreferrer" className="rounded-full border border-[#ddd0c3] bg-white px-3 py-2 text-xs font-bold text-[#51483f] transition hover:border-[#e85d3f] hover:text-[#b8422c]">{social.name}</a>)}</div> : null}
+            </div>
+            <div className="relative mx-auto w-full max-w-[300px] lg:mx-0 lg:justify-self-end">
+              <div className="aspect-[0.82] overflow-hidden rounded-[2.2rem] bg-[#e7ddcf] shadow-[0_30px_70px_rgba(0,0,0,.28)] ring-1 ring-white/20">
+                {author.avatar_signed_url ? <Image src={author.avatar_signed_url} alt={`Portrait de ${author.display_name}`} width={600} height={730} priority className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center bg-[linear-gradient(145deg,#e5b95f,#c45a3d)] font-display text-6xl font-extrabold text-white">{initials(author.display_name)}</div>}
               </div>
             </div>
-
-            <div className="min-w-0">
-              <div className="hidden lg:block">
-                <p className="text-[0.68rem] font-bold uppercase tracking-[0.2em] text-[#ff9b84]">Profil auteur</p>
-                <h1 className="mt-2 text-5xl font-bold leading-[1.05] tracking-[-0.05em]">{author.display_name}</h1>
-                <p className="mt-3 text-lg text-white/72">{author.professional_headline ?? author.top_category}</p>
-              </div>
-
-              <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs font-semibold text-white/62 lg:mt-5">
-                {author.location ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin aria-hidden="true" className="h-4 w-4 text-[#ff9b84]" />
-                    {author.location}
-                  </span>
-                ) : null}
-                {websiteUrl ? (
-                  <a
-                    href={websiteUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg transition hover:text-white focus:outline-none focus:ring-2 focus:ring-[#ff7a5c]"
-                  >
-                    <Globe aria-hidden="true" className="h-4 w-4 text-[#ff9b84]" />
-                    Site de l’auteur
-                    <ExternalLink aria-hidden="true" className="h-3.5 w-3.5" />
-                  </a>
-                ) : null}
-              </div>
-
-              <p className="mt-4 line-clamp-3 max-w-3xl text-sm leading-6 text-white/72 sm:text-base sm:leading-7 lg:line-clamp-2">
-                {biography}
-              </p>
-            </div>
-
-            <Link
-              href={`/books?author=${encodeURIComponent(author.display_name)}`}
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#ff7a5c] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#e96b4e] lg:w-auto"
-            >
-              Voir ses livres
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
           </div>
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-        <section aria-label="Chiffres du profil" className="grid grid-cols-3 divide-x divide-[#e5d9ce] overflow-hidden rounded-2xl border border-[#eadfd4] bg-white shadow-sm">
-          <div className="px-2 py-4 text-center sm:px-5 sm:py-5">
-            <BookOpen aria-hidden="true" className="mx-auto h-4 w-4 text-[#c85439]" />
-            <p className="mt-2 text-xl font-bold tracking-[-0.03em] text-[#171717] sm:text-2xl">{author.books_count}</p>
-            <p className="mt-0.5 text-[0.62rem] font-semibold text-[#81766d] sm:text-xs">Livres</p>
-          </div>
-          <div className="px-2 py-4 text-center sm:px-5 sm:py-5">
-            <TrendingUp aria-hidden="true" className="mx-auto h-4 w-4 text-[#c85439]" />
-            <p className="mt-2 text-xl font-bold tracking-[-0.03em] text-[#171717] sm:text-2xl">{formatCount(author.total_views)}</p>
-            <p className="mt-0.5 text-[0.62rem] font-semibold text-[#81766d] sm:text-xs">Découvertes</p>
-          </div>
-          <div className="px-2 py-4 text-center sm:px-5 sm:py-5">
-            <Star aria-hidden="true" className="mx-auto h-4 w-4 fill-current text-[#ff7a5c]" />
-            <p className="mt-2 text-xl font-bold tracking-[-0.03em] text-[#171717] sm:text-2xl">
-              {author.average_rating ?? "—"}
-            </p>
-            <p className="mt-0.5 text-[0.62rem] font-semibold text-[#81766d] sm:text-xs">Note moyenne</p>
-          </div>
-        </section>
-
-        <div className="mt-5 grid gap-5 lg:mt-8 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-8">
-          <div className="space-y-5">
-            <section className="rounded-[1.65rem] border border-[#eadfd4] bg-white p-5 shadow-sm sm:p-6">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#fff0eb] text-[#c85439]">
-                <Quote aria-hidden="true" className="h-4 w-4" />
-              </span>
-              <p className="mt-4 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[#c85439]">À propos</p>
-              <h2 className="mt-1 text-xl font-bold tracking-[-0.025em] text-[#171717]">L’univers de {author.display_name}</h2>
-              <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[#625a53]">{biography}</p>
-
-              {publishingGoals && publishingGoals !== biography ? (
-                <div className="mt-5 border-t border-[#eee5dc] pt-5">
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#8f5544]">Démarche éditoriale</p>
-                  <p className="mt-2 whitespace-pre-line text-sm leading-7 text-[#625a53]">{publishingGoals}</p>
-                </div>
-              ) : null}
-
-              {genres.length > 0 ? (
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {genres.map((genre) => (
-                    <span key={genre} className="rounded-full bg-[#f8f5f0] px-3 py-2 text-xs font-bold text-[#665e57]">
-                      {genre}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
+      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_310px] lg:gap-20">
+          <div>
+            <section>
+              <div className="flex items-center gap-3"><Quote className="h-5 w-5 text-[#d25238]" /><p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#c34d35]">Ma biographie</p></div>
+              <div className="mt-6 whitespace-pre-line font-serif text-[1.05rem] leading-9 text-[#51483f] sm:text-lg">{author.bio?.trim() || "Cet auteur prépare actuellement sa biographie."}</div>
             </section>
-
-            <div className="rounded-[1.65rem] border border-[#2c2824] bg-[#171717] p-5 text-white sm:p-6">
-              <Sparkles aria-hidden="true" className="h-5 w-5 text-[#ff9b84]" />
-              <p className="mt-4 text-lg font-bold">Découvrir toutes les signatures</p>
-              <p className="mt-2 text-sm leading-6 text-white/62">
-                Continuez l’exploration avec les autres univers éditoriaux de la maison.
-              </p>
-              <Link href="/authors" className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[#ff9b84]">
-                Voir tous les auteurs
-                <ArrowRight aria-hidden="true" className="h-4 w-4" />
-              </Link>
-            </div>
+            {author.publishing_goals ? <section className="mt-10 border-t border-[#ded2c6] pt-8"><p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#c34d35]">Ma démarche</p><p className="mt-4 whitespace-pre-line text-base leading-8 text-[#5f554d]">{author.publishing_goals}</p></section> : null}
           </div>
 
-          {latestBook ? (
-            <section className="overflow-hidden rounded-[1.65rem] border border-[#eadfd4] bg-white shadow-sm">
-              <div className="border-b border-[#eee5dc] px-5 py-4 sm:px-6">
-                <p className="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[#c85439]">À ouvrir en premier</p>
-                <h2 className="mt-1 text-xl font-bold tracking-[-0.025em] text-[#171717]">Le dernier titre publié</h2>
-              </div>
-              <div className="grid gap-5 p-5 sm:grid-cols-[150px_minmax(0,1fr)] sm:p-6">
-                <Link
-                  href={`/book/${latestBook.id}`}
-                  className="mx-auto block w-32 overflow-hidden rounded-2xl bg-[#eee7df] shadow-[0_18px_35px_rgba(23,23,23,0.14)] sm:mx-0 sm:w-[150px]"
-                  aria-label={`Voir ${latestBook.title}`}
-                >
-                  <div className="aspect-[0.72]">
-                    {latestBook.cover_signed_url ? (
-                      <Image
-                        src={latestBook.cover_signed_url}
-                        alt={`Couverture de ${latestBook.title}`}
-                        width={300}
-                        height={420}
-                        sizes="(max-width: 639px) 128px, 150px"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="grid h-full place-items-center px-3 text-center text-xs font-bold text-[#756b62]">
-                        {latestBook.title}
-                      </div>
-                    )}
-                  </div>
-                </Link>
-
-                <div className="flex min-w-0 flex-col">
-                  <span className="w-fit rounded-full bg-[#fff0eb] px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-[#a94731]">
-                    {latestBook.is_free ? "Lecture gratuite" : latestBook.offer_summary_label ?? "Nouvelle publication"}
-                  </span>
-                  <h3 className="mt-3 text-2xl font-bold leading-tight tracking-[-0.035em] text-[#171717]">{latestBook.title}</h3>
-                  {latestBook.subtitle ? <p className="mt-2 text-sm font-semibold text-[#756b62]">{latestBook.subtitle}</p> : null}
-                  <p className="mt-3 line-clamp-4 text-sm leading-6 text-[#625a53]">
-                    {latestBook.description?.trim() || "Découvrez la plus récente publication de cet auteur."}
-                  </p>
-
-                  <div className="mt-5 flex items-end justify-between gap-3 border-t border-[#eee5dc] pt-4">
-                    <div>
-                      <p className="text-[0.65rem] font-semibold text-[#8a8178]">Accès</p>
-                      <p className="mt-0.5 text-lg font-bold text-[#171717]">{latestBookPrice}</p>
-                    </div>
-                    <Link
-                      href={latestBook.is_free ? `/book/${latestBook.id}?read=1` : `/book/${latestBook.id}`}
-                      className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl bg-[#ff7a5c] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#e96b4e]"
-                    >
-                      {latestBook.is_free ? "Lire maintenant" : "Voir le livre"}
-                      <ArrowRight aria-hidden="true" className="h-4 w-4" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </section>
-          ) : (
-            <section className="grid min-h-[300px] place-items-center rounded-[1.65rem] border border-[#eadfd4] bg-white p-8 text-center shadow-sm">
-              <div>
-                <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#fff0eb] text-[#c85439]">
-                  <BookOpen aria-hidden="true" className="h-5 w-5" />
-                </span>
-                <h2 className="mt-4 text-xl font-bold text-[#171717]">Le prochain livre se prépare.</h2>
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#6f665e]">
-                  Le profil est ouvert ; sa première publication apparaîtra ici dès sa mise en ligne.
-                </p>
-              </div>
-            </section>
-          )}
+          <aside className="space-y-5">
+            {favorites.length > 0 ? <section className="rounded-[1.8rem] bg-[#173f38] p-6 text-white"><Sparkles className="h-5 w-5 text-[#f5b942]" /><h2 className="mt-4 font-display text-xl font-extrabold">Mon univers littéraire</h2><dl className="mt-6 space-y-5">{favorites.map((item) => <div key={item.label}><dt className="text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-white/48">{item.label}</dt><dd className="mt-1 text-sm font-bold leading-6 text-white/88">{item.value}</dd></div>)}</dl></section> : null}
+            {author.genres.length > 0 ? <section className="rounded-[1.8rem] border border-[#ded2c6] bg-white p-6"><p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#c34d35]">J’écris autour de</p><div className="mt-4 flex flex-wrap gap-2">{author.genres.map((genre) => <span key={genre} className="rounded-full bg-[#f2ebe3] px-3 py-2 text-xs font-bold text-[#5b5148]">{genre}</span>)}</div></section> : null}
+          </aside>
         </div>
 
-        <section className="mt-8 lg:mt-12">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[#c85439]">Catalogue complet</p>
-              <h2 className="mt-1 text-2xl font-bold tracking-[-0.035em] text-[#171717] sm:text-3xl">
-                Tous les livres de {author.display_name}
-              </h2>
-            </div>
-            {author.books.length > 0 ? (
-              <Link
-                href={`/books?author=${encodeURIComponent(author.display_name)}`}
-                className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[#c85439]"
-              >
-                Ouvrir dans la librairie
-                <ArrowRight aria-hidden="true" className="h-4 w-4" />
-              </Link>
-            ) : null}
-          </div>
-
-          {author.books.length > 0 ? (
-            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
-              {author.books.map((book) => (
-                <BookCard key={book.id} book={book} />
-              ))}
-            </div>
-          ) : (
-            <div className="mt-5 rounded-[1.65rem] border border-[#eadfd4] bg-white p-6 text-center shadow-sm sm:p-8">
-              <p className="font-bold text-[#171717]">Aucun livre publié pour le moment</p>
-              <p className="mt-2 text-sm leading-6 text-[#6f665e]">Revenez bientôt pour découvrir la première publication.</p>
-            </div>
-          )}
+        <section className="mt-16 border-t border-[#ded2c6] pt-12 sm:mt-20">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#c34d35]">Du même auteur</p><h2 className="mt-2 font-display text-3xl font-extrabold tracking-[-0.04em]">Les livres de {author.display_name}</h2></div><Link href={`/books?author=${encodeURIComponent(author.display_name)}`} className="inline-flex items-center gap-2 text-sm font-bold text-[#b9432d]">Voir dans la librairie <ArrowRight className="h-4 w-4" /></Link></div>
+          {author.books.length > 0 ? <div className="mt-8 divide-y divide-[#ded2c6]">{author.books.map((book) => (
+            <article key={book.id} className="grid gap-5 py-7 first:pt-0 sm:grid-cols-[110px_minmax(0,1fr)_auto] sm:items-center">
+              <Link href={`/book/${book.id}`} className="block w-[110px] overflow-hidden rounded-xl bg-[#e4dbd1] shadow-md"><div className="aspect-[0.69]">{book.cover_signed_url ? <Image src={book.cover_signed_url} alt={`Couverture de ${book.title}`} width={220} height={320} className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center p-2 text-center text-xs font-bold">{book.title}</div>}</div></Link>
+              <div><h3 className="font-display text-xl font-extrabold tracking-[-0.025em]">{book.title}</h3>{book.description ? <p className="mt-3 line-clamp-3 max-w-3xl text-sm leading-7 text-[#665c53]">{book.description}</p> : null}<p className="mt-3 text-sm font-extrabold text-[#176052]">{book.display_price_label || (book.is_free ? "Gratuit" : `${book.price.toFixed(2)} ${book.currency_code}`)}</p></div>
+              <Link href={book.is_free ? `/book/${book.id}?read=1` : `/book/${book.id}`} className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#e85d3f] px-5 text-sm font-extrabold text-white">{book.is_free ? "Lire" : "Voir le livre"}</Link>
+            </article>
+          ))}</div> : <div className="mt-8 rounded-2xl border border-[#ded2c6] bg-white p-8 text-center"><BookOpen className="mx-auto h-6 w-6 text-[#c34d35]" /><p className="mt-3 font-bold">La première publication arrive bientôt.</p></div>}
         </section>
-      </div>
+
+        {press.length > 0 ? <section className="mt-16 border-t border-[#ded2c6] pt-12"><div className="flex items-center gap-3"><Newspaper className="h-5 w-5 text-[#d25238]" /><div><p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#c34d35]">Médias</p><h2 className="mt-1 font-display text-3xl font-extrabold">Revue de presse</h2></div></div><div className="mt-7 grid gap-3 sm:grid-cols-2">{press.map((item) => <a key={`${item.title}-${item.url}`} href={item.url} target="_blank" rel="noreferrer" className="group flex items-center justify-between gap-4 rounded-2xl border border-[#ded2c6] bg-white p-5 font-bold transition hover:border-[#e85d3f]"><span>{item.title}</span><ExternalLink className="h-4 w-4 shrink-0 text-[#c34d35] transition group-hover:translate-x-0.5" /></a>)}</div></section> : null}
+      </main>
     </div>
   );
 }

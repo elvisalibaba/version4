@@ -1,464 +1,66 @@
 import Link from "next/link";
-import {
-  BadgeDollarSign,
-  BookOpen,
-  ClipboardCheck,
-  CreditCard,
-  Eye,
-  Funnel,
-  Layers3,
-  Megaphone,
-  ShoppingCart,
-  Sparkles,
-  Star,
-  Target,
-  Users,
-} from "lucide-react";
+import { ArrowRight, BookOpen, ClipboardCheck, CircleDollarSign, ShoppingCart, Users } from "lucide-react";
+import { AdminNotice } from "@/components/admin/shared/admin-notice";
+import { StatusBadge } from "@/components/admin/shared/status-badge";
 import { formatMoney } from "@/lib/book-offers";
 import { getAdminDashboardData } from "@/lib/supabase/admin/dashboard";
 import { formatAdminDateTime, formatCompactNumber } from "@/lib/supabase/admin/shared";
-import { AdminKpiCard } from "@/components/admin/dashboard/admin-kpi-card";
-import { SimpleBarChart } from "@/components/admin/charts/simple-bar-chart";
-import { AdminDataTable } from "@/components/admin/tables/admin-data-table";
-import { AdminPageHeader } from "@/components/admin/shared/admin-page-header";
-import { AdminPanel } from "@/components/admin/shared/admin-panel";
-import { StatusBadge } from "@/components/admin/shared/status-badge";
-import { AdminNotice } from "@/components/admin/shared/admin-notice";
 
-function formatPercent(value: number) {
-  const precision = Number.isInteger(value) ? 0 : 1;
-  return `${value.toFixed(precision)}%`;
-}
+const quickLinks = [
+  { label: "Vérifier les livres", href: "/admin/books", icon: ClipboardCheck, description: "Valider les nouvelles publications" },
+  { label: "Voir les commandes", href: "/admin/orders", icon: ShoppingCart, description: "Suivre les paiements et livraisons" },
+  { label: "Gérer les auteurs", href: "/admin/authors", icon: Users, description: "Consulter les espaces auteurs" },
+  { label: "Mettre en avant", href: "/admin/home-positioning", icon: BookOpen, description: "Choisir les contenus de l’accueil" },
+];
 
 export default async function AdminDashboardPage() {
   let data: Awaited<ReturnType<typeof getAdminDashboardData>>;
-
   try {
     data = await getAdminDashboardData();
   } catch (error) {
     console.error("Failed to fetch dashboard data:", error);
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Chargement impossible</h1>
-          <p className="mt-2 text-gray-600">Le cockpit admin ne peut pas etre charge pour le moment.</p>
-        </div>
-      </div>
-    );
+    return <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center"><h1 className="font-serif text-2xl text-[#17231d]">Impossible de charger les informations</h1><p className="mt-2 text-sm text-[#766e64]">Veuillez réessayer dans quelques instants.</p></div>;
   }
 
-  const businessSignals = [
-    {
-      id: "funnel",
-      icon: Funnel,
-      label: "Vue vers achat",
-      value: formatPercent(data.marketing.viewToPurchaseRate),
-      hint: `${formatCompactNumber(data.marketing.totalBookPurchases)} achats pour ${formatCompactNumber(data.marketing.totalBookViews)} vues catalogue`,
-    },
-    {
-      id: "checkout",
-      icon: Target,
-      label: "Commandes payees",
-      value: formatPercent(data.marketing.paidOrderRate),
-      hint: `${formatCompactNumber(data.totals.paidOrders)} commandes payees sur ${formatCompactNumber(data.totals.orders)} commandes`,
-    },
-    {
-      id: "subscriptions",
-      icon: Sparkles,
-      label: "Activation Premium",
-      value: formatPercent(data.marketing.activeSubscriptionRate),
-      hint: `${formatCompactNumber(data.totals.activeSubscriptions)} abonnements actifs pour ${formatCompactNumber(data.totals.readers)} lecteurs`,
-    },
-    {
-      id: "pipeline",
-      icon: Megaphone,
-      label: "Pression editoriale",
-      value: formatPercent(data.marketing.submissionPressureRate),
-      hint: `${formatCompactNumber(data.totals.submittedBooks)} soumissions en attente face au catalogue publie`,
-    },
-  ] as const;
-
-  const operationalSignals = [
-    {
-      label: "Soumissions a traiter",
-      value: formatCompactNumber(data.totals.submittedBooks),
-      detail: data.recentSubmittedBooks[0]?.title ?? "Aucune soumission urgente",
-    },
-    {
-      label: "Top auteur estime",
-      value: data.topAuthorsBySales[0]?.displayName ?? "Aucun",
-      detail: data.topAuthorsBySales[0]?.estimatedSalesLabel ?? "Pas encore de ventes consolidees",
-    },
-    {
-      label: "Top traction catalogue",
-      value: data.topViewedBooks[0]?.title ?? "Aucun titre",
-      detail: `${formatCompactNumber(data.topViewedBooks[0]?.views_count ?? 0)} vues en tete`,
-    },
+  const stats = [
+    { label: "Livres", value: formatCompactNumber(data.totals.books), detail: `${data.totals.publishedBooks} publiés`, icon: BookOpen },
+    { label: "À vérifier", value: formatCompactNumber(data.totals.submittedBooks), detail: "Livres envoyés par les auteurs", icon: ClipboardCheck },
+    { label: "Commandes", value: formatCompactNumber(data.totals.orders), detail: `${data.totals.pendingOrders} en attente`, icon: ShoppingCart },
+    { label: "Revenus", value: data.totals.revenueLabel, detail: "Paiements confirmés", icon: CircleDollarSign },
+    { label: "Utilisateurs", value: formatCompactNumber(data.totals.users), detail: `${data.totals.authors} auteurs · ${data.totals.readers} lecteurs`, icon: Users },
   ];
 
   return (
-    <div className="space-y-8 pb-12">
-      <AdminPageHeader
-        title="Marketplace control tower"
-        description="Vue unifiee du business, de la moderation catalogue, de la conversion et des signaux auteurs sur le schema Supabase actuel."
-        breadcrumbs={[{ label: "Admin" }]}
-        actions={
-          <>
-            <Link
-              href="/admin/users"
-              className="inline-flex items-center rounded-full border border-[#e4d7c6] bg-white px-4 py-2 text-sm font-semibold text-[#26221d] shadow-sm transition hover:border-[#ccbba7] hover:bg-[#fcfaf7]"
-            >
-              Gerer les utilisateurs
-            </Link>
-            <Link
-              href="/admin/books"
-              className="inline-flex items-center rounded-full bg-[#ff9900] px-4 py-2 text-sm font-semibold text-[#171717] shadow-sm transition hover:bg-[#f08f00]"
-            >
-              Gerer le catalogue
-            </Link>
-          </>
-        }
-      />
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <AdminKpiCard
-          icon={Users}
-          label="Utilisateurs"
-          value={formatCompactNumber(data.totals.users)}
-          hint={`${data.totals.readers} lecteurs / ${data.totals.authors} auteurs / ${data.totals.admins} admins`}
-          tone="sky"
-        />
-        <AdminKpiCard
-          icon={BookOpen}
-          label="Catalogue"
-          value={formatCompactNumber(data.totals.books)}
-          hint={`${data.totals.publishedBooks} publies / ${data.totals.draftBooks} brouillons`}
-          tone="violet"
-        />
-        <AdminKpiCard
-          icon={ClipboardCheck}
-          label="Revue"
-          value={formatCompactNumber(data.totals.submittedBooks)}
-          hint={data.recentSubmittedBooks[0]?.title ?? "Aucune soumission en attente"}
-          tone="amber"
-        />
-        <AdminKpiCard
-          icon={ShoppingCart}
-          label="Commandes"
-          value={formatCompactNumber(data.totals.orders)}
-          hint={`${data.totals.paidOrders} payees / ${data.totals.pendingOrders} en attente`}
-          tone="emerald"
-        />
-        <AdminKpiCard
-          icon={BadgeDollarSign}
-          label="Revenus"
-          value={data.totals.revenueLabel}
-          hint="Aggregation par devise sans conversion implicite"
-          tone="rose"
-        />
-        <AdminKpiCard
-          icon={CreditCard}
-          label="Abonnements"
-          value={formatCompactNumber(data.totals.activeSubscriptions)}
-          hint="Statut actif et date de validite correcte"
-          tone="sky"
-        />
-        <AdminKpiCard
-          icon={Star}
-          label="Note moyenne"
-          value={data.totals.averageRating ? `${data.totals.averageRating}/5` : "-"}
-          hint="Calcul sur les ratings visibles"
-          tone="amber"
-        />
-        <AdminKpiCard
-          icon={Eye}
-          label="Top vues"
-          value={formatCompactNumber(data.topViewedBooks[0]?.views_count ?? 0)}
-          hint={data.topViewedBooks[0]?.title ?? "Aucun livre"}
-          tone="violet"
-        />
-        <AdminKpiCard
-          icon={Layers3}
-          label="Coming soon"
-          value={formatCompactNumber(data.totals.comingSoonBooks)}
-          hint={`${data.totals.archivedBooks} archives`}
-          tone="rose"
-        />
-      </div>
-
-      {data.notices.length ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {data.notices.map((notice) => (
-            <AdminNotice key={notice.id} tone={notice.tone} title={notice.title} description={notice.description} />
-          ))}
+    <div className="space-y-6 pb-10">
+      <header className="relative overflow-hidden rounded-[30px] bg-[#173d2c] p-6 text-white sm:p-8">
+        <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full border-[58px] border-[#e8ac42]" />
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#f2c66f]">Administration Holistique Books</p><h1 className="mt-3 font-serif text-3xl sm:text-4xl">Vue d’ensemble</h1><p className="mt-2 max-w-xl text-sm leading-6 text-white/65">Les informations importantes et les tâches à traiter aujourd’hui.</p></div>
+          <div className="flex flex-wrap gap-2"><Link href="/admin/books" className="inline-flex h-11 items-center gap-2 rounded-full bg-[#e8ac42] px-5 text-sm font-bold text-[#173d2c]">Gérer les livres<ArrowRight className="h-4 w-4" /></Link><Link href="/home" className="inline-flex h-11 items-center rounded-full border border-white/20 px-5 text-sm font-bold">Voir le site</Link></div>
         </div>
-      ) : null}
+      </header>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_380px]">
-        <AdminPanel
-          title="Signaux business"
-          description="Lecture rapide de la conversion, du commerce et de la pression editoriale pour arbitrer les priorites."
-        >
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {businessSignals.map((signal) => {
-              const Icon = signal.icon;
-              return (
-                <article
-                  key={signal.id}
-                  className="rounded-[1.4rem] border border-[#ece4d7] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(249,245,239,0.94))] p-4"
-                >
-                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff1db] text-[#b96e12]">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{signal.label}</p>
-                  <p className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-slate-950">{signal.value}</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">{signal.hint}</p>
-                </article>
-              );
-            })}
-          </div>
-        </AdminPanel>
+      {data.notices.length ? <div className="grid gap-3 md:grid-cols-2">{data.notices.map((notice) => <AdminNotice key={notice.id} tone={notice.tone} title={notice.title} description={notice.description} />)}</div> : null}
 
-        <div className="grid gap-6">
-          <AdminPanel title="Focus operations" description="Trois repers pour piloter la journee.">
-            <div className="grid gap-3">
-              {operationalSignals.map((signal) => (
-                <div key={signal.label} className="rounded-[1.25rem] border border-[#ece4d7] bg-[#fcfaf7] p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{signal.label}</p>
-                  <p className="mt-2 text-lg font-semibold text-slate-950">{signal.value}</p>
-                  <p className="mt-2 text-sm text-slate-500">{signal.detail}</p>
-                </div>
-              ))}
-            </div>
-          </AdminPanel>
+      <section aria-label="Indicateurs principaux" className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        {stats.map((stat) => { const Icon = stat.icon; return <article key={stat.label} className="rounded-2xl border border-[#ded3c2] bg-white p-4 sm:p-5"><Icon className="h-5 w-5 text-[#b85135]" /><p className="mt-4 break-words text-2xl font-bold text-[#17231d]">{stat.value}</p><p className="mt-1 text-sm font-bold text-[#403a34]">{stat.label}</p><p className="mt-1 text-xs leading-5 text-[#837a70]">{stat.detail}</p></article>; })}
+      </section>
 
-          <AdminPanel title="Actions rapides" description="Acces direct aux zones qui bougent le plus.">
-            <div className="grid gap-2">
-              <Link
-                href="/admin/orders"
-                className="rounded-[1.15rem] border border-[#ece4d7] bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:border-[#ccbba7] hover:bg-[#fcfaf7]"
-              >
-                Ouvrir les commandes
-              </Link>
-              <Link
-                href="/admin/authors"
-                className="rounded-[1.15rem] border border-[#ece4d7] bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:border-[#ccbba7] hover:bg-[#fcfaf7]"
-              >
-                Ouvrir les auteurs
-              </Link>
-              <Link
-                href="/admin/subscriptions/plans"
-                className="rounded-[1.15rem] border border-[#ece4d7] bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:border-[#ccbba7] hover:bg-[#fcfaf7]"
-              >
-                Ouvrir les plans Premium
-              </Link>
-            </div>
-          </AdminPanel>
-        </div>
+      <section><div className="flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#a94b34]">Accès rapide</p><h2 className="mt-2 font-serif text-2xl text-[#17231d]">Que souhaitez-vous gérer ?</h2></div></div><div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{quickLinks.map((item) => { const Icon = item.icon; return <Link key={item.href} href={item.href} className="group rounded-2xl border border-[#ded3c2] bg-[#fffaf2] p-5 transition hover:-translate-y-0.5 hover:border-[#bda98d] hover:shadow-lg"><span className="grid h-10 w-10 place-items-center rounded-full bg-[#173d2c] text-[#f2c66f]"><Icon className="h-5 w-5" /></span><h3 className="mt-4 font-bold text-[#17231d]">{item.label}</h3><p className="mt-1 text-sm leading-5 text-[#766e64]">{item.description}</p></Link>; })}</div></section>
+
+      <div className="grid gap-5 xl:grid-cols-[1.05fr_.95fr]">
+        <section className="rounded-[28px] border border-[#ded3c2] bg-white p-5 sm:p-6">
+          <div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#a94b34]">Priorité</p><h2 className="mt-2 font-serif text-2xl text-[#17231d]">Livres à vérifier</h2></div><Link href="/admin/books" className="text-sm font-bold text-[#a94b34]">Tout voir</Link></div>
+          <div className="mt-5 divide-y divide-[#e8dfd2]">{data.recentSubmittedBooks.slice(0, 6).map((book) => <article key={book.id} className="flex flex-col gap-3 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><h3 className="truncate font-bold text-[#17231d]">{book.title}</h3><p className="mt-1 text-xs text-[#837a70]">{book.author_name} · envoyé le {formatAdminDateTime(book.submitted_at)}</p></div><div className="flex items-center gap-3"><StatusBadge kind="review" value={book.review_status} /><Link href={`/admin/books/${book.id}`} className="inline-flex h-9 items-center rounded-full border border-[#d9cebd] px-3 text-xs font-bold">Ouvrir</Link></div></article>)}{!data.recentSubmittedBooks.length ? <p className="py-12 text-center text-sm text-[#766e64]">Aucun livre en attente de vérification.</p> : null}</div>
+        </section>
+
+        <section className="rounded-[28px] border border-[#ded3c2] bg-white p-5 sm:p-6">
+          <div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#a94b34]">Commerce</p><h2 className="mt-2 font-serif text-2xl text-[#17231d]">Dernières commandes</h2></div><Link href="/admin/orders" className="text-sm font-bold text-[#a94b34]">Tout voir</Link></div>
+          <div className="mt-5 divide-y divide-[#e8dfd2]">{data.recentOrders.slice(0, 6).map((order) => <article key={order.id} className="flex items-center justify-between gap-4 py-4 first:pt-0"><div className="min-w-0"><Link href={`/admin/orders/${order.id}`} className="font-bold text-[#17231d]">Commande {order.id.slice(0, 8)}</Link><p className="mt-1 truncate text-xs text-[#837a70]">{order.user_name} · {order.itemCount} article{order.itemCount > 1 ? "s" : ""}</p></div><div className="shrink-0 text-right"><p className="text-sm font-bold text-[#17231d]">{formatMoney(order.total_price, order.currency_code)}</p><div className="mt-1"><StatusBadge kind="payment" value={order.payment_status} /></div></div></article>)}{!data.recentOrders.length ? <p className="py-12 text-center text-sm text-[#766e64]">Aucune commande récente.</p> : null}</div>
+        </section>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <AdminPanel
-          title="Watchlist conversion"
-          description="Titres avec trafic present mais conversion faible. Priorite: fiche produit, offre et argumentaire."
-        >
-          <div className="space-y-3">
-            {data.marketing.watchlist.length ? (
-              data.marketing.watchlist.map((book) => (
-                <Link
-                  key={book.id}
-                  href={`/admin/books/${book.id}`}
-                  className="flex items-center justify-between gap-4 rounded-[1.2rem] border border-red-200 bg-red-50 px-4 py-3 transition hover:bg-red-100"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-slate-950">{book.title}</p>
-                    <p className="truncate text-xs uppercase tracking-[0.16em] text-slate-500">{book.author_name}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-slate-950">{formatPercent(book.conversion_rate)}</p>
-                    <p className="text-xs text-slate-500">
-                      {formatCompactNumber(book.views_count)} vues / {formatCompactNumber(book.purchases_count)} achats
-                    </p>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <p className="text-sm text-slate-500">Aucune alerte critique de conversion pour le moment.</p>
-            )}
-          </div>
-        </AdminPanel>
-
-        <AdminPanel
-          title="Campagnes a pousser"
-          description="Titres qui convertissent deja bien. Priorite: amplification paid, social et newsletter."
-        >
-          <div className="space-y-3">
-            {data.marketing.campaignCandidates.length ? (
-              data.marketing.campaignCandidates.map((book) => (
-                <Link
-                  key={book.id}
-                  href={`/admin/books/${book.id}`}
-                  className="flex items-center justify-between gap-4 rounded-[1.2rem] border border-emerald-200 bg-emerald-50 px-4 py-3 transition hover:bg-emerald-100"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-slate-950">{book.title}</p>
-                    <p className="truncate text-xs uppercase tracking-[0.16em] text-slate-500">{book.author_name}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-slate-950">{formatPercent(book.conversion_rate)}</p>
-                    <p className="text-xs text-slate-500">
-                      {formatCompactNumber(book.purchases_count)} achats / {formatCompactNumber(book.views_count)} vues
-                    </p>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <p className="text-sm text-slate-500">Pas encore assez de donnees pour recommander une campagne forte.</p>
-            )}
-          </div>
-        </AdminPanel>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <AdminPanel title="Top auteurs en ventes estimees" description="Aggregation actuelle basee sur purchases_count multiplie par books.price.">
-          <SimpleBarChart
-            data={data.topAuthorsBySales.map((author) => ({
-              label: author.displayName,
-              value: author.estimatedSales,
-            }))}
-            emptyLabel="Aucune performance auteur disponible."
-          />
-        </AdminPanel>
-
-        <AdminPanel title="Distribution des notes" description="Repartition des ratings visibles de 1 a 5 sur la plateforme.">
-          <SimpleBarChart data={data.ratingDistribution} emptyLabel="Aucune note disponible." />
-        </AdminPanel>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <AdminPanel title="Top livres les plus vus" description="Base sur books.views_count.">
-          <div className="space-y-4">
-            {data.topViewedBooks.map((book) => (
-              <Link
-                key={book.id}
-                href={`/admin/books/${book.id}`}
-                className="flex items-center justify-between gap-4 rounded-[1.2rem] border border-[#ece4d7] bg-white px-4 py-3 transition hover:bg-[#fcfaf7]"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-slate-950">{book.title}</p>
-                  <p className="truncate text-xs uppercase tracking-[0.16em] text-slate-500">{book.author_name}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-slate-950">{formatCompactNumber(book.views_count)}</p>
-                  <p className="text-xs text-slate-500">vues</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </AdminPanel>
-
-        <AdminPanel title="Top livres les plus achetes" description="Base sur books.purchases_count.">
-          <div className="space-y-4">
-            {data.topPurchasedBooks.map((book) => (
-              <Link
-                key={book.id}
-                href={`/admin/books/${book.id}`}
-                className="flex items-center justify-between gap-4 rounded-[1.2rem] border border-[#ece4d7] bg-white px-4 py-3 transition hover:bg-[#fcfaf7]"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-slate-950">{book.title}</p>
-                  <p className="truncate text-xs uppercase tracking-[0.16em] text-slate-500">{book.author_name}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-slate-950">{formatCompactNumber(book.purchases_count)}</p>
-                  <p className="text-xs text-slate-500">achats</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </AdminPanel>
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-4">
-        <AdminPanel title="Soumissions a traiter" description="Livres envoyes par les auteurs et en attente de revue.">
-          <AdminDataTable columns={["Livre", "Auteur", "Soumission"]}>
-            {data.recentSubmittedBooks.map((book) => (
-              <tr key={book.id} className="border-t border-gray-100">
-                <td className="px-4 py-3">
-                  <Link href={`/admin/books/${book.id}`} className="font-semibold text-slate-950 hover:text-[#ff9900]">
-                    {book.title}
-                  </Link>
-                  <div className="mt-2">
-                    <StatusBadge kind="review" value={book.review_status} />
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-sm text-slate-500">{book.author_name}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{formatAdminDateTime(book.submitted_at)}</td>
-              </tr>
-            ))}
-          </AdminDataTable>
-        </AdminPanel>
-
-        <AdminPanel title="Dernieres commandes" description="Transactions recentes visibles en base.">
-          <AdminDataTable columns={["Commande", "Statut", "Montant"]}>
-            {data.recentOrders.map((order) => (
-              <tr key={order.id} className="border-t border-gray-100">
-                <td className="px-4 py-3">
-                  <Link href={`/admin/orders/${order.id}`} className="font-semibold text-slate-950 hover:text-[#ff9900]">
-                    {order.id.slice(0, 8)}
-                  </Link>
-                  <p className="text-sm text-slate-500">{order.user_name}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge kind="payment" value={order.payment_status} />
-                </td>
-                <td className="px-4 py-3 text-sm text-slate-500">
-                  {formatMoney(order.total_price, order.currency_code)}
-                  <div className="text-xs uppercase tracking-wide text-slate-400">{order.itemCount} article(s)</div>
-                </td>
-              </tr>
-            ))}
-          </AdminDataTable>
-        </AdminPanel>
-
-        <AdminPanel title="Derniers utilisateurs" description="Nouveaux profils crees sur la plateforme.">
-          <AdminDataTable columns={["Utilisateur", "Role", "Creation"]}>
-            {data.recentUsers.map((user) => (
-              <tr key={user.id} className="border-t border-gray-100">
-                <td className="px-4 py-3">
-                  <Link href={`/admin/users/${user.id}`} className="font-semibold text-slate-950 hover:text-[#ff9900]">
-                    {user.name ?? "Sans nom"}
-                  </Link>
-                  <p className="text-sm text-slate-500">{user.email}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge kind="role" value={user.role} />
-                </td>
-                <td className="px-4 py-3 text-sm text-slate-500">{formatAdminDateTime(user.created_at)}</td>
-              </tr>
-            ))}
-          </AdminDataTable>
-        </AdminPanel>
-
-        <AdminPanel title="Derniers livres ajoutes" description="Creation recente de titres dans le catalogue.">
-          <AdminDataTable columns={["Livre", "Etat", "Ajout"]}>
-            {data.recentBooks.map((book) => (
-              <tr key={book.id} className="border-t border-gray-100">
-                <td className="px-4 py-3">
-                  <Link href={`/admin/books/${book.id}`} className="font-semibold text-slate-950 hover:text-[#ff9900]">
-                    {book.title}
-                  </Link>
-                  <p className="text-sm text-slate-500">{book.author_name}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge kind="book" value={book.status} />
-                </td>
-                <td className="px-4 py-3 text-sm text-slate-500">{formatAdminDateTime(book.created_at)}</td>
-              </tr>
-            ))}
-          </AdminDataTable>
-        </AdminPanel>
-      </div>
+      <section className="rounded-[28px] bg-[#102d21] p-5 text-white sm:p-6"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#f2c66f]">Catalogue</p><h2 className="mt-2 font-serif text-2xl">Livres les plus consultés</h2></div></div><div className="mt-5 grid gap-3 md:grid-cols-3">{data.topViewedBooks.slice(0, 3).map((book, index) => <Link key={book.id} href={`/admin/books/${book.id}`} className="rounded-2xl bg-white/[.07] p-4 hover:bg-white/[.1]"><span className="text-xs font-bold text-[#f2c66f]">#{index + 1}</span><h3 className="mt-3 truncate font-bold">{book.title}</h3><p className="mt-1 truncate text-xs text-white/55">{book.author_name}</p><p className="mt-4 text-sm font-bold">{formatCompactNumber(book.views_count)} vues</p></Link>)}</div></section>
     </div>
   );
 }

@@ -47,19 +47,19 @@ export function ChromeFrame({ header, footer, children }: ChromeFrameProps) {
 
   if (isAuthRoute) {
     return (
-      <div className="min-h-screen bg-[#f8f5f0]">
-        <header className="sticky top-0 z-50 border-b border-[#eadfd4] bg-[#fffdf9]/95 backdrop-blur-xl">
+      <div className="min-h-screen bg-[#f5f0e7]">
+        <header className="sticky top-0 z-50 border-b border-[#d9cebd] bg-[#fffaf2]/95 backdrop-blur-xl">
           <div className="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-3 px-3 sm:min-h-16 sm:px-6">
             <Link href="/home" className="flex min-w-0 items-center gap-2.5" aria-label="Accueil Holistique Books">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#171717] text-white">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#173d2c] text-[#f2c66f]">
                 <BookOpen aria-hidden="true" className="h-5 w-5" />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-sm font-bold tracking-[-0.02em] text-[#171717] sm:text-base">Holistique Books</span>
-                <span className="block text-[0.6rem] font-bold uppercase tracking-[0.17em] text-[#a85b3f]">Espace sécurisé</span>
+                <span className="block truncate font-serif text-base font-bold tracking-[-0.02em] text-[#17231d] sm:text-lg">Holistique Books</span>
+                <span className="block text-[0.55rem] font-bold uppercase tracking-[0.18em] text-[#a94b34]">Maison éditoriale africaine</span>
               </span>
             </Link>
-            <Link href="/library" className="inline-flex min-h-11 items-center rounded-full px-3 text-xs font-bold text-[#8f4b38] transition hover:bg-[#fff0ec] sm:px-4 sm:text-sm">
+            <Link href="/library" className="inline-flex min-h-11 items-center rounded-full px-3 text-xs font-bold text-[#173d2c] transition hover:bg-[#efe6d8] sm:px-4 sm:text-sm">
               Lire sans compte
             </Link>
           </div>

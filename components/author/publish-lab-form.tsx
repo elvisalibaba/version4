@@ -604,13 +604,13 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
       <div className={`rounded-[1.6rem] border px-5 py-4 text-sm ${reviewStatusMeta.className}`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] opacity-80">Workflow de revue</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] opacity-80">État du livre</p>
             <p className="mt-2 text-base font-semibold">{reviewStatusMeta.label}</p>
           </div>
           {initial.submittedAt ? <p className="text-xs uppercase tracking-[0.14em] opacity-80">Soumis le {new Date(initial.submittedAt).toLocaleDateString("fr-FR")}</p> : null}
         </div>
         <p className="mt-3 leading-6">
-          Tous les livres soumis passent maintenant par une revue admin avant publication. Les formats papier restent prepares et mis en stock uniquement par l admin.
+          Après votre envoi, notre équipe vérifie le livre avant sa publication. Vous recevrez un message si une modification est nécessaire.
         </p>
         {initial.reviewNote ? (
           <div className="mt-4 rounded-[1.2rem] bg-white/75 px-4 py-3">
@@ -621,15 +621,15 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
       </div>
 
       <FormSection
-        title={isEditMode ? "Fiche livre simplifiee" : "Ajout rapide du livre"}
+        title={isEditMode ? "Informations principales" : "Informations du livre"}
         description={
           isEditMode
             ? "Commencez par les infos indispensables. Les details avances restent disponibles si vous en avez besoin."
             : "Le parcours est volontairement court: titre, auteur, description, categorie, fichiers, prix et mode de vente."
         }
       >
-        <div className="mb-5 rounded-[1.5rem] border border-[#ece3d7] bg-[#fcfaf7] px-4 py-4 text-sm leading-7 text-slate-600">
-          Champs vraiment requis: titre, nom affiche sur le livre, description, categorie, couverture, fichier ebook et prix.
+        <div className="mb-5 rounded-[1.5rem] border border-[#e5dacb] bg-[#fffaf2] px-4 py-4 text-sm leading-7 text-slate-600">
+          Les champs marqués d’un astérisque sont obligatoires.
         </div>
 
         <div className="grid gap-5 md:grid-cols-2">
@@ -707,17 +707,17 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
       </FormSection>
 
       <FormSection
-        title="Formats & fichiers"
-        description="Chargez seulement l essentiel pour publier rapidement. Les formats complementaires restent optionnels."
+        title="Couverture et fichier"
+        description="Ajoutez la couverture et le fichier que les lecteurs pourront ouvrir."
       >
         <div className="grid gap-5 md:grid-cols-2">
           <Input label={`Couverture ${isEditMode ? "(optionnel)" : "*"}`}><input type="file" accept="image/*" required={!isEditMode} onChange={(event) => setCover(event.target.files?.[0] ?? null)} className="block w-full px-4 py-3.5 text-slate-700" /></Input>
           <Input label={`Fichier ebook ${isEditMode ? "(optionnel)" : "*"}`}><input type="file" accept=".epub,.pdf,.mobi,application/epub+zip,application/pdf" required={!isEditMode} onChange={(event) => setEbookFile(event.target.files?.[0] ?? null)} className="block w-full px-4 py-3.5 text-slate-700" /></Input>
           <div className="md:col-span-2 rounded-[1.4rem] border border-violet-100 bg-violet-50/70 px-4 py-4 text-sm leading-7 text-slate-700">
-            Le nom saisi ici appartient a ce livre uniquement. Un meme compte editeur peut donc publier plusieurs auteurs differents sans ecraser son profil global.
+            Le nom saisi ici sera affiché comme nom d’auteur sur la page du livre.
           </div>
           <div className="md:col-span-2 rounded-[1.4rem] border border-violet-100 bg-violet-50/70 px-4 py-4 text-sm leading-7 text-slate-700">
-            Ebook protege: lecture uniquement sur le site Holistique Books et dans l application. Aucun telechargement lecteur n est propose.
+            Le livre numérique sera lu de manière sécurisée sur Holistique Books.
           </div>
         </div>
 
@@ -753,8 +753,8 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
       </FormSection>
 
       <FormSection
-        title="Distribution et abonnement"
-        description="Definissez si le livre est vendu seul, inclus dans Premium ou les deux, puis rattachez-le aux bons packs."
+        title="Mode de vente"
+        description="Choisissez si le livre sera vendu seul, inclus dans Premium, ou les deux."
       >
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <label className="rounded-[1.4rem] border border-violet-100 bg-violet-50/70 px-4 py-4 text-sm text-slate-700"><input type="checkbox" checked={isSingleSaleEnabled} onChange={(event) => setIsSingleSaleEnabled(event.target.checked)} className="mr-3 h-4 w-4 rounded border-slate-300 text-indigo-600" /> Vente individuelle</label>
@@ -773,11 +773,11 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
       </FormSection>
 
       <FormSection
-        title="Soumission admin"
-        description="L auteur prepare la fiche, mais la publication finale et les formats papier sont revus et actives par l admin."
+        title="Envoyer le livre"
+        description="Enregistrez-le pour continuer plus tard ou envoyez-le à notre équipe."
       >
         <div className="rounded-[1.5rem] border border-violet-100 bg-violet-50/70 p-4 text-sm text-slate-600">
-          Enregistrer en brouillon garde le livre hors ligne. Soumettre pour revue envoie le livre a l admin pour validation, corrections ou refus.
+          Un brouillon reste privé. Lorsque le livre est prêt, envoyez-le pour vérification avant sa mise en ligne.
         </div>
       </FormSection>
 
@@ -789,7 +789,7 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
           {saving ? "Enregistrement..." : "Enregistrer en brouillon"}
         </button>
         <button type="submit" value="submit" disabled={saving} className="cta-primary px-8 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50">
-          {saving ? "Soumission..." : isEditMode ? "Soumettre les modifications a l admin" : "Soumettre le livre a l admin"}
+          {saving ? "Envoi..." : isEditMode ? "Envoyer les modifications" : "Envoyer pour publication"}
         </button>
       </div>
     </form>

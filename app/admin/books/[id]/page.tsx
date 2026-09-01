@@ -216,9 +216,9 @@ export default async function AdminBookDetailPage({ params, searchParams }: Book
             />
           </label>
           <div className="grid gap-4">
-            {data.book.copyright_status === "blocked" ? (
+            {data.book.copyright_status !== "clear" ? (
               <div className="rounded-[1.3rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-                Publication verrouillee: ce livre est bloque pour droits d auteur. Passez d abord par l edition admin pour lever le blocage ou documenter la correction.
+                Publication verrouillée : les droits de diffusion doivent être vérifiés et marqués « Droits validés » dans l’édition administrateur.
               </div>
             ) : null}
             <label className="grid gap-2">
@@ -238,7 +238,7 @@ export default async function AdminBookDetailPage({ params, searchParams }: Book
                 type="submit"
                 name="decision"
                 value="approve"
-                disabled={data.book.copyright_status === "blocked"}
+                disabled={data.book.copyright_status !== "clear"}
                 className="cta-primary px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Valider le livre

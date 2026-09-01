@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { PublishedBook } from "@/lib/books";
 
 type FeaturedAuthorsSectionProps = {
@@ -76,7 +77,7 @@ export function FeaturedAuthorsSection({ books }: FeaturedAuthorsSectionProps) {
             <article key={author.name} className="hb-author-card">
               <div className="hb-author-avatar">
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt={author.name} className="h-full w-full object-cover" />
+                  <Image src={avatarUrl} alt={author.name} width={320} height={320} className="h-full w-full object-cover" />
                 ) : (
                   initials
                 )}

@@ -8,10 +8,10 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import "./globals.css";
 import "./cinema-theme.css";
+import { getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
 const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-body" });
 const sora = Sora({ subsets: ["latin"], variable: "--font-display" });
-const FALLBACK_APP_URL = "https://holistique-books.com";
 const DEV_SERVICE_WORKER_RESET_SCRIPT = `
 (() => {
   if (!("serviceWorker" in navigator)) return;
@@ -25,36 +25,30 @@ const DEV_SERVICE_WORKER_RESET_SCRIPT = `
   }
 })();
 `;
-let hasLoggedInvalidAppBaseUrl = false;
-
-function resolveMetadataBase() {
-  const rawCandidate = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.APP_BASE_URL?.trim() || FALLBACK_APP_URL;
-
-  try {
-    const parsed = new URL(rawCandidate);
-    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
-      return parsed;
-    }
-  } catch {
-    // Fallback handled below.
-  }
-
-  if (!hasLoggedInvalidAppBaseUrl) {
-    hasLoggedInvalidAppBaseUrl = true;
-    console.error(`[App URL] Invalid NEXT_PUBLIC_APP_URL/APP_BASE_URL value: "${rawCandidate}". Falling back to ${FALLBACK_APP_URL}.`);
-  }
-
-  return new URL(FALLBACK_APP_URL);
-}
-
 export const metadata: Metadata = {
-  metadataBase: resolveMetadataBase(),
-  applicationName: "Holistique Books",
+  metadataBase: getSiteUrl(),
+  applicationName: SITE_NAME,
   title: {
-    default: "HolistiqueBooks",
-    template: "%s | HolistiqueBooks",
+    default: "Holistique Books — Lire, publier et découvrir",
+    template: `%s | ${SITE_NAME}`,
   },
-  description: "Plateforme de livres numeriques et de lectures de transformation pour grandir, apprendre et agir.",
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: "/home" },
+  openGraph: {
+    type: "website",
+    locale: "fr_CD",
+    siteName: SITE_NAME,
+    title: "Holistique Books — Lire, publier et découvrir",
+    description: SITE_DESCRIPTION,
+    url: "/home",
+    images: [{ url: "/pwa-icon-512.png", width: 512, height: 512, alt: SITE_NAME }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Holistique Books — Lire, publier et découvrir",
+    description: SITE_DESCRIPTION,
+    images: ["/pwa-icon-512.png"],
+  },
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [

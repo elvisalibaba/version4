@@ -48,9 +48,9 @@ function Field({
 }) {
   return (
     <label className="grid gap-2">
-      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</span>
+      <span className="text-xs font-bold text-[#51483f]">{label}</span>
       {children}
-      {hint ? <span className="text-xs text-slate-400">{hint}</span> : null}
+      {hint ? <span className="text-xs leading-5 text-[#8b7f74]">{hint}</span> : null}
     </label>
   );
 }
@@ -143,14 +143,12 @@ export function CinetPayButtons({
   const currencyMismatch = effectiveCurrencyCode !== "USD";
 
   return (
-    <div className="space-y-5 rounded-[1.6rem] border border-violet-100 bg-[linear-gradient(135deg,_rgba(248,245,255,0.96),_rgba(255,255,255,0.96))] p-5">
+    <div className="space-y-6 rounded-[1.6rem] bg-[#f8f4ed] p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">EasyPay checkout</p>
-          <p className="mt-2 text-lg font-semibold text-slate-950">{bookTitle}</p>
-          <p className="mt-1 text-sm leading-6 text-slate-500">
-            Paiement en redirection avec verification serveur obligatoire. Les achats numeriques debloquent la bibliotheque apres confirmation.
-          </p>
+          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#c34d35]">Commande sécurisée</p>
+          <p className="mt-2 font-display text-xl font-extrabold text-[#1d1a17]">{bookTitle}</p>
+          <p className="mt-1 text-sm leading-6 text-[#756a61]">Votre livre sera ajouté à votre bibliothèque dès la confirmation du paiement.</p>
         </div>
         <span className="catalog-badge">
           {new Intl.NumberFormat("en-US", {
@@ -162,7 +160,7 @@ export function CinetPayButtons({
 
       {formatOptions.length > 0 ? (
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Format</p>
+          <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#8a5444]">Choisir le format</p>
           <div className="flex flex-wrap gap-2">
             {formatOptions.map((option) => {
               const isActive = option.format === selectedFormat;
@@ -172,7 +170,7 @@ export function CinetPayButtons({
                   type="button"
                   onClick={() => setSelectedFormat(option.format)}
                   className={`rounded-xl border px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition ${
-                    isActive ? "border-violet-500 bg-violet-100 text-violet-700" : "border-slate-200 bg-white text-slate-600 hover:border-violet-300"
+                    isActive ? "border-[#173f38] bg-[#173f38] text-white" : "border-[#ded2c6] bg-white text-[#5f554d] hover:border-[#e85d3f]"
                   }`}
                 >
                   {option.label || getBookFormatLabel(option.format)} -{" "}
@@ -194,7 +192,7 @@ export function CinetPayButtons({
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Prenom">
+        <Field label="Prénom">
           <input value={firstName} onChange={(event) => setFirstName(event.target.value)} className="ios-input w-full px-4 py-3.5" />
         </Field>
         <Field label="Nom">
@@ -203,19 +201,19 @@ export function CinetPayButtons({
         <Field label="Email">
           <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="ios-input w-full px-4 py-3.5" />
         </Field>
-        <Field label="Telephone">
+        <Field label="Téléphone">
           <input value={phoneNumber} onChange={(event) => setPhoneNumber(event.target.value)} className="ios-input w-full px-4 py-3.5" />
         </Field>
-        <Field label="Adresse" hint="Obligatoire pour carte bancaire et ALL.">
+        <Field label="Adresse" hint="Demandée uniquement pour certains paiements par carte.">
           <input value={address} onChange={(event) => setAddress(event.target.value)} className="ios-input w-full px-4 py-3.5" />
         </Field>
         <Field label="Ville">
           <input value={city} onChange={(event) => setCity(event.target.value)} className="ios-input w-full px-4 py-3.5" />
         </Field>
-        <Field label="Pays" hint="Code ISO a 2 lettres, ex: CD, CI, CM, US, FR.">
+        <Field label="Pays" hint="Code à deux lettres : CD, CI, CM, FR…">
           <input value={country} onChange={(event) => setCountry(event.target.value.toUpperCase())} className="ios-input w-full px-4 py-3.5" placeholder="CI" maxLength={2} />
         </Field>
-        <Field label="Etat / Province" hint="Utile surtout pour US et CA. Sinon nous reutilisons le pays ISO.">
+        <Field label="État / Province" hint="Facultatif selon votre pays.">
           <input value={state} onChange={(event) => setState(event.target.value.toUpperCase())} className="ios-input w-full px-4 py-3.5" placeholder="CI" maxLength={32} />
         </Field>
         <Field label="Code postal">
@@ -228,7 +226,7 @@ export function CinetPayButtons({
           type="button"
           onClick={() => launchCheckout("CREDIT_CARD")}
           disabled={Boolean(busyChannel) || currencyMismatch}
-          className="cta-primary px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full bg-[#e85d3f] px-5 py-3 text-sm font-extrabold text-white transition hover:bg-[#cf4d33] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busyChannel === "CREDIT_CARD" ? "Redirection..." : "Payer par carte"}
         </button>
@@ -236,7 +234,7 @@ export function CinetPayButtons({
           type="button"
           onClick={() => launchCheckout("MOBILE_MONEY")}
           disabled={Boolean(busyChannel) || currencyMismatch}
-          className="cta-secondary px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full bg-[#173f38] px-5 py-3 text-sm font-extrabold text-white transition hover:bg-[#0f312b] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busyChannel === "MOBILE_MONEY" ? "Redirection..." : "Payer par mobile money"}
         </button>
@@ -244,7 +242,7 @@ export function CinetPayButtons({
           type="button"
           onClick={() => launchCheckout("ALL")}
           disabled={Boolean(busyChannel) || currencyMismatch}
-          className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full border border-[#d6c8ba] bg-white px-5 py-3 text-sm font-extrabold text-[#403830] transition hover:border-[#e85d3f] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busyChannel === "ALL" ? "Redirection..." : "Choisir sur le guichet"}
         </button>
@@ -252,7 +250,7 @@ export function CinetPayButtons({
 
       {!isAuthenticated ? (
         <div className="rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
-          Connectez-vous avant de lancer un paiement.
+          Connectez-vous pour effectuer l’achat.
           {" "}
           <Link href={loginHref} className="font-semibold text-violet-700 hover:text-violet-800">
             Ouvrir la connexion
@@ -260,9 +258,7 @@ export function CinetPayButtons({
         </div>
       ) : null}
 
-      <div className="rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
-        Le guichet EasyPay affiche les moyens disponibles selon votre contexte. Pour payer par carte, renseignez au minimum l adresse, la ville, le pays en code ISO a 2 lettres et le code postal.
-      </div>
+      <div className="rounded-[1.25rem] border border-[#ded2c6] bg-white px-4 py-3 text-sm leading-6 text-[#756a61]">Carte bancaire et mobile money sont proposés selon votre pays et votre opérateur.</div>
 
       {error ? <div className="rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
     </div>

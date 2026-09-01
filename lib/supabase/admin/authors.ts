@@ -144,7 +144,7 @@ export async function listAdminAuthors(params: {
 
   let query = supabase
     .from("author_profiles")
-    .select("id, display_name, avatar_url, bio, website, location, professional_headline, phone, genres, publishing_goals, profile:profiles!author_profiles_id_fkey(id, email, name, role, created_at)", {
+    .select("id, display_name, avatar_url, bio, website, location, professional_headline, phone, genres, publishing_goals", {
       count: "exact",
     })
     .order("created_at", { ascending: false });
@@ -178,7 +178,15 @@ export async function listAdminAuthors(params: {
     };
   }
 
-  const authors = data ?? [];
+  const rawAuthors = data ?? [];
+  const profileResult = rawAuthors.length
+    ? await supabase.from("profiles").select("id, email, name, role, created_at").in("id", rawAuthors.map((author) => author.id))
+    : { data: [] };
+  const profilesById = new Map((profileResult.data ?? []).map((profile) => [profile.id, profile]));
+  const authors: AuthorProfileRow[] = rawAuthors.map((author) => ({
+    ...author,
+    profile: profilesById.get(author.id) ?? null,
+  }));
   const authorIds = authors.map((author) => author.id);
 
   const booksResult =
@@ -186,16 +194,21 @@ export async function listAdminAuthors(params: {
       ? await supabase
           .from("books")
           .select(
-            "id, title, subtitle, author_display_name, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name)",
+            "id, title, subtitle, author_display_name, author_id, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, copyright_status, copyright_note, copyright_blocked_at, copyright_blocked_by",
           )
           .in("author_id", authorIds)
           .returns<AuthorBookRow[]>()
       : { data: [] as AuthorBookRow[], error: null };
 
   const booksByAuthorId = new Map<string, AuthorBookRow[]>();
-  (booksResult.data ?? []).forEach((book) => {
-    const authorId = firstOf(book.author_profile)?.id;
+  (booksResult.data ?? []).forEach((rawBook) => {
+    const authorId = rawBook.author_id;
     if (!authorId) return;
+    const author = authors.find((candidate) => candidate.id === authorId);
+    const book: AuthorBookRow = {
+      ...rawBook,
+      author_profile: author ? { id: author.id, display_name: author.display_name } : null,
+    };
     const current = booksByAuthorId.get(authorId) ?? [];
     current.push(book);
     booksByAuthorId.set(authorId, current);
@@ -229,30 +242,37 @@ export async function getAdminAuthorDetail(authorId: string): Promise<AdminAutho
   const supabase = await createClient();
   const notices: AdminNotice[] = [];
 
-  const [authorResult, booksResult] = await Promise.all([
+  const [authorResult, profileResult, booksResult] = await Promise.all([
     supabase
       .from("author_profiles")
-      .select("id, display_name, avatar_url, bio, website, location, professional_headline, phone, genres, publishing_goals, profile:profiles!author_profiles_id_fkey(id, email, name, role, created_at)")
+      .select("id, display_name, avatar_url, bio, website, location, professional_headline, phone, genres, publishing_goals")
       .eq("id", authorId)
       .returns<AuthorProfileRow>()
       .maybeSingle(),
+    supabase.from("profiles").select("id, email, name, role, created_at").eq("id", authorId).maybeSingle(),
     supabase
       .from("books")
       .select(
-        "id, title, subtitle, author_display_name, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name)",
+        "id, title, subtitle, author_display_name, author_id, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, copyright_status, copyright_note, copyright_blocked_at, copyright_blocked_by",
       )
       .eq("author_id", authorId)
       .order("created_at", { ascending: false })
       .returns<AuthorBookRow[]>(),
   ]);
 
-  const author = authorResult.data ?? null;
+  const rawAuthor = (authorResult.data ?? null) as Omit<AuthorProfileRow, "profile"> | null;
+  const author: AuthorProfileRow | null = rawAuthor
+    ? { ...rawAuthor, profile: profileResult.data ?? null }
+    : null;
 
   if (!author) {
     return null;
   }
 
-  const books = booksResult.data ?? [];
+  const books: AuthorBookRow[] = (booksResult.data ?? []).map((book) => ({
+    ...book,
+    author_profile: { id: author.id, display_name: author.display_name },
+  }));
   const bookIds = books.map((book) => book.id);
 
   const [formatsResult, orderItemsResult, planMappingsResult] = await Promise.all([

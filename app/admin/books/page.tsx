@@ -1,195 +1,50 @@
 import Link from "next/link";
+import { ArrowLeft, BookOpen, ChevronDown, Plus, Search } from "lucide-react";
+import { AdminNotice } from "@/components/admin/shared/admin-notice";
+import { StatusBadge } from "@/components/admin/shared/status-badge";
+import { AdminPagination } from "@/components/admin/tables/admin-pagination";
 import { getCopyrightStatusLabel } from "@/lib/book-copyright";
 import { formatMoney } from "@/lib/book-offers";
 import { listAdminBooks } from "@/lib/supabase/admin/books";
 import { formatAdminDateTime } from "@/lib/supabase/admin/shared";
-import { AdminFilterBar } from "@/components/admin/filters/admin-filter-bar";
-import { AdminSearchInput } from "@/components/admin/filters/admin-search-input";
-import { AdminSelect } from "@/components/admin/filters/admin-select";
-import { AdminDataTable } from "@/components/admin/tables/admin-data-table";
-import { AdminPagination } from "@/components/admin/tables/admin-pagination";
-import { AdminPageHeader } from "@/components/admin/shared/admin-page-header";
-import { AdminPanel } from "@/components/admin/shared/admin-panel";
-import { StatusBadge } from "@/components/admin/shared/status-badge";
-import { AdminNotice } from "@/components/admin/shared/admin-notice";
 
-type BooksPageProps = {
-  searchParams: Promise<{
-    q?: string;
-    status?: "draft" | "published" | "archived" | "coming_soon";
-    reviewStatus?: "draft" | "submitted" | "approved" | "rejected" | "changes_requested";
-    copyrightStatus?: "clear" | "review" | "blocked";
-    language?: string;
-    authorId?: string;
-    category?: string;
-    singleSaleEnabled?: string;
-    subscriptionAvailable?: string;
-    sort?: "views" | "purchases" | "rating" | "recent";
-    page?: string;
-  }>;
-};
+type Props = { searchParams: Promise<{ q?: string; status?: "draft" | "published" | "archived" | "coming_soon"; reviewStatus?: "draft" | "submitted" | "approved" | "rejected" | "changes_requested"; copyrightStatus?: "clear" | "review" | "blocked"; language?: string; authorId?: string; category?: string; singleSaleEnabled?: string; subscriptionAvailable?: string; sort?: "views" | "purchases" | "rating" | "recent"; page?: string; created?: string }> };
 
-export default async function AdminBooksPage({ searchParams }: BooksPageProps) {
-  const {
-    q,
-    status,
-    reviewStatus,
-    copyrightStatus,
-    language,
-    authorId,
-    category,
-    singleSaleEnabled,
-    subscriptionAvailable,
-    sort,
-    page,
-  } = await searchParams;
+function Select({ name, label, value, options }: { name: string; label: string; value?: string; options: { label: string; value: string }[] }) {
+  return <label className="grid gap-1.5"><span className="text-[.65rem] font-bold uppercase tracking-[.15em] text-[#766e64]">{label}</span><select name={name} defaultValue={value ?? ""} className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3 text-sm text-[#17231d]"><option value="">Tous</option>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>;
+}
 
-  const data = await listAdminBooks({
-    page: page ? Number(page) : 1,
-    search: q,
-    status: status ?? "",
-    reviewStatus: reviewStatus ?? "",
-    copyrightStatus: copyrightStatus ?? "",
-    language: language ?? "",
-    authorId: authorId ?? "",
-    category: category ?? "",
-    singleSaleEnabled: singleSaleEnabled ?? "",
-    subscriptionAvailable: subscriptionAvailable ?? "",
-    sort: sort ?? "recent",
-  });
+export default async function AdminBooksPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const data = await listAdminBooks({ page: params.page ? Number(params.page) : 1, search: params.q, status: params.status ?? "", reviewStatus: params.reviewStatus ?? "", copyrightStatus: params.copyrightStatus ?? "", language: params.language ?? "", authorId: params.authorId ?? "", category: params.category ?? "", singleSaleEnabled: params.singleSaleEnabled ?? "", subscriptionAvailable: params.subscriptionAvailable ?? "", sort: params.sort ?? "recent" });
+  const hasFilters = Object.entries(params).some(([key, value]) => key !== "page" && Boolean(value));
 
   return (
-    <div className="space-y-6">
-      <AdminPageHeader
-        title="Livres"
-        description="Gestion du catalogue principal, de la revue des soumissions auteur, des prix vitrine et des disponibilites vente / abonnement."
-        breadcrumbs={[
-          { label: "Admin", href: "/admin" },
-          { label: "Livres" },
-        ]}
-      />
+    <div className="space-y-5 pb-10">
+      <header className="flex flex-col gap-5 rounded-[28px] bg-[#173d2c] p-6 text-white sm:flex-row sm:items-end sm:justify-between sm:p-8"><div><Link href="/admin" className="inline-flex items-center gap-2 text-sm font-bold text-white/65 hover:text-white"><ArrowLeft className="h-4 w-4" />Vue d’ensemble</Link><p className="mt-7 text-xs font-bold uppercase tracking-[.2em] text-[#f2c66f]">Catalogue</p><h1 className="mt-3 font-serif text-3xl sm:text-4xl">Gestion des livres</h1><p className="mt-2 max-w-xl text-sm text-white/65">Recherchez un livre, vérifiez son état et ouvrez sa fiche.</p></div><div className="flex flex-wrap items-center gap-2"><span className="w-fit rounded-full border border-white/20 px-4 py-2 text-sm font-bold">{data.pagination.total} livre{data.pagination.total > 1 ? "s" : ""}</span><Link href="/admin/books/new" className="inline-flex h-11 items-center gap-2 rounded-full bg-[#e8ac42] px-4 text-sm font-bold text-[#173d2c]"><Plus className="h-4 w-4" />Ajouter jusqu’à 5 livres</Link></div></header>
 
-      {data.notices.length ? (
-        <div className="grid gap-3 xl:grid-cols-2">
-          {data.notices.map((notice) => (
-            <AdminNotice key={notice.id} tone={notice.tone} title={notice.title} description={notice.description} />
-          ))}
-        </div>
-      ) : null}
+      {params.created ? <p className="rounded-2xl border border-[#b9ddcb] bg-[#effaf4] px-4 py-3 text-sm font-semibold text-[#266347]">{params.created} livre{params.created === "1" ? "" : "s"} publié{params.created === "1" ? "" : "s"} directement.</p> : null}
 
-      <AdminPanel title="Filtres catalogue" description="Recherche texte, criteres editoriaux et tri metier sur le schema books actuel.">
-        <AdminFilterBar action="/admin/books">
-          <AdminSearchInput defaultValue={q} placeholder="Titre, sous-titre, description ou ISBN" />
-          <AdminSelect name="status" label="Status" defaultValue={status} options={data.filterOptions.statuses} />
-          <AdminSelect name="reviewStatus" label="Revue" defaultValue={reviewStatus} options={data.filterOptions.reviewStatuses} />
-          <AdminSelect name="copyrightStatus" label="Droits" defaultValue={copyrightStatus} options={data.filterOptions.copyrightStatuses} />
-          <AdminSelect name="language" label="Langue" defaultValue={language} options={data.filterOptions.languages} />
-          <AdminSelect name="authorId" label="Auteur" defaultValue={authorId} options={data.filterOptions.authors} />
-          <AdminSelect name="category" label="Categorie" defaultValue={category} options={data.filterOptions.categories} />
-          <AdminSelect
-            name="singleSaleEnabled"
-            label="Vente unitaire"
-            defaultValue={singleSaleEnabled}
-            options={[
-              { label: "Activee", value: "true" },
-              { label: "Desactivee", value: "false" },
-            ]}
-          />
-          <AdminSelect
-            name="subscriptionAvailable"
-            label="Abonnement"
-            defaultValue={subscriptionAvailable}
-            options={[
-              { label: "Disponible", value: "true" },
-              { label: "Indisponible", value: "false" },
-            ]}
-          />
-          <AdminSelect
-            name="sort"
-            label="Tri"
-            defaultValue={sort ?? "recent"}
-            options={[
-              { label: "Plus recents", value: "recent" },
-              { label: "Plus vus", value: "views" },
-              { label: "Plus vendus", value: "purchases" },
-              { label: "Mieux notes", value: "rating" },
-            ]}
-          />
-          <div className="flex gap-3">
-            <button type="submit" className="cta-primary px-5 py-3 text-sm">
-              Appliquer
-            </button>
-            <Link href="/admin/books" className="cta-secondary px-5 py-3 text-sm">
-              Reinitialiser
-            </Link>
-          </div>
-        </AdminFilterBar>
-      </AdminPanel>
+      {data.notices.length ? <div className="grid gap-3 md:grid-cols-2">{data.notices.map((notice) => <AdminNotice key={notice.id} tone={notice.tone} title={notice.title} description={notice.description} />)}</div> : null}
 
-      <AdminPanel title="Catalogue complet" description="books.price reste le prix vitrine principal ; les prix par format, l'etat de revue et le controle droits sont consultables dans les details du livre.">
-        <AdminDataTable columns={["Livre", "Auteur", "Etat", "Revue", "Droits", "Prix", "Stats", "Publication", "Actions"]}>
-          {data.items.map((book) => (
-            <tr key={book.id} className="border-t border-violet-100/70 align-top">
-              <td className="px-4 py-3">
-                <Link href={`/admin/books/${book.id}`} className="font-semibold text-slate-950 hover:text-violet-700">
-                  {book.title}
-                </Link>
-                {book.subtitle ? <p className="text-sm text-slate-500">{book.subtitle}</p> : null}
-              </td>
-              <td className="px-4 py-3 text-sm text-slate-500">{book.author_name}</td>
-              <td className="px-4 py-3">
-                <StatusBadge kind="book" value={book.status} />
-              </td>
-              <td className="px-4 py-3">
-                <StatusBadge kind="review" value={book.review_status} />
-              </td>
-              <td className="px-4 py-3">
-                <StatusBadge kind="copyright" value={book.copyright_status} label={getCopyrightStatusLabel(book.copyright_status)} />
-              </td>
-              <td className="px-4 py-3 text-sm text-slate-500">{formatMoney(book.price, book.currency_code)}</td>
-              <td className="px-4 py-3 text-sm text-slate-500">
-                {book.views_count} vues - {book.purchases_count} achats
-                <div className="text-xs uppercase tracking-[0.14em] text-slate-400">
-                  {book.rating_avg ? `${book.rating_avg}/5` : "-"} - {book.ratings_count} notes
-                </div>
-              </td>
-              <td className="px-4 py-3 text-sm text-slate-500">
-                {formatAdminDateTime(book.published_at || book.created_at)}
-                <div className="text-xs uppercase tracking-[0.14em] text-slate-400">{book.language.toUpperCase()}</div>
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex flex-wrap gap-2">
-                  <Link href={`/admin/books/${book.id}`} className="cta-secondary px-4 py-2 text-xs">
-                    Detail
-                  </Link>
-                  <Link href={`/admin/books/${book.id}/edit`} className="cta-secondary px-4 py-2 text-xs">
-                    Editer
-                  </Link>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </AdminDataTable>
+      <form action="/admin/books" className="rounded-[24px] border border-[#ded3c2] bg-white p-4">
+        <div className="flex gap-2"><div className="relative min-w-0 flex-1"><Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#887f74]" /><input name="q" defaultValue={params.q} placeholder="Rechercher par titre, auteur ou ISBN" className="h-12 w-full rounded-full border border-[#d9cebd] bg-[#fffaf2] pl-10 pr-4 text-base outline-none focus:border-[#173d2c]" /></div><button className="h-12 shrink-0 rounded-full bg-[#173d2c] px-5 text-sm font-bold text-white">Rechercher</button></div>
+        <details className="group mt-3 border-t border-[#e8dfd2] pt-3" open={hasFilters && !params.q}><summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold text-[#5f574f] [&::-webkit-details-marker]:hidden"><span>Filtres avancés</span><ChevronDown className="h-4 w-4 transition group-open:rotate-180" /></summary><div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><Select name="status" label="Publication" value={params.status} options={data.filterOptions.statuses} /><Select name="reviewStatus" label="Vérification" value={params.reviewStatus} options={data.filterOptions.reviewStatuses} /><Select name="copyrightStatus" label="Droits" value={params.copyrightStatus} options={data.filterOptions.copyrightStatuses} /><Select name="authorId" label="Auteur" value={params.authorId} options={data.filterOptions.authors} /><Select name="category" label="Catégorie" value={params.category} options={data.filterOptions.categories} /><Select name="language" label="Langue" value={params.language} options={data.filterOptions.languages} /><Select name="sort" label="Trier par" value={params.sort ?? "recent"} options={[{ label: "Plus récents", value: "recent" }, { label: "Plus vus", value: "views" }, { label: "Plus vendus", value: "purchases" }, { label: "Mieux notés", value: "rating" }]} /><div className="flex items-end gap-2"><button className="h-11 rounded-full bg-[#173d2c] px-4 text-sm font-bold text-white">Appliquer</button><Link href="/admin/books" className="inline-flex h-11 items-center rounded-full border border-[#d9cebd] px-4 text-sm font-bold">Effacer</Link></div></div></details>
+      </form>
 
-        <div className="mt-4">
-          <AdminPagination
-            basePath="/admin/books"
-            pagination={data.pagination}
-            params={{
-              q: q ?? "",
-              status: status ?? "",
-              reviewStatus: reviewStatus ?? "",
-              copyrightStatus: copyrightStatus ?? "",
-              language: language ?? "",
-              authorId: authorId ?? "",
-              category: category ?? "",
-              singleSaleEnabled: singleSaleEnabled ?? "",
-              subscriptionAvailable: subscriptionAvailable ?? "",
-              sort: sort ?? "recent",
-            }}
-          />
-        </div>
-      </AdminPanel>
+      <section className="overflow-hidden rounded-[28px] border border-[#ded3c2] bg-white px-5 sm:px-6">
+        {data.items.map((book) => (
+          <article key={book.id} className="border-b border-[#e8dfd2] py-5 last:border-0">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><StatusBadge kind="book" value={book.status} /><StatusBadge kind="review" value={book.review_status} />{book.copyright_status !== "clear" ? <StatusBadge kind="copyright" value={book.copyright_status} label={getCopyrightStatusLabel(book.copyright_status)} /> : null}</div><h2 className="mt-3 truncate font-serif text-xl text-[#17231d]">{book.title}</h2><p className="mt-1 truncate text-sm text-[#766e64]">{book.author_name}{book.subtitle ? ` · ${book.subtitle}` : ""}</p><p className="mt-2 text-xs text-[#92887c]">{formatMoney(book.price, book.currency_code)} · {book.views_count} vues · {book.purchases_count} achats · {formatAdminDateTime(book.published_at || book.created_at)}</p></div>
+              <div className="flex shrink-0 gap-2"><Link href={`/admin/books/${book.id}`} className="inline-flex h-10 items-center rounded-full border border-[#d9cebd] px-4 text-sm font-bold text-[#173d2c] hover:bg-[#f5f0e7]">Consulter</Link><Link href={`/admin/books/${book.id}/edit`} className="inline-flex h-10 items-center rounded-full bg-[#173d2c] px-4 text-sm font-bold text-white">Modifier</Link></div>
+            </div>
+          </article>
+        ))}
+        {!data.items.length ? <div className="py-20 text-center"><BookOpen className="mx-auto h-8 w-8 text-[#b7aa9a]" /><h2 className="mt-4 font-serif text-2xl">Aucun livre trouvé</h2><p className="mt-2 text-sm text-[#766e64]">Modifiez la recherche ou effacez les filtres.</p></div> : null}
+      </section>
+
+      <AdminPagination basePath="/admin/books" pagination={data.pagination} params={{ q: params.q ?? "", status: params.status ?? "", reviewStatus: params.reviewStatus ?? "", copyrightStatus: params.copyrightStatus ?? "", language: params.language ?? "", authorId: params.authorId ?? "", category: params.category ?? "", sort: params.sort ?? "recent" }} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Flame, Star } from "lucide-react";
 import type { PublishedBook } from "@/lib/books";
 
@@ -30,7 +31,7 @@ export function TrendingSection({ books }: TrendingSectionProps) {
             <div className="relative">
               <div className="hb-shimmer aspect-[2/3] w-full overflow-hidden rounded-xl bg-slate-100 shadow-2xl">
                 {book.cover_signed_url ? (
-                  <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" />
+                  <Image src={book.cover_signed_url} alt={book.title} width={320} height={480} className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" />
                 ) : (
                   <div className="flex h-full items-center justify-center px-3 text-center text-xs font-semibold text-slate-500">{book.title}</div>
                 )}

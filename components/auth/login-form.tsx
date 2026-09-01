@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getSafeNextPath, withNextPath } from "@/lib/safe-next-path";
 
 const inputClassName =
-  "h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 pl-11 text-base text-[#171717] outline-none transition placeholder:text-[#a79b90] focus:border-[#ff7a5c]/60 focus:ring-4 focus:ring-[#ff7a5c]/10 sm:text-sm";
+  "h-13 w-full rounded-2xl border border-[#d9cebd] bg-white px-4 pl-11 text-base text-[#17231d] outline-none transition placeholder:text-[#a79b90] focus:border-[#173d2c] focus:ring-4 focus:ring-[#173d2c]/10 sm:text-sm";
 
 type LoginFormProps = {
   nextPath: string;
@@ -71,22 +71,22 @@ export function LoginForm({ nextPath, notice = null }: LoginFormProps) {
     <form
       onSubmit={onSubmit}
       aria-busy={loading}
-      className="relative mx-auto w-full max-w-lg overflow-hidden rounded-[24px] border border-[#eadfd4] bg-[#fdfaf6] p-4 shadow-[0_20px_60px_rgba(23,23,23,0.08)] sm:rounded-[36px] sm:p-9 lg:p-10"
+      className="relative mx-auto w-full max-w-lg overflow-hidden rounded-[24px] bg-[#fffaf2] p-3 sm:p-6 lg:p-0"
     >
-      <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#ff7a5c]/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#e8ac42]/15 blur-3xl" />
 
       <div className="relative grid gap-5 sm:gap-7">
         <header className="space-y-3">
-          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#f0dfd3] bg-white px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.24em] text-[#9a583f]">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#d9cebd] bg-white px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.24em] text-[#a94b34]">
             <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />
             Connexion sécurisée
           </span>
           <div className="space-y-2">
-            <h1 className="text-[1.9rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[#171717] sm:text-[2.6rem]">
-              Reprendre ma lecture
+            <h1 className="font-serif text-[2.2rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[#17231d] sm:text-[3rem]">
+              Heureux de vous revoir.
             </h1>
             <p className="text-sm leading-6 text-[#6f665e]">
-              Retrouvez votre bibliothèque et votre espace personnel.
+              Connectez-vous pour retrouver votre bibliothèque ou poursuivre votre projet éditorial.
             </p>
           </div>
         </header>
@@ -127,7 +127,7 @@ export function LoginForm({ nextPath, notice = null }: LoginFormProps) {
           <label className="grid gap-2" htmlFor="login-password">
             <span className="flex items-center justify-between gap-3">
               <span className="text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#6f665e]">Mot de passe</span>
-              <Link href={withNextPath("/forgot-password", safeNextPath)} className="text-xs font-semibold text-[#9a583f] hover:text-[#171717]">
+              <Link href={withNextPath("/forgot-password", safeNextPath)} className="text-xs font-semibold text-[#a94b34] hover:text-[#173d2c]">
                 Mot de passe oublié ?
               </Link>
             </span>
@@ -146,7 +146,7 @@ export function LoginForm({ nextPath, notice = null }: LoginFormProps) {
               <button
                 type="button"
                 onClick={() => setPasswordVisible((visible) => !visible)}
-                className="absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl text-[#71675f] transition hover:bg-[#f6eee7] hover:text-[#171717]"
+                className="absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl text-[#71675f] transition hover:bg-[#f1e8da] hover:text-[#173d2c]"
                 aria-label={passwordVisible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                 aria-pressed={passwordVisible}
               >
@@ -165,7 +165,7 @@ export function LoginForm({ nextPath, notice = null }: LoginFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#171717] px-6 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(23,23,23,0.18)] transition hover:bg-[#332c27] disabled:cursor-not-allowed disabled:opacity-60"
+          className="group inline-flex h-13 w-full items-center justify-center gap-2 rounded-full bg-[#173d2c] px-6 text-sm font-bold text-white shadow-[0_16px_35px_rgba(23,61,44,0.18)] transition hover:bg-[#23573f] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Connexion en cours…" : "Accéder à mon espace"}
           {!loading ? <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-1" /> : null}

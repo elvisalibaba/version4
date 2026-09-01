@@ -4,7 +4,15 @@ import path from "path";
 import { mkdir, readFile, writeFile } from "fs/promises";
 
 function resolveFilePath(relativePath: string) {
-  return path.join(process.cwd(), relativePath);
+  const dataRoot = path.join(process.cwd(), "data");
+  const normalizedPath = relativePath.replace(/^data[\\/]/, "");
+  const resolvedPath = path.resolve(dataRoot, normalizedPath);
+
+  if (!resolvedPath.startsWith(`${dataRoot}${path.sep}`)) {
+    throw new Error("Invalid content storage path.");
+  }
+
+  return resolvedPath;
 }
 
 export async function readJsonFile<T>(relativePath: string, fallbackValue: T): Promise<T> {

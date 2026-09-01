@@ -1,6 +1,5 @@
 import "server-only";
 
-import { isBookCopyrightBlocked } from "@/lib/book-copyright";
 import { CHECKOUT_BOOK_FORMATS, isDigitalBookFormat } from "@/lib/book-formats";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import type { Database, OrderPaymentStatus } from "@/types/database";
@@ -254,7 +253,7 @@ async function loadCheckoutBookContext(userId: string, bookId: string, requested
     throw new PaymentFlowError("Ce livre n est pas disponible a la vente.", 404);
   }
 
-  if (isBookCopyrightBlocked(book.copyright_status)) {
+  if (book.copyright_status !== "clear") {
     throw new PaymentFlowError("Ce livre est temporairement bloque pour verification de droits d auteur.", 409);
   }
 
@@ -350,7 +349,7 @@ async function loadPreparedOrderForUser(userId: string, orderId: string): Promis
     throw new PaymentFlowError(`Le livre "${unavailableBook.title}" n est plus publiable dans cette commande.`, 409);
   }
 
-  const blockedBook = books.find((book) => isBookCopyrightBlocked(book.copyright_status));
+  const blockedBook = books.find((book) => book.copyright_status !== "clear");
   if (blockedBook) {
     throw new PaymentFlowError(`Le livre "${blockedBook.title}" est bloque pour verification de droits d auteur.`, 409);
   }

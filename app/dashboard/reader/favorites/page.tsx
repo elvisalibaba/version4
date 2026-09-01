@@ -93,7 +93,7 @@ export default async function ReaderFavoritesPage() {
           {items.length > 0 ? (
             items.map((item) => {
               const book = firstOf(item.books);
-              const isTemporarilyUnavailable = !book || book.status !== "published" || book.copyright_status === "blocked";
+              const isTemporarilyUnavailable = !book || book.status !== "published" || book.copyright_status !== "clear";
 
               return (
                 <article

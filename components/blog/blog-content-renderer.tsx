@@ -1,4 +1,5 @@
 import type { BlogContentBlock } from "@/lib/blog";
+import Image from "next/image";
 
 type BlogContentRendererProps = {
   content: BlogContentBlock[];
@@ -11,7 +12,7 @@ export function BlogContentRenderer({ content }: BlogContentRendererProps) {
         if (block.type === "image") {
           return (
             <figure key={`image-${index}`} className="hb-post-block-image">
-              <img src={block.url} alt={block.alt || "Illustration de l article"} className="hb-post-inline-image" loading="lazy" decoding="async" />
+              <Image src={block.url} alt={block.alt || "Illustration de l’article"} width={1200} height={800} className="hb-post-inline-image" />
               {block.caption ? <figcaption>{block.caption}</figcaption> : null}
             </figure>
           );

@@ -1,238 +1,48 @@
 import Link from "next/link";
-import { BookOpen, CircleDollarSign, Library, Pencil, PlusCircle, Sparkles } from "lucide-react";
-import { DashboardTopbar } from "@/components/ui/dashboard-topbar";
-import { EmptyState } from "@/components/ui/empty-state";
-import { StatCard } from "@/components/ui/stat-card";
-import { resolveBookAuthorName } from "@/lib/book-authors";
-import { resolveBookOfferDetails } from "@/lib/book-offers";
-import { DIGITAL_BOOK_FORMATS, findPreferredFormat, getBookFormatLabel, sortFormatsByPriority } from "@/lib/book-formats";
+import { BookOpen, CircleDollarSign, Pencil, Plus } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import type { BookFormatType, BookReviewStatus, Database } from "@/types/database";
+import type { BookReviewStatus, Database } from "@/types/database";
 
-type MaybeArray<T> = T | T[] | null;
+type Book = Pick<Database["public"]["Tables"]["books"]["Row"], "id" | "title" | "subtitle" | "status" | "review_status" | "review_note" | "updated_at" | "price" | "currency_code" | "is_single_sale_enabled" | "is_subscription_available">;
 
-type AuthorBookRow = Pick<
-  Database["public"]["Tables"]["books"]["Row"],
-  | "id"
-  | "title"
-  | "subtitle"
-  | "author_display_name"
-  | "status"
-  | "created_at"
-  | "updated_at"
-  | "categories"
-  | "language"
-  | "price"
-  | "currency_code"
-  | "is_single_sale_enabled"
-  | "is_subscription_available"
-  | "review_status"
-  | "review_note"
-> & {
-  book_formats:
-    | {
-        id: string;
-        format: BookFormatType;
-        price: number;
-        printing_cost: number | null;
-        is_published: boolean;
-        currency_code: string;
-      }[]
-    | null;
-  subscription_plan_books:
-    | {
-        plan_id: string;
-        subscription_plans: MaybeArray<{ name: string; slug: string }>;
-      }[]
-    | null;
-};
+const status = {
+  published: { label: "Publié", style: "bg-[#e4f1e9] text-[#246343]" }, draft: { label: "Brouillon", style: "bg-[#f5ead2] text-[#89611d]" },
+  coming_soon: { label: "À venir", style: "bg-[#e6eef3] text-[#365d72]" }, archived: { label: "Archivé", style: "bg-[#ece9e3] text-[#665f56]" },
+} as const;
+const review: Record<BookReviewStatus, string> = { draft: "Non soumis", submitted: "En cours de vérification", approved: "Validé", rejected: "Refusé", changes_requested: "Corrections demandées" };
 
-function firstOf<T>(value: MaybeArray<T>) {
-  if (Array.isArray(value)) return value[0] ?? null;
-  return value ?? null;
+function price(value: number, currency: string) {
+  return new Intl.NumberFormat("fr-FR", { style: "currency", currency, maximumFractionDigits: 2 }).format(value);
 }
 
 export default async function AuthorBooksPage() {
   const profile = await requireRole(["author"]);
   const supabase = await createClient();
-
-  const { data } = await supabase
-    .from("books")
-      .select(
-      "id, title, subtitle, author_display_name, status, created_at, updated_at, categories, language, price, currency_code, is_single_sale_enabled, is_subscription_available, review_status, review_note, book_formats(id, format, price, printing_cost, is_published, currency_code), subscription_plan_books(plan_id, subscription_plans(name, slug))",
-    )
-    .eq("author_id", profile.id)
-    .order("created_at", { ascending: false })
-    .returns<AuthorBookRow[]>();
-
-  const books = (data ?? []) as AuthorBookRow[];
-  const publishedCount = books.filter((book) => book.status === "published").length;
-  const draftCount = books.filter((book) => book.status === "draft").length;
-  const submittedCount = books.filter((book) => book.review_status === "submitted").length;
-  const totalFormats = books.reduce((sum, book) => sum + (book.book_formats?.length ?? 0), 0);
-  const premiumEnabledCount = books.filter((book) => book.is_subscription_available).length;
-  const statusMeta = {
-    published: { label: "Publie", className: "bg-emerald-100 text-emerald-700" },
-    draft: { label: "Brouillon", className: "bg-[#faf1e1] text-[#a06a2b]" },
-    coming_soon: { label: "Bientot disponible", className: "bg-[#edf4f7] text-[#3d6f83]" },
-    archived: { label: "Archive", className: "bg-[#f2f0ec] text-[#5c544b]" },
-  } as const;
-
-  const reviewMeta: Record<BookReviewStatus, { label: string; className: string }> = {
-    draft: { label: "Brouillon", className: "bg-[#f2f0ec] text-[#5c544b]" },
-    submitted: { label: "Soumis", className: "bg-[#faf1e1] text-[#a06a2b]" },
-    approved: { label: "Valide", className: "bg-emerald-100 text-emerald-700" },
-    rejected: { label: "Refuse", className: "bg-[#fde9e3] text-[#b45b48]" },
-    changes_requested: { label: "Corrections", className: "bg-[#f8efe7] text-[#a85b3f]" },
-  };
+  const { data } = await supabase.from("books").select("id, title, subtitle, status, review_status, review_note, updated_at, price, currency_code, is_single_sale_enabled, is_subscription_available").eq("author_id", profile.id).order("updated_at", { ascending: false }).returns<Book[]>();
+  const books = data ?? [];
 
   return (
-    <section className="space-y-6">
-      <DashboardTopbar
-        kicker="Catalogue auteur"
-        title="Gerez vos livres"
-        description="Vue complete de vos titres, formats, statuts et disponibilites commerciales dans un rendu plus lisible et plus editorial."
-        actions={
-          <>
-            <Link href="/dashboard/author/add-book" className="cta-primary px-5 py-3 text-sm">
-              <PlusCircle className="h-4 w-4" />
-              Ajouter un livre
-            </Link>
-            <Link href="/dashboard/author/sales" className="cta-secondary px-5 py-3 text-sm">
-              <CircleDollarSign className="h-4 w-4" />
-              Voir les ventes
-            </Link>
-          </>
-        }
-      />
+    <div className="space-y-5">
+      <header className="flex flex-col gap-5 rounded-[28px] bg-[#173d2c] p-6 text-white sm:flex-row sm:items-end sm:justify-between sm:p-8">
+        <div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#f2c66f]">Mes publications</p><h1 className="mt-3 font-serif text-3xl sm:text-4xl">Mes livres</h1><p className="mt-2 text-sm text-white/65">Consultez leur état et apportez vos modifications.</p></div>
+        <div className="flex flex-wrap gap-2"><Link href="/dashboard/author/sales" className="inline-flex h-11 items-center gap-2 rounded-full border border-white/20 px-4 text-sm font-bold"><CircleDollarSign className="h-4 w-4" />Ventes</Link><Link href="/dashboard/author/add-book" className="inline-flex h-11 items-center gap-2 rounded-full bg-[#e8ac42] px-4 text-sm font-bold text-[#173d2c]"><Plus className="h-4 w-4" />Ajouter</Link></div>
+      </header>
 
-      <div className="metric-grid">
-        <StatCard icon={BookOpen} label="Livres" value={books.length} description="Total catalogue" tone="violet" />
-        <StatCard icon={Sparkles} label="Publies" value={publishedCount} description="Disponibles en vente" tone="emerald" />
-        <StatCard icon={Sparkles} label="Brouillons" value={draftCount} description="A finaliser" tone="amber" />
-        <StatCard icon={Sparkles} label="Soumis" value={submittedCount} description="En attente admin" tone="rose" />
-        <StatCard icon={Library} label="Formats" value={totalFormats} description="Tous formats confondus" tone="sky" />
-      </div>
+      <div className="flex items-center justify-between px-1"><p className="text-sm font-semibold text-[#766e64]">{books.length} livre{books.length > 1 ? "s" : ""}</p><div className="flex gap-3 text-xs font-bold text-[#766e64]"><span>{books.filter((book) => book.status === "published").length} publié{books.filter((book) => book.status === "published").length > 1 ? "s" : ""}</span><span>{books.filter((book) => book.status === "draft").length} brouillon{books.filter((book) => book.status === "draft").length > 1 ? "s" : ""}</span></div></div>
 
-      <section className="surface-panel p-6">
-        <div className="section-header">
-          <div className="space-y-2">
-            <p className="section-kicker">Publishing list</p>
-            <h2 className="section-title text-2xl">Votre catalogue</h2>
-            <p className="section-description">Chaque livre conserve sa logique metier, mais l interface auteur gagne une lecture plus claire, plus premium et plus exploitable.</p>
-          </div>
-          <span className="catalog-badge">{premiumEnabledCount} titre(s) Premium</span>
-        </div>
-
-        <div className="mt-5 space-y-4">
-          {books.length > 0 ? (
-            books.map((book) => {
-              const primaryDigitalFormat = findPreferredFormat(
-                (book.book_formats ?? []).filter(
-                  (format) => format.is_published && DIGITAL_BOOK_FORMATS.includes(format.format as (typeof DIGITAL_BOOK_FORMATS)[number]),
-                ),
-                DIGITAL_BOOK_FORMATS,
-              );
-              const offer = resolveBookOfferDetails({
-                price: primaryDigitalFormat?.price ?? book.price,
-                currencyCode: primaryDigitalFormat?.currency_code ?? book.currency_code,
-                isSingleSaleEnabled: book.is_single_sale_enabled,
-                isSubscriptionAvailable: book.is_subscription_available,
-              });
-              const publishedAuthorName = resolveBookAuthorName(book.author_display_name, profile.name);
-
-              const planLabels = (book.subscription_plan_books ?? [])
-                .map((entry) => firstOf(entry.subscription_plans)?.name ?? null)
-                .filter((value): value is string => Boolean(value));
-
-              return (
-                <article
-                  key={book.id}
-                  className="rounded-[1.85rem] border border-[#ece3d7] bg-[linear-gradient(135deg,_rgba(255,255,255,0.98),_rgba(250,245,239,0.96))] p-5"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                      <h2 className="text-xl font-semibold text-slate-950">{book.title}</h2>
-                      {book.subtitle ? <p className="mt-1 text-sm text-slate-500">{book.subtitle}</p> : null}
-                      <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Publie sous {publishedAuthorName}</p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusMeta[book.status]?.className ?? statusMeta.draft.className}`}>
-                        {statusMeta[book.status]?.label ?? statusMeta.draft.label}
-                      </span>
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${reviewMeta[book.review_status]?.className ?? reviewMeta.draft.className}`}>
-                        {reviewMeta[book.review_status]?.label ?? reviewMeta.draft.label}
-                      </span>
-                      <Link href={`/dashboard/author/books/${book.id}/edit`} className="cta-secondary px-4 py-2 text-sm">
-                        <Pencil className="h-3.5 w-3.5" />
-                        Modifier
-                      </Link>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    <p className="rounded-[1.2rem] bg-white/85 px-4 py-3 text-sm text-slate-600">
-                      Langue: <span className="font-medium text-slate-950">{book.language}</span>
-                    </p>
-                    <p className="rounded-[1.2rem] bg-white/85 px-4 py-3 text-sm text-slate-600">
-                      Categories: <span className="font-medium text-slate-950">{book.categories.length ? book.categories.join(", ") : "Aucune"}</span>
-                    </p>
-                    <p className="rounded-[1.2rem] bg-white/85 px-4 py-3 text-sm text-slate-600">
-                      Cree: <span className="font-medium text-slate-950">{new Date(book.created_at).toLocaleDateString("fr-FR")}</span>
-                    </p>
-                    <p className="rounded-[1.2rem] bg-white/85 px-4 py-3 text-sm text-slate-600">
-                      Maj: <span className="font-medium text-slate-950">{new Date(book.updated_at).toLocaleDateString("fr-FR")}</span>
-                    </p>
-                  </div>
-
-                  <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_0.9fr]">
-                    <div className="rounded-[1.35rem] bg-white/85 p-4 shadow-sm">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Formats</p>
-                      <p className="mt-3 text-sm leading-7 text-slate-600">
-                        {sortFormatsByPriority(book.book_formats ?? [])
-                          .map((format) =>
-                            `${getBookFormatLabel(format.format)} (${format.price.toFixed(2)} ${format.currency_code})${
-                              format.printing_cost !== null ? `, impression ${format.printing_cost.toFixed(2)} ${format.currency_code}` : ""
-                            }${format.is_published ? "" : " [validation admin]"}`,
-                          )
-                          .join(" | ") || "Aucun format"}
-                      </p>
-                    </div>
-
-                    <div className="rounded-[1.35rem] bg-white/85 p-4 shadow-sm">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Commercialisation</p>
-                      <p className="mt-3 text-sm font-semibold text-slate-950">{offer.offerSummaryLabel}</p>
-                      <p className="mt-1 text-sm text-slate-500">{offer.displayPriceLabel}</p>
-                      {planLabels.length > 0 ? (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {planLabels.map((label) => (
-                            <span key={`${book.id}-${label}`} className="catalog-badge">
-                              {label}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                      {book.review_note ? <p className="mt-3 text-sm text-slate-500">Retour admin: {book.review_note}</p> : null}
-                    </div>
-                  </div>
-                </article>
-              );
-            })
-          ) : (
-            <EmptyState
-              title="Aucun livre dans votre catalogue"
-              description="Ajoutez votre premier livre pour alimenter votre studio auteur."
-              action={
-                <Link href="/dashboard/author/add-book" className="cta-primary px-5 py-3 text-sm">
-                  <PlusCircle className="h-4 w-4" />
-                  Creer votre premier livre
-                </Link>
-              }
-            />
-          )}
-        </div>
+      <section className="overflow-hidden rounded-[28px] border border-[#ded3c2] bg-white px-5 sm:px-6">
+        {books.map((book) => (
+          <article key={book.id} className="border-b border-[#e8dfd2] py-5 last:border-0">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2.5 py-1 text-[.65rem] font-bold ${status[book.status].style}`}>{status[book.status].label}</span><span className="text-xs text-[#837a70]">{review[book.review_status]}</span></div><h2 className="mt-2 truncate font-serif text-xl text-[#17231d]">{book.title}</h2>{book.subtitle ? <p className="mt-1 truncate text-sm text-[#766e64]">{book.subtitle}</p> : null}<p className="mt-2 text-xs text-[#92887c]">Mis à jour le {new Date(book.updated_at).toLocaleDateString("fr-FR")} · {book.is_single_sale_enabled ? price(Number(book.price), book.currency_code) : "Non vendu à l’unité"}{book.is_subscription_available ? " · Inclus dans Premium" : ""}</p></div>
+              <Link href={`/dashboard/author/books/${book.id}/edit`} className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-[#d9cebd] px-4 text-sm font-bold text-[#173d2c] hover:bg-[#f5f0e7]"><Pencil className="h-3.5 w-3.5" />Modifier</Link>
+            </div>
+            {book.review_note ? <p className="mt-4 rounded-xl bg-[#fff4e2] px-4 py-3 text-sm text-[#76522b]"><strong>Message de l’équipe :</strong> {book.review_note}</p> : null}
+          </article>
+        ))}
+        {!books.length ? <div className="py-20 text-center"><BookOpen className="mx-auto h-8 w-8 text-[#b7aa9a]" /><h2 className="mt-4 font-serif text-2xl">Votre catalogue est vide</h2><p className="mt-2 text-sm text-[#766e64]">Commencez par ajouter votre premier livre.</p><Link href="/dashboard/author/add-book" className="mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-[#173d2c] px-5 text-sm font-bold text-white"><Plus className="h-4 w-4" />Ajouter un livre</Link></div> : null}
       </section>
-    </section>
+    </div>
   );
 }

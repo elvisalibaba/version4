@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { PublishedBook } from "@/lib/books";
 
 type FreeBooksMarqueeSectionProps = {
@@ -101,7 +102,7 @@ export function FreeBooksMarqueeSection({ books }: FreeBooksMarqueeSectionProps)
                 <Link key={book.id} href={`/book/${book.id}`} className={`hb-free-book-card ${index === 0 ? "is-featured" : ""}`.trim()}>
                   <div className="hb-free-book-cover">
                     {book.cover_signed_url ? (
-                      <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                      <Image src={book.cover_signed_url} alt={book.title} width={320} height={480} className="h-full w-full object-cover" />
                     ) : (
                       <div className="hb-book-fallback">{book.title}</div>
                     )}

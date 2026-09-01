@@ -84,7 +84,7 @@ export default async function ReaderLibraryPage() {
     return Boolean(
       book &&
         book.status === "published" &&
-        book.copyright_status !== "blocked" &&
+        book.copyright_status === "clear" &&
         (item.access_type !== "subscription" || isSubscriptionCurrentlyActive(subscription)),
     );
   });
@@ -155,7 +155,7 @@ export default async function ReaderLibraryPage() {
               const subscription = firstOf(item.user_subscriptions);
               const hasActiveSubscription = item.access_type !== "subscription" || isSubscriptionCurrentlyActive(subscription);
               const planName = firstOf(subscription?.subscription_plans ?? null)?.name ?? null;
-              const isUnavailable = !book || book.status !== "published" || book.copyright_status === "blocked";
+              const isUnavailable = !book || book.status !== "published" || book.copyright_status !== "clear";
               const canRead = !isUnavailable && hasActiveSubscription;
               const coverUrl = coverByBookId.get(item.book_id);
 

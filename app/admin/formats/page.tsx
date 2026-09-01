@@ -1,172 +1,29 @@
 import Link from "next/link";
+import { ArrowLeft, ChevronDown, Package, Plus, Search } from "lucide-react";
+import { saveBookFormatAction } from "@/app/admin/actions";
+import { AdminNotice } from "@/components/admin/shared/admin-notice";
+import { StatusBadge } from "@/components/admin/shared/status-badge";
+import { AdminPagination } from "@/components/admin/tables/admin-pagination";
 import { BOOK_FORMATS, getBookFormatLabel } from "@/lib/book-formats";
 import { formatMoney } from "@/lib/book-offers";
-import { saveBookFormatAction } from "@/app/admin/actions";
-import { listAdminFormats, getAdminFormatEditorOptions } from "@/lib/supabase/admin/formats";
-import { formatAdminDateTime } from "@/lib/supabase/admin/shared";
-import { AdminFilterBar } from "@/components/admin/filters/admin-filter-bar";
-import { AdminSearchInput } from "@/components/admin/filters/admin-search-input";
-import { AdminSelect } from "@/components/admin/filters/admin-select";
-import { AdminPageHeader } from "@/components/admin/shared/admin-page-header";
-import { AdminPanel } from "@/components/admin/shared/admin-panel";
-import { StatusBadge } from "@/components/admin/shared/status-badge";
-import { AdminNotice } from "@/components/admin/shared/admin-notice";
-import { AdminDataTable } from "@/components/admin/tables/admin-data-table";
-import { AdminPagination } from "@/components/admin/tables/admin-pagination";
+import { getAdminFormatEditorOptions, listAdminFormats } from "@/lib/supabase/admin/formats";
 
-type FormatsPageProps = {
-  searchParams: Promise<{
-    q?: string;
-    format?: "holistique_store" | "ebook" | "paperback" | "pocket" | "hardcover" | "audiobook";
-    publication?: string;
-    stock?: string;
-    page?: string;
-  }>;
-};
+type Props = { searchParams: Promise<{ q?: string; format?: "holistique_store" | "ebook" | "paperback" | "pocket" | "hardcover" | "audiobook"; publication?: string; stock?: string; page?: string }> };
 
-export default async function AdminFormatsPage({ searchParams }: FormatsPageProps) {
-  const { q, format, publication, stock, page } = await searchParams;
-  const [data, editorOptions] = await Promise.all([
-    listAdminFormats({
-      page: page ? Number(page) : 1,
-      search: q,
-      format: format ?? "",
-      publication: publication ?? "",
-      stock: stock ?? "",
-    }),
-    getAdminFormatEditorOptions(),
-  ]);
+export default async function AdminFormatsPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const [data, options] = await Promise.all([listAdminFormats({ page: params.page ? Number(params.page) : 1, search: params.q, format: params.format ?? "", publication: params.publication ?? "", stock: params.stock ?? "" }), getAdminFormatEditorOptions()]);
 
-  return (
-    <div className="space-y-6">
-      <AdminPageHeader
-        title="Formats"
-        description="Gestion des book_formats, de leur publication, de leur pricing, du cout d impression et des assets relies."
-        breadcrumbs={[
-          { label: "Admin", href: "/admin" },
-          { label: "Formats" },
-        ]}
-      />
+  return <div className="space-y-5 pb-10">
+    <header className="flex flex-col gap-5 rounded-[28px] bg-[#173d2c] p-6 text-white sm:flex-row sm:items-end sm:justify-between sm:p-8"><div><Link href="/admin" className="inline-flex items-center gap-2 text-sm font-bold text-white/65"><ArrowLeft className="h-4 w-4" />Vue d’ensemble</Link><p className="mt-7 text-xs font-bold uppercase tracking-[.2em] text-[#f2c66f]">Catalogue</p><h1 className="mt-3 font-serif text-3xl sm:text-4xl">Formats des livres</h1><p className="mt-2 text-sm text-white/65">Gérez les versions numériques et imprimées, leur prix et leur disponibilité.</p></div><span className="rounded-full border border-white/20 px-4 py-2 text-sm font-bold">{data.pagination.total} format{data.pagination.total > 1 ? "s" : ""}</span></header>
 
-      {data.notices.length ? (
-        <div className="grid gap-3 xl:grid-cols-2">
-          {data.notices.map((notice) => (
-            <AdminNotice key={notice.id} tone={notice.tone} title={notice.title} description={notice.description} />
-          ))}
-        </div>
-      ) : null}
+    {data.notices.length ? <div className="grid gap-3 md:grid-cols-2">{data.notices.map((notice) => <AdminNotice key={notice.id} tone={notice.tone} title={notice.title} description={notice.description} />)}</div> : null}
 
-      <AdminPanel title="Creer un format" description="Ajout d un nouveau format pour un livre existant, avec cout d impression si le format est physique.">
-        <form action={saveBookFormatAction} className="grid gap-4 xl:grid-cols-6">
-          <input type="hidden" name="redirect_to" value="/admin/formats" />
-          <label className="grid gap-2 xl:col-span-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Livre</span>
-            <select name="book_id" className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900">
-              {editorOptions.books.map((book) => (
-                <option key={book.value} value={book.value}>
-                  {book.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Format</span>
-            <select name="format" className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900">
-              {BOOK_FORMATS.map((format) => (
-                <option key={format} value={format}>
-                  {getBookFormatLabel(format)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Prix</span>
-            <input type="number" step="0.01" name="price" defaultValue="0" className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900" />
-          </label>
-          <label className="grid gap-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Devise</span>
-            <input type="text" name="currency_code" defaultValue="USD" className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900" />
-          </label>
-          <label className="grid gap-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Cout impression</span>
-            <input type="number" step="0.01" name="printing_cost" defaultValue="" className="min-h-11 rounded-2xl border border-violet-200 bg-white px-4 text-sm text-slate-900" />
-          </label>
-          <div className="flex items-end">
-            <button type="submit" className="cta-primary w-full px-5 py-3 text-sm">
-              Creer
-            </button>
-          </div>
-        </form>
-      </AdminPanel>
+    <details className="group rounded-[24px] border border-[#ded3c2] bg-[#fffaf2] p-4"><summary className="flex cursor-pointer list-none items-center justify-between font-bold text-[#17231d] [&::-webkit-details-marker]:hidden"><span className="flex items-center gap-2"><Plus className="h-4 w-4 text-[#b85135]" />Ajouter un format</span><ChevronDown className="h-4 w-4 transition group-open:rotate-180" /></summary><form action={saveBookFormatAction} className="mt-5 grid gap-3 border-t border-[#e3d8c8] pt-5 md:grid-cols-2 xl:grid-cols-6"><input type="hidden" name="redirect_to" value="/admin/formats" /><label className="grid gap-1.5 xl:col-span-2"><span className="text-xs font-bold text-[#766e64]">Livre</span><select name="book_id" className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3 text-sm">{options.books.map((book) => <option key={book.value} value={book.value}>{book.label}</option>)}</select></label><label className="grid gap-1.5"><span className="text-xs font-bold text-[#766e64]">Format</span><select name="format" className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3 text-sm">{BOOK_FORMATS.map((format) => <option key={format} value={format}>{getBookFormatLabel(format)}</option>)}</select></label><label className="grid gap-1.5"><span className="text-xs font-bold text-[#766e64]">Prix</span><input name="price" type="number" min="0" step="0.01" defaultValue="0" className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3" /></label><label className="grid gap-1.5"><span className="text-xs font-bold text-[#766e64]">Devise</span><input name="currency_code" defaultValue="USD" className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3" /></label><label className="grid gap-1.5"><span className="text-xs font-bold text-[#766e64]">Coût d’impression</span><input name="printing_cost" type="number" min="0" step="0.01" className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3" /></label><button className="h-11 rounded-full bg-[#173d2c] px-5 text-sm font-bold text-white xl:col-start-6">Ajouter</button></form></details>
 
-      <AdminPanel title="Filtres" description="Recherche par livre ou auteur, filtre par format, publication et stock.">
-        <AdminFilterBar action="/admin/formats">
-          <AdminSearchInput defaultValue={q} placeholder="Livre ou auteur" />
-          <AdminSelect name="format" label="Format" defaultValue={format} options={data.filterOptions.formats} />
-          <AdminSelect
-            name="publication"
-            label="Publication"
-            defaultValue={publication}
-            options={[
-              { label: "Publie", value: "published" },
-              { label: "Brouillon", value: "unpublished" },
-            ]}
-          />
-          <AdminSelect
-            name="stock"
-            label="Stock"
-            defaultValue={stock}
-            options={[
-              { label: "En stock", value: "in_stock" },
-              { label: "Rupture", value: "out_of_stock" },
-            ]}
-          />
-          <div className="flex gap-3">
-            <button type="submit" className="cta-primary px-5 py-3 text-sm">
-              Appliquer
-            </button>
-            <Link href="/admin/formats" className="cta-secondary px-5 py-3 text-sm">
-              Reinitialiser
-            </Link>
-          </div>
-        </AdminFilterBar>
-      </AdminPanel>
+    <form action="/admin/formats" className="rounded-[24px] border border-[#ded3c2] bg-white p-4"><div className="grid gap-3 lg:grid-cols-[1fr_180px_180px_180px_auto]"><label className="relative"><Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#887f74]" /><input name="q" defaultValue={params.q} placeholder="Livre ou auteur" className="h-11 w-full rounded-full border border-[#d9cebd] bg-[#fffaf2] pl-10 pr-4" /></label><select name="format" defaultValue={params.format ?? ""} className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3 text-sm"><option value="">Tous les formats</option>{data.filterOptions.formats.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><select name="publication" defaultValue={params.publication ?? ""} className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3 text-sm"><option value="">Toute disponibilité</option><option value="published">Disponible</option><option value="unpublished">Non disponible</option></select><select name="stock" defaultValue={params.stock ?? ""} className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3 text-sm"><option value="">Tout stock</option><option value="in_stock">En stock</option><option value="out_of_stock">Rupture</option></select><button className="h-11 rounded-full bg-[#173d2c] px-5 text-sm font-bold text-white">Filtrer</button></div></form>
 
-      <AdminPanel title="Tous les formats" description="Lecture des formats par livre, auteur, cout d impression et disponibilite.">
-        <AdminDataTable columns={["Livre", "Auteur", "Format", "Prix", "Cout impression", "Stock", "Publication", "Action"]}>
-          {data.items.map((entry) => (
-            <tr key={entry.id} className="border-t border-violet-100/70">
-              <td className="px-4 py-3">
-                <Link href={`/admin/formats/${entry.id}`} className="font-semibold text-slate-950 hover:text-violet-700">
-                  {entry.book_title}
-                </Link>
-                <p className="text-sm text-slate-500">{formatAdminDateTime(entry.created_at)}</p>
-              </td>
-              <td className="px-4 py-3 text-sm text-slate-500">{entry.author_name}</td>
-              <td className="px-4 py-3">
-                <StatusBadge kind="format" value={entry.format} />
-              </td>
-              <td className="px-4 py-3 text-sm text-slate-500">{formatMoney(entry.price, entry.currency_code)}</td>
-              <td className="px-4 py-3 text-sm text-slate-500">{entry.printing_cost !== null ? formatMoney(entry.printing_cost, entry.currency_code) : "-"}</td>
-              <td className="px-4 py-3 text-sm text-slate-500">{entry.stock_quantity ?? "-"}</td>
-              <td className="px-4 py-3 text-sm text-slate-500">{entry.is_published ? "Publie" : "Brouillon"}</td>
-              <td className="px-4 py-3">
-                <Link href={`/admin/formats/${entry.id}`} className="cta-secondary px-4 py-2 text-xs">
-                  Detail
-                </Link>
-              </td>
-            </tr>
-          ))}
-        </AdminDataTable>
-
-        <div className="mt-4">
-          <AdminPagination
-            basePath="/admin/formats"
-            pagination={data.pagination}
-            params={{ q: q ?? "", format: format ?? "", publication: publication ?? "", stock: stock ?? "" }}
-          />
-        </div>
-      </AdminPanel>
-    </div>
-  );
+    <section className="overflow-hidden rounded-[28px] border border-[#ded3c2] bg-white px-5 sm:px-6">{data.items.map((entry) => <article key={entry.id} className="flex flex-col gap-4 border-b border-[#e8dfd2] py-5 last:border-0 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><StatusBadge kind="format" value={entry.format} /><span className={`rounded-full px-2.5 py-1 text-[.65rem] font-bold ${entry.is_published ? "bg-[#e4f1e9] text-[#246343]" : "bg-[#f5ead2] text-[#89611d]"}`}>{entry.is_published ? "Disponible" : "Non publié"}</span></div><h2 className="mt-3 truncate font-serif text-xl text-[#17231d]">{entry.book_title}</h2><p className="mt-1 text-sm text-[#766e64]">{entry.author_name}</p><p className="mt-2 text-xs text-[#92887c]">Prix : {formatMoney(entry.price, entry.currency_code)}{entry.printing_cost !== null ? ` · Impression : ${formatMoney(entry.printing_cost, entry.currency_code)}` : ""} · Stock : {entry.stock_quantity ?? "Non concerné"}</p></div><Link href={`/admin/formats/${entry.id}`} className="inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-[#d9cebd] px-4 text-sm font-bold text-[#173d2c]">Gérer</Link></article>)}{!data.items.length ? <div className="py-20 text-center"><Package className="mx-auto h-8 w-8 text-[#b7aa9a]" /><h2 className="mt-4 font-serif text-2xl">Aucun format trouvé</h2></div> : null}</section>
+    <AdminPagination basePath="/admin/formats" pagination={data.pagination} params={{ q: params.q ?? "", format: params.format ?? "", publication: params.publication ?? "", stock: params.stock ?? "" }} />
+  </div>;
 }

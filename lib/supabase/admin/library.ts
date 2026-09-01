@@ -72,7 +72,7 @@ export async function listAdminLibrary(params: {
   let query = supabase
     .from("library")
     .select(
-      "id, user_id, book_id, purchased_at, access_type, subscription_id, user:profiles!library_user_id_fkey(id, name, email, role), book:books!library_book_id_fkey(id, title, status, author_id), subscription:user_subscriptions!library_subscription_id_fkey(id, status, expires_at, plan:subscription_plans!user_subscriptions_plan_id_fkey(id, name, slug))",
+      "id, user_id, book_id, purchased_at, access_type, subscription_id",
       { count: "exact" },
     )
     .order("purchased_at", { ascending: false });
@@ -127,13 +127,35 @@ export async function listAdminLibrary(params: {
     };
   }
 
+  const rows = data ?? [];
+  const userIds = Array.from(new Set(rows.map((row) => row.user_id)));
+  const bookIds = Array.from(new Set(rows.map((row) => row.book_id)));
+  const subscriptionIds = Array.from(new Set(rows.map((row) => row.subscription_id).filter((id): id is string => Boolean(id))));
+  const [usersResult, booksResult, subscriptionsResult] = await Promise.all([
+    userIds.length ? supabase.from("profiles").select("id, name, email, role").in("id", userIds) : Promise.resolve({ data: [] }),
+    bookIds.length ? supabase.from("books").select("id, title, status, author_id").in("id", bookIds) : Promise.resolve({ data: [] }),
+    subscriptionIds.length ? supabase.from("user_subscriptions").select("id, status, expires_at, plan_id").in("id", subscriptionIds) : Promise.resolve({ data: [] }),
+  ]);
+  const planIds = Array.from(new Set((subscriptionsResult.data ?? []).map((subscription) => subscription.plan_id)));
+  const plansResult = planIds.length ? await supabase.from("subscription_plans").select("id, name, slug").in("id", planIds) : { data: [] };
+  const users = new Map((usersResult.data ?? []).map((user) => [user.id, user]));
+  const books = new Map((booksResult.data ?? []).map((book) => [book.id, book]));
+  const plans = new Map((plansResult.data ?? []).map((plan) => [plan.id, plan]));
+  const subscriptions = new Map((subscriptionsResult.data ?? []).map((subscription) => [subscription.id, { ...subscription, plan: plans.get(subscription.plan_id) ?? null }]));
+
   return {
-    items: (data ?? []).map((row) => ({
-      ...row,
-      user_name: firstOf(row.user)?.name ?? firstOf(row.user)?.email ?? "Utilisateur inconnu",
-      book_title: firstOf(row.book)?.title ?? "Livre inconnu",
-      plan_name: firstOf(firstOf(row.subscription)?.plan)?.name ?? null,
-    })),
+    items: rows.map((row) => {
+      const user = users.get(row.user_id);
+      const book = books.get(row.book_id);
+      const subscription = row.subscription_id ? subscriptions.get(row.subscription_id) : null;
+      const hydratedRow: LibraryRow = { ...row, user: user ?? null, book: book ?? null, subscription: subscription ?? null };
+      return {
+        ...hydratedRow,
+        user_name: user?.name ?? user?.email ?? "Utilisateur inconnu",
+        book_title: book?.title ?? "Livre inconnu",
+        plan_name: firstOf(subscription?.plan)?.name ?? null,
+      };
+    }),
     pagination: buildPagination(count, page, ADMIN_DEFAULT_PAGE_SIZE),
     notices,
   };
@@ -144,11 +166,12 @@ export async function getAdminLibraryEditorOptions() {
   const [usersResult, booksResult, subscriptionsResult] = await Promise.all([
     supabase.from("profiles").select("id, name, email").order("created_at", { ascending: false }),
     supabase.from("books").select("id, title").order("created_at", { ascending: false }),
-    supabase
-      .from("user_subscriptions")
-      .select("id, user_id, status, plan:subscription_plans!user_subscriptions_plan_id_fkey(name)")
-      .order("created_at", { ascending: false }),
+    supabase.from("user_subscriptions").select("id, user_id, status, plan_id").order("created_at", { ascending: false }),
   ]);
+
+  const planIds = Array.from(new Set((subscriptionsResult.data ?? []).map((subscription) => subscription.plan_id)));
+  const plansResult = planIds.length ? await supabase.from("subscription_plans").select("id, name").in("id", planIds) : { data: [] };
+  const plans = new Map((plansResult.data ?? []).map((plan) => [plan.id, plan.name]));
 
   return {
     users: (usersResult.data ?? []).map((user) => ({
@@ -161,7 +184,7 @@ export async function getAdminLibraryEditorOptions() {
     })),
     subscriptions: (subscriptionsResult.data ?? []).map((subscription) => ({
       value: subscription.id,
-      label: `${firstOf(subscription.plan)?.name ?? "Plan"} - ${subscription.status} - ${subscription.user_id.slice(0, 8)}`,
+      label: `${plans.get(subscription.plan_id) ?? "Plan"} - ${subscription.status} - ${subscription.user_id.slice(0, 8)}`,
     })),
   };
 }

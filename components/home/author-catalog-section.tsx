@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, BookOpen, Globe } from "lucide-react";
 import type { PublishedBook } from "@/lib/books";
 
@@ -96,7 +97,7 @@ export function AuthorCatalogSection({ books }: AuthorCatalogSectionProps) {
               <div className="grid gap-4 p-5 md:grid-cols-[140px_1fr]">
                 <div className="hb-shimmer relative overflow-hidden rounded-2xl bg-slate-100">
                   {portraitUrl ? (
-                    <img src={portraitUrl} alt={author.name} className="h-full w-full object-cover" />
+                    <Image src={portraitUrl} alt={author.name} width={360} height={480} className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full min-h-[180px] items-center justify-center text-2xl font-semibold text-rose-700">
                       {initials}

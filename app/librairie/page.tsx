@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { BookOpen, Heart, Sparkles, Star, Users } from "lucide-react";
 import { getPublishedBooks } from "@/lib/books";
 
@@ -84,7 +85,7 @@ export default async function LibrairiePage() {
             <Link key={book.id} href={`/book/${book.id}`} className="ios-surface ios-card-hover rounded-2xl p-3">
               <div className="aspect-[2/3] overflow-hidden rounded-xl bg-slate-100">
                 {book.cover_signed_url ? (
-                  <img src={book.cover_signed_url} alt={book.title} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                  <Image src={book.cover_signed_url} alt={book.title} width={320} height={480} className="h-full w-full object-cover" />
                 ) : (
                   <div className="flex h-full items-center justify-center px-2 text-center text-xs font-semibold text-slate-500">
                     {book.title}

@@ -97,7 +97,7 @@ export async function listAdminHighlights(params: {
     supabase
       .from("highlights")
       .select(
-        "id, user_id, book_id, page, text, note, color, created_at, updated_at, user:profiles!highlights_user_id_fkey(id, name, email, role), book:books!highlights_book_id_fkey(id, title, status)",
+        "id, user_id, book_id, page, text, note, color, created_at, updated_at",
         { count: "exact" },
       )
       .order("created_at", { ascending: false }),
@@ -107,7 +107,7 @@ export async function listAdminHighlights(params: {
   let statsQuery = applyHighlightFilters(
     supabase
       .from("highlights")
-      .select("id, book_id, color, book:books!highlights_book_id_fkey(id, title, status)")
+      .select("id, book_id, color")
       .order("created_at", { ascending: false }),
     params,
   );
@@ -165,8 +165,18 @@ export async function listAdminHighlights(params: {
     };
   }
 
-  const listRows = (listResult.data ?? []) as HighlightRow[];
-  const statsRows = (statsResult.data ?? []) as HighlightStatsRow[];
+  const rawListRows = (listResult.data ?? []) as Array<Omit<HighlightRow, "user" | "book">>;
+  const rawStatsRows = (statsResult.data ?? []) as Array<Omit<HighlightStatsRow, "book">>;
+  const userIds = Array.from(new Set(rawListRows.map((row) => row.user_id)));
+  const bookIds = Array.from(new Set([...rawListRows.map((row) => row.book_id), ...rawStatsRows.map((row) => row.book_id)]));
+  const [usersResult, booksResult] = await Promise.all([
+    userIds.length ? supabase.from("profiles").select("id, name, email, role").in("id", userIds) : Promise.resolve({ data: [] }),
+    bookIds.length ? supabase.from("books").select("id, title, status").in("id", bookIds) : Promise.resolve({ data: [] }),
+  ]);
+  const users = new Map((usersResult.data ?? []).map((user) => [user.id, user]));
+  const books = new Map((booksResult.data ?? []).map((book) => [book.id, book]));
+  const listRows: HighlightRow[] = rawListRows.map((row) => ({ ...row, user: users.get(row.user_id) ?? null, book: books.get(row.book_id) ?? null }));
+  const statsRows: HighlightStatsRow[] = rawStatsRows.map((row) => ({ ...row, book: books.get(row.book_id) ?? null }));
   const byColorMap = new Map<string, number>();
   const byBookMap = new Map<string, { label: string; value: number }>();
 
@@ -192,8 +202,8 @@ export async function listAdminHighlights(params: {
       {
         id: "highlight-moderation",
         tone: "warning",
-        title: "Moderation fonctionnelle",
-        description: "La suppression d un highlight est un acte de moderation. Le texte, la note et la couleur sont exposes pour faciliter la revue.",
+        title: "Respect des notes personnelles",
+        description: "Une annotation ne doit être supprimée que si son contenu nécessite réellement une intervention.",
       },
     ],
   };

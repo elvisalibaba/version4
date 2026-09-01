@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { Library, WandSparkles } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { PublishLabForm } from "@/components/author/publish-lab-form";
-import { DashboardTopbar } from "@/components/ui/dashboard-topbar";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
@@ -31,25 +30,9 @@ export default async function AddBookPage() {
 
   return (
     <section className="space-y-6">
-      <DashboardTopbar
-        kicker="Publishing lab"
-        title="Ajouter un nouveau livre"
-        description="Le parcours commence par l essentiel: titre, auteur, description, categorie, fichiers, prix et mode de vente. Les details avances restent optionnels."
-        actions={
-          <>
-            <Link href="/dashboard/author/books" className="cta-primary px-5 py-3 text-sm">
-              <Library className="h-4 w-4" />
-              Retour au catalogue
-            </Link>
-            <Link href="/dashboard/author/sales" className="cta-secondary px-5 py-3 text-sm">
-              <WandSparkles className="h-4 w-4" />
-              Voir les ventes
-            </Link>
-          </>
-        }
-      />
+      <header className="rounded-[28px] bg-[#173d2c] p-6 text-white sm:p-8"><Link href="/dashboard/author/books" className="inline-flex items-center gap-2 text-sm font-bold text-white/70 hover:text-white"><ArrowLeft className="h-4 w-4" />Mes livres</Link><p className="mt-7 text-xs font-bold uppercase tracking-[.2em] text-[#f2c66f]">Nouvelle publication</p><h1 className="mt-3 font-serif text-3xl sm:text-4xl">Ajouter un livre</h1><p className="mt-2 max-w-xl text-sm leading-6 text-white/65">Renseignez les informations principales. Vous pourrez compléter le reste plus tard.</p></header>
 
-      <div className="surface-panel p-4 sm:p-6">
+      <div className="rounded-[28px] border border-[#ded3c2] bg-white p-4 sm:p-6">
         <PublishLabForm
           subscriptionPlans={(subscriptionPlans ?? []) as SubscriptionPlanRow[]}
           initialValues={{

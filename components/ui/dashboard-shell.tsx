@@ -33,22 +33,22 @@ type DashboardShellProps = {
 
 const themeMeta = {
   reader: {
-    workspaceLabel: "Reader Console",
+    workspaceLabel: "Espace lecteur",
     workspaceTone: "bg-[#fff3d6] text-[#9a5a00]",
     insightTitle: "Parcours de lecture",
     insightCopy:
-      "Retrouve rapidement tes achats, tes acces Premium et tes titres en cours depuis une console plus lisible.",
+      "Retrouvez rapidement vos achats, vos accès Premium et vos titres en cours.",
     bullets: ["Bibliotheque centralisee", "Achats et Premium reunis", "Raccourcis vers le catalogue"],
     primaryShortcut: { href: "/dashboard/reader/library", label: "Ma bibliotheque" },
     secondaryShortcut: { href: "/dashboard/reader/subscriptions", label: "Mes abonnements" },
   },
   author: {
-    workspaceLabel: "Publishing Console",
+    workspaceLabel: "Espace auteur",
     workspaceTone: "bg-[#dff1ff] text-[#0f5f93]",
     insightTitle: "Pilotage auteur",
     insightCopy:
-      "Organise ton catalogue, suis les ventes et avance titre par titre dans une experience plus proche d une console KDP.",
-    bullets: ["Catalogue plus actionnable", "Pipeline de publication visible", "Ventes et audience mieux priorisees"],
+      "Organisez votre catalogue, suivez vos ventes et avancez simplement, titre par titre.",
+    bullets: ["Catalogue facile à gérer", "Étapes de publication visibles", "Ventes faciles à suivre"],
     primaryShortcut: { href: "/dashboard/author/books", label: "Mon catalogue" },
     secondaryShortcut: { href: "/dashboard/author/add-book", label: "Publier un titre" },
   },
@@ -83,8 +83,8 @@ export function DashboardShell({
     .toUpperCase();
 
   return (
-    <div className="grid gap-3 pb-5 sm:gap-6 sm:pb-8 xl:grid-cols-[320px_minmax(0,1fr)]">
-      <aside className="min-w-0 self-start rounded-[24px] border border-[#e5ddd1] bg-[radial-gradient(circle_at_top_left,rgba(255,153,0,0.12),transparent_24%),radial-gradient(circle_at_top_right,rgba(20,110,180,0.10),transparent_24%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,244,237,0.96))] p-3 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:rounded-[32px] sm:p-4 sm:shadow-[0_28px_70px_rgba(15,23,42,0.08)] xl:sticky xl:top-24">
+    <div className={`grid gap-3 pb-5 sm:gap-6 sm:pb-8 ${theme === "author" ? "xl:grid-cols-[250px_minmax(0,1fr)]" : "xl:grid-cols-[320px_minmax(0,1fr)]"}`}>
+      <aside className={`min-w-0 self-start rounded-[24px] border border-[#e5ddd1] p-3 sm:rounded-[32px] sm:p-4 xl:sticky xl:top-24 ${theme === "author" ? "bg-[#fffaf2] shadow-sm" : "bg-[radial-gradient(circle_at_top_left,rgba(255,153,0,0.12),transparent_24%),radial-gradient(circle_at_top_right,rgba(20,110,180,0.10),transparent_24%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,244,237,0.96))] shadow-[0_28px_70px_rgba(15,23,42,0.08)]"}`}>
         <div className="flex items-center justify-between gap-3 xl:hidden">
           <Link href="/home" className="flex min-w-0 items-center gap-2.5" aria-label="Retour au site Holistique Books">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[14px] bg-[#171717] text-xs font-bold text-white">HB</span>
@@ -106,11 +106,11 @@ export function DashboardShell({
           </span>
           <span className="min-w-0">
             <span className="block text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#b96e12]">Holistique</span>
-            <span className="block truncate text-lg font-semibold tracking-[-0.03em] text-[#171717]">Books Console</span>
+            <span className="block truncate text-lg font-semibold tracking-[-0.03em] text-[#171717]">Espace personnel</span>
           </span>
         </Link>
 
-        <div className="mt-4 hidden rounded-[20px] border border-[#ece4d8] bg-white/92 p-3.5 sm:block sm:rounded-[26px] sm:p-5">
+        <div className={`mt-4 rounded-[20px] border border-[#ece4d8] bg-white/92 p-3.5 sm:rounded-[26px] sm:p-5 ${theme === "author" ? "hidden" : "hidden sm:block"}`}>
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#b96e12]">{areaLabel}</p>
             <span className={`rounded-full px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.16em] ${meta.workspaceTone}`}>
@@ -121,7 +121,7 @@ export function DashboardShell({
           <p className="mt-2 hidden text-sm leading-7 text-[#6f665e] sm:block">{description}</p>
         </div>
 
-        <div className="mt-4 hidden rounded-[26px] border border-[#ece4d8] bg-[#fffaf3] p-4 sm:block">
+        <div className={`mt-4 rounded-[26px] border border-[#ece4d8] bg-[#fffaf3] p-4 ${theme === "author" ? "hidden xl:block" : "hidden sm:block"}`}>
           <div className="flex items-center gap-3">
             <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#111827,#1f2937)] text-sm font-semibold text-white">
               {initials || "HB"}
@@ -135,9 +135,6 @@ export function DashboardShell({
             <span className="inline-flex items-center gap-1 rounded-full bg-[#e9f7ee] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-[#237a43]">
               <ShieldCheck className="h-3.5 w-3.5" />
               Session active
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-[#6f665e] ring-1 ring-[#ece4d8]">
-              Supabase connecte
             </span>
           </div>
         </div>
@@ -167,7 +164,7 @@ export function DashboardShell({
           })}
         </nav>
 
-        <div className="mt-4 hidden gap-3 rounded-[24px] border border-[#ece4d8] bg-white/92 p-4 xl:grid">
+        <div className={`mt-4 gap-3 rounded-[24px] border border-[#ece4d8] bg-white/92 p-4 ${theme === "author" ? "hidden" : "hidden xl:grid"}`}>
           <div className="flex items-start gap-3">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#fff1db] text-[#c06d00]">
               <Sparkles className="h-4 w-4" />
@@ -186,7 +183,7 @@ export function DashboardShell({
           </div>
         </div>
 
-        <div className="mt-4 hidden gap-3 rounded-[24px] border border-[#ece4d8] bg-white/92 p-4 xl:grid">
+        <div className={`mt-4 gap-3 rounded-[24px] border border-[#ece4d8] bg-white/92 p-4 ${theme === "author" ? "hidden" : "hidden xl:grid"}`}>
           <div className="flex items-start gap-3">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#e9f3fb] text-[#146eb4]">
               <LayoutPanelTop className="h-4 w-4" />
@@ -194,7 +191,7 @@ export function DashboardShell({
             <div>
               <p className="text-sm font-semibold text-[#171717]">Raccourcis</p>
               <p className="mt-1 text-sm leading-6 text-[#6f665e]">
-                Passe rapidement du workspace au catalogue public sans quitter ta console.
+                Accédez rapidement à votre catalogue et au site public.
               </p>
             </div>
           </div>
@@ -233,7 +230,7 @@ export function DashboardShell({
       </aside>
 
       <div className="min-w-0 space-y-4 sm:space-y-6">
-        <section className="hidden rounded-[22px] border border-[#e5ddd1] bg-[radial-gradient(circle_at_top_left,rgba(255,153,0,0.10),transparent_20%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,244,237,0.95))] p-3 shadow-[0_18px_38px_rgba(15,23,42,0.05)] sm:rounded-[30px] sm:p-4 sm:shadow-[0_22px_50px_rgba(15,23,42,0.05)] lg:block">
+        <section className={`rounded-[22px] border border-[#e5ddd1] bg-white p-3 shadow-sm sm:rounded-[30px] sm:p-4 ${theme === "author" ? "hidden" : "hidden lg:block"}`}>
           <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-2">
               <span className={`rounded-full px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] ${meta.workspaceTone}`}>
@@ -243,7 +240,7 @@ export function DashboardShell({
                 {userRole}
               </span>
               <span className="hidden rounded-full border border-[#d9eadf] bg-[#eefaf2] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#237a43] sm:inline-flex">
-                Workflow propre
+                Compte actif
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">

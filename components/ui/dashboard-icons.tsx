@@ -7,6 +7,7 @@ import {
   LibraryBig,
   PlusCircle,
   Receipt,
+  UserRound,
 } from "lucide-react";
 
 export type DashboardIconName =
@@ -17,7 +18,8 @@ export type DashboardIconName =
   | "heart"
   | "library-big"
   | "plus-circle"
-  | "receipt";
+  | "receipt"
+  | "user-round";
 
 type DashboardIconProps = {
   name: DashboardIconName;
@@ -42,6 +44,8 @@ export function DashboardIcon({ name, className }: DashboardIconProps) {
       return <PlusCircle className={className} />;
     case "receipt":
       return <Receipt className={className} />;
+    case "user-round":
+      return <UserRound className={className} />;
     default:
       return <BookOpen className={className} />;
   }

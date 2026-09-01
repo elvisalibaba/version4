@@ -90,15 +90,14 @@ export async function listAdminOrders(params: {
     {
       id: "payment-warning",
       tone: "info",
-      title: "Synchro paiement active",
-      description:
-        "Les commandes ebook et papier sont visibles cote admin, en pending comme en paid. Seuls les items ebook debloquent l acces library.",
+      title: "Suivi des paiements",
+      description: "Les commandes numériques et imprimées apparaissent ici dès leur création, quel que soit leur état.",
     },
   ];
 
   let query = supabase
     .from("orders")
-    .select("id, user_id, total_price, currency_code, payment_status, created_at, user:profiles!orders_user_id_fkey(id, name, email, role)", {
+    .select("id, user_id, total_price, currency_code, payment_status, created_at", {
       count: "exact",
     })
     .order("created_at", { ascending: false });
@@ -146,7 +145,13 @@ export async function listAdminOrders(params: {
     };
   }
 
-  const orderIds = (data ?? []).map((order) => order.id);
+  const rawOrders = data ?? [];
+  const orderIds = rawOrders.map((order) => order.id);
+  const userIds = Array.from(new Set(rawOrders.map((order) => order.user_id)));
+  const profilesResult = userIds.length
+    ? await supabase.from("profiles").select("id, name, email, role").in("id", userIds)
+    : { data: [] };
+  const profilesById = new Map((profilesResult.data ?? []).map((profile) => [profile.id, profile]));
   const orderItemsResult =
     orderIds.length > 0
       ? await supabase.from("order_items").select("order_id, book_format").in("order_id", orderIds)
@@ -177,9 +182,10 @@ export async function listAdminOrders(params: {
   });
 
   return {
-    items: (data ?? []).map((order) => ({
+    items: rawOrders.map((order) => ({
       ...order,
-      user_name: firstOf(order.user)?.name ?? firstOf(order.user)?.email ?? "Utilisateur inconnu",
+      user: profilesById.get(order.user_id) ?? null,
+      user_name: profilesById.get(order.user_id)?.name ?? profilesById.get(order.user_id)?.email ?? "Utilisateur inconnu",
       itemCount: itemCountByOrderId.get(order.id) ?? 0,
       formatBreakdown: formatByOrderId.get(order.id) ?? createEmptyFormatBreakdown(),
     })),
@@ -194,28 +200,30 @@ export async function getAdminOrderDetail(orderId: string): Promise<AdminOrderDe
     {
       id: "order-sync-warning",
       tone: "info",
-      title: "Resynchronisation library disponible",
-      description:
-        "Les lignes de commande incluent maintenant le format (ebook, paperback, hardcover). Les commandes papier restent visibles sans debloquer library.",
+      title: "Informations de la commande",
+      description: "Les formats numériques et imprimés sont détaillés séparément dans cette commande.",
     },
   ];
 
   const orderResult = await supabase
     .from("orders")
-    .select("id, user_id, total_price, currency_code, payment_status, created_at, user:profiles!orders_user_id_fkey(id, name, email, role)")
+    .select("id, user_id, total_price, currency_code, payment_status, created_at")
     .eq("id", orderId)
     .returns<OrderRow>()
     .maybeSingle();
 
-  const order = (orderResult.data ?? null) as OrderRow | null;
+  const rawOrder = (orderResult.data ?? null) as Omit<OrderRow, "user"> | null;
 
-  if (!order) {
+  if (!rawOrder) {
     return null;
   }
 
+  const { data: profile } = await supabase.from("profiles").select("id, name, email, role").eq("id", rawOrder.user_id).maybeSingle();
+  const order: OrderRow = { ...rawOrder, user: profile ?? null };
+
   const itemsResult = await supabase
     .from("order_items")
-    .select("id, order_id, book_id, price, currency_code, book_format, book:books(id, title, status)")
+    .select("id, order_id, book_id, price, currency_code, book_format")
     .eq("order_id", orderId)
     .returns<OrderItemRow[]>();
 
@@ -230,6 +238,11 @@ export async function getAdminOrderDetail(orderId: string): Promise<AdminOrderDe
     }
   });
 
+  const rawItems = itemsResult.data ?? [];
+  const bookIds = Array.from(new Set(rawItems.map((item) => item.book_id)));
+  const booksResult = bookIds.length ? await supabase.from("books").select("id, title, status").in("id", bookIds) : { data: [] };
+  const booksById = new Map((booksResult.data ?? []).map((book) => [book.id, book]));
+
   return {
     order: {
       ...order,
@@ -237,9 +250,10 @@ export async function getAdminOrderDetail(orderId: string): Promise<AdminOrderDe
       itemCount: (itemsResult.data ?? []).length,
       formatBreakdown: detailFormatBreakdown,
     },
-    items: (itemsResult.data ?? []).map((item) => ({
+    items: rawItems.map((item) => ({
       ...item,
-      book_title: firstOf(item.book)?.title ?? "Livre inconnu",
+      book: booksById.get(item.book_id) ?? null,
+      book_title: booksById.get(item.book_id)?.title ?? "Livre inconnu",
     })),
     notices,
   };

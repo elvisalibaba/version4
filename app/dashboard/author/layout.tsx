@@ -15,14 +15,15 @@ export default async function AuthorDashboardLayout({
     { href: "/dashboard/author/books", label: "Catalogue", icon: "book-open" },
     { href: "/dashboard/author/add-book", label: "Nouveau titre", icon: "plus-circle" },
     { href: "/dashboard/author/sales", label: "Ventes", icon: "circle-dollar-sign" },
+    { href: "/dashboard/author/profile", label: "Profil public", icon: "user-round" },
   ];
 
   return (
     <DashboardShell
-      areaLabel="Author studio"
-      headline="Catalogue, ventes et publication"
-      description="Un studio auteur plus net, plus orienté pilotage, avec les memes donnees Supabase et une lecture proche d une console KDP."
-      userName={profile?.name ?? profile?.email ?? "Author"}
+      areaLabel="Espace auteur"
+      headline="Holistique Books"
+      description="Gérez simplement vos livres, votre profil et vos ventes."
+      userName={profile?.name ?? profile?.email ?? "Auteur"}
       userRole="Auteur"
       navigation={navigation}
       theme="author"

@@ -4,6 +4,18 @@ import { BookCard } from "@/components/books/book-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { HEADER_CATEGORY_ITEMS } from "@/lib/book-categories";
 import { getPublishedBooks } from "@/lib/books";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Tous les livres",
+  description: "Explorez le catalogue Holistique Books : livres gratuits, achats à l’unité et lectures incluses avec Premium.",
+  alternates: { canonical: "/books" },
+  openGraph: {
+    title: "Catalogue de livres | Holistique Books",
+    description: "Trouvez votre prochaine lecture parmi les auteurs et sélections Holistique Books.",
+    url: "/books",
+  },
+};
 
 type BooksPageProps = {
   searchParams: Promise<{ q?: string; category?: string; author?: string; access?: string }>;
@@ -120,20 +132,23 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
   const activeFilters = [activeCategoryLabel, activeAccessLabel, authorQuery || null, searchQuery || null].filter(Boolean) as string[];
 
   return (
-    <div className="min-h-screen bg-[#f8f5f0]">
-      <div className="border-b border-[#eadfd4] bg-white">
-        <div className="mx-auto max-w-7xl px-3 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between gap-3">
+    <div className="min-h-screen bg-[#f5f0e7]">
+      <div className="relative overflow-hidden bg-[#173d2c] text-white">
+        <div className="absolute -right-16 -top-28 h-72 w-72 rounded-full border-[62px] border-[#e8ac42]" />
+        <div className="absolute bottom-0 right-[32%] h-16 w-32 -skew-x-12 bg-[#c95d3e]" />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+          <div className="flex items-end justify-between gap-6">
             <div>
-              <p className="text-[0.65rem] font-bold uppercase tracking-[0.18em] text-[#a85b3f]">Librairie mobile</p>
-              <h1 className="mt-1 text-2xl font-bold tracking-[-0.04em] text-[#171717] sm:text-3xl">Trouver votre prochaine lecture</h1>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#f2c66f]">La librairie Holistique</p>
+              <h1 className="mt-4 max-w-3xl font-serif text-4xl leading-none tracking-[-0.04em] sm:text-6xl">Des histoires africaines à lire partout.</h1>
+              <p className="mt-5 max-w-xl text-sm leading-6 text-white/70 sm:text-base">Romans, essais et voix nouvelles, sélectionnés avec une vraie exigence éditoriale.</p>
             </div>
-            <span className="shrink-0 rounded-full bg-[#f8f5f0] px-3 py-1.5 text-xs font-bold text-[#6f665e]">{books.length} livres</span>
+            <span className="relative hidden shrink-0 rounded-full border border-white/30 px-4 py-2 text-sm font-bold sm:inline">{books.length} livres</span>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto max-w-7xl px-3 py-7 sm:px-6 sm:py-10 lg:px-8">
         <form action="/books" className="rounded-2xl border border-[#eadfd4] bg-white p-2 shadow-sm sm:p-3 lg:hidden">
           <div className="flex min-w-0 items-center gap-2">
             <Search aria-hidden="true" className="ml-2 h-5 w-5 shrink-0 text-[#8a8178]" />
@@ -220,7 +235,7 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
             </div>
 
             {books.length > 0 ? (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3 2xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {books.map((book) => (
                   <BookCard key={book.id} book={book} />
                 ))}

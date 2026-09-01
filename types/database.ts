@@ -221,6 +221,10 @@ export type Database = {
           phone: string | null;
           genres: string[];
           publishing_goals: string | null;
+          favorite_book: string | null;
+          favorite_author: string | null;
+          favorite_character: string | null;
+          press_mentions: Record<string, unknown>[];
           social_links: Record<string, unknown>;
           created_at: string;
           updated_at: string;
@@ -236,6 +240,10 @@ export type Database = {
           phone?: string | null;
           genres?: string[];
           publishing_goals?: string | null;
+          favorite_book?: string | null;
+          favorite_author?: string | null;
+          favorite_character?: string | null;
+          press_mentions?: Record<string, unknown>[];
           social_links?: Record<string, unknown>;
           created_at?: string;
           updated_at?: string;
@@ -250,6 +258,10 @@ export type Database = {
           phone?: string | null;
           genres?: string[];
           publishing_goals?: string | null;
+          favorite_book?: string | null;
+          favorite_author?: string | null;
+          favorite_character?: string | null;
+          press_mentions?: Record<string, unknown>[];
           social_links?: Record<string, unknown>;
           created_at?: string;
           updated_at?: string;

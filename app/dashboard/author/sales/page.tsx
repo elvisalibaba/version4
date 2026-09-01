@@ -1,8 +1,6 @@
 import Link from "next/link";
-import { CircleDollarSign, Clock3, CreditCard, Library, ShoppingCart } from "lucide-react";
-import { DashboardTopbar } from "@/components/ui/dashboard-topbar";
+import { ArrowLeft, CircleDollarSign, Plus, ShoppingCart } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
-import { StatCard } from "@/components/ui/stat-card";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, OrderPaymentStatus } from "@/types/database";
@@ -100,37 +98,17 @@ export default async function AuthorSalesPage() {
 
   return (
     <section className="space-y-4 sm:space-y-6">
-      <DashboardTopbar
-        kicker="Suivi commercial"
-        title="Ventes et commandes"
-        description="Suivez vos revenus, les paiements confirmés et l’état réel des commandes de votre catalogue."
-        actions={
-          <>
-            <Link href="/dashboard/author/books" className="cta-primary w-full px-5 py-3 text-sm sm:w-auto">
-              <Library aria-hidden="true" className="h-4 w-4" />
-              Retour au catalogue
-            </Link>
-            <Link href="/dashboard/author/add-book" className="cta-secondary w-full px-5 py-3 text-sm sm:w-auto">
-              <ShoppingCart aria-hidden="true" className="h-4 w-4" />
-              Ajouter un livre
-            </Link>
-          </>
-        }
-      />
+      <header className="flex flex-col gap-5 rounded-[28px] bg-[#173d2c] p-6 text-white sm:flex-row sm:items-end sm:justify-between sm:p-8"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#f2c66f]">Activité commerciale</p><h1 className="mt-3 font-serif text-3xl sm:text-4xl">Mes ventes</h1><p className="mt-2 text-sm text-white/65">Suivez simplement les paiements de vos livres.</p></div><div className="flex flex-wrap gap-2"><Link href="/dashboard/author/books" className="inline-flex h-11 items-center gap-2 rounded-full border border-white/20 px-4 text-sm font-bold"><ArrowLeft className="h-4 w-4" />Mes livres</Link><Link href="/dashboard/author/add-book" className="inline-flex h-11 items-center gap-2 rounded-full bg-[#e8ac42] px-4 text-sm font-bold text-[#173d2c]"><Plus className="h-4 w-4" />Ajouter</Link></div></header>
 
-      <div className="metric-grid">
-        <StatCard icon={CircleDollarSign} label="Revenus confirmés" value={formattedRevenue} description="Commandes payées, par devise" tone="emerald" />
-        <StatCard icon={ShoppingCart} label="Commandes" value={totalOrders} description="Commandes distinctes" tone="violet" />
-        <StatCard icon={CreditCard} label="Payées" value={paidOrders} description="Paiements validés" tone="sky" />
-        <StatCard icon={Clock3} label="En attente" value={pendingOrders} description="Paiements en cours" tone="amber" />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[{ label: "Revenus confirmés", value: formattedRevenue, icon: CircleDollarSign }, { label: "Commandes", value: totalOrders, icon: ShoppingCart }, { label: "Payées", value: paidOrders, icon: CircleDollarSign }, { label: "En attente", value: pendingOrders, icon: ShoppingCart }].map((item) => { const Icon = item.icon; return <article key={item.label} className="rounded-2xl border border-[#ded3c2] bg-white p-4 sm:p-5"><Icon className="h-5 w-5 text-[#b85135]" /><p className="mt-4 text-xl font-bold text-[#17231d] sm:text-2xl">{item.value}</p><p className="mt-1 text-xs font-semibold text-[#766e64]">{item.label}</p></article>; })}
       </div>
 
-      <section className="surface-panel p-4 sm:p-6">
+      <section className="rounded-[28px] border border-[#ded3c2] bg-white p-4 sm:p-6">
         <div className="section-header">
           <div className="space-y-2">
-            <p className="section-kicker">Historique</p>
-            <h2 className="section-title text-xl sm:text-2xl">Commandes de votre catalogue</h2>
-            <p className="section-description">Chaque commande n’est comptée qu’une fois, même lorsqu’elle contient plusieurs de vos livres.</p>
+            <p className="text-xs font-bold uppercase tracking-[.18em] text-[#a94b34]">Historique</p>
+            <h2 className="font-serif text-xl text-[#17231d] sm:text-2xl">Commandes reçues</h2>
           </div>
           <div className="flex flex-wrap gap-2 text-xs font-semibold">
             <span className="catalog-badge">{totalOrders} commande{totalOrders > 1 ? "s" : ""}</span>

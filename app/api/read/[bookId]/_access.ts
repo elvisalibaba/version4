@@ -1,5 +1,4 @@
 import { getBlockedAccessMessage, getReaderBookAccessState, syncLibraryAccessEntry } from "@/lib/book-access";
-import { isBookCopyrightBlocked } from "@/lib/book-copyright";
 import { DIGITAL_BOOK_FORMATS, findPreferredFormat } from "@/lib/book-formats";
 import { createClient } from "@/lib/supabase/server";
 import type { BookFormatType, Database } from "@/types/database";
@@ -50,7 +49,7 @@ export async function resolveReadAccess(bookId: string, userId: string | null): 
     return { ok: false, status: 404, error: "Livre introuvable." };
   }
 
-  if (isBookCopyrightBlocked(book.copyright_status)) {
+  if (book.copyright_status !== "clear") {
     return { ok: false, status: 403, error: "La lecture est suspendue sur ce livre pour vérification des droits d’auteur." };
   }
 

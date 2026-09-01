@@ -242,7 +242,7 @@ export async function listAdminBooks(params: {
   let query = supabase
     .from("books")
     .select(
-      "id, title, subtitle, author_display_name, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, copyright_status, copyright_note, copyright_blocked_at, copyright_blocked_by, author_profile:author_profiles!books_author_profile_id_fkey(id, display_name, avatar_url), author_profile_fallback:profiles!books_author_id_fkey(id, name, email)",
+      "id, title, subtitle, author_display_name, author_id, status, cover_url, price, currency_code, views_count, purchases_count, rating_avg, ratings_count, publication_date, published_at, created_at, language, categories, is_single_sale_enabled, is_subscription_available, review_status, submitted_at, reviewed_at, reviewed_by, review_note, copyright_status, copyright_note, copyright_blocked_at, copyright_blocked_by",
       { count: "exact" },
     );
 
@@ -302,8 +302,9 @@ export async function listAdminBooks(params: {
 
   const { data, count, error } = await query.range(from, to).returns<BookListRow[]>();
 
-  const [authorsResult, metadataRowsResult] = await Promise.all([
+  const [authorsResult, profilesResult, metadataRowsResult] = await Promise.all([
     supabase.from("author_profiles").select("id, display_name").order("display_name", { ascending: true }),
+    supabase.from("profiles").select("id, name, email").eq("role", "author"),
     supabase.from("books").select("language, categories"),
   ]);
 
@@ -340,18 +341,34 @@ export async function listAdminBooks(params: {
   );
 
   const metadataRows = metadataRowsResult.data ?? [];
+  const authorProfileById = new Map((authorsResult.data ?? []).map((author) => [author.id, author]));
+  const profileById = new Map((profilesResult.data ?? []).map((author) => [author.id, author]));
   const uniqueLanguages = Array.from(new Set(metadataRows.map((row) => row.language).filter(Boolean))).sort();
   const uniqueCategories = Array.from(
     new Set(metadataRows.flatMap((row) => row.categories ?? []).filter(Boolean)),
   ).sort();
 
   return {
-    items: (data ?? []).map((book) => ({
-      ...book,
-      cover_signed_url: resolveAssetUrl(book.cover_url, signedMap),
-      author_name: resolveAdminBookAuthorName(book),
-      reviewer_name: book.reviewed_by ? reviewerNameMap.get(book.reviewed_by) ?? null : null,
-    })),
+    items: (data ?? []).map((book) => {
+      const authorProfile = authorProfileById.get(book.author_id);
+      const fallbackProfile = profileById.get(book.author_id);
+      const hydratedBook: BookListRow = {
+        ...book,
+        author_profile: authorProfile
+          ? { id: authorProfile.id, display_name: authorProfile.display_name, avatar_url: null }
+          : null,
+        author_profile_fallback: fallbackProfile
+          ? { id: fallbackProfile.id, name: fallbackProfile.name, email: fallbackProfile.email }
+          : null,
+      };
+
+      return {
+        ...hydratedBook,
+        cover_signed_url: resolveAssetUrl(book.cover_url, signedMap),
+        author_name: resolveAdminBookAuthorName(hydratedBook),
+        reviewer_name: book.reviewed_by ? reviewerNameMap.get(book.reviewed_by) ?? null : null,
+      };
+    }),
     pagination: buildPagination(count, page, ADMIN_DEFAULT_PAGE_SIZE),
     filterOptions: {
       statuses: [

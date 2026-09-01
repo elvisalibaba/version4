@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import type { PublishedBook } from "@/lib/books";
 
@@ -31,9 +32,11 @@ export function AuthorTrustSection({ books }: AuthorTrustSectionProps) {
           <Link key={book.id} href={`/book/${book.id}`} className="ios-surface ios-card-hover rounded-3xl p-4">
             <div className="aspect-[2/3] overflow-hidden rounded-2xl bg-slate-100">
               {book.cover_signed_url ? (
-                <img
+                <Image
                   src={book.cover_signed_url}
                   alt={book.title}
+                  width={320}
+                  height={480}
                   className="h-full w-full object-cover"
                   loading="lazy"
                   decoding="async"

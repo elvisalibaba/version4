@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { isBookCopyrightBlocked } from "@/lib/book-copyright";
+import { isBookCopyrightBlocked, isBookCopyrightCleared } from "@/lib/book-copyright";
 import { DIGITAL_BOOK_FORMATS } from "@/lib/book-formats";
 import { saveMobileAppConfig, getMobileAppConfig } from "@/lib/mobile-app";
 import { requireAdmin } from "@/lib/auth/require-admin";
@@ -424,6 +424,99 @@ export async function updateAuthorProfileAction(formData: FormData) {
  *  Books actions
  * ------------------------------------------------------------------------- */
 
+/** Crée jusqu'à cinq livres publiés directement par un administrateur. */
+export async function createAdminBooksAction(formData: FormData) {
+  const admin = await requireAdmin();
+  const supabase = await createClient();
+  const now = new Date().toISOString();
+  let createdCount = 0;
+
+  for (let index = 0; index < 5; index += 1) {
+    const title = getString(formData, `title_${index}`);
+    if (!title) continue;
+
+    const authorId = getString(formData, `author_id_${index}`);
+    if (!authorId) continue;
+    const coverValue = formData.get(`cover_file_${index}`);
+    const ebookValue = formData.get(`ebook_file_${index}`);
+    const coverFile = coverValue instanceof File && coverValue.size > 0 ? coverValue : null;
+    const ebookFile = ebookValue instanceof File && ebookValue.size > 0 ? ebookValue : null;
+    if (!coverFile || !ebookFile) continue;
+
+    const bookId = crypto.randomUUID();
+    const coverPath = `covers/${authorId}/${bookId}-${sanitizeStorageFileName(coverFile.name)}`;
+    const ebookPath = `files/${authorId}/${bookId}-${sanitizeStorageFileName(ebookFile.name)}`;
+    const { error: coverUploadError } = await supabase.storage.from("books").upload(coverPath, coverFile, {
+      contentType: coverFile.type || undefined,
+      upsert: false,
+    });
+    if (coverUploadError) continue;
+    const { error: ebookUploadError } = await supabase.storage.from("books").upload(ebookPath, ebookFile, {
+      contentType: ebookFile.type || undefined,
+      upsert: false,
+    });
+    if (ebookUploadError) {
+      await supabase.storage.from("books").remove([coverPath]);
+      continue;
+    }
+
+    const price = Math.max(0, getNumber(formData, `price_${index}`));
+    const currencyCode = getString(formData, `currency_code_${index}`) || "USD";
+    const { data: book, error } = await supabase
+      .from("books")
+      .insert({
+        id: bookId,
+        title,
+        author_id: authorId,
+        author_display_name: getNullableString(formData, `author_name_${index}`),
+        description: getNullableString(formData, `description_${index}`),
+        cover_url: coverPath,
+        cover_alt_text: title,
+        file_url: ebookPath,
+        file_format: ebookFile.name.split(".").pop()?.toLowerCase() || "ebook",
+        file_size: ebookFile.size,
+        language: getString(formData, `language_${index}`) || "fr",
+        categories: splitCommaSeparatedValues(getString(formData, `categories_${index}`)),
+        price,
+        currency_code: currencyCode,
+        status: "published",
+        review_status: "approved",
+        reviewed_at: now,
+        reviewed_by: admin.id,
+        copyright_status: "clear",
+        published_at: now,
+        publication_date: now.slice(0, 10),
+        is_single_sale_enabled: true,
+        is_subscription_available: getBoolean(formData, `premium_${index}`),
+      })
+      .select("id")
+      .single();
+
+    if (error || !book) {
+      await supabase.storage.from("books").remove([coverPath, ebookPath]);
+      continue;
+    }
+    await supabase.from("book_formats").insert({
+      book_id: book.id,
+      format: "ebook",
+      price,
+      currency_code: currencyCode,
+      file_url: ebookPath,
+      file_size_mb: Math.max(1, Math.ceil(ebookFile.size / (1024 * 1024))),
+      downloadable: false,
+      is_published: true,
+    });
+    createdCount += 1;
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/books");
+  revalidatePath("/admin/formats");
+  revalidatePath("/home");
+  revalidatePath("/books");
+  redirect(appendRedirectParam("/admin/books", "created", String(createdCount)));
+}
+
 /**
  * Met à jour un livre (admin uniquement).
  */
@@ -442,6 +535,10 @@ export async function updateBookAction(formData: FormData) {
   const copyrightNote = getNullableString(formData, "copyright_note");
   const isReviewedStatus = reviewStatus === "approved" || reviewStatus === "rejected" || reviewStatus === "changes_requested";
   const isBlockedForCopyright = isBookCopyrightBlocked(copyrightStatus);
+
+  if ((status === "published" || status === "coming_soon") && !isBookCopyrightCleared(copyrightStatus)) {
+    redirect(appendRedirectParam(redirectTo, "saved", "rights_required"));
+  }
 
   const { data: currentBook } = await supabase
     .from("books")
@@ -521,8 +618,12 @@ export async function reviewBookSubmissionAction(formData: FormData) {
   const reviewNote = getNullableString(formData, "review_note");
   const { data: currentBook } = await supabase.from("books").select("copyright_status").eq("id", bookId).maybeSingle();
 
-  if (decision === "approve" && isBookCopyrightBlocked(currentBook?.copyright_status as CopyrightStatus | null | undefined)) {
-    redirect(appendRedirectParam(redirectTo, "review", "copyright_blocked"));
+  if (
+    decision === "approve" &&
+    (targetStatus === "published" || targetStatus === "coming_soon") &&
+    !isBookCopyrightCleared(currentBook?.copyright_status as CopyrightStatus | null | undefined)
+  ) {
+    redirect(appendRedirectParam(redirectTo, "review", "rights_required"));
   }
 
   const reviewPayload: {
