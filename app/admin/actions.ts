@@ -437,14 +437,15 @@ export async function createAdminBooksAction(formData: FormData) {
 
     const authorId = getString(formData, `author_id_${index}`);
     if (!authorId) continue;
-    const coverValue = formData.get(`cover_file_${index}`);
+    const coverValue = formData.get(`generated_cover_${index}`);
     const ebookValue = formData.get(`ebook_file_${index}`);
     const coverFile = coverValue instanceof File && coverValue.size > 0 ? coverValue : null;
     const ebookFile = ebookValue instanceof File && ebookValue.size > 0 ? ebookValue : null;
-    if (!coverFile || !ebookFile) continue;
+    if (!coverFile || coverFile.type !== "image/png" || !ebookFile) continue;
+    if (!/\.(pdf|epub)$/i.test(ebookFile.name)) continue;
 
     const bookId = crypto.randomUUID();
-    const coverPath = `covers/${authorId}/${bookId}-${sanitizeStorageFileName(coverFile.name)}`;
+    const coverPath = `covers/${authorId}/${bookId}-premiere-page.png`;
     const ebookPath = `files/${authorId}/${bookId}-${sanitizeStorageFileName(ebookFile.name)}`;
     const { error: coverUploadError } = await supabase.storage.from("books").upload(coverPath, coverFile, {
       contentType: coverFile.type || undefined,
