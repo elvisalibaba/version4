@@ -3,7 +3,7 @@
 import { startTransition, useRef, useState, type ReactNode } from "react";
 import { unstable_rethrow } from "next/navigation";
 import { createAdminBooksAction } from "@/app/admin/actions";
-import { generateAdminBookCover } from "@/lib/admin-book-cover";
+import { generateBookCover } from "@/lib/book-cover";
 
 export function AdminBookImportForm({ children }: { children: ReactNode }) {
   const [busy, setBusy] = useState(false);
@@ -28,7 +28,7 @@ export function AdminBookImportForm({ children }: { children: ReactNode }) {
         }
         setStatus(`Génération de la couverture du livre ${index + 1}…`);
         try {
-          formData.set(`generated_cover_${index}`, await generateAdminBookCover(file));
+          formData.set(`generated_cover_${index}`, await generateBookCover(file));
         } catch (cause) {
           throw new Error(`Livre ${index + 1} (${title}) : ${cause instanceof Error ? cause.message : "impossible de lire la première page."}`);
         }
@@ -61,7 +61,7 @@ export function AdminBookImportForm({ children }: { children: ReactNode }) {
     startTransition(() => publish(formData));
   }} encType="multipart/form-data" className="space-y-4" aria-busy={busy}>
     {error ? <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p> : null}
-    {busy ? <p role="status" className="rounded-2xl bg-[#effaf4] px-4 py-3 text-sm font-semibold text-[#266347]">{status}</p> : null}
+    {busy ? <div role="status" className="rounded-2xl bg-[#effaf4] px-4 py-3 text-sm font-semibold text-[#266347]"><p>{status}</p><progress aria-label={status} className="mt-3 h-2 w-full accent-[#173d2c]" /></div> : null}
     <fieldset disabled={busy} className="min-w-0 space-y-4 disabled:opacity-60">{children}</fieldset>
   </form>;
 }

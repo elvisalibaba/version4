@@ -1,21 +1,28 @@
 "use client";
 
-import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useImperativeHandle, useMemo, useRef, useState, type Dispatch, type ReactNode, type Ref, type SetStateAction } from "react";
 import { useRouter } from "next/navigation";
 import { SubscriptionPlanSelector } from "@/components/author/subscription-plan-selector";
 import { FormSection } from "@/components/ui/form-section";
 import { BOOK_CATEGORIES } from "@/lib/book-categories";
+import { generateBookCover } from "@/lib/book-cover";
 import { getBookFormatLabel, isPhysicalBookFormat } from "@/lib/book-formats";
 import { initialOptionalFormat, type PublishLabFormatState } from "@/lib/publish-lab";
 import { getSupabaseBrowserConfigErrorMessage, getSupabaseBrowserErrorMessage } from "@/lib/supabase/browser-errors";
 import { createClient } from "@/lib/supabase/client";
+import { uploadBookFile } from "@/lib/supabase/upload-book-file";
 import type { BookFormatType, BookReviewStatus, Database } from "@/types/database";
 
 type OptionalFormat = "holistique_store" | "paperback" | "pocket" | "hardcover" | "audiobook";
 
 type FormatState = PublishLabFormatState;
 
-type SubmissionIntent = "draft" | "submit";
+export type SubmissionIntent = "draft" | "submit";
+
+export type PublishLabFormHandle = {
+  validate: () => boolean;
+  save: (intent: SubmissionIntent) => Promise<boolean>;
+};
 
 type SubscriptionPlan = Pick<
   Database["public"]["Tables"]["subscription_plans"]["Row"],
@@ -65,9 +72,12 @@ export type PublishLabInitialValues = {
   reviewNote: string | null;
 };
 
-type PublishLabFormProps = {
+export type PublishLabFormProps = {
   subscriptionPlans: SubscriptionPlan[];
   initialValues?: Partial<PublishLabInitialValues>;
+  ref?: Ref<PublishLabFormHandle>;
+  batchMode?: boolean;
+  disabled?: boolean;
 };
 
 const emptyInitialValues: PublishLabInitialValues = {
@@ -178,7 +188,7 @@ function Input({
   );
 }
 
-export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabFormProps) {
+export function PublishLabForm({ subscriptionPlans, initialValues, ref, batchMode = false, disabled = false }: PublishLabFormProps) {
   const router = useRouter();
   const initial = { ...emptyInitialValues, ...initialValues };
   const isEditMode = Boolean(initialValues?.id);
@@ -210,11 +220,16 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
   const [isSingleSaleEnabled, setIsSingleSaleEnabled] = useState(initial.isSingleSaleEnabled);
   const [isSubscriptionAvailable, setIsSubscriptionAvailable] = useState(initial.isSubscriptionAvailable);
   const [selectedPlanIds, setSelectedPlanIds] = useState<string[]>(initial.selectedPlanIds);
-  const [cover, setCover] = useState<File | null>(null);
   const [ebookFile, setEbookFile] = useState<File | null>(null);
   const [sampleFile, setSampleFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<{ label: string; percent?: number } | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const savingRef = useRef(false);
+  const savedBookId = useRef(initial.id);
+  const uploadedFiles = useRef(new Map<File, string>());
+  const generatedCover = useRef<{ source: File; cover: File } | null>(null);
   const [showAdvancedDetails, setShowAdvancedDetails] = useState(
     Boolean(
       initial.subtitle ||
@@ -258,41 +273,53 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
     folder: "covers" | "files" | "samples",
   ) {
     if (!file) return currentPath;
+    const cachedPath = uploadedFiles.current.get(file);
+    if (cachedPath) return cachedPath;
 
     const safeFileName = sanitizeFileName(file.name);
-    const now = Date.now();
     const baseFolder = folder === "covers" ? `covers/${userId}` : folder === "samples" ? `files/${userId}/samples` : `files/${userId}`;
-    const nextPath = `${baseFolder}/${now}-${safeFileName}`;
-    const { error: uploadError } = await supabase.storage.from("books").upload(nextPath, file);
-    if (uploadError) throw new Error(uploadError.message);
+    const nextPath = `${baseFolder}/${crypto.randomUUID()}-${safeFileName}`;
+    const label = folder === "covers" ? "Envoi de la couverture" : folder === "samples" ? "Envoi de l’extrait" : "Envoi du fichier numérique";
+    setUploadStatus({ label, percent: 0 });
+    await uploadBookFile(supabase, nextPath, file, (percent) => setUploadStatus({ label, percent }));
+    uploadedFiles.current.set(file, nextPath);
     return nextPath;
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const submitEvent = event.nativeEvent as SubmitEvent;
-    const submitter = submitEvent.submitter as HTMLButtonElement | null;
-    const intent = (submitter?.value as SubmissionIntent | undefined) ?? "draft";
-
-    if (!title.trim()) return setError("Titre requis.");
-    if (!description.trim()) return setError("Description requise.");
-    if (!cover && !initial.coverPath) return setError("Couverture requise.");
-    if (!ebookFile && !initial.ebookPath) return setError("Fichier ebook requis.");
-    if (!authorFullName.trim()) return setError("Nom complet de l auteur requis.");
-    if (invalidIsbn) return setError("ISBN invalide: 13 chiffres requis.");
-    if (!selectedCategory) return setError("Selectionne une categorie principale pour ce livre.");
-    if (!isSingleSaleEnabled && !isSubscriptionAvailable) return setError("Active au moins un mode d acces.");
-    if (isSubscriptionAvailable && selectedPlanIds.length === 0) return setError("Selectionne au moins un pack d abonnement.");
+  function validationError(): string | null {
+    if (!title.trim()) return "Titre requis.";
+    if (!description.trim()) return "Description requise.";
+    if (!ebookFile && !initial.ebookPath) return "Fichier ebook requis.";
+    if (ebookFile && !/\.(pdf|epub)$/i.test(ebookFile.name)) return "Importez un PDF ou un EPUB. Convertissez les fichiers MOBI avant l’import.";
+    if (!authorFullName.trim()) return "Nom complet de l auteur requis.";
+    if (invalidIsbn) return "ISBN invalide: 13 chiffres requis.";
+    if (!selectedCategory) return "Selectionne une categorie principale pour ce livre.";
+    if (!isSingleSaleEnabled && !isSubscriptionAvailable) return "Active au moins un mode d acces.";
+    if (isSubscriptionAvailable && selectedPlanIds.length === 0) return "Selectionne au moins un pack d abonnement.";
     if (paperback.enabled && paperback.printingCost && Number(paperback.printingCost) > Number(paperback.price)) {
-      return setError("Le cout d impression du broche ne peut pas depasser le prix public.");
+      return "Le cout d impression du broche ne peut pas depasser le prix public.";
     }
     if (pocket.enabled && pocket.printingCost && Number(pocket.printingCost) > Number(pocket.price)) {
-      return setError("Le cout d impression du format poche ne peut pas depasser le prix public.");
+      return "Le cout d impression du format poche ne peut pas depasser le prix public.";
     }
     if (hardcover.enabled && hardcover.printingCost && Number(hardcover.printingCost) > Number(hardcover.price)) {
-      return setError("Le cout d impression du relie ne peut pas depasser le prix public.");
+      return "Le cout d impression du relie ne peut pas depasser le prix public.";
     }
+    if (!formRef.current?.checkValidity()) return "Vérifiez les champs obligatoires et les valeurs numériques.";
+    return null;
+  }
+
+  function validate() {
+    const message = validationError();
+    setError(message);
+    return message === null;
+  }
+
+  useImperativeHandle(ref, () => ({ validate, save: saveBook }));
+
+  async function saveBook(intent: SubmissionIntent): Promise<boolean> {
+    if (savingRef.current || disabled || !validate()) return false;
+    savingRef.current = true;
 
     setSaving(true);
     setError(null);
@@ -301,7 +328,8 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
     if (configError) {
       setError(configError);
       setSaving(false);
-      return;
+      savingRef.current = false;
+      return false;
     }
 
     try {
@@ -314,11 +342,18 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
 
       const normalizedAuthorName = authorFullName.trim();
 
-      const [coverPath, ebookPath, samplePath] = await Promise.all([
-        uploadFileIfNeeded(supabase, user.id, cover, initial.coverPath, "covers"),
-        uploadFileIfNeeded(supabase, user.id, ebookFile, initial.ebookPath, "files"),
-        uploadFileIfNeeded(supabase, user.id, sampleFile, initial.samplePath, "samples"),
-      ]);
+      let coverFile: File | null = null;
+      if (ebookFile) {
+        setUploadStatus({ label: "Génération de la couverture à partir de la première page…" });
+        if (generatedCover.current?.source !== ebookFile) {
+          generatedCover.current = { source: ebookFile, cover: await generateBookCover(ebookFile) };
+        }
+        coverFile = generatedCover.current.cover;
+      }
+      const coverPath = await uploadFileIfNeeded(supabase, user.id, coverFile, initial.coverPath, "covers");
+      const ebookPath = await uploadFileIfNeeded(supabase, user.id, ebookFile, initial.ebookPath, "files");
+      const samplePath = await uploadFileIfNeeded(supabase, user.id, sampleFile, initial.samplePath, "samples");
+      setUploadStatus({ label: "Enregistrement du livre…" });
 
       const nextEbookFile = ebookFile ?? null;
       const reviewStatus: BookReviewStatus = intent === "submit" ? "submitted" : "draft";
@@ -338,7 +373,7 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
         page_count: pageCount ? Number(pageCount) : null,
         cover_url: coverPath,
         cover_thumbnail_url: coverPath ?? initial.coverThumbnailUrl ?? null,
-        cover_alt_text: coverAltText || null,
+        cover_alt_text: coverAltText || `Première page de ${normalizedTitle}`,
         categories: [selectedCategory],
         tags: splitCsv(tags),
         age_rating: ageRating || null,
@@ -359,7 +394,7 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
         submitted_at: reviewStatus === "submitted" ? new Date().toISOString() : null,
       } satisfies Database["public"]["Tables"]["books"]["Insert"];
 
-      let bookId = initial.id;
+      let bookId = savedBookId.current;
 
       if (bookId) {
         const { error: updateError } = await supabase.from("books").update(bookPayload).eq("id", bookId).eq("author_id", user.id);
@@ -368,6 +403,7 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
         const { data: insertedBook, error: insertError } = await supabase.from("books").insert(bookPayload).select("id").single();
         if (insertError || !insertedBook) throw new Error(insertError?.message ?? "Creation du livre impossible.");
         bookId = insertedBook.id;
+        savedBookId.current = bookId;
       }
 
       if (!bookId) throw new Error("Identifiant du livre introuvable.");
@@ -523,13 +559,27 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
         if (insertPlansError) throw new Error(insertPlansError.message);
       }
 
-      router.push("/dashboard/author/books");
-      router.refresh();
+      setUploadStatus({ label: intent === "submit" ? "Livre envoyé pour vérification." : "Brouillon enregistré.", percent: 100 });
+      if (!batchMode) {
+        router.push("/dashboard/author/books");
+        router.refresh();
+      }
+      return true;
     } catch (submitError) {
       setError(getSupabaseBrowserErrorMessage(submitError, "la soumission du livre"));
+      setUploadStatus(null);
+      return false;
     } finally {
       setSaving(false);
+      savingRef.current = false;
     }
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (batchMode) return;
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    await saveBook((submitter?.value as SubmissionIntent | undefined) ?? "draft");
   }
 
   function renderOptionalFormat(
@@ -600,7 +650,8 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-8" aria-busy={saving}>
+      <fieldset disabled={saving || disabled} className="min-w-0 space-y-8">
       <div className={`rounded-[1.6rem] border px-5 py-4 text-sm ${reviewStatusMeta.className}`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -707,12 +758,11 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
       </FormSection>
 
       <FormSection
-        title="Couverture et fichier"
-        description="Ajoutez la couverture et le fichier que les lecteurs pourront ouvrir."
+        title="Fichier numérique"
+        description="La première page du livre devient automatiquement sa couverture."
       >
         <div className="grid gap-5 md:grid-cols-2">
-          <Input label={`Couverture ${isEditMode ? "(optionnel)" : "*"}`}><input type="file" accept="image/*" required={!isEditMode} onChange={(event) => setCover(event.target.files?.[0] ?? null)} className="block w-full px-4 py-3.5 text-slate-700" /></Input>
-          <Input label={`Fichier ebook ${isEditMode ? "(optionnel)" : "*"}`}><input type="file" accept=".epub,.pdf,.mobi,application/epub+zip,application/pdf" required={!isEditMode} onChange={(event) => setEbookFile(event.target.files?.[0] ?? null)} className="block w-full px-4 py-3.5 text-slate-700" /></Input>
+          <Input label={`Fichier ebook ${isEditMode ? "(optionnel)" : "*"}`}><input type="file" accept=".epub,.pdf,application/epub+zip,application/pdf" required={!isEditMode} onChange={(event) => setEbookFile(event.target.files?.[0] ?? null)} className="block w-full px-4 py-3.5 text-slate-700" /><span className="mt-2 block text-xs text-slate-500">PDF ou EPUB. Convertissez les fichiers MOBI avant l’import.{isEditMode ? " Remplacer le fichier met aussi à jour la couverture." : " Aucune image de couverture à ajouter."}</span></Input>
           <div className="md:col-span-2 rounded-[1.4rem] border border-violet-100 bg-violet-50/70 px-4 py-4 text-sm leading-7 text-slate-700">
             Le nom saisi ici sera affiché comme nom d’auteur sur la page du livre.
           </div>
@@ -782,16 +832,19 @@ export function PublishLabForm({ subscriptionPlans, initialValues }: PublishLabF
       </FormSection>
 
       {invalidIsbn ? <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm text-red-700">ISBN invalide : veuillez saisir exactement 13 chiffres.</div> : null}
-      {error ? <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div> : null}
+      {error ? <div role="alert" className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div> : null}
 
-      <div className="flex flex-wrap justify-end gap-3">
+      {uploadStatus ? <div role="status" className="rounded-2xl bg-[#effaf4] px-4 py-3 text-sm font-semibold text-[#266347]"><p>{uploadStatus.label}{uploadStatus.percent !== undefined ? ` ${uploadStatus.percent} %` : ""}</p><progress aria-label={uploadStatus.label} value={uploadStatus.percent} max={100} className="mt-3 h-2 w-full accent-[#173d2c]" /></div> : null}
+
+      {!batchMode ? <div className="flex flex-wrap justify-end gap-3">
         <button type="submit" value="draft" disabled={saving} className="cta-secondary px-8 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50">
           {saving ? "Enregistrement..." : "Enregistrer en brouillon"}
         </button>
         <button type="submit" value="submit" disabled={saving} className="cta-primary px-8 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50">
           {saving ? "Envoi..." : isEditMode ? "Envoyer les modifications" : "Envoyer pour publication"}
         </button>
-      </div>
+      </div> : null}
+      </fieldset>
     </form>
   );
 }

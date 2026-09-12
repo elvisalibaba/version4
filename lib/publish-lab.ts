@@ -1,3 +1,5 @@
+export const MAX_AUTHOR_BOOKS_PER_SUBMISSION = 3;
+
 export type PublishLabFormatState = {
   enabled: boolean;
   price: string;

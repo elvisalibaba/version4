@@ -1,4 +1,4 @@
-/** Browser-only rendering for the admin import form. */
+/** Browser-only rendering for book import forms. */
 async function canvasToCover(canvas: HTMLCanvasElement): Promise<File> {
   const blob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((value) => {
@@ -67,7 +67,7 @@ async function renderEpubCover(file: File): Promise<File> {
   }
 }
 
-export async function generateAdminBookCover(file: File): Promise<File> {
+export async function generateBookCover(file: File): Promise<File> {
   const extension = file.name.split(".").pop()?.toLowerCase();
   if (extension === "pdf") return renderPdfCover(file);
   if (extension === "epub") return renderEpubCover(file);

@@ -122,10 +122,10 @@ function Shelf({ title, eyebrow, description, books, href }: { title: string; ey
 export default async function HomePage() {
   const [books, authors] = await Promise.all([getPublishedBooks(), getPublicAuthors()]);
   const popularBooks = [...books].sort(rankByAudience);
-  const freeBooks = books.filter((book) => book.is_free).sort(rankByAudience);
+  // The catalogue is already ordered by newest publication first.
+  const freeBooks = books.filter((book) => book.is_free);
   const paidBooks = books.filter((book) => !book.is_free);
-  const popularFreeBooks = popularBooks.filter((book) => book.is_free);
-  const heroBooks = (popularFreeBooks.length >= 3 ? popularFreeBooks : popularBooks).slice(0, 3);
+  const heroBooks = (freeBooks.length > 0 ? freeBooks : popularBooks).slice(0, 3);
   const leadBook = heroBooks[0] ?? null;
 
   return (
@@ -166,7 +166,7 @@ export default async function HomePage() {
                 </Link>
               );
             })}
-            {leadBook ? <p className="absolute bottom-0 right-6 z-40 rounded-full bg-[#f4b942] px-4 py-2 text-xs font-extrabold text-[#2c271f]">À lire gratuitement</p> : null}
+            {leadBook?.is_free ? <p className="absolute bottom-0 right-6 z-40 rounded-full bg-[#f4b942] px-4 py-2 text-xs font-extrabold text-[#2c271f]">À lire gratuitement</p> : null}
           </div>
         </div>
       </section>
@@ -191,9 +191,9 @@ export default async function HomePage() {
         />
 
         <Shelf
-          eyebrow="La bibliothèque ouverte"
-          title="Lisez gratuitement, dès maintenant."
-          description="Entrez dans la lecture numérique, découvrez un auteur et laissez-vous surprendre par un nouvel univers. Aucun paiement nécessaire."
+          eyebrow="Nouveautés gratuites"
+          title="De nouveaux livres à lire gratuitement."
+          description="Découvrez les derniers livres gratuits publiés sur Holistique Books. Les nouvelles parutions apparaissent ici dès leur publication, sans paiement nécessaire."
           books={freeBooks}
           href="/books?access=free"
         />
