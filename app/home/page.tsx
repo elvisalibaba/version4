@@ -52,7 +52,7 @@ function rankByAudience(a: HomeBook, b: HomeBook) {
   const bReads = Number(b.purchases_count ?? 0);
   const aViews = Number(a.views_count ?? 0);
   const bViews = Number(b.views_count ?? 0);
-  return bReads - aReads || bViews - aViews || new Date(b.published_at ?? b.created_at).getTime() - new Date(a.published_at ?? a.created_at).getTime();
+  return bReads - aReads || bViews - aViews || new Date(b.published_at ?? b.created_at ?? 0).getTime() - new Date(a.published_at ?? a.created_at ?? 0).getTime();
 }
 
 function BookTile({ book, priority = false }: { book: HomeBook; priority?: boolean }) {
