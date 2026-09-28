@@ -9,7 +9,6 @@ import {
   ChevronDown,
   Eye,
   EyeOff,
-  MailCheck,
   PenTool,
   ShieldCheck,
   type LucideIcon,
