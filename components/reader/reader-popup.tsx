@@ -3,16 +3,18 @@
 import Link from "next/link";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Maximize2, Settings2, X } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { PdfReaderSurface } from "@/components/reader/pdf-reader-surface";
-import type { Database } from "@/types/database";
 
 type EpubTheme = "light" | "sepia" | "dark";
 type HighlightColor = "yellow" | "blue" | "pink" | "green";
-type ReaderHighlight = Pick<
-  Database["public"]["Tables"]["highlights"]["Row"],
-  "id" | "page" | "text" | "note" | "color" | "created_at"
->;
+type ReaderHighlight = {
+  id: string;
+  page: number | null;
+  text: string | null;
+  note: string | null;
+  color: string;
+  created_at: string;
+};
 
 type TocItem = {
   href: string;
@@ -345,8 +347,10 @@ export function ReaderPopup({
       setEpubToc([]);
 
       try {
-        const supabase = createClient();
-        const [readerResponse, authResult] = await Promise.all([fetch(`/api/read/${bookId}`), supabase.auth.getUser()]);
+        const [readerResponse, authResponse] = await Promise.all([
+          fetch(`/api/read/${bookId}`, { cache: "no-store" }),
+          fetch("/api/auth/me", { cache: "no-store" }),
+        ]);
         const readerPayload = await readerResponse.json();
 
         if (!readerResponse.ok) {
@@ -357,27 +361,24 @@ export function ReaderPopup({
         setFileUrl(readerPayload.readerUrl);
         setFileType(readerPayload.fileType);
 
-        const user = authResult.data.user;
+        const authPayload = authResponse.ok ? await authResponse.json() : { data: null };
+        const user = authPayload.data ?? null;
         setIsGuestReader(!user);
-        if (!user) {
-          return;
-        }
+        if (!user) return;
 
         setReaderProfileId(user.id);
 
-        const { data: highlightRows, error: highlightError } = await supabase
-          .from("highlights")
-          .select("id, page, text, note, color, created_at")
-          .eq("user_id", user.id)
-          .eq("book_id", bookId)
-          .order("created_at", { ascending: false });
-
-        if (highlightError) {
-          console.warn("[ReaderPopup] Unable to load highlights for the current reader.", highlightError.message);
+        const highlightsResponse = await fetch(`/api/backend/books/${encodeURIComponent(bookId)}/highlights`, {
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        });
+        if (!highlightsResponse.ok) {
+          console.warn("[ReaderPopup] Laravel API could not load highlights.");
           return;
         }
 
-        setHighlights((highlightRows ?? []) as ReaderHighlight[]);
+        const highlightPayload = await highlightsResponse.json();
+        setHighlights((highlightPayload.data ?? []) as ReaderHighlight[]);
       } catch {
         setError("Le lecteur securise ne repond pas pour le moment.");
       }
@@ -566,24 +567,21 @@ export function ReaderPopup({
     setError(null);
 
     try {
-      const supabase = createClient();
-      const payload: Database["public"]["Tables"]["highlights"]["Insert"] = {
-        user_id: readerProfileId,
-        book_id: bookId,
-        page: Math.max(1, currentReaderPage || 1),
-        text: selectedQuote.trim() || null,
-        note: highlightNote.trim() || null,
-        color: highlightColor,
-      };
+      const response = await fetch(`/api/backend/books/${encodeURIComponent(bookId)}/highlights`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          page: Math.max(1, currentReaderPage || 1),
+          text: selectedQuote.trim() || null,
+          note: highlightNote.trim() || null,
+          color: highlightColor,
+        }),
+      });
+      const payload = await response.json().catch(() => null);
+      const createdHighlight = payload?.data as ReaderHighlight | undefined;
 
-      const { data: createdHighlight, error: highlightError } = await supabase
-        .from("highlights")
-        .insert(payload)
-        .select("id, page, text, note, color, created_at")
-        .single();
-
-      if (highlightError || !createdHighlight) {
-        throw new Error(highlightError?.message ?? "Enregistrement du surlignage impossible.");
+      if (!response.ok || !createdHighlight) {
+        throw new Error(payload?.message ?? "Enregistrement du surlignage impossible.");
       }
 
       if (selectedCfiRange && isEpub) {
@@ -613,11 +611,14 @@ export function ReaderPopup({
     setError(null);
 
     try {
-      const supabase = createClient();
-      const { error: deleteError } = await supabase.from("highlights").delete().eq("id", highlightId);
+      const response = await fetch(`/api/backend/highlights/${encodeURIComponent(highlightId)}`, {
+        method: "DELETE",
+        headers: { Accept: "application/json" },
+      });
 
-      if (deleteError) {
-        throw new Error(deleteError.message);
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.message ?? "Suppression impossible.");
       }
 
       setHighlights((previous) => previous.filter((entry) => entry.id !== highlightId));
