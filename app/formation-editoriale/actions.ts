@@ -1,15 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { ApiError } from "@/lib/api/client";
+import { apiServer } from "@/lib/api/server";
 import {
   isEditorialTrainingExperienceLevel,
   isEditorialTrainingPreferredFormat,
   isEditorialTrainingProfileType,
   isEditorialTrainingProjectStage,
+  type EditorialTrainingRequestRow,
 } from "@/lib/editorial-training";
 import { sendAdminEditorialTrainingNotification } from "@/lib/notifications/editorial-training";
-import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/types/database";
 
 export type EditorialTrainingFormState = {
   status: "idle" | "success" | "error";
@@ -42,8 +43,7 @@ export async function submitEditorialTrainingRequestAction(
   if (getString(formData, "website")) {
     return {
       status: "success",
-      message:
-        "Votre demande a bien ete transmise. Notre equipe vous recontacte tres vite.",
+      message: "Votre demande a bien été transmise. Notre équipe vous recontacte très vite.",
     };
   }
 
@@ -60,121 +60,90 @@ export async function submitEditorialTrainingRequestAction(
   if (!firstName || !lastName || !email || !objectives) {
     return {
       status: "error",
-      message:
-        "Merci de renseigner le prenom, le nom, l email et vos objectifs de formation.",
+      message: "Merci de renseigner le prénom, le nom, l’email et vos objectifs de formation.",
     };
   }
 
   if (!isValidEmail(email)) {
-    return {
-      status: "error",
-      message: "Merci de saisir une adresse email valide.",
-    };
+    return { status: "error", message: "Merci de saisir une adresse email valide." };
   }
 
   if (!isEditorialTrainingProfileType(profileType)) {
-    return {
-      status: "error",
-      message: "Le profil selectionne est invalide.",
-    };
+    return { status: "error", message: "Le profil sélectionné est invalide." };
   }
 
   if (!isEditorialTrainingExperienceLevel(experienceLevel)) {
-    return {
-      status: "error",
-      message: "Le niveau selectionne est invalide.",
-    };
+    return { status: "error", message: "Le niveau sélectionné est invalide." };
   }
 
   if (!isEditorialTrainingProjectStage(projectStage)) {
-    return {
-      status: "error",
-      message: "Le stade du projet selectionne est invalide.",
-    };
+    return { status: "error", message: "Le stade du projet sélectionné est invalide." };
   }
 
   if (!isEditorialTrainingPreferredFormat(preferredFormat)) {
-    return {
-      status: "error",
-      message: "Le format souhaite est invalide.",
-    };
+    return { status: "error", message: "Le format souhaité est invalide." };
   }
 
   if (!consentToContact) {
     return {
       status: "error",
-      message:
-        "Le consentement de contact est requis pour envoyer votre demande.",
+      message: "Le consentement de contact est requis pour envoyer votre demande.",
     };
   }
 
+  const payload = {
+    first_name: firstName,
+    last_name: lastName,
+    email,
+    phone: getNullableString(formData, "phone"),
+    country: getNullableString(formData, "country"),
+    city: getNullableString(formData, "city"),
+    organization_name: getNullableString(formData, "organization_name"),
+    profile_type: profileType,
+    experience_level: experienceLevel,
+    project_stage: projectStage,
+    preferred_format: preferredFormat,
+    objectives,
+    message: getNullableString(formData, "message"),
+    consent_to_contact: consentToContact,
+    source: getNullableString(formData, "source") ?? "formation-editoriale",
+  };
+
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    const submittedAt = new Date().toISOString();
-    const requestRecord: Database["public"]["Tables"]["editorial_training_requests"]["Row"] =
-      {
-        id: crypto.randomUUID(),
-        user_id: user?.id ?? null,
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        phone: getNullableString(formData, "phone"),
-        country: getNullableString(formData, "country"),
-        city: getNullableString(formData, "city"),
-        organization_name: getNullableString(formData, "organization_name"),
-        profile_type: profileType,
-        experience_level: experienceLevel,
-        project_stage: projectStage,
-        preferred_format: preferredFormat,
-        objectives,
-        message: getNullableString(formData, "message"),
-        consent_to_contact: consentToContact,
-        source:
-          getNullableString(formData, "source") ?? "formation-editoriale",
-        created_at: submittedAt,
-        updated_at: submittedAt,
-      };
-
-    const { error } = await supabase
-      .from("editorial_training_requests")
-      .insert(requestRecord);
-
-    if (error) {
-      return {
-        status: "error",
-        message:
-          error?.message ??
-          "Impossible d enregistrer votre demande pour le moment.",
-      };
-    }
+    const response = await apiServer<{ data: EditorialTrainingRequestRow }>("editorial-training", {
+      method: "POST",
+      body: payload,
+      authenticated: false,
+    });
 
     try {
-      await sendAdminEditorialTrainingNotification(requestRecord);
+      await sendAdminEditorialTrainingNotification(response.data);
     } catch (notificationError) {
-      console.error(
-        "Editorial training notification failed:",
-        notificationError,
-      );
+      console.error("Editorial training notification failed:", notificationError);
     }
 
-    revalidatePath("/admin/editorial-training");
+    revalidatePath("/formation-editoriale");
 
     return {
       status: "success",
-      message:
-        "Votre demande a bien ete transmise. Notre equipe vous recontacte tres vite.",
+      message: "Votre demande a bien été transmise. Notre équipe vous recontacte très vite.",
     };
   } catch (error) {
+    if (error instanceof ApiError) {
+      const payload = error.payload as { message?: string; errors?: Record<string, string[]> } | null;
+      const firstValidationError = payload?.errors
+        ? Object.values(payload.errors).flat().find(Boolean)
+        : null;
+
+      return {
+        status: "error",
+        message: firstValidationError ?? payload?.message ?? "Impossible d’enregistrer votre demande pour le moment.",
+      };
+    }
+
     return {
       status: "error",
-      message:
-        error instanceof Error
-          ? error.message
-          : "Une erreur est survenue pendant l envoi du formulaire.",
+      message: error instanceof Error ? error.message : "Une erreur est survenue pendant l’envoi du formulaire.",
     };
   }
 }
