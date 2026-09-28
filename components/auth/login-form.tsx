@@ -3,11 +3,6 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
-import {
-  getSupabaseBrowserConfigErrorMessage,
-  getSupabaseBrowserErrorMessage,
-} from "@/lib/supabase/browser-errors";
-import { createClient } from "@/lib/supabase/client";
 import { getSafeNextPath, withNextPath } from "@/lib/safe-next-path";
 
 const inputClassName =
@@ -34,34 +29,27 @@ export function LoginForm({ nextPath, notice = null }: LoginFormProps) {
     setError(null);
     setLoading(true);
 
-    const configError = getSupabaseBrowserConfigErrorMessage();
-
-    if (configError) {
-      setError(configError);
-      setLoading(false);
-      return;
-    }
 
     try {
-      const supabase = createClient();
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email: email.trim(), password, device_name: "web" }),
       });
 
-      if (signInError) {
-        setError(getSupabaseBrowserErrorMessage(signInError, "la connexion"));
-        return;
-      }
-
-      if (!data.session) {
-        setError("Connexion impossible : aucune session n’a été créée.");
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        const message =
+          payload?.errors?.email?.[0] ??
+          payload?.message ??
+          "Connexion impossible. Vérifiez vos identifiants.";
+        setError(message);
         return;
       }
 
       window.location.assign(safeNextPath);
-    } catch (signInError) {
-      setError(getSupabaseBrowserErrorMessage(signInError, "la connexion"));
+    } catch {
+      setError("Le service de connexion est momentanément indisponible.");
     } finally {
       setLoading(false);
     }
