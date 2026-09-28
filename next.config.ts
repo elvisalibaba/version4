@@ -1,9 +1,5 @@
 import type { NextConfig } from "next";
 
-const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
-  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
-  : null;
-
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
@@ -12,30 +8,36 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      // APK uploads go through a server action on /admin/mobile-app.
-      bodySizeLimit: "80mb",
+      bodySizeLimit: "220mb",
     },
-    // Admin routes are guarded by proxy.ts, which buffers request bodies.
-    proxyClientMaxBodySize: "80mb",
+    proxyClientMaxBodySize: "220mb",
   },
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
       },
-      ...(supabaseHostname
-        ? [
-            {
-              protocol: "https" as const,
-              hostname: supabaseHostname,
-              port: "",
-              pathname: "/**",
-            },
-          ]
-        : []),
+      {
+        protocol: "https",
+        hostname: "api.aba.cd",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+        port: "8000",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8000",
+        pathname: "/**",
+      },
     ],
   },
   async headers() {
@@ -50,7 +52,7 @@ const nextConfig: NextConfig = {
           {
             key: "Content-Security-Policy",
             value:
-              "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://*.cinetpay.com https://*.e-com-easypay.com; img-src 'self' data: blob: https:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.cinetpay.com https://*.e-com-easypay.com; worker-src 'self' blob:; media-src 'self' blob: https:; upgrade-insecure-requests",
+              "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://*.cinetpay.com https://*.e-com-easypay.com; img-src 'self' data: blob: https: http://127.0.0.1:8000 http://localhost:8000; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://api.aba.cd http://127.0.0.1:8000 http://localhost:8000 https://*.cinetpay.com https://*.e-com-easypay.com; worker-src 'self' blob:; media-src 'self' blob: https: http://127.0.0.1:8000 http://localhost:8000; upgrade-insecure-requests",
           },
         ],
       },
