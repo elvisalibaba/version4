@@ -1,36 +1,30 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUserProfile } from "@/lib/auth";
 
 export type AdminIdentity = {
   id: string;
   email: string;
   name: string | null;
   role: "admin";
-  created_at: string;
+  created_at?: string;
 };
 
 export async function requireAdmin(): Promise<AdminIdentity> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const profile = await getCurrentUserProfile();
 
-  if (!user) {
+  if (!profile) {
     redirect("/login?next=/admin");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, email, name, role, created_at")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (!profile || profile.role !== "admin") {
+  if (profile.role !== "admin") {
     redirect("/dashboard");
   }
 
   return {
-    ...profile,
+    id: profile.id,
+    email: profile.email,
+    name: profile.name,
     role: "admin",
+    created_at: profile.created_at,
   };
 }
