@@ -1,36 +1,35 @@
 import { NextResponse } from "next/server";
-import { trackBookEngagement } from "@/lib/book-engagement";
-import { createClient } from "@/lib/supabase/server";
-import { resolveReadAccess } from "./_access";
+import { ApiError } from "@/lib/api/client";
+import { apiServer } from "@/lib/api/server";
+import type { ApiBook } from "@/types/api";
 
-type RouteProps = { params: Promise<{ bookId: string }> };
+export async function GET(_request: Request, context: { params: Promise<{ bookId: string }> }) {
+  const { bookId } = await context.params;
 
-export async function GET(_request: Request, { params }: RouteProps) {
-  const { bookId } = await params;
-  const supabase = await createClient();
+  try {
+    const [{ data: access }, { data: book }] = await Promise.all([
+      apiServer<{ data: { hasAccess: boolean } }>(`books/${encodeURIComponent(bookId)}/access`),
+      apiServer<{ data: ApiBook & { file_format?: string | null } }>(`books/${encodeURIComponent(bookId)}`),
+    ]);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    if (!access.hasAccess) {
+      return NextResponse.json({ error: "Accès à ce livre refusé." }, { status: 403 });
+    }
 
-  const access = await resolveReadAccess(bookId, user?.id ?? null);
-  if (!access.ok) {
-    return NextResponse.json({ error: access.error }, { status: access.status });
+    const fileType = book.file_format === "pdf" ? "pdf" : "epub";
+
+    return NextResponse.json({
+      readerUrl: `/api/read/${encodeURIComponent(bookId)}/file`,
+      fileType,
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return NextResponse.json(
+        { error: error.status === 401 ? "Connectez-vous pour lire ce livre." : "Impossible d’ouvrir ce livre." },
+        { status: error.status },
+      );
+    }
+
+    return NextResponse.json({ error: "Le lecteur sécurisé est indisponible." }, { status: 503 });
   }
-
-  await trackBookEngagement({
-    bookId,
-    eventType: "reader_open",
-    source: "secure_reader_entry",
-    requestHeaders: _request.headers,
-    metadata: {
-      file_type: access.fileType,
-      access_mode: user ? "account" : "guest_free",
-    },
-  });
-
-  return NextResponse.json({
-    fileType: access.fileType,
-    readerUrl: `/api/read/${bookId}/file`,
-  });
 }
