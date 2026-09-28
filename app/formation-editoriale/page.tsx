@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { EditorialTrainingForm } from "@/components/editorial/editorial-training-form";
 import { PageHero } from "@/components/ui/page-hero";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUserProfile } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Formation editoriale",
@@ -41,40 +41,18 @@ function InfoCard({
 }
 
 export default async function EditorialTrainingPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const profile = await getCurrentUserProfile();
 
-  let initialValues:
-    | {
-        firstName?: string | null;
-        lastName?: string | null;
-        email?: string | null;
-        phone?: string | null;
-        country?: string | null;
-        city?: string | null;
-      }
-    | undefined;
-
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("first_name, last_name, email, phone, country, city")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (profile) {
-      initialValues = {
+  const initialValues = profile
+    ? {
         firstName: profile.first_name,
         lastName: profile.last_name,
         email: profile.email,
         phone: profile.phone,
         country: profile.country,
         city: profile.city,
-      };
-    }
-  }
+      }
+    : undefined;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
