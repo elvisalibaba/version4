@@ -4,11 +4,6 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Mail, MailCheck, ShieldCheck } from "lucide-react";
 import { getSafeNextPath, withNextPath } from "@/lib/safe-next-path";
-import {
-  getSupabaseBrowserConfigErrorMessage,
-  getSupabaseBrowserErrorMessage,
-} from "@/lib/supabase/browser-errors";
-import { createClient } from "@/lib/supabase/client";
 
 type ForgotPasswordFormProps = {
   nextPath: string;
@@ -21,39 +16,28 @@ export function ForgotPasswordForm({ nextPath }: ForgotPasswordFormProps) {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
-  function getRecoveryRedirectTo() {
-    const resetPath = withNextPath("/reset-password", safeNextPath);
-    const callbackUrl = new URL("/auth/callback", window.location.origin);
-    callbackUrl.searchParams.set("next", resetPath);
-    return callbackUrl.toString();
-  }
-
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setLoading(true);
 
-    const configError = getSupabaseBrowserConfigErrorMessage();
-    if (configError) {
-      setError(configError);
-      setLoading(false);
-      return;
-    }
 
     try {
-      const supabase = createClient();
-      const { error: recoveryError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: getRecoveryRedirectTo(),
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
       });
 
-      if (recoveryError) {
-        setError(getSupabaseBrowserErrorMessage(recoveryError, "la récupération du mot de passe"));
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(payload?.message ?? "Impossible d’envoyer le lien de réinitialisation.");
         return;
       }
 
       setSent(true);
-    } catch (recoveryError) {
-      setError(getSupabaseBrowserErrorMessage(recoveryError, "la récupération du mot de passe"));
+    } catch {
+      setError("Le service de récupération est momentanément indisponible.");
     } finally {
       setLoading(false);
     }
