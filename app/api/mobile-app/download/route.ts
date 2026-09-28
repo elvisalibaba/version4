@@ -1,33 +1,24 @@
 import { NextResponse } from "next/server";
-import { createMobileAppSignedDownloadUrl, getMobileAppConfig } from "@/lib/mobile-app";
-import { createClient } from "@/lib/supabase/server";
+import { apiServer } from "@/lib/api/server";
+import { getMobileAppConfig } from "@/lib/mobile-app";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const config = await getMobileAppConfig();
 
-  if (!config.isPublic || !config.apkPath) {
+  if (!config.isPublic) {
     return NextResponse.redirect(new URL("/home?app=unavailable", request.url));
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user && config.trialEnabled) {
-    await supabase.rpc("claim_current_user_mobile_app_trial", {
-      p_trial_days: config.trialDays,
-      p_source: "hero_download",
-    });
+  try {
+    if (config.trialEnabled) {
+      await apiServer("mobile/trial/claim", { method: "POST" }).catch(() => null);
+    }
+  } catch {
+    // Download remains available even if a guest has no authenticated trial.
   }
 
-  const signedUrl = await createMobileAppSignedDownloadUrl(config.apkPath, 60 * 10);
-
-  if (!signedUrl) {
-    return NextResponse.redirect(new URL("/home?app=unavailable", request.url));
-  }
-
-  return NextResponse.redirect(signedUrl, 307);
+  const target = new URL("/api/backend/mobile/download", request.url);
+  return NextResponse.redirect(target, 307);
 }
