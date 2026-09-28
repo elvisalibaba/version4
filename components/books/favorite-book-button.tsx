@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Heart } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 
 type FavoriteBookButtonProps = {
   bookId: string;
@@ -38,40 +37,23 @@ export function FavoriteBookButton({
 
   function handleToggle() {
     startTransition(async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
+      const me = await fetch("/api/auth/me", { cache: "no-store" });
+      if (!me.ok) {
         router.push(`/login?next=${encodeURIComponent(buildNextPath())}`);
         return;
       }
 
-      if (isFavorite) {
-        const { error } = await supabase.from("book_favorites").delete().eq("user_id", user.id).eq("book_id", bookId);
-        if (error) {
-          console.error("[Favorites] Failed to remove favorite book.", error.message);
-          return;
-        }
+      const response = await fetch(`/api/backend/favorites/${encodeURIComponent(bookId)}`, {
+        method: isFavorite ? "DELETE" : "POST",
+        headers: { Accept: "application/json" },
+      });
 
-        setIsFavorite(false);
-        router.refresh();
+      if (!response.ok) {
+        console.error("[Favorites] Laravel API rejected favorite update.", response.status);
         return;
       }
 
-      const { error } = await supabase.from("book_favorites").insert({ user_id: user.id, book_id: bookId });
-      if (error) {
-        if (error.message.toLowerCase().includes("duplicate")) {
-          setIsFavorite(true);
-          router.refresh();
-          return;
-        }
-        console.error("[Favorites] Failed to add favorite book.", error.message);
-        return;
-      }
-
-      setIsFavorite(true);
+      setIsFavorite((current) => !current);
       router.refresh();
     });
   }
