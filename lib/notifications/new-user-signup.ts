@@ -18,7 +18,7 @@ type NewUserProfileRecord = {
   created_at?: string | null;
 };
 
-export type SupabaseInsertWebhookPayload<TRecord> = {
+export type DatabaseInsertWebhookPayload<TRecord> = {
   type: "INSERT";
   table: string;
   schema: string;
