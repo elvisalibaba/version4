@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class AuthorResource extends JsonResource
 {
@@ -14,10 +15,15 @@ class AuthorResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $avatarUrl = $this->avatar_url;
+        if (is_string($avatarUrl) && $avatarUrl !== '' && ! str_starts_with($avatarUrl, 'http://') && ! str_starts_with($avatarUrl, 'https://')) {
+            $avatarUrl = Storage::disk('public')->url($avatarUrl);
+        }
+
         return [
             'id' => $this->id,
             'display_name' => $this->display_name,
-            'avatar_url' => $this->avatar_url,
+            'avatar_url' => $avatarUrl,
             'bio' => $this->bio,
             'website' => $this->website,
             'location' => $this->location,
