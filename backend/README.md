@@ -31,6 +31,7 @@ Après avoir récupéré une branche contenant l'ajout de Filament mais avant qu
 ```bash
 composer update filament/filament --with-all-dependencies
 php artisan filament:assets
+php artisan storage:link
 php artisan optimize:clear
 ```
 
