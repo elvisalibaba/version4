@@ -45,6 +45,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::get('mobile', [PublicContentController::class, 'mobile'])->name('mobile.config');
     Route::get('mobile/download', [MobileAppController::class, 'download'])->name('mobile.download');
     Route::post('editorial-training', [EditorialTrainingController::class, 'store'])->middleware('throttle:20,1')->name('editorial-training.store');
+    Route::post('payments/easypay/notify', [PaymentController::class, 'notify'])->middleware('throttle:120,1')->name('payments.easypay.notify');
     Route::post('books/{book}/engagement', [EngagementController::class, 'store'])->middleware('throttle:120,1')->name('books.engagement.store');
 
     Route::middleware('auth:sanctum')->group(function (): void {
@@ -60,6 +61,8 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::post('favorites/{book}', [FavoriteController::class, 'store'])->name('favorites.store');
         Route::delete('favorites/{book}', [FavoriteController::class, 'destroy'])->name('favorites.destroy');
         Route::apiResource('orders', OrderController::class)->only(['index', 'store', 'show']);
+        Route::post('payments/easypay/init', [PaymentController::class, 'initialize'])->middleware('throttle:30,1')->name('payments.easypay.init');
+        Route::post('payments/easypay/orders/{order}/reconcile', [PaymentController::class, 'reconcile'])->middleware('throttle:30,1')->name('payments.easypay.reconcile');
         Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
         Route::get('read/{book}', ReadController::class)->name('read');
 
