@@ -4,13 +4,20 @@ use App\Http\Controllers\Api\V1\AuthorController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BookController;
 use App\Http\Controllers\Api\V1\FavoriteController;
+use App\Http\Controllers\Api\V1\HighlightController;
 use App\Http\Controllers\Api\V1\LibraryController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\ReadController;
+use App\Http\Controllers\Api\V1\ReadingProgressController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->name('api.v1.')->group(function (): void {
+    Route::get('health', fn () => response()->json([
+        'status' => 'ok',
+        'service' => 'HolisticBooks API',
+    ]))->name('health');
+
     Route::prefix('auth')->name('auth.')->group(function (): void {
         Route::post('register', [AuthController::class, 'register'])->name('register');
         Route::post('login', [AuthController::class, 'login'])->middleware('throttle:login')->name('login');
@@ -32,5 +39,13 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::apiResource('orders', OrderController::class)->only(['index', 'store', 'show']);
         Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
         Route::get('read/{book}', ReadController::class)->name('read');
+
+        Route::get('books/{book}/progress', [ReadingProgressController::class, 'show'])->name('books.progress.show');
+        Route::put('books/{book}/progress', [ReadingProgressController::class, 'update'])->name('books.progress.update');
+
+        Route::get('books/{book}/highlights', [HighlightController::class, 'index'])->name('books.highlights.index');
+        Route::post('books/{book}/highlights', [HighlightController::class, 'store'])->name('books.highlights.store');
+        Route::put('highlights/{highlight}', [HighlightController::class, 'update'])->name('highlights.update');
+        Route::delete('highlights/{highlight}', [HighlightController::class, 'destroy'])->name('highlights.destroy');
     });
 });
