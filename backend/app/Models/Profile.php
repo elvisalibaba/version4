@@ -56,6 +56,21 @@ class Profile extends Model
         return $this->hasMany(Subscription::class, 'user_id');
     }
 
+    public function devices(): HasMany
+    {
+        return $this->hasMany(UserDevice::class, 'user_id');
+    }
+
+    public function readingProgress(): HasMany
+    {
+        return $this->hasMany(ReadingProgress::class, 'user_id');
+    }
+
+    public function highlights(): HasMany
+    {
+        return $this->hasMany(Highlight::class, 'user_id');
+    }
+
     public function affiliateWallet(): HasOne
     {
         return $this->hasOne(AffiliateWallet::class, 'user_id');
