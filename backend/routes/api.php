@@ -50,6 +50,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
         Route::apiResource('books', BookController::class)->only(['store', 'update', 'destroy']);
+        Route::post('books/{book}', [BookController::class, 'update'])->name('books.update.multipart');
         Route::get('books/{book}/access', [BookAccessController::class, 'show'])->name('books.access');
 
         Route::get('library', [LibraryController::class, 'index'])->name('library.index');
