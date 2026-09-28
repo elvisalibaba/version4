@@ -64,7 +64,14 @@ class AuthorWorkspaceController extends Controller
 
     public function profileShow(Request $request): JsonResponse
     {
-        return response()->json(['data' => $this->profile($request)]);
+        $author = $this->profile($request);
+        $payload = $author->toArray();
+
+        if (filled($author->avatar_url) && ! str_starts_with($author->avatar_url, 'http://') && ! str_starts_with($author->avatar_url, 'https://')) {
+            $payload['avatar_url'] = Storage::disk('public')->url($author->avatar_url);
+        }
+
+        return response()->json(['data' => $payload]);
     }
 
     public function profileUpdate(Request $request): JsonResponse
@@ -97,7 +104,14 @@ class AuthorWorkspaceController extends Controller
         unset($data['avatar']);
         $author->update(Arr::only($data, $author->getFillable()));
 
-        return response()->json(['data' => $author->fresh()]);
+        $fresh = $author->fresh();
+        $payload = $fresh->toArray();
+
+        if (filled($fresh->avatar_url) && ! str_starts_with($fresh->avatar_url, 'http://') && ! str_starts_with($fresh->avatar_url, 'https://')) {
+            $payload['avatar_url'] = Storage::disk('public')->url($fresh->avatar_url);
+        }
+
+        return response()->json(['data' => $payload]);
     }
 
     public function sales(Request $request): JsonResponse
