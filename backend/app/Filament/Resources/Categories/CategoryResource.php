@@ -48,7 +48,7 @@ class CategoryResource extends Resource
                         ->required()
                         ->maxLength(255)
                         ->live(onBlur: true)
-                        ->afterStateUpdated(fn (?string $state, callable $set) => $set('slug', Str::slug((string) $state))),
+                        ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug((string) $state))),
                     TextInput::make('slug')->label('Slug')->required()->maxLength(255),
                 ]),
         ]);
