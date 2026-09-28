@@ -35,18 +35,21 @@ class BookController extends Controller
         return BookResource::collection($books);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreBookRequest $request, PrivateBookFileService $files): BookResource
     {
-        $data = Arr::except($request->validated(), ['file', 'cover']);
+        $validated = $request->validated();
+        $planIds = Arr::pull($validated, 'subscription_plan_ids', []);
+        $data = Arr::except($validated, ['file', 'cover', 'sample']);
         $profile = $request->user()->profile;
+
         $data['author_id'] = $profile->role === 'admin' ? ($data['author_id'] ?? $profile->id) : $profile->id;
+        if ($profile->role !== 'admin') {
+            $data['author_display_name'] = $profile->authorProfile?->display_name ?? $profile->name ?? $request->user()->name;
+        }
         $data['status'] = $profile->role === 'admin' ? ($data['status'] ?? 'draft') : 'draft';
         $data['review_status'] = 'draft';
         $data['copyright_status'] = 'review';
-        $data['co_authors'] = [];
+        $data['co_authors'] ??= [];
         $data['categories'] ??= [];
         $data['tags'] ??= [];
 
@@ -54,10 +57,93 @@ class BookController extends Controller
 
         if ($request->hasFile('file')) {
             $path = $files->store($request->file('file'), $book);
-            $book->update(['file_url' => $path, 'file_format' => $request->string('file_format')->toString() ?: $request->file('file')->extension()]);
-            $book->formats()->create([
-                'format' => 'holistique_store', 'price' => $book->price, 'file_url' => $path,
-                'downloadable' => true, 'is_published' => false, 'currency_code' => $book->currency_code,
+            $format = $request->string('file_format')->toString() ?: $request->file('file')->extension();
+            $book->update([
+                'file_url' => $path,
+                'file_format' => $format,
+                'file_size' => $request->file('file')->getSize(),
+            ]);
+            $book->formats()->updateOrCreate(
+                ['format' => 'holistique_store'],
+                [
+                    'price' => $book->price,
+                    'file_url' => $path,
+                    'downloadable' => true,
+                    'is_published' => false,
+                    'currency_code' => $book->currency_code,
+                    'file_size_mb' => max(1, (int) ceil($request->file('file')->getSize() / 1024 / 1024)),
+                ],
+            );
+        }
+
+        if ($request->hasFile('cover')) {
+            $book->update(['cover_url' => $request->file('cover')->store("covers/{$book->id}", 'public')]);
+        }
+
+        if ($request->hasFile('sample')) {
+            $samplePath = $request->file('sample')->store("{$book->id}/samples", 'books');
+            $book->update(['sample_url' => $samplePath]);
+        }
+
+        $book->subscriptionPlans()->sync($book->is_subscription_available ? $planIds : []);
+
+        return new BookResource($book->load(['author', 'formats', 'subscriptionPlans']));
+    }
+
+    public function show(Book $book): BookResource
+    {
+        if ($book->status !== 'published') {
+            Gate::authorize('view', $book);
+        }
+
+        return new BookResource($book->load(['author', 'formats', 'subscriptionPlans:id,name,slug,description,monthly_price,currency_code,is_active,max_devices,offline_days,downloads_enabled']));
+    }
+
+    public function update(UpdateBookRequest $request, Book $book, PrivateBookFileService $files): BookResource
+    {
+        $validated = $request->validated();
+        $hasPlanIds = array_key_exists('subscription_plan_ids', $validated);
+        $planIds = Arr::pull($validated, 'subscription_plan_ids', []);
+        $data = Arr::except($validated, ['file', 'cover', 'sample']);
+
+        if ($request->user()->profile->role !== 'admin') {
+            unset($data['author_id']);
+            $data['author_display_name'] = $request->user()->profile->authorProfile?->display_name
+                ?? $request->user()->profile->name
+                ?? $request->user()->name;
+
+            if (($data['status'] ?? null) === 'published') {
+                $data['status'] = 'draft';
+                $data['review_status'] = 'submitted';
+                $data['submitted_at'] = now();
+            }
+        }
+
+        $book->update($data);
+
+        if ($request->hasFile('file')) {
+            $path = $files->store($request->file('file'), $book);
+            $format = $request->string('file_format')->toString() ?: $request->file('file')->extension();
+            $book->update([
+                'file_url' => $path,
+                'file_format' => $format,
+                'file_size' => $request->file('file')->getSize(),
+            ]);
+            $book->formats()->updateOrCreate(
+                ['format' => 'holistique_store'],
+                [
+                    'price' => $book->price,
+                    'file_url' => $path,
+                    'downloadable' => true,
+                    'is_published' => false,
+                    'currency_code' => $book->currency_code,
+                    'file_size_mb' => max(1, (int) ceil($request->file('file')->getSize() / 1024 / 1024)),
+                ],
+            );
+        } elseif ($book->formats()->where('format', 'holistique_store')->exists()) {
+            $book->formats()->where('format', 'holistique_store')->update([
+                'price' => $book->price,
+                'currency_code' => $book->currency_code,
             ]);
         }
 
@@ -65,52 +151,18 @@ class BookController extends Controller
             $book->update(['cover_url' => $request->file('cover')->store("covers/{$book->id}", 'public')]);
         }
 
-        return new BookResource($book->load(['author', 'formats']));
+        if ($request->hasFile('sample')) {
+            $samplePath = $request->file('sample')->store("{$book->id}/samples", 'books');
+            $book->update(['sample_url' => $samplePath]);
+        }
+
+        if ($hasPlanIds || array_key_exists('is_subscription_available', $data)) {
+            $book->subscriptionPlans()->sync($book->is_subscription_available ? $planIds : []);
+        }
+
+        return new BookResource($book->load(['author', 'formats', 'subscriptionPlans']));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Book $book): BookResource
-    {
-        if ($book->status !== 'published') {
-            Gate::authorize('view', $book);
-        }
-
-        return new BookResource($book->load(['author', 'formats', 'subscriptionPlans:id,name,slug,monthly_price,currency_code']));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateBookRequest $request, Book $book, PrivateBookFileService $files): BookResource
-    {
-        $data = Arr::except($request->validated(), ['file', 'cover']);
-        if ($request->user()->profile->role !== 'admin') {
-            unset($data['author_id']);
-            if (($data['status'] ?? null) === 'published') {
-                $data['status'] = 'draft';
-                $data['review_status'] = 'submitted';
-                $data['submitted_at'] = now();
-            }
-        }
-        $book->update($data);
-
-        if ($request->hasFile('file')) {
-            $path = $files->store($request->file('file'), $book);
-            $book->update(['file_url' => $path, 'file_format' => $request->string('file_format')->toString() ?: $request->file('file')->extension()]);
-        }
-
-        if ($request->hasFile('cover')) {
-            $book->update(['cover_url' => $request->file('cover')->store("covers/{$book->id}", 'public')]);
-        }
-
-        return new BookResource($book->load(['author', 'formats']));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Book $book): Response
     {
         Gate::authorize('delete', $book);
