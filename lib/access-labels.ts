@@ -1,4 +1,4 @@
-import type { LibraryAccessType, SubscriptionStatus } from "@/types/database";
+import type { LibraryAccessType, SubscriptionStatus } from "@/types/api";
 
 export function getLibraryAccessLabel(accessType: LibraryAccessType, hasActiveSubscription = true) {
   if (accessType === "purchase") return "Achat";
