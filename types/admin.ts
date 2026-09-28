@@ -1,10 +1,22 @@
-import type { Database } from "@/types/database";
+import type {
+  ApiBook,
+  ApiOrder,
+  ApiProfile,
+  ApiSubscription,
+  ApiSubscriptionPlan,
+} from "@/types/api";
 
-export type AdminProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
-export type AdminBookRow = Database["public"]["Tables"]["books"]["Row"];
-export type AdminOrderRow = Database["public"]["Tables"]["orders"]["Row"];
-export type AdminSubscriptionPlanRow = Database["public"]["Tables"]["subscription_plans"]["Row"];
-export type AdminUserSubscriptionRow = Database["public"]["Tables"]["user_subscriptions"]["Row"];
+export type AdminProfileRow = ApiProfile & {
+  id: string;
+  email: string;
+  name: string | null;
+  created_at?: string;
+};
+
+export type AdminBookRow = ApiBook;
+export type AdminOrderRow = ApiOrder;
+export type AdminSubscriptionPlanRow = ApiSubscriptionPlan;
+export type AdminUserSubscriptionRow = ApiSubscription;
 
 export type AdminOption = {
   label: string;
