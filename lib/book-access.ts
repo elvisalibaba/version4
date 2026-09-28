@@ -1,28 +1,31 @@
-import { createClient } from "@/lib/supabase/server";
-import type { Database, LibraryAccessType, SubscriptionStatus } from "@/types/database";
-
-type MaybeArray<T> = T | T[] | null;
+import { apiServer } from "@/lib/api/server";
+import type {
+  ApiSubscriptionPlan,
+  LibraryAccessType,
+  SubscriptionStatus,
+} from "@/types/api";
 
 type SubscriptionPlanSummary = Pick<
-  Database["public"]["Tables"]["subscription_plans"]["Row"],
+  ApiSubscriptionPlan,
   "id" | "name" | "slug" | "monthly_price" | "currency_code"
 >;
 
-type UserSubscriptionSummary = Pick<
-  Database["public"]["Tables"]["user_subscriptions"]["Row"],
-  "id" | "plan_id" | "status" | "expires_at" | "started_at"
-> & {
-  subscription_plans: MaybeArray<SubscriptionPlanSummary>;
+type UserSubscriptionSummary = {
+  id: string;
+  plan_id: string;
+  status: SubscriptionStatus;
+  expires_at: string | null;
+  started_at: string;
+  subscription_plans: SubscriptionPlanSummary | null;
 };
 
-type LibraryAccessRow = Pick<
-  Database["public"]["Tables"]["library"]["Row"],
-  "id" | "purchased_at" | "access_type" | "subscription_id"
-> & {
-  user_subscriptions: MaybeArray<UserSubscriptionSummary>;
+type LibraryAccessRow = {
+  id: string;
+  purchased_at: string;
+  access_type: LibraryAccessType;
+  subscription_id: string | null;
+  user_subscriptions: UserSubscriptionSummary | null;
 };
-
-type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
 export type ReaderBookAccessState = {
   hasAccess: boolean;
@@ -34,13 +37,8 @@ export type ReaderBookAccessState = {
   isSubscriptionEntitlementExpired: boolean;
 };
 
-function firstOf<T>(value: MaybeArray<T>): T | null {
-  if (Array.isArray(value)) return value[0] ?? null;
-  return value ?? null;
-}
-
 export function isSubscriptionCurrentlyActive(
-  subscription: Pick<Database["public"]["Tables"]["user_subscriptions"]["Row"], "status" | "expires_at"> | null,
+  subscription: Pick<UserSubscriptionSummary, "status" | "expires_at"> | null,
 ) {
   if (!subscription || subscription.status !== "active") return false;
   if (!subscription.expires_at) return true;
@@ -91,63 +89,15 @@ export async function getReaderBookAccessState(params: {
   userId: string;
   bookId: string;
   bookPlanIds?: string[];
-  supabase?: SupabaseClient;
 }): Promise<ReaderBookAccessState> {
-  const client = params.supabase ?? (await createClient());
-  const uniquePlanIds = Array.from(new Set((params.bookPlanIds ?? []).filter(Boolean)));
+  void params.userId;
+  void params.bookPlanIds;
 
-  const libraryPromise = client
-    .from("library")
-    .select(
-      "id, purchased_at, access_type, subscription_id, user_subscriptions:subscription_id(id, plan_id, status, expires_at, started_at, subscription_plans!user_subscriptions_plan_id_fkey(id, name, slug, monthly_price, currency_code))",
-    )
-    .eq("user_id", params.userId)
-    .eq("book_id", params.bookId)
-    .returns<LibraryAccessRow>()
-    .maybeSingle();
+  const response = await apiServer<{ data: ReaderBookAccessState }>(
+    `books/${encodeURIComponent(params.bookId)}/access`,
+  );
 
-  const rpcPromise = client.rpc("user_has_access_to_book", {
-    p_user_id: params.userId,
-    p_book_id: params.bookId,
-  });
-
-  const subscriptionsPromise =
-    uniquePlanIds.length > 0
-      ? client
-          .from("user_subscriptions")
-          .select("id, plan_id, status, expires_at, started_at, subscription_plans!user_subscriptions_plan_id_fkey(id, name, slug, monthly_price, currency_code)")
-          .eq("user_id", params.userId)
-          .in("plan_id", uniquePlanIds)
-          .returns<UserSubscriptionSummary[]>()
-      : Promise.resolve({ data: [] as UserSubscriptionSummary[], error: null });
-
-  const [{ data: libraryData }, { data: rpcResult }, { data: subscriptionsData }] = await Promise.all([
-    libraryPromise,
-    rpcPromise,
-    subscriptionsPromise,
-  ]);
-
-  const libraryEntry = (libraryData ?? null) as LibraryAccessRow | null;
-  const matchingSubscriptions = (subscriptionsData ?? []) as UserSubscriptionSummary[];
-  const activeSubscription = matchingSubscriptions.find((subscription) => isSubscriptionCurrentlyActive(subscription)) ?? null;
-  const librarySubscription = firstOf(libraryEntry?.user_subscriptions ?? null);
-  const hasPurchaseAccess = libraryEntry?.access_type === "purchase" || libraryEntry?.access_type === "free";
-  const hasSubscriptionAccess = Boolean(activeSubscription);
-  const hasAccess = Boolean(rpcResult) || hasPurchaseAccess || hasSubscriptionAccess;
-  const isSubscriptionEntitlementExpired =
-    libraryEntry?.access_type === "subscription" &&
-    Boolean(libraryEntry.subscription_id) &&
-    !isSubscriptionCurrentlyActive(librarySubscription);
-
-  return {
-    hasAccess,
-    hasPurchaseAccess,
-    hasSubscriptionAccess,
-    hasLibraryEntry: Boolean(libraryEntry),
-    libraryEntry,
-    activeSubscription,
-    isSubscriptionEntitlementExpired,
-  };
+  return response.data;
 }
 
 export async function syncLibraryAccessEntry(params: {
@@ -156,40 +106,16 @@ export async function syncLibraryAccessEntry(params: {
   currentEntry: ReaderBookAccessState["libraryEntry"];
   activeSubscriptionId?: string | null;
   shouldGrantFreeAccess?: boolean;
-  supabase?: SupabaseClient;
 }) {
-  const client = params.supabase ?? (await createClient());
+  void params.userId;
+  void params.currentEntry;
+  void params.activeSubscriptionId;
+  void params.shouldGrantFreeAccess;
 
-  if (params.currentEntry?.access_type === "purchase") {
-    return;
-  }
-
-  let nextAccessType: LibraryAccessType | null = null;
-  let nextSubscriptionId: string | null = null;
-
-  if (params.shouldGrantFreeAccess) {
-    nextAccessType = "free";
-  } else if (params.activeSubscriptionId) {
-    nextAccessType = "subscription";
-    nextSubscriptionId = params.activeSubscriptionId;
-  }
-
-  if (!nextAccessType) return;
-
-  if (
-    params.currentEntry?.access_type === nextAccessType &&
-    (params.currentEntry.subscription_id ?? null) === nextSubscriptionId
-  ) {
-    return;
-  }
-
-  // Entitlements must never be writable directly by the browser. The RPC
-  // derives free/subscription access from trusted catalogue and plan data.
-  const { error } = await client.rpc("claim_current_user_book_access", {
-    p_book_id: params.bookId,
-  });
-
-  if (error) {
-    throw new Error(`Impossible de synchroniser l’accès de lecture : ${error.message}`);
-  }
+  // Laravel is now the sole authority for entitlements. Calling the access
+  // endpoint re-evaluates purchase/free/subscription rights and synchronizes
+  // the library entry through BookAccessService when access is valid.
+  await apiServer<{ data: ReaderBookAccessState }>(
+    `books/${encodeURIComponent(params.bookId)}/access`,
+  );
 }
