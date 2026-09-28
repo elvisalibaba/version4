@@ -42,8 +42,8 @@ class SubscriptionResource extends Resource
             Section::make('Abonnement utilisateur')
                 ->columns(2)
                 ->schema([
-                    TextInput::make('profile.email')->label('Utilisateur')->disabled(),
-                    TextInput::make('plan.name')->label('Plan')->disabled(),
+                    Select::make('user_id')->label('Utilisateur')->relationship('profile', 'email')->disabled(),
+                    Select::make('plan_id')->label('Plan')->relationship('plan', 'name')->disabled(),
                     Select::make('status')
                         ->label('Statut')
                         ->options([
