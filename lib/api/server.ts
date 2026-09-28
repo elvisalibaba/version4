@@ -10,8 +10,10 @@ type ServerApiOptions = Omit<RequestInit, "body"> & {
 };
 
 export async function apiServer<T>(path: string, options: ServerApiOptions = {}): Promise<T> {
-  const cookieStore = await cookies();
-  const token = options.authenticated === false ? null : cookieStore.get(AUTH_COOKIE_NAME)?.value ?? null;
+  const token =
+    options.authenticated === false
+      ? null
+      : (await cookies()).get(AUTH_COOKIE_NAME)?.value ?? null;
 
   return apiClient<T>(path, {
     ...options,
