@@ -1,65 +1,33 @@
 import { NextResponse } from "next/server";
-import { trackBookEngagement } from "@/lib/book-engagement";
-import { createClient } from "@/lib/supabase/server";
-import { createServiceRoleClient } from "@/lib/supabase/service";
-import { resolveReadAccess } from "../_access";
+import { getApiBaseUrl } from "@/lib/api/client";
+import { getServerAuthToken } from "@/lib/api/server";
 
-type RouteProps = { params: Promise<{ bookId: string }> };
+export async function GET(_request: Request, context: { params: Promise<{ bookId: string }> }) {
+  const { bookId } = await context.params;
+  const token = await getServerAuthToken();
 
-function contentTypeFrom(fileType: "epub" | "pdf") {
-  return fileType === "pdf" ? "application/pdf" : "application/epub+zip";
-}
-
-export async function GET(_request: Request, { params }: RouteProps) {
-  const { bookId } = await params;
-  const supabase = await createClient();
-  const readerChannel = _request.headers.get("x-holistique-reader");
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (readerChannel !== "web" && readerChannel !== "app") {
-    return NextResponse.json({ error: "Lecture réservée au lecteur Holistique Books." }, { status: 403 });
+  if (!token) {
+    return NextResponse.json({ error: "Authentification requise." }, { status: 401 });
   }
 
-  const access = await resolveReadAccess(bookId, user?.id ?? null);
-  if (!access.ok) {
-    return NextResponse.json({ error: access.error }, { status: access.status });
-  }
-
-  await trackBookEngagement({
-    bookId,
-    eventType: "file_access",
-    source: "secure_reader_file_stream",
-    requestHeaders: _request.headers,
-    metadata: {
-      file_type: access.fileType,
-      access_mode: user ? "account" : "guest_free",
-    },
-  });
-
-  const storageClient = user ? supabase : createServiceRoleClient();
-  const { data: signedData, error: signedError } = await storageClient.storage.from("books").createSignedUrl(access.filePath, 60);
-  if (signedError || !signedData?.signedUrl) {
-    return NextResponse.json({ error: "Impossible de charger le fichier." }, { status: 500 });
-  }
-
-  const fileRes = await fetch(signedData.signedUrl);
-  if (!fileRes.ok) {
-    return NextResponse.json({ error: "Lecture indisponible." }, { status: 500 });
-  }
-
-  return new NextResponse(fileRes.body, {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/read/${encodeURIComponent(bookId)}`, {
     headers: {
-      "Content-Type": contentTypeFrom(access.fileType),
-      "Content-Disposition": "inline",
-      "Cache-Control": "private, no-store, no-cache, must-revalidate",
-      Pragma: "no-cache",
-      Expires: "0",
-      "Accept-Ranges": "none",
-      "Cross-Origin-Resource-Policy": "same-origin",
-      "X-Content-Type-Options": "nosniff",
-      "X-Robots-Tag": "noindex, noarchive",
+      Accept: "*/*",
+      Authorization: `Bearer ${token}`,
     },
+    cache: "no-store",
   });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({ error: "Lecture impossible." }));
+    return NextResponse.json(payload, { status: response.status });
+  }
+
+  const headers = new Headers();
+  headers.set("Content-Type", response.headers.get("content-type") ?? "application/octet-stream");
+  headers.set("Content-Disposition", response.headers.get("content-disposition") ?? "inline");
+  headers.set("Cache-Control", "private, no-store, no-cache, must-revalidate");
+  headers.set("X-Content-Type-Options", "nosniff");
+
+  return new NextResponse(response.body, { status: 200, headers });
 }
