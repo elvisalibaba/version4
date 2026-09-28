@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getTransactionIdFromNotifyPayload, PaymentFlowError, reconcileCinetPayTransaction } from "@/lib/payments/cinetpay";
+import { getApiBaseUrl } from "@/lib/api/client";
 
 async function readNotifyPayload(request: Request) {
   const contentType = request.headers.get("content-type") ?? "";
@@ -10,12 +10,16 @@ async function readNotifyPayload(request: Request) {
 
   if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
     const formData = await request.formData();
-    return Object.fromEntries(Array.from(formData.entries()).map(([key, value]) => [key, typeof value === "string" ? value : value.name]));
+    return Object.fromEntries(
+      Array.from(formData.entries()).map(([key, value]) => [
+        key,
+        typeof value === "string" ? value : value.name,
+      ]),
+    );
   }
 
   const text = await request.text();
-  const params = new URLSearchParams(text);
-  return Object.fromEntries(params.entries());
+  return Object.fromEntries(new URLSearchParams(text).entries());
 }
 
 export async function GET() {
@@ -23,22 +27,18 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  try {
-    const payload = await readNotifyPayload(request);
-    const transactionId = getTransactionIdFromNotifyPayload(payload);
+  const payload = await readNotifyPayload(request);
 
-    if (!transactionId) {
-      return NextResponse.json({ error: "transaction_id manquant dans la notification EasyPay." }, { status: 400 });
-    }
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/payments/easypay/notify`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
 
-    const result = await reconcileCinetPayTransaction(transactionId);
-    return NextResponse.json({ ok: true, ...result });
-  } catch (error) {
-    if (error instanceof PaymentFlowError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
-    }
-
-    const message = error instanceof Error ? error.message : "Verification EasyPay impossible.";
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  const result = await response.json().catch(() => ({ message: "Réponse EasyPay invalide." }));
+  return NextResponse.json(result, { status: response.status });
 }
