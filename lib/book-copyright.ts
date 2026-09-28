@@ -1,4 +1,4 @@
-import type { CopyrightStatus } from "@/types/database";
+import type { CopyrightStatus } from "@/types/api";
 
 export const COPYRIGHT_STATUSES = ["clear", "review", "blocked"] as const satisfies readonly CopyrightStatus[];
 
