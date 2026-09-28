@@ -57,8 +57,12 @@ class AuthController extends Controller
                     'display_name' => $data['display_name'],
                     'professional_headline' => $data['professional_headline'] ?? null,
                     'bio' => $data['bio'] ?? null,
-                    'social_links' => [],
-                    'genres' => [],
+                    'website' => $data['website'] ?? null,
+                    'location' => $data['location'] ?? null,
+                    'phone' => $data['phone'] ?? null,
+                    'social_links' => $data['social_links'] ?? [],
+                    'genres' => $data['genres'] ?? [],
+                    'publishing_goals' => $data['publishing_goals'] ?? null,
                     'press_mentions' => [],
                 ]);
             }
