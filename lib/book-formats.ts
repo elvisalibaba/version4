@@ -1,4 +1,4 @@
-import type { BookFormatType } from "@/types/database";
+import type { BookFormatType } from "@/types/api";
 
 export const BOOK_FORMATS = ["holistique_store", "ebook", "paperback", "pocket", "hardcover", "audiobook"] as const;
 export const DIGITAL_BOOK_FORMATS = ["holistique_store", "ebook"] as const;
