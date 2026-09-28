@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Heart, Menu, Search, ShoppingBag, UserRound } from "lucide-react";
 import { LogoutButton } from "@/components/auth/logout-button";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUserProfile } from "@/lib/auth";
 
 function isDynamicError(error: unknown) {
   return typeof error === "object" && error !== null && "digest" in error && (error as { digest?: string }).digest === "DYNAMIC_SERVER_USAGE";
@@ -18,13 +18,9 @@ export async function SiteHeader() {
   let user: { id: string } | null = null;
   let role: string | null = null;
   try {
-    const supabase = await createClient();
-    const { data } = await supabase.auth.getUser();
-    user = data.user ? { id: data.user.id } : null;
-    if (user) {
-      const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-      role = profile?.role ?? null;
-    }
+    const profile = await getCurrentUserProfile();
+    user = profile ? { id: profile.id } : null;
+    role = profile?.role ?? null;
   } catch (error) {
     if (isDynamicError(error)) throw error;
     console.error("[SiteHeader] Auth unavailable", error);
