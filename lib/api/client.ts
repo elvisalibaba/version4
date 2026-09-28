@@ -1,4 +1,8 @@
-const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
+const API_URL = (
+  process.env.API_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://127.0.0.1:8000"
+).replace(/\/$/, "");
 
 export class ApiError extends Error {
   constructor(
@@ -22,7 +26,13 @@ export async function apiClient<T>(path: string, options: ApiClientOptions = {})
     headers.set("Authorization", `Bearer ${options.token}`);
   }
 
-  const isStructuredBody = options.body !== null && typeof options.body === "object" && !(options.body instanceof FormData) && !(options.body instanceof Blob) && !(options.body instanceof URLSearchParams);
+  const isStructuredBody =
+    options.body !== null &&
+    typeof options.body === "object" &&
+    !(options.body instanceof FormData) &&
+    !(options.body instanceof Blob) &&
+    !(options.body instanceof URLSearchParams);
+
   if (isStructuredBody) {
     headers.set("Content-Type", "application/json");
   }
@@ -37,10 +47,18 @@ export async function apiClient<T>(path: string, options: ApiClientOptions = {})
     return undefined as T;
   }
 
-  const payload = await response.json().catch(() => null);
+  const contentType = response.headers.get("content-type") ?? "";
+  const payload = contentType.includes("application/json")
+    ? await response.json().catch(() => null)
+    : await response.text().catch(() => null);
+
   if (!response.ok) {
     throw new ApiError(response.status, payload);
   }
 
   return payload as T;
+}
+
+export function getApiBaseUrl() {
+  return API_URL;
 }
