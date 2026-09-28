@@ -136,6 +136,6 @@ php artisan route:list
 php artisan test
 ```
 
-## Migration depuis Supabase
+## Architecture active
 
-La migration reste progressive. Supabase ne doit pas être retiré du frontend tant que chaque module Laravel/MySQL correspondant n'a pas été validé.
+Laravel, MySQL, Sanctum, stockage privé et Filament constituent désormais le backend de référence de HolisticBooks. Le frontend Next.js communique exclusivement avec l’API `/api/v1` pour les données applicatives.
