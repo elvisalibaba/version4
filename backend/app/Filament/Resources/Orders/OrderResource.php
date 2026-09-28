@@ -41,7 +41,7 @@ class OrderResource extends Resource
             Section::make('Commande')
                 ->columns(2)
                 ->schema([
-                    TextInput::make('profile.email')->label('Client')->disabled(),
+                    Select::make('user_id')->label('Client')->relationship('profile', 'email')->disabled(),
                     TextInput::make('total_price')->label('Montant')->disabled(),
                     TextInput::make('currency_code')->label('Devise')->disabled(),
                     Select::make('payment_status')
