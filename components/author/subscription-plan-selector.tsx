@@ -1,15 +1,10 @@
 "use client";
 
 import { formatMoney } from "@/lib/book-offers";
-import type { Database } from "@/types/database";
-
-type SubscriptionPlan = Pick<
-  Database["public"]["Tables"]["subscription_plans"]["Row"],
-  "id" | "name" | "slug" | "description" | "monthly_price" | "currency_code" | "is_active"
->;
+import type { ApiSubscriptionPlan } from "@/types/api";
 
 type SubscriptionPlanSelectorProps = {
-  plans: SubscriptionPlan[];
+  plans: ApiSubscriptionPlan[];
   selectedPlanIds: string[];
   disabled?: boolean;
   onChange: (nextPlanIds: string[]) => void;
@@ -24,26 +19,24 @@ export function SubscriptionPlanSelector({
   if (plans.length === 0) {
     return (
       <div className="rounded-[1.5rem] border border-dashed border-violet-200 bg-violet-50/60 px-4 py-4 text-sm text-slate-600">
-        Aucun pack d abonnement actif n est disponible pour le moment.
+        Aucun pack d’abonnement actif n’est disponible pour le moment.
       </div>
     );
   }
 
   function togglePlan(planId: string) {
     if (disabled) return;
-
-    const nextPlanIds = selectedPlanIds.includes(planId)
-      ? selectedPlanIds.filter((selectedId) => selectedId !== planId)
-      : [...selectedPlanIds, planId];
-
-    onChange(nextPlanIds);
+    onChange(
+      selectedPlanIds.includes(planId)
+        ? selectedPlanIds.filter((selectedId) => selectedId !== planId)
+        : [...selectedPlanIds, planId],
+    );
   }
 
   return (
     <div className="grid gap-3 md:grid-cols-2">
       {plans.map((plan) => {
         const selected = selectedPlanIds.includes(plan.id);
-
         return (
           <button
             key={plan.id}
@@ -61,12 +54,8 @@ export function SubscriptionPlanSelector({
                 <p className="text-sm font-semibold">{plan.name}</p>
                 <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">{plan.slug}</p>
               </div>
-              <span
-                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                  selected ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"
-                }`}
-              >
-                {selected ? "Selectionne" : formatMoney(plan.monthly_price, plan.currency_code)}
+              <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${selected ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"}`}>
+                {selected ? "Sélectionné" : formatMoney(Number(plan.monthly_price), plan.currency_code)}
               </span>
             </div>
             {plan.description ? <p className="mt-3 text-sm leading-6 text-slate-600">{plan.description}</p> : null}
