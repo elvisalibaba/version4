@@ -16,12 +16,7 @@ import {
 } from "lucide-react";
 import { BOOK_CATEGORIES } from "@/lib/book-categories";
 import { getSafeNextPath } from "@/lib/safe-next-path";
-import {
-  getSupabaseBrowserConfigErrorMessage,
-  getSupabaseBrowserErrorMessage,
-} from "@/lib/supabase/browser-errors";
-import { createClient } from "@/lib/supabase/client";
-import type { AffiliateSourceType, UserRole } from "@/types/database";
+import type { AffiliateSourceType, UserRole } from "@/types/api";
 
 type RoleOption = Exclude<UserRole, "admin">;
 
@@ -157,21 +152,12 @@ export function RegisterForm({
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   const fullName = useMemo(() => `${firstName} ${lastName}`.trim(), [firstName, lastName]);
 
   useEffect(() => {
     setRole(initialRole);
   }, [initialRole]);
-
-  function getEmailRedirectTo() {
-    const callbackUrl = new URL("/auth/callback", window.location.origin);
-    callbackUrl.searchParams.set("next", safeNextPath);
-    return callbackUrl.toString();
-  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -202,15 +188,8 @@ export function RegisterForm({
       return;
     }
 
-    const configError = getSupabaseBrowserConfigErrorMessage();
-    if (configError) {
-      setError(configError);
-      setLoading(false);
-      return;
-    }
 
     try {
-      const supabase = createClient();
       const socialLinks = buildSocialLinks({
         instagram: instagramUrl,
         x: xUrl,
@@ -218,122 +197,55 @@ export function RegisterForm({
         linkedin: linkedinUrl,
       });
 
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          emailRedirectTo: getEmailRedirectTo(),
-          data: {
-            name: fullName,
-            role,
-            first_name: firstName.trim(),
-            last_name: lastName.trim(),
-            phone: null,
-            country: null,
-            city: null,
-            preferred_language: "fr",
-            favorite_categories: [],
-            marketing_opt_in: false,
-            referred_by_affiliate_code: affiliateCode,
-            affiliate_source_type: affiliateSourceType,
-            affiliate_source_book_id: affiliateSourceBookId,
-            affiliate_source_plan_id: affiliateSourcePlanId,
-            author_profile:
-              role === "author"
-                ? {
-                    display_name: displayName.trim(),
-                    professional_headline: professionalHeadline.trim() || null,
-                    bio: bio.trim() || null,
-                    website: website.trim() || null,
-                    location: authorLocation.trim() || null,
-                    genres: authorGenres,
-                    publishing_goals: publishingGoals.trim() || null,
-                    social_links: socialLinks,
-                  }
-                : null,
-          },
-        },
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+          password_confirmation: passwordConfirmation,
+          role,
+          name: fullName,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          phone: null,
+          country: null,
+          city: null,
+          preferred_language: "fr",
+          favorite_categories: [],
+          marketing_opt_in: false,
+          referred_by_affiliate_code: affiliateCode,
+          affiliate_source_type: affiliateSourceType,
+          affiliate_source_book_id: affiliateSourceBookId,
+          affiliate_source_plan_id: affiliateSourcePlanId,
+          display_name: role === "author" ? displayName.trim() : null,
+          professional_headline: role === "author" ? professionalHeadline.trim() || null : null,
+          bio: role === "author" ? bio.trim() || null : null,
+          website: role === "author" ? website.trim() || null : null,
+          location: role === "author" ? authorLocation.trim() || null : null,
+          genres: role === "author" ? authorGenres : [],
+          publishing_goals: role === "author" ? publishingGoals.trim() || null : null,
+          social_links: role === "author" ? socialLinks : {},
+        }),
       });
 
-      if (signUpError) {
-        setError(getSupabaseBrowserErrorMessage(signUpError, "l’inscription"));
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        const firstValidationError = payload?.errors
+          ? Object.values(payload.errors).flat().find((value) => typeof value === "string")
+          : null;
+        setError((firstValidationError as string | null) ?? payload?.message ?? "Inscription impossible.");
         return;
       }
 
       setPassword("");
       setPasswordConfirmation("");
-
-      if (!data.session) {
-        setAwaitingConfirmation(true);
-        return;
-      }
-
       window.location.assign(safeNextPath);
-    } catch (submitError) {
-      setError(getSupabaseBrowserErrorMessage(submitError, "l’inscription"));
+    } catch {
+      setError("Le service d’inscription est momentanément indisponible.");
     } finally {
       setLoading(false);
     }
-  }
-
-  async function resendConfirmation() {
-    setResending(true);
-    setResendMessage(null);
-
-    try {
-      const supabase = createClient();
-      const { error: resendError } = await supabase.auth.resend({
-        type: "signup",
-        email: email.trim(),
-        options: { emailRedirectTo: getEmailRedirectTo() },
-      });
-
-      setResendMessage(
-        resendError
-          ? getSupabaseBrowserErrorMessage(resendError, "l’envoi du lien")
-          : "Un nouveau lien vient d’être envoyé.",
-      );
-    } catch (resendError) {
-      setResendMessage(getSupabaseBrowserErrorMessage(resendError, "l’envoi du lien"));
-    } finally {
-      setResending(false);
-    }
-  }
-
-  if (awaitingConfirmation) {
-    return (
-      <section className="mx-auto w-full max-w-xl rounded-[24px] border border-[#eadfd4] bg-[#fdfaf6] p-5 text-center shadow-[0_20px_60px_rgba(23,23,23,0.08)] sm:rounded-[36px] sm:p-10" aria-labelledby="registration-confirmation-title">
-        <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#fff0e9] text-[#b5533d]">
-          <MailCheck aria-hidden="true" className="h-6 w-6" />
-        </span>
-        <h1 id="registration-confirmation-title" className="mt-5 text-3xl font-semibold tracking-[-0.04em] text-[#171717]">
-          Consultez votre email
-        </h1>
-        <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#6f665e]">
-          Nous avons envoyé un lien de confirmation à <strong className="text-[#171717]">{email}</strong>. Ouvrez-le pour activer votre compte.
-        </p>
-
-        {resendMessage ? <p role="status" className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-[#5d554d]">{resendMessage}</p> : null}
-
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={resendConfirmation}
-            disabled={resending}
-            className="inline-flex h-11 items-center justify-center rounded-full border border-[#d9c9bc] bg-white px-4 text-sm font-semibold text-[#171717] transition hover:bg-[#f8f1eb] disabled:opacity-60"
-          >
-            {resending ? "Envoi en cours…" : "Renvoyer le lien"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setAwaitingConfirmation(false)}
-            className="inline-flex h-11 items-center justify-center rounded-full bg-[#171717] px-4 text-sm font-semibold text-white transition hover:bg-[#332c27]"
-          >
-            Modifier l’adresse
-          </button>
-        </div>
-      </section>
-    );
   }
 
   return (
