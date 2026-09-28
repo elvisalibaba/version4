@@ -1,5 +1,3 @@
-import type { Database } from "@/types/database";
-
 export const EDITORIAL_TRAINING_PROFILE_TYPES = [
   "author",
   "aspiring_editor",
@@ -28,8 +26,27 @@ export const EDITORIAL_TRAINING_PREFERRED_FORMATS = [
   "hybrid",
 ] as const;
 
-export type EditorialTrainingRequestRow =
-  Database["public"]["Tables"]["editorial_training_requests"]["Row"];
+export type EditorialTrainingRequestRow = {
+  id: string;
+  user_id: string | null;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  country: string | null;
+  city: string | null;
+  organization_name: string | null;
+  profile_type: EditorialTrainingProfileType;
+  experience_level: EditorialTrainingExperienceLevel;
+  project_stage: EditorialTrainingProjectStage;
+  preferred_format: EditorialTrainingPreferredFormat;
+  objectives: string;
+  message: string | null;
+  consent_to_contact: boolean;
+  source: string;
+  created_at: string;
+  updated_at: string;
+};
 
 export type EditorialTrainingProfileType =
   (typeof EDITORIAL_TRAINING_PROFILE_TYPES)[number];
