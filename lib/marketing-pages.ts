@@ -123,7 +123,7 @@ export const marketingPages: Record<string, MarketingPage> = {
       },
       {
         title: "Production propre",
-        description: "La preparation des livres, des formats et des extraits reste reliee a votre studio auteur et a votre schema Supabase.",
+        description: "La preparation des livres, des formats et des extraits reste reliee a votre studio auteur et à votre API Laravel.",
       },
       {
         title: "Presence continue",
