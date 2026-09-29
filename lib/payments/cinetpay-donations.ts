@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { CinetPayChannel, ValidatedCheckoutCustomer } from "./validation";
+import type { CinetPayChannel, EasyPayCurrency, ValidatedCheckoutCustomer } from "./validation";
 
 type EasyPayInitResponse = {
   code?: number | string;
@@ -189,7 +189,7 @@ async function fetchJson<T>(url: string, body?: Record<string, unknown>) {
 
 export async function initCinetPayDonation(params: {
   amount: number;
-  currency: "USD";
+  currency: EasyPayCurrency;
   channel: CinetPayChannel;
   customer: ValidatedCheckoutCustomer;
   donorReference?: string;
