@@ -141,7 +141,7 @@ class AuthorWorkspaceController extends Controller
             'payment_status' => $item->order?->payment_status,
             'payment_provider' => $item->order?->payment_provider,
             'payment_channel' => $item->order?->payment_channel,
-            'created_at' => $item->created_at?->toIso8601String(),
+            'created_at' => $item->order?->created_at?->toIso8601String(),
         ]);
 
         return response()->json($items);
