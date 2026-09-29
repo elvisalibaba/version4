@@ -60,7 +60,7 @@ function dateLabel(date: string) {
 
 function normalizeBlocks(content: unknown): BlogContentBlock[] {
   if (!Array.isArray(content)) return [];
-  return content.flatMap((entry) => {
+  return content.flatMap<BlogContentBlock>((entry): BlogContentBlock[] => {
     if (typeof entry === "string") return entry.trim() ? [{ type: "paragraph" as const, text: entry.trim() }] : [];
     if (!entry || typeof entry !== "object") return [];
     const value = entry as Record<string, unknown>;
