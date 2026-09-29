@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Book extends Model
 {
@@ -76,5 +77,15 @@ class Book extends Model
     public function categoriesRelation(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, 'book_categories', 'book_id', 'category_id');
+    }
+
+    public function distributionSetting(): HasOne
+    {
+        return $this->hasOne(BookDistributionSetting::class);
+    }
+
+    public function royaltyTransactions(): HasMany
+    {
+        return $this->hasMany(AuthorRoyaltyTransaction::class);
     }
 }
