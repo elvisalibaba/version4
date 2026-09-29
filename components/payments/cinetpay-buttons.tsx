@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { getBookFormatLabel, type CheckoutBookFormat } from "@/lib/book-formats";
-import { channelRequiresCardCustomerFields, type CinetPayChannel } from "@/lib/payments/validation";
+import { type CinetPayChannel } from "@/lib/payments/validation";
 
 type CustomerDefaults = {
   customerId?: string | null;
@@ -105,12 +105,6 @@ export function CinetPayButtons({
       zipCode,
     };
 
-    if (channelRequiresCardCustomerFields(channel) && (!address.trim() || !city.trim() || !country.trim() || !zipCode.trim())) {
-      setBusyChannel(null);
-      setError("Pour la carte bancaire ou le guichet complet, renseignez adresse, ville, pays ISO et code postal.");
-      return;
-    }
-
     try {
       const response = await fetch("/api/payments/easypay/init", {
         method: "POST",
@@ -122,7 +116,7 @@ export function CinetPayButtons({
           orderId,
           bookFormat: selectedFormatOption?.format,
           channels: channel,
-          currency: "USD",
+          currency: effectiveCurrencyCode,
           customer,
         }),
       });
@@ -140,7 +134,7 @@ export function CinetPayButtons({
     }
   }
 
-  const currencyMismatch = effectiveCurrencyCode !== "USD";
+  const currencyMismatch = !["USD", "CDF"].includes(effectiveCurrencyCode);
 
   return (
     <div className="space-y-6 rounded-[1.6rem] bg-[#f8f4ed] p-4 sm:p-6">
@@ -187,7 +181,7 @@ export function CinetPayButtons({
 
       {currencyMismatch ? (
         <div className="rounded-[1.25rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          Ce livre n est pas facture en USD. Le checkout EasyPay est actuellement limite a USD.
+          EasyPay accepte les paiements en USD ou CDF. La devise de ce livre n’est pas compatible.
         </div>
       ) : null}
 
