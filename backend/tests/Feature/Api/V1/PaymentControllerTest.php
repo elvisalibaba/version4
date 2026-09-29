@@ -142,7 +142,7 @@ class PaymentControllerTest extends TestCase
             $payload = $request->data();
 
             return ($payload['currency'] ?? null) === 'CDF'
-                && ($payload['amount'] ?? null) === 25000.0
+                && (float) ($payload['amount'] ?? 0) === 25000.0
                 && ($payload['channels'] ?? null) === [
                     ['channel' => 'CREDIT CARD'],
                     ['channel' => 'MOBILE MONEY'],
@@ -184,7 +184,7 @@ class PaymentControllerTest extends TestCase
             'book_id' => $book->id,
             'book_format' => 'ebook',
             'channel' => 'MOBILE_MONEY',
-            'customer' => ['email' => 'reader@example.com'],
+            'customer' => ['firstName' => 'Lecteur', 'lastName' => 'Test', 'email' => 'reader@example.com'],
         ])->assertOk();
 
         $orderId = $init->json('data.orderId');
