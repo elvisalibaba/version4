@@ -51,6 +51,10 @@ class MobileDeviceController extends Controller
                     'reading_progress_sync' => true,
                     'highlights_sync' => true,
                     'push_notifications' => true,
+                    'audiobooks' => true,
+                    'video' => true,
+                    'advertising' => true,
+                    'ad_endpoint' => '/api/v1/ads/{placementCode}',
                 ],
                 'trial' => [
                     'enabled' => (bool) ($config?->trial_enabled ?? false),

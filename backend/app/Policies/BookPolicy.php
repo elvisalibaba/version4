@@ -20,7 +20,7 @@ class BookPolicy
      */
     public function view(User $user, Book $book): bool
     {
-        return $book->status === 'published'
+        return ($book->status === 'published' && $book->copyright_status === 'clear')
             || $user->profile?->role === 'admin'
             || $book->author_id === $user->id;
     }

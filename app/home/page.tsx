@@ -13,9 +13,11 @@ import {
   Sparkles,
   Star,
 } from "lucide-react";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { AllAuthorsSection } from "@/components/home/all-authors-section";
 import { getPublicAuthors } from "@/lib/authors";
 import { getPublishedBooks } from "@/lib/books";
+import { getPublicCategories } from "@/lib/categories";
 import { SITE_DESCRIPTION } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -26,14 +28,7 @@ export const metadata: Metadata = {
 
 type HomeBook = Awaited<ReturnType<typeof getPublishedBooks>>[number];
 
-const categories = [
-  { label: "Romans", value: "Roman", color: "bg-[#e85d3f]" },
-  { label: "Business", value: "Business", color: "bg-[#174c42]" },
-  { label: "Spiritualité", value: "Spiritualite", color: "bg-[#3f3a78]" },
-  { label: "Jeunesse", value: "Jeunesse", color: "bg-[#dc9b2d]" },
-  { label: "Développement", value: "Developpement personnel", color: "bg-[#a43b57]" },
-  { label: "Voix africaines", value: "Auteurs africains", color: "bg-[#1d6480]" },
-];
+
 
 function formatPrice(book: HomeBook) {
   return book.display_price_label ?? (book.price <= 0 ? "Gratuit" : `${book.price.toFixed(2)} ${book.currency_code}`);
@@ -120,7 +115,13 @@ function Shelf({ title, eyebrow, description, books, href }: { title: string; ey
 }
 
 export default async function HomePage() {
-  const [books, authors] = await Promise.all([getPublishedBooks(), getPublicAuthors()]);
+  const [books, authors, categoryRows] = await Promise.all([getPublishedBooks(), getPublicAuthors(), getPublicCategories()]);
+  const categoryColors = ["bg-[#e85d3f]","bg-[#174c42]","bg-[#3f3a78]","bg-[#dc9b2d]","bg-[#a43b57]","bg-[#1d6480]","bg-[#6a4c93]","bg-[#2a9d8f]"];
+  const categories = categoryRows.slice(0, 12).map((category, index) => ({
+    label: category.name,
+    value: category.name,
+    color: categoryColors[index % categoryColors.length],
+  }));
   const popularBooks = [...books].sort(rankByAudience);
   // The catalogue is already ordered by newest publication first.
   const freeBooks = books.filter((book) => book.is_free);
@@ -182,6 +183,7 @@ export default async function HomePage() {
       </nav>
 
       <main className="mx-auto max-w-7xl space-y-20 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+        <AdSlot placementCode="web.home.feed" />
         <Shelf
           eyebrow="Les vedettes du moment"
           title="Les livres qui captivent les lecteurs."
