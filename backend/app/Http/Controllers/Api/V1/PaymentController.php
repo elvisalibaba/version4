@@ -20,8 +20,8 @@ class PaymentController extends Controller
             'channel' => ['nullable', Rule::in(['ALL', 'MOBILE_MONEY', 'CREDIT_CARD'])],
             'idempotency_key' => ['nullable', 'string', 'max:255'],
             'customer' => ['required', 'array'],
-            'customer.firstName' => ['nullable', 'string', 'max:120'],
-            'customer.lastName' => ['nullable', 'string', 'max:120'],
+            'customer.firstName' => ['nullable', 'required_without:customer.lastName', 'string', 'max:120'],
+            'customer.lastName' => ['nullable', 'required_without:customer.firstName', 'string', 'max:120'],
             'customer.email' => ['nullable', 'email', 'max:255'],
         ]);
 
