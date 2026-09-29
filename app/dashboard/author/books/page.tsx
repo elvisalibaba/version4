@@ -6,7 +6,6 @@ import {
   CircleDollarSign,
   Eye,
   Globe2,
-  MousePointerClick,
   Pencil,
   Plus,
   ShieldCheck,
