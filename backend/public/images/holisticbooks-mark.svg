@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title>HolisticBooks</title>
+  <rect width="128" height="128" rx="28" fill="#12372A"/>
+  <path d="M28 32c0-5.5 4.5-10 10-10h26v78H40c-6.6 0-12 5.4-12 12V32Z" fill="#F2C46D"/>
+  <path d="M100 32c0-5.5-4.5-10-10-10H64v78h24c6.6 0 12 5.4 12 12V32Z" fill="#FFF7E8"/>
+  <path d="M42 43h12M42 57h12M76 43h12M76 57h12" stroke="#12372A" stroke-width="6" stroke-linecap="round"/>
+  <path d="M64 22v82" stroke="#12372A" stroke-width="4" opacity=".2"/>
+</svg>
