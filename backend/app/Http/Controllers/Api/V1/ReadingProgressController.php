@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Reader\UpsertReadingProgressRequest;
 use App\Models\Book;
 use App\Models\ReadingProgress;
+use App\Models\Library;
 use App\Services\BookAccessService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -66,6 +67,15 @@ class ReadingProgressController extends Controller
         $progress->fill($data);
         $progress->sync_revision = max(1, (int) $progress->sync_revision + ($progress->exists ? 1 : 0));
         $progress->save();
+
+        Library::query()
+            ->where('user_id', $profile->id)
+            ->where('book_id', $book->id)
+            ->where('status', 'active')
+            ->update([
+                'last_opened_at' => now(),
+                'last_synced_at' => now(),
+            ]);
 
         return response()->json(['data' => $progress->fresh()], $progress->wasRecentlyCreated ? 201 : 200);
     }
