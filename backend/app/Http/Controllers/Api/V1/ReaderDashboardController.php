@@ -14,6 +14,7 @@ use App\Models\AffiliateWallet;
 use App\Models\Favorite;
 use App\Models\Library;
 use App\Models\Order;
+use App\Models\ReadingProgress;
 use App\Models\Subscription;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,6 +34,24 @@ class ReaderDashboardController extends Controller
             ->latest('last_opened_at')
             ->limit(6)
             ->get();
+
+        $progressByBook = ReadingProgress::query()
+            ->where('user_id', $profile->id)
+            ->whereIn('book_id', $library->pluck('book_id'))
+            ->latest('updated_at')
+            ->get()
+            ->unique('book_id')
+            ->keyBy('book_id');
+
+        $library->each(function (Library $entry) use ($progressByBook): void {
+            $progress = $progressByBook->get($entry->book_id);
+            $entry->setAttribute('reading_progress_snapshot', $progress ? [
+                'locator' => $progress->locator,
+                'locator_type' => $progress->locator_type,
+                'progress_percent' => (float) $progress->progress_percent,
+                'updated_at' => $progress->updated_at?->toIso8601String(),
+            ] : null);
+        });
 
         $orders = Order::query()
             ->where('user_id', $profile->id)
