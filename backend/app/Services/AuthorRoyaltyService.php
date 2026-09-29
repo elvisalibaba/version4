@@ -189,4 +189,96 @@ class AuthorRoyaltyService
             ]);
         });
     }
+
+    public function approvePayout(AuthorPayout $payout): AuthorPayout
+    {
+        if ($payout->status === 'requested') {
+            $payout->update(['status' => 'approved']);
+        }
+
+        return $payout->fresh();
+    }
+
+    public function startPayoutProcessing(AuthorPayout $payout): AuthorPayout
+    {
+        if (in_array($payout->status, ['requested', 'approved'], true)) {
+            $payout->update(['status' => 'processing']);
+        }
+
+        return $payout->fresh();
+    }
+
+    public function markPayoutPaid(AuthorPayout $payout, ?string $reference = null): AuthorPayout
+    {
+        return DB::transaction(function () use ($payout, $reference): AuthorPayout {
+            $locked = AuthorPayout::query()->lockForUpdate()->findOrFail($payout->id);
+
+            if ($locked->status === 'paid') {
+                return $locked;
+            }
+
+            if (in_array($locked->status, ['rejected', 'cancelled'], true)) {
+                throw ValidationException::withMessages([
+                    'status' => 'Ce versement ne peut plus être marqué comme payé.',
+                ]);
+            }
+
+            $locked->update([
+                'status' => 'paid',
+                'provider_reference' => $reference ?: $locked->provider_reference,
+                'processed_at' => now(),
+            ]);
+
+            $account = AuthorRoyaltyAccount::query()
+                ->where('user_id', $locked->user_id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($account) {
+                $account->lifetime_paid = (float) $account->lifetime_paid + (float) $locked->amount;
+                $account->save();
+            }
+
+            return $locked->fresh();
+        });
+    }
+
+    public function rejectPayout(AuthorPayout $payout, ?string $notes = null): AuthorPayout
+    {
+        return $this->restorePayoutBalance($payout, 'rejected', $notes);
+    }
+
+    public function failPayout(AuthorPayout $payout, ?string $notes = null): AuthorPayout
+    {
+        return $this->restorePayoutBalance($payout, 'failed', $notes);
+    }
+
+    private function restorePayoutBalance(AuthorPayout $payout, string $status, ?string $notes): AuthorPayout
+    {
+        return DB::transaction(function () use ($payout, $status, $notes): AuthorPayout {
+            $locked = AuthorPayout::query()->lockForUpdate()->findOrFail($payout->id);
+
+            if (in_array($locked->status, ['paid', 'rejected', 'cancelled', 'failed'], true)) {
+                return $locked;
+            }
+
+            $account = AuthorRoyaltyAccount::query()
+                ->where('user_id', $locked->user_id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($account) {
+                $account->available_balance = (float) $account->available_balance + (float) $locked->amount;
+                $account->save();
+            }
+
+            $locked->update([
+                'status' => $status,
+                'notes' => $notes ?: $locked->notes,
+                'processed_at' => now(),
+            ]);
+
+            return $locked->fresh();
+        });
+    }
 }
