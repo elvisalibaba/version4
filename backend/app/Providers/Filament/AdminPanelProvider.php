@@ -29,6 +29,9 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('HolisticBooks Control Center')
+            ->brandLogo(asset('images/holisticbooks-mark.svg'))
+            ->brandLogoHeight('2.35rem')
+            ->favicon(asset('images/holisticbooks-mark.svg'))
             ->colors([
                 'primary' => Color::Amber,
                 'info' => Color::Sky,
