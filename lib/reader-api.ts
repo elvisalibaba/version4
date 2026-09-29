@@ -7,6 +7,8 @@ export type ReaderDashboardPayload = {
     favorites: number;
     orders: number;
     active_subscriptions: number;
+    audiobooks: number;
+    videos: number;
   };
   library: ApiLibraryEntry[];
   orders: ApiOrder[];

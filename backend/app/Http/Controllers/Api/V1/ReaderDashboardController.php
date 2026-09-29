@@ -13,6 +13,7 @@ use App\Models\AffiliatePayoutAccount;
 use App\Models\AffiliateWallet;
 use App\Models\Favorite;
 use App\Models\Library;
+use App\Models\MediaEdition;
 use App\Models\Order;
 use App\Models\ReadingProgress;
 use App\Models\Subscription;
@@ -30,7 +31,7 @@ class ReaderDashboardController extends Controller
         $library = Library::query()
             ->where('user_id', $profile->id)
             ->where('status', 'active')
-            ->with(['book.author', 'book.formats', 'subscription.plan'])
+            ->with(['book.author', 'book.formats', 'book.mediaEditions' => fn ($query) => $query->where('status', 'published'), 'subscription.plan'])
             ->latest('last_opened_at')
             ->limit(6)
             ->get();
@@ -73,6 +74,10 @@ class ReaderDashboardController extends Controller
                     'favorites' => Favorite::query()->where('user_id', $profile->id)->count(),
                     'orders' => Order::query()->where('user_id', $profile->id)->count(),
                     'active_subscriptions' => Subscription::query()->currentlyActive()->where('user_id', $profile->id)->count(),
+                    'audiobooks' => MediaEdition::query()->where('media_type', 'audiobook')->where('status', 'published')
+                        ->whereIn('book_id', Library::query()->where('user_id', $profile->id)->where('status', 'active')->select('book_id'))->count(),
+                    'videos' => MediaEdition::query()->where('media_type', 'video')->where('status', 'published')
+                        ->whereIn('book_id', Library::query()->where('user_id', $profile->id)->where('status', 'active')->select('book_id'))->count(),
                 ],
                 'library' => LibraryResource::collection($library)->resolve(),
                 'orders' => OrderResource::collection($orders)->resolve(),

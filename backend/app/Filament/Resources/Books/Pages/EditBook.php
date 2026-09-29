@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Books\Pages;
 use App\Filament\Resources\Books\BookResource;
 use App\Models\AuthorProfile;
 use App\Services\BookDocumentMetadataService;
+use App\Services\BookTaxonomyService;
 use Filament\Resources\Pages\EditRecord;
 
 class EditBook extends EditRecord
@@ -28,6 +29,7 @@ class EditBook extends EditRecord
 
     protected function afterSave(): void
     {
+        app(BookTaxonomyService::class)->sync($this->record, $this->record->categories ?? []);
         app(BookDocumentMetadataService::class)->enrich($this->record);
     }
 }

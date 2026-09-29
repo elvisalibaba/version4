@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Books\Pages;
 use App\Filament\Resources\Books\BookResource;
 use App\Models\AuthorProfile;
 use App\Services\BookDocumentMetadataService;
+use App\Services\BookTaxonomyService;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateBook extends CreateRecord
@@ -28,6 +29,7 @@ class CreateBook extends CreateRecord
 
     protected function afterCreate(): void
     {
+        app(BookTaxonomyService::class)->sync($this->record, $this->record->categories ?? []);
         app(BookDocumentMetadataService::class)->enrich($this->record);
     }
 }

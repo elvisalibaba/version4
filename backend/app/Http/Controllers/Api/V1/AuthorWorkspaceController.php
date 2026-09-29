@@ -7,6 +7,7 @@ use App\Http\Resources\BookResource;
 use App\Models\AuthorProfile;
 use App\Models\Book;
 use App\Models\OrderItem;
+use App\Models\MediaEdition;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -44,9 +45,11 @@ class AuthorWorkspaceController extends Controller
                     'clicks' => (int) (clone $books)->sum('clicks_count'),
                     'purchases' => (int) (clone $books)->sum('purchases_count'),
                     'revenue' => $grossRevenue,
+                    'audiobooks' => MediaEdition::query()->where('media_type', 'audiobook')->whereIn('book_id', (clone $books)->select('id'))->count(),
+                    'videos' => MediaEdition::query()->where('media_type', 'video')->whereIn('book_id', (clone $books)->select('id'))->count(),
                 ],
                 'recent_books' => BookResource::collection(
-                    (clone $books)->with(['author', 'formats'])->latest()->limit(6)->get(),
+                    (clone $books)->with(['author', 'formats', 'mediaEditions'])->latest()->limit(6)->get(),
                 )->resolve(),
             ],
         ]);
@@ -60,7 +63,7 @@ class AuthorWorkspaceController extends Controller
             'data' => BookResource::collection(
                 Book::query()
                     ->where('author_id', $author->id)
-                    ->with(['author', 'formats', 'subscriptionPlans'])
+                    ->with(['author', 'formats', 'mediaEditions', 'subscriptionPlans'])
                     ->latest()
                     ->get(),
             )->resolve(),

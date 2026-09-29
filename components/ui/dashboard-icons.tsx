@@ -5,7 +5,9 @@ import {
   Gem,
   Globe2,
   Heart,
+  Headphones,
   LibraryBig,
+  Clapperboard,
   PlusCircle,
   Receipt,
   UserRound,
@@ -19,6 +21,8 @@ export type DashboardIconName =
   | "gem"
   | "globe-2"
   | "heart"
+  | "headphones"
+  | "clapperboard"
   | "library-big"
   | "plus-circle"
   | "receipt"
@@ -44,6 +48,10 @@ export function DashboardIcon({ name, className }: DashboardIconProps) {
       return <Globe2 className={className} />;
     case "heart":
       return <Heart className={className} />;
+    case "headphones":
+      return <Headphones className={className} />;
+    case "clapperboard":
+      return <Clapperboard className={className} />;
     case "library-big":
       return <LibraryBig className={className} />;
     case "plus-circle":

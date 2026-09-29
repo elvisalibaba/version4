@@ -50,3 +50,91 @@
 .fi-input-wrp {
     border-radius: 0.9rem;
 }
+
+
+/* Holistique Books publishing control center */
+.fi-main {
+    background:
+        linear-gradient(180deg, rgb(250 248 243 / 0.92), rgb(248 250 249));
+}
+
+.fi-header {
+    padding-bottom: 0.4rem;
+}
+
+.fi-header-heading {
+    color: rgb(var(--hb-forest));
+    font-size: clamp(1.75rem, 2.5vw, 2.65rem);
+    font-weight: 750;
+}
+
+.fi-header-subheading {
+    max-width: 62rem;
+    color: rgb(88 83 76);
+    line-height: 1.65;
+}
+
+.fi-sidebar-header {
+    background: linear-gradient(135deg, rgb(var(--hb-forest)), rgb(30 82 59));
+}
+
+.fi-sidebar-header .fi-logo {
+    color: white;
+}
+
+.fi-sidebar-nav-groups {
+    gap: 1rem;
+}
+
+.fi-sidebar-group-label {
+    color: rgb(128 116 101);
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.fi-sidebar-item-active > .fi-sidebar-item-btn {
+    background: rgb(var(--hb-forest) / .095);
+    color: rgb(var(--hb-forest));
+}
+
+.fi-wi-stats-overview-stat {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 100% 0%, rgb(var(--hb-gold) / .16), transparent 9rem),
+        white;
+}
+
+.fi-wi-stats-overview-stat::after {
+    content: "";
+    position: absolute;
+    inset: auto 1.3rem 0 1.3rem;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgb(var(--hb-forest) / .65), rgb(var(--hb-gold) / .75));
+}
+
+.fi-ta-header {
+    border-bottom: 1px solid rgb(var(--hb-forest) / .08);
+}
+
+.fi-ta-row:hover {
+    background: rgb(var(--hb-gold) / .045);
+}
+
+.fi-section-header-heading {
+    color: rgb(var(--hb-forest));
+    letter-spacing: -.02em;
+}
+
+.fi-btn-color-primary {
+    box-shadow: 0 10px 24px rgb(var(--hb-forest) / .14);
+}
+
+@media (min-width: 1024px) {
+    .fi-main-ctn {
+        padding-inline: 1.15rem;
+    }
+}

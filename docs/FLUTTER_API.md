@@ -126,3 +126,67 @@ EasyPay reste entièrement contrôlé côté Laravel. Aucun token marchand ne do
 - utiliser le backend pour les URLs privées de livres ;
 - révoquer l’appareil lors d’une déconnexion définitive ;
 - prévoir certificate pinning uniquement après stabilisation des certificats de production.
+
+
+## Livres audio et vidéo
+
+Les éditions multimédia utilisent le même catalogue et les mêmes droits d'accès que les ebooks.
+
+Après authentification :
+
+`GET /media-editions/{mediaEditionId}/access`
+
+La réponse contient notamment :
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "book_id": "uuid",
+    "media_type": "audiobook",
+    "title": "Edition audio",
+    "duration_seconds": 14400,
+    "narrator": "Nom du narrateur",
+    "playback_url": "https://api.aba.cd/api/v1/media-editions/.../stream?signature=...",
+    "expires_in_seconds": 900,
+    "chapters": []
+  }
+}
+```
+
+Le client Flutter ne doit jamais construire lui-même une URL de fichier privé. Il demande toujours un contrat de lecture au backend.
+
+Pour les fichiers stockés localement, l'URL de lecture est signée et temporaire. Le endpoint de streaming accepte les requêtes HTTP Range pour la navigation audio/vidéo.
+
+Pour un futur CDN, le même endpoint `access` pourra renvoyer une URL CDN signée sans changer le contrat Flutter.
+
+## Publicité mobile
+
+Les emplacements mobiles sont administrés dans Filament et utilisent le même moteur que le web.
+
+Exemples déjà prévus :
+
+- `mobile.home.banner`
+- `mobile.library.native`
+- `mobile.reader.interstitial`
+
+Récupération :
+
+`GET /ads/mobile.home.banner?channel=mobile`
+
+Événement d'impression ou clic :
+
+`POST /ads/{assignmentId}/events`
+
+```json
+{
+  "event_type": "impression",
+  "session": "installation-or-session-id",
+  "context": {
+    "channel": "mobile",
+    "screen": "home"
+  }
+}
+```
+
+L'application doit clairement distinguer les contenus sponsorisés du catalogue éditorial.

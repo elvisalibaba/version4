@@ -7,6 +7,19 @@ export type BookReviewStatus = "draft" | "submitted" | "approved" | "rejected" |
 export type BookStatus = "draft" | "published" | "archived" | "coming_soon";
 export type CopyrightStatus = "clear" | "review" | "blocked";
 export type BookFormatType = "holistique_store" | "ebook" | "paperback" | "pocket" | "hardcover" | "audiobook";
+export type MediaEditionType = "ebook" | "audiobook" | "video" | "print" | "bundle";
+
+export type ApiMediaEdition = {
+  id: string;
+  media_type: MediaEditionType;
+  title: string | null;
+  language: string;
+  duration_seconds: number | null;
+  narrator: string | null;
+  presenter: string | null;
+  preview_url: string | null;
+  status: "draft" | "processing" | "published" | "archived";
+};
 
 export type ApiAuthorProfile = {
   id: string;
@@ -15,6 +28,11 @@ export type ApiAuthorProfile = {
   bio: string | null;
   website: string | null;
   location: string | null;
+  country_code?: string | null;
+  catalog_origin?: "platform" | "publisher_catalog" | "international_reference" | string;
+  rights_status?: "unknown" | "not_acquired" | "negotiating" | "acquired" | "expired" | "blocked" | string;
+  is_reference_profile?: boolean;
+  reference_source_url?: string | null;
   social_links: Record<string, unknown>;
   professional_headline: string | null;
   phone?: string | null;
@@ -92,6 +110,8 @@ export type ApiBook = {
   copyright_status: CopyrightStatus;
   language: string | null;
   publisher: string | null;
+  publishing_house?: { id: string; name: string; slug: string } | null;
+  imprint?: { id: string; name: string; slug: string } | null;
   publication_date: string | null;
   page_count: number | null;
   co_authors?: string[];
@@ -116,6 +136,7 @@ export type ApiBook = {
   is_single_sale_enabled: boolean;
   is_subscription_available: boolean;
   formats?: ApiBookFormat[];
+  media_editions?: ApiMediaEdition[];
   subscription_plans?: ApiSubscriptionPlan[];
   published_at?: string | null;
   submitted_at?: string | null;
