@@ -11,18 +11,20 @@ export default async function AuthorDashboardLayout({
 }>) {
   const profile = await getCurrentUserProfile();
   const navigation: Array<{ href: string; label: string; icon: DashboardIconName; exact?: boolean }> = [
-    { href: "/dashboard/author", label: "Tableau de bord", icon: "bar-chart-3", exact: true },
-    { href: "/dashboard/author/books", label: "Catalogue", icon: "book-open" },
-    { href: "/dashboard/author/add-book", label: "Nouveau titre", icon: "plus-circle" },
-    { href: "/dashboard/author/sales", label: "Ventes", icon: "circle-dollar-sign" },
-    { href: "/dashboard/author/profile", label: "Profil public", icon: "user-round" },
+    { href: "/dashboard/author", label: "Vue d’ensemble", icon: "bar-chart-3", exact: true },
+    { href: "/dashboard/author/books", label: "Mes livres", icon: "book-open" },
+    { href: "/dashboard/author/add-book", label: "Publier", icon: "plus-circle" },
+    { href: "/dashboard/author/sales", label: "Ventes", icon: "receipt" },
+    { href: "/dashboard/author/finance", label: "Finances", icon: "wallet-cards" },
+    { href: "/dashboard/author/distribution", label: "Distribution", icon: "globe-2" },
+    { href: "/dashboard/author/profile", label: "Profil auteur", icon: "user-round" },
   ];
 
   return (
     <DashboardShell
-      areaLabel="Espace auteur"
+      areaLabel="Author Studio"
       headline="Holistique Books"
-      description="Gérez simplement vos livres, votre profil et vos ventes."
+      description="Pilotez votre catalogue, vos ventes, vos royalties, vos paiements et votre distribution."
       userName={profile?.name ?? profile?.email ?? "Auteur"}
       userRole="Auteur"
       navigation={navigation}
