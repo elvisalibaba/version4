@@ -1,0 +1,50 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+:root {
+    --hb-studio-forest: 18 55 42;
+    --hb-studio-gold: 242 196 109;
+    --hb-studio-paper: 255 252 246;
+}
+
+.fi-body {
+    background:
+        radial-gradient(circle at 10% 0%, rgb(16 185 129 / 0.09), transparent 26rem),
+        radial-gradient(circle at 90% 10%, rgb(var(--hb-studio-gold) / 0.16), transparent 28rem),
+        rgb(var(--hb-studio-paper));
+}
+
+.fi-topbar {
+    border-bottom: 1px solid rgb(var(--hb-studio-forest) / 0.08);
+    background: rgb(255 255 255 / 0.86);
+    backdrop-filter: blur(18px);
+}
+
+.fi-sidebar {
+    border-right: 1px solid rgb(var(--hb-studio-forest) / 0.08);
+    background:
+        linear-gradient(180deg, rgb(249 255 252), rgb(255 250 240));
+}
+
+.fi-section,
+.fi-ta-ctn,
+.fi-wi-stats-overview-stat {
+    border: 1px solid rgb(var(--hb-studio-forest) / 0.08);
+    border-radius: 1.55rem;
+    box-shadow: 0 22px 55px rgb(var(--hb-studio-forest) / 0.06);
+}
+
+.fi-header-heading {
+    letter-spacing: -0.04em;
+}
+
+.fi-btn,
+.fi-input-wrp {
+    border-radius: 1rem;
+}
+
+.fi-badge {
+    border-radius: 999px;
+}
