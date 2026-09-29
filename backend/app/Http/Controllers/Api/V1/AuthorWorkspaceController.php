@@ -30,6 +30,10 @@ class AuthorWorkspaceController extends Controller
             ->whereHas('order', fn ($query) => $query->where('payment_status', 'paid'))
             ->whereHas('book', fn ($query) => $query->where('author_id', $author->id));
 
+        $grossRevenue = (float) (clone $paidItems)
+            ->get(['price', 'quantity'])
+            ->sum(fn (OrderItem $item) => (float) $item->price * max(1, (int) $item->quantity));
+
         return response()->json([
             'data' => [
                 'profile' => $author,
@@ -39,7 +43,7 @@ class AuthorWorkspaceController extends Controller
                     'views' => (int) (clone $books)->sum('views_count'),
                     'clicks' => (int) (clone $books)->sum('clicks_count'),
                     'purchases' => (int) (clone $books)->sum('purchases_count'),
-                    'revenue' => (float) $paidItems->sum('price'),
+                    'revenue' => $grossRevenue,
                 ],
                 'recent_books' => BookResource::collection(
                     (clone $books)->with(['author', 'formats'])->latest()->limit(6)->get(),
@@ -121,9 +125,24 @@ class AuthorWorkspaceController extends Controller
 
         $items = OrderItem::query()
             ->whereHas('book', fn ($query) => $query->where('author_id', $author->id))
-            ->with(['order', 'book', 'format'])
+            ->with(['order', 'book:id,title', 'format:id,format'])
             ->latest()
             ->paginate(50);
+
+        $items->through(fn (OrderItem $item) => [
+            'id' => $item->id,
+            'order_id' => $item->order_id,
+            'book_id' => $item->book_id,
+            'title' => $item->book?->title ?? $item->title ?? 'Livre',
+            'book_format' => $item->book_format,
+            'price' => (float) $item->price,
+            'quantity' => max(1, (int) $item->quantity),
+            'currency_code' => $item->currency_code,
+            'payment_status' => $item->order?->payment_status,
+            'payment_provider' => $item->order?->payment_provider,
+            'payment_channel' => $item->order?->payment_channel,
+            'created_at' => $item->created_at?->toIso8601String(),
+        ]);
 
         return response()->json($items);
     }
