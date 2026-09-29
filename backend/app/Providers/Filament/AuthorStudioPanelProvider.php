@@ -31,6 +31,7 @@ class AuthorStudioPanelProvider extends PanelProvider
             ->brandLogo(asset('images/holisticbooks-mark.svg'))
             ->brandLogoHeight('2.35rem')
             ->favicon(asset('images/holisticbooks-mark.svg'))
+            ->viteTheme('resources/css/filament/studio/theme.css')
             ->colors([
                 'primary' => Color::Emerald,
                 'warning' => Color::Amber,
