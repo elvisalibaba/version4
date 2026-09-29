@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class AuthorProfile extends Model
 {
     /** @use HasFactory<\Database\Factories\AuthorProfileFactory> */
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     public $incrementing = false;
 
@@ -48,5 +49,10 @@ class AuthorProfile extends Model
     public function royaltyAccount(): HasOne
     {
         return $this->hasOne(AuthorRoyaltyAccount::class, 'user_id', 'id');
+    }
+
+    public function hasPlatformAccount(): bool
+    {
+        return $this->profile()->exists();
     }
 }
