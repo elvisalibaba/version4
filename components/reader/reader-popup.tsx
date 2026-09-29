@@ -402,7 +402,7 @@ export function ReaderPopup({
           const progressPayload = await progressResponse.json();
           const progress = (progressPayload.data ?? null) as ReaderProgress | null;
 
-          if (progress?.locator_type === "page" && progress.locator) {
+          if (progress?.locator_type === "pdf_page" && progress.locator) {
             const page = Math.max(1, Number.parseInt(progress.locator, 10) || 1);
             setPdfPageNumber(page);
             setPdfJumpInput(String(page));
@@ -574,7 +574,7 @@ export function ReaderPopup({
     if (isPdf && pdfPageCount > 0) {
       payload = {
         locator: String(pdfPageNumber),
-        locator_type: "page",
+        locator_type: "pdf_page",
         progress_percent: Math.max(0, Math.min(100, (pdfPageNumber / pdfPageCount) * 100)),
         device_name: "web",
       };
