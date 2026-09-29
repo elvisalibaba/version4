@@ -1,41 +1,147 @@
 import Link from "next/link";
-import { ArrowLeft, CircleDollarSign, Plus, ShoppingCart } from "lucide-react";
+import {
+  ArrowLeft,
+  CircleDollarSign,
+  Clock3,
+  CreditCard,
+  Plus,
+  Receipt,
+  ShoppingBag,
+  WalletCards,
+} from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { requireRole } from "@/lib/auth";
-import { getAuthorSales } from "@/lib/author-api";
+import { getAuthorFinanceSummary, getAuthorSales } from "@/lib/author-api";
 
 function money(value: number | string | null | undefined, currency = "USD") {
-  return new Intl.NumberFormat("fr-FR", { style: "currency", currency, maximumFractionDigits: 2 }).format(Number(value ?? 0));
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 2,
+  }).format(Number(value ?? 0));
 }
+
+const paymentStatus: Record<string, { label: string; className: string }> = {
+  paid: { label: "Payé", className: "bg-[#e8f6ed] text-[#267046]" },
+  pending: { label: "En attente", className: "bg-[#fff2da] text-[#936317]" },
+  failed: { label: "Échec", className: "bg-red-50 text-red-700" },
+  refunded: { label: "Remboursé", className: "bg-[#eeeaf8] text-[#65518c]" },
+};
 
 export default async function AuthorSalesPage() {
   await requireRole(["author"]);
-  const sales = await getAuthorSales();
+  const [sales, finance] = await Promise.all([getAuthorSales(), getAuthorFinanceSummary()]);
+
   const paid = sales.filter((sale) => sale.payment_status === "paid");
-  const revenue = paid.reduce((sum, sale) => sum + Number(sale.price ?? 0) * Number(sale.quantity ?? 1), 0);
+  const pending = sales.filter((sale) => sale.payment_status === "pending");
+  const revenue = paid.reduce(
+    (sum, sale) => sum + Number(sale.price ?? 0) * Math.max(1, Number(sale.quantity ?? 1)),
+    0,
+  );
+  const units = paid.reduce((sum, sale) => sum + Math.max(1, Number(sale.quantity ?? 1)), 0);
+  const average = units > 0 ? revenue / units : 0;
+  const currency = finance.account?.currency_code ?? String(paid[0]?.currency_code ?? "USD");
 
   return (
-    <section className="space-y-4 sm:space-y-6">
-      <header className="flex flex-col gap-5 rounded-[28px] bg-[#173d2c] p-6 text-white sm:flex-row sm:items-end sm:justify-between sm:p-8">
-        <div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#f2c66f]">Activité commerciale</p><h1 className="mt-3 font-serif text-3xl sm:text-4xl">Mes ventes</h1><p className="mt-2 text-sm text-white/65">Données commerciales servies par Laravel.</p></div>
-        <div className="flex flex-wrap gap-2"><Link href="/dashboard/author/books" className="inline-flex h-11 items-center gap-2 rounded-full border border-white/20 px-4 text-sm font-bold"><ArrowLeft className="h-4 w-4" />Mes livres</Link><Link href="/dashboard/author/add-book" className="inline-flex h-11 items-center gap-2 rounded-full bg-[#e8ac42] px-4 text-sm font-bold text-[#173d2c]"><Plus className="h-4 w-4" />Ajouter</Link></div>
+    <section className="space-y-6">
+      <header className="overflow-hidden rounded-[32px] bg-[radial-gradient(circle_at_top_right,rgba(232,172,66,0.26),transparent_35%),linear-gradient(135deg,#102a20,#173d2c)] p-6 text-white shadow-[0_28px_70px_rgba(23,61,44,0.16)] sm:p-8">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[#f2c66f]">
+              <Receipt className="h-3.5 w-3.5" />
+              Activité commerciale
+            </div>
+            <h1 className="mt-4 font-serif text-3xl tracking-[-0.03em] sm:text-4xl">Ventes & commandes</h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-white/65">
+              Chaque ligne provient des commandes Laravel enregistrées dans MySQL, avec le statut réel du paiement.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/dashboard/author/finance" className="inline-flex h-11 items-center gap-2 rounded-full border border-white/20 px-4 text-sm font-bold">
+              <WalletCards className="h-4 w-4" />
+              Finances
+            </Link>
+            <Link href="/dashboard/author/add-book" className="inline-flex h-11 items-center gap-2 rounded-full bg-[#e8ac42] px-4 text-sm font-bold text-[#173d2c]">
+              <Plus className="h-4 w-4" />
+              Publier
+            </Link>
+          </div>
+        </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <article className="rounded-2xl border border-[#ded3c2] bg-white p-5"><CircleDollarSign className="h-5 w-5 text-[#b85135]" /><p className="mt-4 text-2xl font-bold">{money(revenue)}</p><p className="mt-1 text-xs font-semibold text-[#766e64]">Revenus confirmés</p></article>
-        <article className="rounded-2xl border border-[#ded3c2] bg-white p-5"><ShoppingCart className="h-5 w-5 text-[#b85135]" /><p className="mt-4 text-2xl font-bold">{sales.length}</p><p className="mt-1 text-xs font-semibold text-[#766e64]">Lignes de vente</p></article>
-        <article className="rounded-2xl border border-[#ded3c2] bg-white p-5"><CircleDollarSign className="h-5 w-5 text-[#b85135]" /><p className="mt-4 text-2xl font-bold">{paid.length}</p><p className="mt-1 text-xs font-semibold text-[#766e64]">Ventes payées</p></article>
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
+        {[
+          { label: "CA confirmé", value: money(revenue, currency), icon: CircleDollarSign, detail: "Commandes payées" },
+          { label: "Ventes payées", value: paid.length, icon: ShoppingBag, detail: `${units} exemplaire(s)` },
+          { label: "En attente", value: pending.length, icon: Clock3, detail: "Paiement non confirmé" },
+          { label: "Prix moyen", value: money(average, currency), icon: CreditCard, detail: "Par exemplaire payé" },
+          { label: "Royalties", value: money(finance.royalties.lifetime, currency), icon: WalletCards, detail: "Gains auteur cumulés" },
+        ].map((item) => {
+          const Icon = item.icon;
+          return (
+            <article key={item.label} className="rounded-[22px] border border-[#ded3c2] bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.04)]">
+              <Icon className="h-5 w-5 text-[#b85135]" />
+              <p className="mt-4 truncate text-2xl font-bold tracking-[-0.04em] text-[#17231d]">{item.value}</p>
+              <p className="mt-1 text-xs font-semibold text-[#766e64]">{item.label}</p>
+              <p className="mt-1 truncate text-[0.68rem] text-[#92887c]">{item.detail}</p>
+            </article>
+          );
+        })}
       </div>
 
-      <section className="rounded-[28px] border border-[#ded3c2] bg-white p-4 sm:p-6">
-        <div className="space-y-3">
-          {sales.length ? sales.map((sale, index) => (
-            <article key={String(sale.id ?? sale.order_id ?? index)} className="flex flex-col gap-3 rounded-[1.5rem] border border-[#ece3d7] p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div><p className="font-semibold text-slate-950">{sale.title ?? "Livre"}</p><p className="mt-1 text-xs text-slate-500">{sale.created_at ? new Date(sale.created_at).toLocaleDateString("fr-FR") : "Date inconnue"}</p></div>
-              <div className="text-right"><p className="font-semibold">{money(sale.price as number | string, String(sale.currency_code ?? "USD"))}</p><span className="catalog-badge">{String(sale.payment_status ?? "unknown")}</span></div>
-            </article>
-          )) : <EmptyState title="Aucune vente enregistrée" description="Les ventes de vos livres apparaîtront ici." />}
+      <section className="overflow-hidden rounded-[28px] border border-[#ded3c2] bg-white shadow-sm">
+        <div className="flex flex-col gap-3 border-b border-[#eee5d9] bg-[#fffaf3] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div>
+            <h2 className="font-serif text-2xl text-[#17231d]">Historique des ventes</h2>
+            <p className="mt-1 text-sm text-[#766e64]">{sales.length} ligne(s) de commande chargée(s).</p>
+          </div>
+          <Link href="/dashboard/author/books" className="inline-flex items-center gap-2 text-sm font-bold text-[#a94b34]">
+            <ArrowLeft className="h-4 w-4" />
+            Mes livres
+          </Link>
         </div>
+
+        {sales.length ? (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[820px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-[#eee5d9] text-[0.68rem] uppercase tracking-[0.12em] text-[#8b8177]">
+                  <th className="px-6 py-3 font-bold">Livre</th>
+                  <th className="px-4 py-3 font-bold">Format</th>
+                  <th className="px-4 py-3 font-bold">Qté</th>
+                  <th className="px-4 py-3 font-bold">Montant</th>
+                  <th className="px-4 py-3 font-bold">Paiement</th>
+                  <th className="px-6 py-3 text-right font-bold">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sales.map((sale, index) => {
+                  const status = String(sale.payment_status ?? "pending");
+                  const statusMeta = paymentStatus[status] ?? { label: status, className: "bg-[#f2eee8] text-[#665f56]" };
+                  const quantity = Math.max(1, Number(sale.quantity ?? 1));
+                  const total = Number(sale.price ?? 0) * quantity;
+                  return (
+                    <tr key={String(sale.id ?? sale.order_id ?? index)} className="border-b border-[#f0e9df] last:border-0">
+                      <td className="px-6 py-4">
+                        <p className="font-semibold text-[#17231d]">{sale.title ?? "Livre"}</p>
+                        <p className="mt-1 text-xs text-[#8b8177]">Commande {sale.order_id ? String(sale.order_id).slice(0, 8) : "—"}</p>
+                      </td>
+                      <td className="px-4 py-4 text-[#645d55]">{String(sale.book_format ?? "ebook").toUpperCase()}</td>
+                      <td className="px-4 py-4 text-[#645d55]">{quantity}</td>
+                      <td className="px-4 py-4 font-bold text-[#17231d]">{money(total, String(sale.currency_code ?? currency))}</td>
+                      <td className="px-4 py-4"><span className={`rounded-full px-2.5 py-1 text-[0.65rem] font-bold ${statusMeta.className}`}>{statusMeta.label}</span></td>
+                      <td className="px-6 py-4 text-right text-xs text-[#887f74]">{sale.created_at ? new Date(sale.created_at).toLocaleDateString("fr-FR") : "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="p-6">
+            <EmptyState title="Aucune vente enregistrée" description="Les commandes de vos livres apparaîtront ici dès qu’un paiement sera enregistré." />
+          </div>
+        )}
       </section>
     </section>
   );
