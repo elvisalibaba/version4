@@ -11,6 +11,7 @@ type LoginPageProps = {
     next?: string;
     verification?: string;
     reset?: string;
+    verified?: string;
   }>;
 };
 
@@ -35,12 +36,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           tone: "error" as const,
           text: "Le lien de confirmation est invalide ou a expiré. Demandez un nouveau lien ou reconnectez-vous.",
         }
-      : params.reset === "success"
+      : params.verified === "1"
         ? {
             tone: "success" as const,
-            text: "Votre mot de passe a été modifié. Vous pouvez maintenant vous connecter.",
+            text: "Votre adresse email est confirmée. Votre compte est maintenant actif.",
           }
-        : null;
+        : params.reset === "success"
+          ? {
+              tone: "success" as const,
+              text: "Votre mot de passe a été modifié. Vous pouvez maintenant vous connecter.",
+            }
+          : null;
 
   return (
     <section className="mx-auto max-w-6xl px-0 py-3 sm:px-6 sm:py-8 lg:py-12">
