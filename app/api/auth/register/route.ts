@@ -10,7 +10,14 @@ export async function POST(request: Request) {
       email: string;
     }>("auth/register", { method: "POST", body });
 
-    return NextResponse.json(result, { status: 201 });
+    return NextResponse.json(
+      {
+        message: result.message,
+        verification_required: result.verification_required,
+        email: result.email,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     if (error instanceof ApiError) {
       return NextResponse.json(error.payload ?? { message: "Inscription impossible." }, { status: error.status });
