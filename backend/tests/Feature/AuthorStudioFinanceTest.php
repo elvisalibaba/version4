@@ -51,6 +51,7 @@ class AuthorStudioFinanceTest extends TestCase
             'payment_status' => 'paid',
             'payment_provider' => 'easypay',
             'payment_transaction_id' => 'ROYALTY-TEST-1',
+            'payment_metadata' => [],
         ]);
 
         $item = $order->items()->create([
