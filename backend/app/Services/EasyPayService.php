@@ -348,7 +348,7 @@ class EasyPayService
     private function description(Order $order): string
     {
         $titles = $order->items->pluck('book.title')->filter()->map(
-            fn ($title) => trim(str_replace(['#', '
+            fn ($title) => trim(str_replace(['#', '$', '/', '_', '&'], ' ', (string) $title))
         );
 
         return $titles->count() === 1
