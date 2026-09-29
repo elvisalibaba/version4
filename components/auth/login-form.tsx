@@ -39,6 +39,12 @@ export function LoginForm({ nextPath, notice = null }: LoginFormProps) {
 
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
+        if (payload?.verification_required && payload?.email) {
+          const params = new URLSearchParams({ email: payload.email, next: safeNextPath });
+          window.location.assign(`/verify-email?${params.toString()}`);
+          return;
+        }
+
         const message =
           payload?.errors?.email?.[0] ??
           payload?.message ??
