@@ -79,8 +79,8 @@ export function AuthorCatalogSection({ books }: AuthorCatalogSectionProps) {
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         {profiles.map((author) => {
           const latestBook = [...author.books].sort((a, b) => {
-            const aTime = new Date(a.published_at ?? a.created_at).getTime();
-            const bTime = new Date(b.published_at ?? b.created_at).getTime();
+            const aTime = new Date(a.published_at ?? a.created_at ?? 0).getTime();
+            const bTime = new Date(b.published_at ?? b.created_at ?? 0).getTime();
             return bTime - aTime;
           })[0];
           const initials = author.name
