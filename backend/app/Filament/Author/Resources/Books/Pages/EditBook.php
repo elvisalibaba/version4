@@ -3,6 +3,7 @@
 namespace App\Filament\Author\Resources\Books\Pages;
 
 use App\Filament\Author\Resources\Books\BookResource;
+use App\Services\BookDocumentMetadataService;
 use App\Services\PublicationReadinessService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -11,6 +12,11 @@ use Filament\Resources\Pages\EditRecord;
 class EditBook extends EditRecord
 {
     protected static string $resource = BookResource::class;
+
+    protected function afterSave(): void
+    {
+        app(BookDocumentMetadataService::class)->enrich($this->record);
+    }
 
     protected function getHeaderActions(): array
     {

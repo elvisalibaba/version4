@@ -37,6 +37,7 @@ class AuthorWorkspaceController extends Controller
                     'books' => (clone $books)->count(),
                     'published_books' => (clone $books)->where('status', 'published')->count(),
                     'views' => (int) (clone $books)->sum('views_count'),
+                    'clicks' => (int) (clone $books)->sum('clicks_count'),
                     'purchases' => (int) (clone $books)->sum('purchases_count'),
                     'revenue' => (float) $paidItems->sum('price'),
                 ],

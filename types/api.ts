@@ -108,7 +108,9 @@ export type ApiBook = {
   has_sample?: boolean;
   sample_pages?: number | null;
   views_count: number;
+  clicks_count: number;
   purchases_count: number;
+  is_free: boolean;
   rating_avg: number | string | null;
   ratings_count: number;
   is_single_sale_enabled: boolean;

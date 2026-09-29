@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { apiServer } from "@/lib/api/server";
 
-export type BookEngagementEventType = "detail_view" | "reader_open" | "file_access";
+export type BookEngagementEventType = "detail_view" | "catalog_click" | "reader_open" | "file_access";
 
 type TrackBookEngagementParams = {
   bookId: string;

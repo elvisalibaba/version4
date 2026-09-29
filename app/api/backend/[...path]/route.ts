@@ -17,6 +17,12 @@ async function proxyRequest(request: NextRequest, context: { params: Promise<{ p
   const contentType = request.headers.get("content-type");
   if (contentType) headers.set("Content-Type", contentType);
   headers.set("Accept", request.headers.get("accept") ?? "application/json");
+  const userAgent = request.headers.get("user-agent");
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  const realIp = request.headers.get("x-real-ip");
+  if (userAgent) headers.set("User-Agent", userAgent);
+  if (forwardedFor) headers.set("X-Forwarded-For", forwardedFor);
+  if (realIp) headers.set("X-Real-IP", realIp);
 
   const token = (await cookies()).get(AUTH_COOKIE_NAME)?.value;
   if (token) headers.set("Authorization", `Bearer ${token}`);

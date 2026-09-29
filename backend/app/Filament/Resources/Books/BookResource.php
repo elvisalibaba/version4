@@ -17,6 +17,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -71,7 +73,29 @@ class BookResource extends Resource
             Section::make('Commercialisation')
                 ->columns(3)
                 ->schema([
-                    TextInput::make('price')->label('Prix')->numeric()->minValue(0)->default(0)->required(),
+                    Toggle::make('is_free')
+                        ->label('Livre gratuit')
+                        ->live()
+                        ->dehydrated(false)
+                        ->afterStateHydrated(fn (Toggle $component, ?Book $record) => $component->state(
+                            $record !== null && $record->is_single_sale_enabled && (float) $record->price <= 0,
+                        ))
+                        ->afterStateUpdated(function (Set $set, Get $get, bool $state): void {
+                            if ($state) {
+                                $set('price', 0);
+                            } elseif ((float) $get('price') <= 0) {
+                                $set('price', null);
+                            }
+                        }),
+                    TextInput::make('price')
+                        ->label('Prix')
+                        ->numeric()
+                        ->minValue(0)
+                        ->default(0)
+                        ->required()
+                        ->disabled(fn (Get $get): bool => (bool) $get('is_free'))
+                        ->dehydrated()
+                        ->helperText('Mettez 0 ou activez « Livre gratuit ».'),
                     TextInput::make('currency_code')->label('Devise')->default('USD')->maxLength(3)->required(),
                     Select::make('status')
                         ->label('Statut')
@@ -85,7 +109,11 @@ class BookResource extends Resource
                         ->required(),
                     Toggle::make('is_single_sale_enabled')->label('Vente individuelle')->default(true),
                     Toggle::make('is_subscription_available')->label('Disponible par abonnement'),
-                    TextInput::make('page_count')->label('Nombre de pages')->numeric()->minValue(1),
+                    TextInput::make('page_count')
+                        ->label('Nombre de pages')
+                        ->numeric()
+                        ->minValue(1)
+                        ->helperText('Calculé automatiquement à partir du PDF.'),
                 ]),
 
             Section::make('Fichiers')
@@ -97,6 +125,7 @@ class BookResource extends Resource
                         ->directory('covers')
                         ->image()
                         ->imageEditor()
+                        ->helperText('Facultative : la première page du PDF sera utilisée automatiquement.')
                         ->maxSize(10240),
                     FileUpload::make('file_url')
                         ->label('PDF / EPUB privé')
@@ -153,6 +182,8 @@ class BookResource extends Resource
                 TextColumn::make('copyright_status')->label('Droits')->badge()->toggleable(),
                 IconColumn::make('is_subscription_available')->label('Abonnement')->boolean(),
                 TextColumn::make('purchases_count')->label('Achats')->numeric()->sortable()->toggleable(),
+                TextColumn::make('views_count')->label('Vues réelles')->numeric()->sortable()->toggleable(),
+                TextColumn::make('clicks_count')->label('Clics réels')->numeric()->sortable()->toggleable(),
                 TextColumn::make('created_at')->label('Créé le')->dateTime('d/m/Y H:i')->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, CircleDollarSign, Eye, Plus, UserRound } from "lucide-react";
+import { ArrowRight, BookOpen, CircleDollarSign, Eye, MousePointerClick, Plus, UserRound } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getAuthorDashboard } from "@/lib/author-api";
 import type { BookReviewStatus, BookStatus } from "@/types/api";
@@ -41,11 +41,12 @@ export default async function AuthorDashboardPage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         {[
           { label: "Mes livres", value: data.stats.books, icon: BookOpen },
           { label: "Publiés", value: data.stats.published_books, icon: BookOpen },
           { label: "Vues", value: data.stats.views, icon: Eye },
+          { label: "Clics", value: data.stats.clicks, icon: MousePointerClick },
           { label: "Revenus", value: money(data.stats.revenue), icon: CircleDollarSign },
         ].map((stat) => {
           const Icon = stat.icon;
@@ -61,7 +62,7 @@ export default async function AuthorDashboardPage() {
               const review = (book.review_status ?? "draft") as BookReviewStatus;
               return (
                 <article key={book.id} className="flex flex-col gap-3 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2.5 py-1 text-[.65rem] font-bold ${publicationStatus[book.status].className}`}>{publicationStatus[book.status].label}</span><span className="text-xs text-[#887f74]">{reviewStatus[review]}</span></div><h3 className="mt-2 truncate font-semibold text-[#17231d]">{book.title}</h3><p className="mt-1 text-xs text-[#887f74]">{book.views_count ?? 0} vues · {book.purchases_count ?? 0} achats</p></div>
+                  <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2.5 py-1 text-[.65rem] font-bold ${publicationStatus[book.status].className}`}>{publicationStatus[book.status].label}</span><span className="text-xs text-[#887f74]">{reviewStatus[review]}</span></div><h3 className="mt-2 truncate font-semibold text-[#17231d]">{book.title}</h3><p className="mt-1 text-xs text-[#887f74]">{book.views_count ?? 0} vues · {book.clicks_count ?? 0} clics · {book.purchases_count ?? 0} achats</p></div>
                   <Link href={`/dashboard/author/books/${book.id}/edit`} className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-[#d9cebd] px-4 text-sm font-bold text-[#173d2c]">Modifier<ArrowRight className="h-3.5 w-3.5" /></Link>
                 </article>
               );

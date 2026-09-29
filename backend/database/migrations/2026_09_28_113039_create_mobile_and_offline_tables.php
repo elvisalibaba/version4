@@ -55,7 +55,7 @@ return new class extends Migration
             $table->foreignUuid('user_id')->primary()->constrained('profiles')->cascadeOnDelete();
             $table->string('source')->default('web_download');
             $table->timestamp('granted_at')->useCurrent();
-            $table->timestamp('expires_at')->index();
+            $table->dateTime('expires_at')->index();
             $table->enum('status', ['active', 'expired', 'revoked'])->default('active');
             $table->unsignedInteger('claimed_download_count')->default(1);
             $table->timestamp('last_downloaded_at')->useCurrent();
@@ -94,7 +94,7 @@ return new class extends Migration
             $table->string('license_token_hash')->unique();
             $table->enum('status', ['active', 'expired', 'revoked'])->default('active');
             $table->timestamp('issued_at')->useCurrent();
-            $table->timestamp('valid_until')->index();
+            $table->dateTime('valid_until')->index();
             $table->timestamp('last_verified_at')->nullable();
             $table->unsignedTinyInteger('max_offline_days')->default(7);
             $table->timestamp('revoked_at')->nullable();
@@ -133,7 +133,7 @@ return new class extends Migration
             $table->enum('event_type', ['progress_upsert', 'highlight_upsert', 'highlight_delete', 'bookmark_upsert', 'bookmark_delete', 'reader_settings']);
             $table->json('payload');
             $table->enum('status', ['pending', 'processing', 'processed', 'failed'])->default('pending');
-            $table->timestamp('device_created_at');
+            $table->dateTime('device_created_at');
             $table->timestamp('processed_at')->nullable();
             $table->text('processing_error')->nullable();
             $table->unsignedInteger('retry_count')->default(0);

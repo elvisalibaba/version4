@@ -7,6 +7,7 @@ export type AuthorDashboardPayload = {
     books: number;
     published_books: number;
     views: number;
+    clicks: number;
     purchases: number;
     revenue: number;
   };

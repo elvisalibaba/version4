@@ -16,6 +16,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -77,7 +79,11 @@ class BookResource extends Resource
                     TextInput::make('isbn')->label('ISBN')->maxLength(50),
                     TextInput::make('language')->label('Langue')->default('fr')->required()->maxLength(10),
                     TextInput::make('publisher')->label('Éditeur')->default('HolisticBooks')->maxLength(255),
-                    TextInput::make('page_count')->label('Nombre de pages')->numeric()->minValue(1),
+                    TextInput::make('page_count')
+                        ->label('Nombre de pages')
+                        ->numeric()
+                        ->minValue(1)
+                        ->helperText('Calculé automatiquement à partir du PDF.'),
                     Textarea::make('description')->label('Description')->required()->rows(7)->columnSpanFull(),
                     TagsInput::make('categories')->label('Catégories')->columnSpanFull(),
                     TagsInput::make('tags')->label('Mots-clés')->columnSpanFull(),
@@ -93,7 +99,7 @@ class BookResource extends Resource
                         ->image()
                         ->imageEditor()
                         ->maxSize(10240)
-                        ->required(),
+                        ->helperText('Facultative : la première page du PDF sera utilisée automatiquement.'),
                     FileUpload::make('file_url')
                         ->label('Manuscrit PDF / EPUB')
                         ->disk('books')
@@ -111,7 +117,29 @@ class BookResource extends Resource
             Section::make('Prix et disponibilité')
                 ->columns(3)
                 ->schema([
-                    TextInput::make('price')->label('Prix')->numeric()->minValue(0)->required(),
+                    Toggle::make('is_free')
+                        ->label('Livre gratuit')
+                        ->live()
+                        ->dehydrated(false)
+                        ->afterStateHydrated(fn (Toggle $component, ?Book $record) => $component->state(
+                            $record !== null && $record->is_single_sale_enabled && (float) $record->price <= 0,
+                        ))
+                        ->afterStateUpdated(function (Set $set, Get $get, bool $state): void {
+                            if ($state) {
+                                $set('price', 0);
+                            } elseif ((float) $get('price') <= 0) {
+                                $set('price', null);
+                            }
+                        }),
+                    TextInput::make('price')
+                        ->label('Prix')
+                        ->numeric()
+                        ->minValue(0)
+                        ->default(0)
+                        ->required()
+                        ->disabled(fn (Get $get): bool => (bool) $get('is_free'))
+                        ->dehydrated()
+                        ->helperText('Mettez 0 ou activez « Livre gratuit ».'),
                     TextInput::make('currency_code')->label('Devise')->default('USD')->required()->maxLength(3),
                     Toggle::make('is_single_sale_enabled')->label('Vente à l’unité')->default(true),
                     Toggle::make('is_subscription_available')->label('Abonnement'),
@@ -140,6 +168,8 @@ class BookResource extends Resource
                 TextColumn::make('copyright_status')->label('Droits')->badge(),
                 IconColumn::make('is_subscription_available')->label('Abonnement')->boolean(),
                 TextColumn::make('purchases_count')->label('Ventes')->numeric()->sortable(),
+                TextColumn::make('views_count')->label('Vues réelles')->numeric()->sortable()->toggleable(),
+                TextColumn::make('clicks_count')->label('Clics réels')->numeric()->sortable()->toggleable(),
                 TextColumn::make('updated_at')->label('Modifié')->since(),
             ])
             ->filters([

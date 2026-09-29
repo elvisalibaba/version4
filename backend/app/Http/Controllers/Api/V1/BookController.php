@@ -7,6 +7,7 @@ use App\Http\Requests\Book\StoreBookRequest;
 use App\Http\Requests\Book\UpdateBookRequest;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
+use App\Services\BookDocumentMetadataService;
 use App\Services\PrivateBookFileService;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -35,7 +36,7 @@ class BookController extends Controller
         return BookResource::collection($books);
     }
 
-    public function store(StoreBookRequest $request, PrivateBookFileService $files): BookResource
+    public function store(StoreBookRequest $request, PrivateBookFileService $files, BookDocumentMetadataService $metadata): BookResource
     {
         $validated = $request->validated();
         $planIds = Arr::pull($validated, 'subscription_plan_ids', []);
@@ -85,6 +86,10 @@ class BookController extends Controller
             $book->update(['sample_url' => $samplePath]);
         }
 
+        if ($request->hasFile('file')) {
+            $book = $metadata->enrich($book);
+        }
+
         $book->subscriptionPlans()->sync($book->is_subscription_available ? $planIds : []);
 
         return new BookResource($book->load(['author', 'formats', 'subscriptionPlans']));
@@ -99,7 +104,7 @@ class BookController extends Controller
         return new BookResource($book->load(['author', 'formats', 'subscriptionPlans:id,name,slug,description,monthly_price,currency_code,is_active,max_devices,offline_days,downloads_enabled']));
     }
 
-    public function update(UpdateBookRequest $request, Book $book, PrivateBookFileService $files): BookResource
+    public function update(UpdateBookRequest $request, Book $book, PrivateBookFileService $files, BookDocumentMetadataService $metadata): BookResource
     {
         $validated = $request->validated();
         $hasPlanIds = array_key_exists('subscription_plan_ids', $validated);
@@ -154,6 +159,10 @@ class BookController extends Controller
         if ($request->hasFile('sample')) {
             $samplePath = $request->file('sample')->store("{$book->id}/samples", 'books');
             $book->update(['sample_url' => $samplePath]);
+        }
+
+        if ($request->hasFile('file')) {
+            $book = $metadata->enrich($book);
         }
 
         if ($hasPlanIds || array_key_exists('is_subscription_available', $data)) {

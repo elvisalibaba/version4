@@ -1,6 +1,5 @@
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { trackBookEngagement } from "@/lib/book-engagement";
+import { BookViewTracker } from "@/components/books/book-view-tracker";
 import { getReaderBookAccessState } from "@/lib/book-access";
 import { getCurrentUserProfile } from "@/lib/auth";
 import { getBookById } from "@/lib/books";
@@ -69,19 +68,6 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  const requestHeaders = await headers();
-  await trackBookEngagement({
-    bookId: book.id,
-    eventType: "detail_view",
-    source: "book_detail_page",
-    requestHeaders,
-    metadata: {
-      access_mode: book.offer_mode,
-      has_subscription_offer: book.is_subscription_available,
-      has_single_sale_offer: book.is_single_sale_enabled,
-    },
-  });
-
   const accessState = profile
     ? await getReaderBookAccessState({
         userId: profile.id,
@@ -114,6 +100,7 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
 
   return (
     <>
+      <BookViewTracker bookId={book.id} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replaceAll("<", "\\u003c") }} />
       <BookDetailClient
         book={book}
