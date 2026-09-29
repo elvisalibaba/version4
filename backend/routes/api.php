@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthorController;
+use App\Http\Controllers\Api\V1\AuthorDistributionController;
+use App\Http\Controllers\Api\V1\AuthorFinanceController;
 use App\Http\Controllers\Api\V1\AuthorWorkspaceController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BookAccessController;
@@ -77,6 +79,17 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::get('author/profile', [AuthorWorkspaceController::class, 'profileShow'])->name('author.profile.show');
         Route::post('author/profile', [AuthorWorkspaceController::class, 'profileUpdate'])->name('author.profile.update');
         Route::get('author/sales', [AuthorWorkspaceController::class, 'sales'])->name('author.sales');
+
+        Route::get('author/finance/summary', [AuthorFinanceController::class, 'summary'])->name('author.finance.summary');
+        Route::get('author/finance/royalties', [AuthorFinanceController::class, 'royalties'])->name('author.finance.royalties');
+        Route::get('author/finance/payout-accounts', [AuthorFinanceController::class, 'payoutAccounts'])->name('author.finance.payout-accounts.index');
+        Route::post('author/finance/payout-accounts', [AuthorFinanceController::class, 'storePayoutAccount'])->name('author.finance.payout-accounts.store');
+        Route::put('author/finance/payout-accounts/{payoutAccount}', [AuthorFinanceController::class, 'updatePayoutAccount'])->name('author.finance.payout-accounts.update');
+        Route::delete('author/finance/payout-accounts/{payoutAccount}', [AuthorFinanceController::class, 'destroyPayoutAccount'])->name('author.finance.payout-accounts.destroy');
+        Route::get('author/finance/payouts', [AuthorFinanceController::class, 'payouts'])->name('author.finance.payouts.index');
+        Route::post('author/finance/payouts', [AuthorFinanceController::class, 'requestPayout'])->name('author.finance.payouts.store');
+        Route::get('author/books/{book}/distribution', [AuthorDistributionController::class, 'show'])->name('author.books.distribution.show');
+        Route::put('author/books/{book}/distribution', [AuthorDistributionController::class, 'upsert'])->name('author.books.distribution.update');
 
         Route::get('books/{book}/progress', [ReadingProgressController::class, 'show'])->name('books.progress.show');
         Route::put('books/{book}/progress', [ReadingProgressController::class, 'update'])->name('books.progress.update');
