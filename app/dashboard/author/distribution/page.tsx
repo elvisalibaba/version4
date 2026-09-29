@@ -87,9 +87,19 @@ export default async function AuthorDistributionPage({
                     <select name="primary_market" defaultValue={item?.primary_market ?? "CD"} className="h-11 rounded-xl border border-[#d9cebd] bg-white px-3 font-normal outline-none focus:border-[#173d2c]">
                       <option value="CD">RDC</option>
                       <option value="CG">Congo-Brazzaville</option>
+                      <option value="RW">Rwanda</option>
+                      <option value="BI">Burundi</option>
+                      <option value="KE">Kenya</option>
+                      <option value="UG">Ouganda</option>
+                      <option value="TZ">Tanzanie</option>
+                      <option value="ZM">Zambie</option>
+                      <option value="AO">Angola</option>
+                      <option value="CM">Cameroun</option>
                       <option value="CI">Côte d’Ivoire</option>
                       <option value="SN">Sénégal</option>
-                      <option value="CM">Cameroun</option>
+                      <option value="GH">Ghana</option>
+                      <option value="NG">Nigeria</option>
+                      <option value="ZA">Afrique du Sud</option>
                       <option value="FR">France</option>
                       <option value="BE">Belgique</option>
                       <option value="CA">Canada</option>
@@ -111,6 +121,16 @@ export default async function AuthorDistributionPage({
                       <option value="EUR">EUR</option>
                       <option value="XAF">XAF</option>
                       <option value="XOF">XOF</option>
+                      <option value="RWF">RWF</option>
+                      <option value="BIF">BIF</option>
+                      <option value="KES">KES</option>
+                      <option value="UGX">UGX</option>
+                      <option value="TZS">TZS</option>
+                      <option value="ZMW">ZMW</option>
+                      <option value="AOA">AOA</option>
+                      <option value="GHS">GHS</option>
+                      <option value="NGN">NGN</option>
+                      <option value="ZAR">ZAR</option>
                     </select>
                   </label>
                   <label className="grid gap-2 text-sm font-semibold text-[#4f4740] lg:col-span-2">
