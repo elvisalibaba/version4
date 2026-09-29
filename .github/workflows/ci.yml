@@ -60,6 +60,10 @@ jobs:
         working-directory: backend
         run: composer validate --no-check-lock
 
+      - name: Install backend PHP dependencies
+        working-directory: backend
+        run: composer install --no-interaction --prefer-dist --no-progress
+
       - name: PHP syntax
         working-directory: backend
         run: |
