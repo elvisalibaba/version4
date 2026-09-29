@@ -75,4 +75,24 @@ class Profile extends Model
     {
         return $this->hasOne(AffiliateWallet::class, 'user_id');
     }
+
+    public function royaltyAccount(): HasOne
+    {
+        return $this->hasOne(AuthorRoyaltyAccount::class, 'user_id');
+    }
+
+    public function royaltyTransactions(): HasMany
+    {
+        return $this->hasMany(AuthorRoyaltyTransaction::class, 'user_id');
+    }
+
+    public function authorPayoutAccounts(): HasMany
+    {
+        return $this->hasMany(AuthorPayoutAccount::class, 'user_id');
+    }
+
+    public function authorPayouts(): HasMany
+    {
+        return $this->hasMany(AuthorPayout::class, 'user_id');
+    }
 }
