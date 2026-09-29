@@ -30,7 +30,7 @@ export async function updateBookDistributionAction(bookId: string, formData: For
         primary_market: value(formData, "primary_market").toUpperCase() || "CD",
         territory_mode: value(formData, "territory_mode") || "worldwide",
         territories,
-        sales_channels,
+        sales_channels: salesChannels,
         local_currency: value(formData, "local_currency").toUpperCase() || "USD",
         royalty_rate: Math.min(100, Math.max(0, royaltyPercent)) / 100,
         preorder_enabled: formData.get("preorder_enabled") === "on",
