@@ -1,0 +1,66 @@
+name: HolisticBooks CI
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev, main]
+
+concurrency:
+  group: holisticbooks-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Next.js
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          APP_BASE_URL: http://localhost:3000
+          NEXT_PUBLIC_API_URL: http://127.0.0.1:8000
+          API_URL: http://127.0.0.1:8000
+
+  backend-syntax:
+    name: Laravel syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Validate Composer manifest
+        working-directory: backend
+        run: composer validate --no-check-lock
+
+      - name: PHP syntax
+        working-directory: backend
+        run: |
+          find app routes config database tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
