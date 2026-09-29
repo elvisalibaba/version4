@@ -23,6 +23,10 @@ export type AuthorSale = {
   price?: number | string | null;
   currency_code?: string | null;
   quantity?: number | null;
+  book_id?: string | null;
+  book_format?: string | null;
+  payment_provider?: string | null;
+  payment_channel?: string | null;
   [key: string]: unknown;
 };
 
