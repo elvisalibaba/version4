@@ -12,6 +12,7 @@ type LoginPageProps = {
     verification?: string;
     reset?: string;
     verified?: string;
+    verified?: string;
   }>;
 };
 
