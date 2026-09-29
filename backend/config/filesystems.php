@@ -48,8 +48,8 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => env('PUBLIC_FILES_ROOT', storage_path('app/public')),
-            'url' => env('PUBLIC_FILES_URL', rtrim(env('APP_URL', 'http://localhost'), '/').'/storage'),
+            'root' => env('PUBLIC_FILES_ROOT') ?: storage_path('app/public'),
+            'url' => env('PUBLIC_FILES_URL') ?: rtrim(env('APP_URL', 'http://localhost'), '/').'/api/v1/media',
             'visibility' => 'public',
             'throw' => true,
             'report' => true,
