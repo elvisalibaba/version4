@@ -19,13 +19,26 @@ export async function getHomeFeaturedConfig(): Promise<HomeFeaturedConfig> {
   }
 }
 
-export async function saveHomeFeaturedConfig(_config: HomeFeaturedConfig) {
+export async function saveHomeFeaturedConfig(config: HomeFeaturedConfig) {
+  void config;
   throw new Error("La mise en avant de l’accueil se gère désormais dans Laravel.");
 }
-export async function addBookToHomeFeatured(_bookId: string) { return saveHomeFeaturedConfig(await getHomeFeaturedConfig()); }
-export async function removeBookFromHomeFeatured(_bookId: string) { return saveHomeFeaturedConfig(await getHomeFeaturedConfig()); }
-export async function clearHomeFeaturedBooks() { return saveHomeFeaturedConfig(await getHomeFeaturedConfig()); }
-export async function moveHomeFeaturedBook(_bookId: string, _direction: "up" | "down") { return saveHomeFeaturedConfig(await getHomeFeaturedConfig()); }
+export async function addBookToHomeFeatured(bookId: string) {
+  void bookId;
+  return saveHomeFeaturedConfig(await getHomeFeaturedConfig());
+}
+export async function removeBookFromHomeFeatured(bookId: string) {
+  void bookId;
+  return saveHomeFeaturedConfig(await getHomeFeaturedConfig());
+}
+export async function clearHomeFeaturedBooks() {
+  return saveHomeFeaturedConfig(await getHomeFeaturedConfig());
+}
+export async function moveHomeFeaturedBook(bookId: string, direction: "up" | "down") {
+  void bookId;
+  void direction;
+  return saveHomeFeaturedConfig(await getHomeFeaturedConfig());
+}
 
 export async function getHomeFeaturedState(books: PublishedBook[]) {
   const config = await getHomeFeaturedConfig();
