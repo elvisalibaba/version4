@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Books;
 use App\Filament\Resources\Books\Pages\CreateBook;
 use App\Filament\Resources\Books\Pages\EditBook;
 use App\Filament\Resources\Books\Pages\ListBooks;
+use App\Models\AuthorProfile;
 use App\Models\Book;
 use BackedEnum;
 use Filament\Actions\EditAction;
@@ -50,6 +51,7 @@ class BookResource extends Resource
     {
         return $schema->components([
             Section::make('Identité du livre')
+                ->description('Sélectionnez un auteur du catalogue ou créez-le directement si la maison d’édition ne l’a pas encore enregistré.')
                 ->columns(2)
                 ->schema([
                     TextInput::make('title')->label('Titre')->required()->maxLength(255),
@@ -59,11 +61,59 @@ class BookResource extends Resource
                         ->relationship('author', 'display_name')
                         ->searchable()
                         ->preload()
-                        ->required(),
-                    TextInput::make('author_display_name')->label('Nom auteur affiché')->maxLength(255),
+                        ->required()
+                        ->createOptionAction(fn ($action) => $action
+                            ->label('Créer un nouvel auteur')
+                            ->modalHeading('Ajouter un auteur au catalogue')
+                            ->modalSubmitActionLabel('Créer et sélectionner'))
+                        ->createOptionForm([
+                            TextInput::make('display_name')
+                                ->label('Nom public de l’auteur')
+                                ->required()
+                                ->maxLength(255),
+                            TextInput::make('professional_headline')
+                                ->label('Présentation courte')
+                                ->maxLength(255),
+                            TextInput::make('phone')
+                                ->label('Téléphone')
+                                ->maxLength(50),
+                            TextInput::make('location')
+                                ->label('Localisation')
+                                ->maxLength(255),
+                            TextInput::make('website')
+                                ->label('Site web')
+                                ->url()
+                                ->maxLength(255),
+                            TagsInput::make('genres')
+                                ->label('Genres'),
+                            Textarea::make('bio')
+                                ->label('Biographie')
+                                ->rows(5),
+                        ])
+                        ->createOptionUsing(function (array $data): string {
+                            $author = AuthorProfile::query()->create([
+                                ...$data,
+                                'genres' => $data['genres'] ?? [],
+                                'social_links' => [],
+                                'press_mentions' => [],
+                            ]);
+
+                            return (string) $author->getKey();
+                        })
+                        ->live()
+                        ->afterStateUpdated(function (Set $set, ?string $state): void {
+                            $set(
+                                'author_display_name',
+                                $state ? AuthorProfile::query()->find($state)?->display_name : null,
+                            );
+                        }),
+                    TextInput::make('author_display_name')
+                        ->label('Nom auteur affiché')
+                        ->maxLength(255)
+                        ->helperText('Rempli automatiquement. Vous pouvez l’adapter pour un nom de plume ou une mention éditoriale.'),
                     TextInput::make('isbn')->label('ISBN')->maxLength(50),
                     TextInput::make('language')->label('Langue')->default('fr')->maxLength(10),
-                    TextInput::make('publisher')->label('Éditeur')->maxLength(255),
+                    TextInput::make('publisher')->label('Éditeur')->default('Holistique Books')->maxLength(255),
                     DatePicker::make('publication_date')->label('Date de publication'),
                     Textarea::make('description')->label('Description')->rows(6)->columnSpanFull(),
                     TagsInput::make('categories')->label('Catégories')->columnSpanFull(),
