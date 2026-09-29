@@ -86,10 +86,13 @@ export async function getMobileAppConfig(): Promise<MobileAppConfig> {
   }
 }
 
-export async function saveMobileAppConfig(_config: MobileAppConfig) {
+export async function saveMobileAppConfig(config: MobileAppConfig) {
+  void config;
   throw new Error("La configuration mobile se gère désormais dans l’administration Laravel.");
 }
 
-export async function createMobileAppSignedDownloadUrl(_apkPath: string, _expiresInSeconds = 600) {
+export async function createMobileAppSignedDownloadUrl(apkPath: string, expiresInSeconds = 600) {
+  void apkPath;
+  void expiresInSeconds;
   return "/api/mobile-app/download";
 }
