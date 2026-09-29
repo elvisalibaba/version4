@@ -28,12 +28,22 @@ export async function getFlashSaleConfig(): Promise<FlashSaleConfig> {
   }
 }
 
-export async function saveFlashSaleConfig(_config: FlashSaleConfig) {
+export async function saveFlashSaleConfig(config: FlashSaleConfig) {
+  void config;
   throw new Error("La configuration des ventes flash se gère désormais dans Laravel.");
 }
-export async function updateFlashSaleDiscount(_discountPercentage: number) { return saveFlashSaleConfig(await getFlashSaleConfig()); }
-export async function addBookToFlashSale(_bookId: string) { return saveFlashSaleConfig(await getFlashSaleConfig()); }
-export async function removeBookFromFlashSale(_bookId: string) { return saveFlashSaleConfig(await getFlashSaleConfig()); }
+export async function updateFlashSaleDiscount(discountPercentage: number) {
+  void discountPercentage;
+  return saveFlashSaleConfig(await getFlashSaleConfig());
+}
+export async function addBookToFlashSale(bookId: string) {
+  void bookId;
+  return saveFlashSaleConfig(await getFlashSaleConfig());
+}
+export async function removeBookFromFlashSale(bookId: string) {
+  void bookId;
+  return saveFlashSaleConfig(await getFlashSaleConfig());
+}
 export async function clearFlashSaleBooks() { return saveFlashSaleConfig(await getFlashSaleConfig()); }
 
 export async function getFlashSaleState(books: PublishedBook[]) {
