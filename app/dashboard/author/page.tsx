@@ -5,7 +5,9 @@ import {
   BookCheck,
   BookOpen,
   CircleDollarSign,
+  Clapperboard,
   Eye,
+  Headphones,
   Globe2,
   MousePointerClick,
   Plus,
@@ -127,7 +129,7 @@ export default async function AuthorDashboardPage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-2 gap-3 xl:grid-cols-6">
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
         {[
           { label: "Livres", value: data.stats.books, icon: BookOpen, detail: `${data.stats.published_books} publiés` },
           { label: "Vues", value: views.toLocaleString("fr-FR"), icon: Eye, detail: "Visibilité catalogue" },
@@ -135,6 +137,8 @@ export default async function AuthorDashboardPage() {
           { label: "Achats", value: purchases.toLocaleString("fr-FR"), icon: Receipt, detail: `${percent(purchaseRate)}% des clics` },
           { label: "Chiffre d’affaires", value: money(data.stats.revenue), icon: CircleDollarSign, detail: `Panier moyen ${money(avgOrder)}` },
           { label: "Royalties", value: money(finance.royalties.lifetime, currency), icon: WalletCards, detail: "Gains auteur" },
+          { label: "Audio", value: data.stats.audiobooks, icon: Headphones, detail: "Éditions audio" },
+          { label: "Vidéo", value: data.stats.videos, icon: Clapperboard, detail: "Éditions vidéo" },
         ].map((stat) => {
           const Icon = stat.icon;
           return (
@@ -149,7 +153,22 @@ export default async function AuthorDashboardPage() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,.75fr)]">
-        <section className="rounded-[30px] border border-[#e5ddd1] bg-white p-5 shadow-sm sm:p-6">
+        <section className="grid gap-4 md:grid-cols-2">
+        <article className="rounded-[30px] border border-[#d8e5dd] bg-[#eef7f2] p-6">
+          <Headphones className="h-6 w-6 text-[#173d2c]" />
+          <p className="mt-5 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[#39705a]">Livre audio</p>
+          <h2 className="mt-2 font-serif text-2xl text-[#17231d]">Votre œuvre peut aussi s’écouter.</h2>
+          <p className="mt-2 text-sm leading-6 text-[#5f6d65]">Narrateur, durée, chapitres, extraits et diffusion seront rattachés au même titre et aux mêmes droits.</p>
+        </article>
+        <article className="rounded-[30px] border border-[#eadbd7] bg-[#fff3ef] p-6">
+          <Clapperboard className="h-6 w-6 text-[#a94b34]" />
+          <p className="mt-5 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[#a94b34]">Édition vidéo</p>
+          <h2 className="mt-2 font-serif text-2xl text-[#17231d]">Cours, entretiens et formats enrichis.</h2>
+          <p className="mt-2 text-sm leading-6 text-[#766e64]">Le backend est prêt à gérer streaming, preview, durée, présentateur et disponibilité mobile.</p>
+        </article>
+      </section>
+
+      <section className="rounded-[30px] border border-[#e5ddd1] bg-white p-5 shadow-sm sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[#a94b34]">Performance</p>

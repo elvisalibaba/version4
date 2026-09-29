@@ -19,7 +19,13 @@ class PublicContentController extends Controller
     public function categories(): JsonResponse
     {
         return response()->json([
-            'data' => Category::query()->withCount('books')->orderBy('name')->get(),
+            'data' => Category::query()
+                ->where('is_active', true)
+                ->withCount('books')
+                ->orderByDesc('is_featured')
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 

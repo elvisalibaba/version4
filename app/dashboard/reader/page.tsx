@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { BookOpen, CircleDollarSign, Heart, LibraryBig, Receipt, Sparkles } from "lucide-react";
+import { BookOpen, CircleDollarSign, Clapperboard, Headphones, Heart, LibraryBig, Receipt, Sparkles } from "lucide-react";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { DashboardTopbar } from "@/components/ui/dashboard-topbar";
 import { StatCard } from "@/components/ui/stat-card";
 import { requireRole } from "@/lib/auth";
@@ -29,7 +30,11 @@ export default async function ReaderDashboardPage() {
         <StatCard icon={Receipt} label="Commandes" value={data.stats.orders} description="Transactions" tone="sky" />
         <StatCard icon={Sparkles} label="Premium" value={data.stats.active_subscriptions} description="Abonnements actifs" tone="amber" />
         <StatCard icon={CircleDollarSign} label="Dépenses" value={money(spent)} description="Commandes payées" tone="emerald" />
+        <StatCard icon={Headphones} label="Livres audio" value={data.stats.audiobooks} description="Disponibles dans vos accès" tone="sky" />
+        <StatCard icon={Clapperboard} label="Vidéos" value={data.stats.videos} description="Éditions vidéo disponibles" tone="rose" />
       </div>
+
+      <AdSlot placementCode="web.reader.dashboard" />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_360px]">
         <section className="surface-panel p-6">

@@ -10,6 +10,8 @@ export type AuthorDashboardPayload = {
     clicks: number;
     purchases: number;
     revenue: number;
+    audiobooks: number;
+    videos: number;
   };
   recent_books: ApiBook[];
 };
