@@ -236,7 +236,7 @@ class EasyPayService
             ->where('is_published', true)
             ->when($requestedFormat, fn ($query) => $query->where('format', $requestedFormat))
             ->whereIn('format', ['holistique_store', 'ebook', 'paperback', 'pocket', 'hardcover'])
-            ->orderByRaw("FIELD(format, 'holistique_store', 'ebook', 'paperback', 'pocket', 'hardcover')")
+            ->orderByRaw("CASE format WHEN 'holistique_store' THEN 1 WHEN 'ebook' THEN 2 WHEN 'paperback' THEN 3 WHEN 'pocket' THEN 4 WHEN 'hardcover' THEN 5 ELSE 99 END")
             ->first();
 
         if ($requestedFormat && ! $format) {
