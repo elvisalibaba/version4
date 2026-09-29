@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Authors;
 
+use App\Filament\Resources\Authors\Pages\CreateAuthorProfile;
 use App\Filament\Resources\Authors\Pages\EditAuthorProfile;
 use App\Filament\Resources\Authors\Pages\ListAuthorProfiles;
 use App\Models\AuthorProfile;
@@ -13,6 +14,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -41,6 +43,7 @@ class AuthorProfileResource extends Resource
     {
         return $schema->components([
             Section::make('Profil auteur')
+                ->description('Un auteur peut être ajouté au catalogue par la maison d’édition sans disposer immédiatement d’un compte Holistique Books.')
                 ->columns(2)
                 ->schema([
                     TextInput::make('display_name')->label('Nom public')->required()->maxLength(255),
@@ -61,8 +64,18 @@ class AuthorProfileResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('display_name')->label('Auteur')->searchable()->sortable(),
+                IconColumn::make('profile.id')
+                    ->label('Compte')
+                    ->boolean()
+                    ->getStateUsing(fn (AuthorProfile $record): bool => $record->profile()->exists())
+                    ->trueIcon('heroicon-o-user-circle')
+                    ->falseIcon('heroicon-o-book-open'),
+                TextColumn::make('profile.email')
+                    ->label('E-mail du compte')
+                    ->placeholder('Auteur catalogue')
+                    ->searchable()
+                    ->copyable(),
                 TextColumn::make('professional_headline')->label('Profil')->limit(45)->toggleable(),
-                TextColumn::make('profile.email')->label('E-mail')->searchable()->copyable(),
                 TextColumn::make('location')->label('Localisation')->toggleable(),
                 TextColumn::make('books_count')->counts('books')->label('Livres')->sortable(),
                 TextColumn::make('created_at')->label('Créé le')->dateTime('d/m/Y')->sortable(),
@@ -76,6 +89,7 @@ class AuthorProfileResource extends Resource
     {
         return [
             'index' => ListAuthorProfiles::route('/'),
+            'create' => CreateAuthorProfile::route('/create'),
             'edit' => EditAuthorProfile::route('/{record}/edit'),
         ];
     }
