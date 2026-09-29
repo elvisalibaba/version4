@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
+use Throwable;
 
 class EasyPayService
 {
@@ -197,6 +198,7 @@ class EasyPayService
 
             if ($status === 'paid') {
                 $this->grantDigitalPurchases($order);
+                app(AuthorRoyaltyService::class)->accrueOrder($order);
             }
         });
 
