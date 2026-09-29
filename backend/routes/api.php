@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\EngagementController;
 use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\HighlightController;
 use App\Http\Controllers\Api\V1\LibraryController;
+use App\Http\Controllers\Api\V1\MediaAccessController;
 use App\Http\Controllers\Api\V1\MobileAppController;
 use App\Http\Controllers\Api\V1\MobileDeviceController;
 use App\Http\Controllers\Api\V1\OrderController;
@@ -51,6 +52,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::get('blog/{slug}', [PublicContentController::class, 'blogBySlug'])->name('blog.show');
     Route::get('home/featured', [PublicContentController::class, 'featured'])->name('home.featured');
     Route::get('media/{path}', [PublicMediaController::class, 'show'])->where('path', '.*')->name('media.show');
+    Route::get('media-editions/{mediaEdition}/stream', [MediaAccessController::class, 'stream'])
+        ->middleware(['signed', 'throttle:240,1'])
+        ->name('media-editions.stream');
     Route::get('home/flash-sale', [PublicContentController::class, 'flashSale'])->name('home.flash-sale');
     Route::get('mobile', [PublicContentController::class, 'mobile'])->name('mobile.config');
     Route::get('mobile/download', [MobileAppController::class, 'download'])->name('mobile.download');
@@ -78,6 +82,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::post('payments/easypay/orders/{order}/reconcile', [PaymentController::class, 'reconcile'])->middleware('throttle:30,1')->name('payments.easypay.reconcile');
         Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
         Route::get('read/{book}', ReadController::class)->name('read');
+        Route::get('media-editions/{mediaEdition}/access', [MediaAccessController::class, 'access'])->name('media-editions.access');
 
         Route::post('mobile/trial/claim', [MobileAppController::class, 'claimTrial'])->name('mobile.trial.claim');
         Route::post('mobile/devices', [MobileDeviceController::class, 'upsertDevice'])->name('mobile.devices.upsert');
