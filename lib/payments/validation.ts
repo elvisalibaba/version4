@@ -1,8 +1,11 @@
 import { CHECKOUT_BOOK_FORMATS } from "@/lib/book-formats";
 
-export const CINETPAY_CHANNELS = ["ALL", "MOBILE_MONEY", "CREDIT_CARD"] as const;
+export const EASYPAY_CHANNELS = ["ALL", "MOBILE_MONEY", "CREDIT_CARD"] as const;
+export const CINETPAY_CHANNELS = EASYPAY_CHANNELS;
 
-export type CinetPayChannel = (typeof CINETPAY_CHANNELS)[number];
+export type EasyPayChannel = (typeof EASYPAY_CHANNELS)[number];
+export type CinetPayChannel = EasyPayChannel;
+export type EasyPayCurrency = "USD" | "CDF";
 export type CheckoutBookFormat = (typeof CHECKOUT_BOOK_FORMATS)[number];
 
 export type CheckoutCustomerInput = {
@@ -36,14 +39,14 @@ export type CinetPayInitPayload = {
   orderId?: string;
   bookFormat?: CheckoutBookFormat;
   channels: CinetPayChannel;
-  currency: "USD";
+  currency: EasyPayCurrency;
   customer: ValidatedCheckoutCustomer;
 };
 
 export type CinetPayDonationInitPayload = {
   amount: number;
   channels: CinetPayChannel;
-  currency: "USD";
+  currency: EasyPayCurrency;
   customer: ValidatedCheckoutCustomer;
   donorReference?: string;
   note?: string;
@@ -103,18 +106,20 @@ export function isCinetPayChannel(value: unknown): value is CinetPayChannel {
   return typeof value === "string" && CINETPAY_CHANNELS.includes(value as CinetPayChannel);
 }
 
-export function channelRequiresCardCustomerFields(channel: CinetPayChannel) {
-  return channel === "CREDIT_CARD" || channel === "ALL";
+export function channelRequiresCardCustomerFields(_channel: CinetPayChannel) {
+  // La documentation EasyPay fournie n'impose pas d'adresse ou de code postal
+  // pour l'initialisation Gateway. On ne bloque donc pas inutilement le checkout.
+  return false;
 }
 
-export function validateUsdCurrency(value: unknown): "USD" {
-  const currency = cleanString(value) ?? "USD";
+export function validateEasyPayCurrency(value: unknown): EasyPayCurrency {
+  const currency = (cleanString(value) ?? "USD").toUpperCase();
 
-  if (currency !== "USD") {
-    throw new Error("HolistiqueBooks Checkout avec EasyPay est actuellement disponible uniquement en USD.");
+  if (currency !== "USD" && currency !== "CDF") {
+    throw new Error("EasyPay accepte uniquement les devises USD et CDF.");
   }
 
-  return "USD";
+  return currency;
 }
 
 function normalizeLettersToken(value: string) {
@@ -203,47 +208,14 @@ export function normalizeCheckoutCustomer(input: unknown): ValidatedCheckoutCust
   };
 }
 
-export function validateCheckoutCustomer(customer: ValidatedCheckoutCustomer, channels: CinetPayChannel) {
-  const missingBaseFields = [
-    ["firstName", customer.firstName],
-    ["lastName", customer.lastName],
-    ["email", customer.email],
-    ["phoneNumber", customer.phoneNumber],
-  ].filter(([, value]) => !value);
+export function validateCheckoutCustomer(customer: ValidatedCheckoutCustomer, _channels: CinetPayChannel) {
+  const fullName = `${customer.firstName} ${customer.lastName}`.trim();
 
-  if (missingBaseFields.length > 0) {
-    throw new Error("Nom, prenom, email et telephone sont requis pour initialiser un paiement EasyPay.");
+  if (!fullName) {
+    throw new Error("Le nom du client est requis pour initialiser un paiement EasyPay.");
   }
 
-  if (!channelRequiresCardCustomerFields(channels)) {
-    return customer;
-  }
-
-  const missingCardFields = [
-    ["address", customer.address],
-    ["city", customer.city],
-    ["country", customer.country],
-    ["zipCode", customer.zipCode],
-  ].filter(([, value]) => !value);
-
-  if (missingCardFields.length > 0) {
-    throw new Error(
-      "Le canal carte bancaire EasyPay exige customer_address, customer_city, customer_country et customer_zip_code.",
-    );
-  }
-
-  if (!/^[A-Z]{2}$/.test(customer.country ?? "")) {
-    throw new Error("Pour la carte bancaire, le pays doit etre un code ISO sur 2 lettres, par exemple CI, CD, CM, US ou FR.");
-  }
-
-  if ((customer.country === "US" || customer.country === "CA") && !/^[A-Z]{2}$/.test(customer.state ?? "")) {
-    throw new Error("Pour la carte bancaire avec un pays US ou CA, renseignez un code etat ou province sur 2 lettres.");
-  }
-
-  return {
-    ...customer,
-    state: customer.state ?? customer.country,
-  };
+  return customer;
 }
 
 export function validateCinetPayInitPayload(input: unknown): CinetPayInitPayload {
@@ -286,7 +258,7 @@ export function validateCinetPayInitPayload(input: unknown): CinetPayInitPayload
     orderId,
     bookFormat,
     channels: input.channels,
-    currency: validateUsdCurrency(input.currency),
+    currency: validateEasyPayCurrency(input.currency),
     customer,
   };
 }
@@ -328,7 +300,7 @@ export function validateCinetPayDonationInitPayload(input: unknown): CinetPayDon
   return {
     amount,
     channels: input.channels,
-    currency: validateUsdCurrency(input.currency),
+    currency: validateEasyPayCurrency(input.currency),
     customer,
     donorReference,
     note,
