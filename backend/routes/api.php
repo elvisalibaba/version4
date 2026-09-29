@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\PasswordController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PublicContentController;
+use App\Http\Controllers\Api\V1\PublicMediaController;
 use App\Http\Controllers\Api\V1\ReadController;
 use App\Http\Controllers\Api\V1\ReaderDashboardController;
 use App\Http\Controllers\Api\V1\ReadingProgressController;
@@ -47,6 +48,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::get('blog', [PublicContentController::class, 'blog'])->name('blog.index');
     Route::get('blog/{slug}', [PublicContentController::class, 'blogBySlug'])->name('blog.show');
     Route::get('home/featured', [PublicContentController::class, 'featured'])->name('home.featured');
+    Route::get('media/{path}', [PublicMediaController::class, 'show'])->where('path', '.*')->name('media.show');
     Route::get('home/flash-sale', [PublicContentController::class, 'flashSale'])->name('home.flash-sale');
     Route::get('mobile', [PublicContentController::class, 'mobile'])->name('mobile.config');
     Route::get('mobile/download', [MobileAppController::class, 'download'])->name('mobile.download');
