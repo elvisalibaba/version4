@@ -62,13 +62,15 @@ return new class extends Migration
         });
 
         Schema::create('publishing_house_members', function (Blueprint $table): void {
+            $table->uuid('id')->primary();
             $table->foreignUuid('publishing_house_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('profile_id')->constrained('profiles')->cascadeOnDelete();
             $table->string('role', 40)->default('editor')->index();
             $table->string('title')->nullable();
             $table->boolean('is_active')->default(true)->index();
             $table->timestamp('joined_at')->useCurrent();
-            $table->primary(['publishing_house_id', 'profile_id']);
+            $table->timestamps();
+            $table->unique(['publishing_house_id', 'profile_id']);
         });
 
         Schema::table('books', function (Blueprint $table): void {

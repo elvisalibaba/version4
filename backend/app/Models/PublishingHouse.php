@@ -21,6 +21,7 @@ class PublishingHouse extends Model
     }
 
     public function imprints(): HasMany { return $this->hasMany(PublishingImprint::class); }
+    public function members(): HasMany { return $this->hasMany(PublishingHouseMember::class); }
     public function books(): HasMany { return $this->hasMany(Book::class); }
     public function rightsContracts(): HasMany { return $this->hasMany(RightsContract::class); }
 }

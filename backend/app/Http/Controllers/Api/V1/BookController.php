@@ -8,6 +8,7 @@ use App\Http\Requests\Book\UpdateBookRequest;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
 use App\Services\BookDocumentMetadataService;
+use App\Services\BookTaxonomyService;
 use App\Services\PrivateBookFileService;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -42,7 +43,7 @@ class BookController extends Controller
         return BookResource::collection($books);
     }
 
-    public function store(StoreBookRequest $request, PrivateBookFileService $files, BookDocumentMetadataService $metadata): BookResource
+    public function store(StoreBookRequest $request, PrivateBookFileService $files, BookDocumentMetadataService $metadata, BookTaxonomyService $taxonomy): BookResource
     {
         $validated = $request->validated();
         $planIds = Arr::pull($validated, 'subscription_plan_ids', []);
@@ -61,6 +62,7 @@ class BookController extends Controller
         $data['tags'] ??= [];
 
         $book = Book::query()->create($data);
+        $taxonomy->sync($book, $book->categories ?? []);
 
         if ($request->hasFile('file')) {
             $path = $files->store($request->file('file'), $book);
@@ -115,7 +117,7 @@ class BookController extends Controller
         ]));
     }
 
-    public function update(UpdateBookRequest $request, Book $book, PrivateBookFileService $files, BookDocumentMetadataService $metadata): BookResource
+    public function update(UpdateBookRequest $request, Book $book, PrivateBookFileService $files, BookDocumentMetadataService $metadata, BookTaxonomyService $taxonomy): BookResource
     {
         $validated = $request->validated();
         $hasPlanIds = array_key_exists('subscription_plan_ids', $validated);
@@ -136,6 +138,10 @@ class BookController extends Controller
         }
 
         $book->update($data);
+
+        if (array_key_exists('categories', $data)) {
+            $taxonomy->sync($book, $book->categories ?? []);
+        }
 
         if ($request->hasFile('file')) {
             $path = $files->store($request->file('file'), $book);
