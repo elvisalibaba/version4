@@ -5,9 +5,6 @@ on:
     branches: [dev]
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 concurrency:
   group: dev-ci-${{ github.ref }}
   cancel-in-progress: true
@@ -61,25 +58,7 @@ jobs:
           php-version: "8.3"
           extensions: mbstring, pdo_sqlite, fileinfo, openssl
           coverage: none
-      - run: composer update --no-interaction --prefer-dist --no-progress
-      - uses: actions/upload-artifact@v4
-        with:
-          name: composer-lock
-          path: backend/composer.lock
-          if-no-files-found: error
-          retention-days: 1
-      - name: Commit resolved Composer lockfile
-        working-directory: .
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add backend/composer.lock
-          if git diff --cached --quiet; then
-            echo "composer.lock already up to date"
-          else
-            git commit -m "chore: lock Filament backend dependencies"
-            git push origin HEAD:dev
-          fi
+      - run: composer install --no-interaction --prefer-dist --no-progress
       - run: php artisan optimize:clear
       - run: php artisan route:list
       - run: php artisan test
