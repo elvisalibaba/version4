@@ -8,6 +8,7 @@ use App\Models\AuthorRoyaltyAccount;
 use App\Models\AuthorRoyaltyTransaction;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Profile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -25,6 +26,14 @@ class AuthorRoyaltyService
     public function accrueOrderItem(Order $order, OrderItem $item): ?AuthorRoyaltyTransaction
     {
         if ($item->book === null || $item->book->author_id === null) {
+            return null;
+        }
+
+        // Publishing-house catalogue authors may exist before they receive
+        // a HolisticBooks user account. Do not fail a paid order because the
+        // financial wallet cannot exist yet. Royalties start accruing once
+        // the author is linked to a platform profile.
+        if (! Profile::query()->whereKey($item->book->author_id)->exists()) {
             return null;
         }
 
