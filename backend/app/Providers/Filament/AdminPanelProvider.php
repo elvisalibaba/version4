@@ -2,12 +2,12 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\PlatformStatsOverview;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -28,9 +28,11 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('HolisticBooks Administration')
+            ->brandName('HolisticBooks Control Center')
             ->colors([
-                'primary' => Color::Indigo,
+                'primary' => Color::Amber,
+                'info' => Color::Sky,
+                'success' => Color::Emerald,
             ])
             ->maxContentWidth(Width::Full)
             ->sidebarCollapsibleOnDesktop()
@@ -42,7 +44,7 @@ class AdminPanelProvider extends PanelProvider
                 for: 'App\\Filament\\Resources',
             )
             ->pages([
-                Pages\Dashboard::class,
+                Dashboard::class,
             ])
             ->discoverWidgets(
                 in: app_path('Filament/Widgets'),
