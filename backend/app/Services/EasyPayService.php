@@ -240,10 +240,25 @@ class EasyPayService
             return;
         }
 
+        // Claim the receipt atomically before sending so concurrent EasyPay
+        // callbacks cannot deliver duplicate receipts.
+        $claimed = Order::query()
+            ->whereKey($order->id)
+            ->whereNull('payment_receipt_sent_at')
+            ->update(['payment_receipt_sent_at' => now()]);
+
+        if ($claimed !== 1) {
+            return;
+        }
+
         try {
-            $user->notify(new PaymentReceiptNotification($order));
-            $order->forceFill(['payment_receipt_sent_at' => now()])->save();
+            $user->notify(new PaymentReceiptNotification($order->fresh(['items.book'])));
         } catch (Throwable $error) {
+            // Release the claim so a later reconciliation can retry delivery.
+            Order::query()
+                ->whereKey($order->id)
+                ->update(['payment_receipt_sent_at' => null]);
+
             Log::warning('Impossible d’envoyer le reçu de paiement Holistique Books.', [
                 'order_id' => $order->id,
                 'user_id' => $order->user_id,
