@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\LibraryController;
 use App\Http\Controllers\Api\V1\MobileAppController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\PasswordController;
+use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PublicContentController;
 use App\Http\Controllers\Api\V1\ReadController;
 use App\Http\Controllers\Api\V1\ReaderDashboardController;
