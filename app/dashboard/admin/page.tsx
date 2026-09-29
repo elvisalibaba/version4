@@ -1,5 +1,11 @@
 import { redirect } from "next/navigation";
 
 export default async function AdminDashboardPage() {
-  redirect("/admin");
+  const apiUrl = (
+    process.env.API_URL ??
+    process.env.NEXT_PUBLIC_API_URL ??
+    "https://api.aba.cd"
+  ).replace(/\/$/, "");
+
+  redirect(`${apiUrl}/admin`);
 }
