@@ -24,9 +24,9 @@ class EasyPayService
             ? $this->loadPendingOrder($profile, $data['order_id'])
             : $this->createSingleBookOrder($profile, $data);
 
-        if ($order->currency_code !== 'USD') {
+        if (! in_array($order->currency_code, ['USD', 'CDF'], true)) {
             throw ValidationException::withMessages([
-                'currency_code' => 'EasyPay est actuellement configuré pour les commandes en USD.',
+                'currency_code' => 'EasyPay accepte uniquement les commandes en USD ou CDF.',
             ]);
         }
 
@@ -61,7 +61,7 @@ class EasyPayService
 
         $customer = $data['customer'] ?? [];
         $requestPayload = [
-            'order_ref' => $order->id,
+            'order_ref' => $this->orderReference($order),
             'currency' => $order->currency_code,
             'amount' => (float) $order->total_price,
             'description' => $this->description($order),
@@ -113,6 +113,7 @@ class EasyPayService
                     'payment_metadata' => array_merge($order->payment_metadata ?? [], [
                         'payment_attempt_id' => $attempt->id,
                         'provider_reference' => $reference,
+                        'easypay_order_ref' => $this->orderReference($order),
                     ]),
                 ]);
             });
@@ -332,19 +333,26 @@ class EasyPayService
     {
         $lastError = null;
 
-        foreach (['checking-status', 'checking-payment'] as $endpoint) {
-            try {
-                $response = $this->http()->post($this->baseUrl().'/payment/'.urlencode($reference).'/'.$endpoint, []);
-                if ($response->successful() && is_array($response->json())) {
-                    return $response->json();
-                }
-                $lastError = new RuntimeException('EasyPay verification failed with HTTP '.$response->status());
-            } catch (Throwable $error) {
-                $lastError = $error;
+        try {
+            $response = $this->http()->post($this->baseUrl().'/payment/'.urlencode($reference).'/checking-status', []);
+
+            if ($response->successful() && is_array($response->json())) {
+                return $response->json();
             }
+
+            $lastError = new RuntimeException('EasyPay verification failed with HTTP '.$response->status());
+        } catch (Throwable $error) {
+            $lastError = $error;
         }
 
         throw $lastError ?? new RuntimeException('Vérification EasyPay indisponible.');
+    }
+
+    private function orderReference(Order $order): string
+    {
+        // EasyPay impose une référence marchand alphanumérique unique de 6 à 16 caractères.
+        // On dérive une valeur stable de l'UUID interne sans exposer l'UUID complet.
+        return 'HB'.strtoupper(substr(hash('sha256', (string) $order->id), 0, 14));
     }
 
     private function description(Order $order): string
@@ -370,13 +378,13 @@ class EasyPayService
     private function initializationUrl(): string
     {
         $correlationId = config('easypay.correlation_id');
-        $publishableKey = config('easypay.publishable_key');
+        $token = config('easypay.token');
 
-        if (! $correlationId || ! $publishableKey) {
+        if (! $correlationId || ! $token) {
             throw new RuntimeException('Configuration EasyPay incomplète côté Laravel.');
         }
 
-        return $this->baseUrl().'/payment/initialization?cid='.urlencode($correlationId).'&token='.urlencode($publishableKey);
+        return $this->baseUrl().'/payment/initialization?cid='.urlencode($correlationId).'&token='.urlencode($token);
     }
 
     private function paymentUrl(string $reference): string
