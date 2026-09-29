@@ -42,10 +42,10 @@ jobs:
           NEXT_PUBLIC_API_URL: http://127.0.0.1:8000
           API_URL: http://127.0.0.1:8000
 
-  backend-syntax:
-    name: Laravel syntax
+  backend:
+    name: Laravel + Filament
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -64,3 +64,16 @@ jobs:
         working-directory: backend
         run: |
           find app routes config database tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Setup Node for Filament themes
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install backend frontend dependencies
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+
+      - name: Build Filament themes
+        working-directory: backend
+        run: npm run build
