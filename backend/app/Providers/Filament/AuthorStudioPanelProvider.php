@@ -28,6 +28,9 @@ class AuthorStudioPanelProvider extends PanelProvider
             ->path('studio')
             ->login()
             ->brandName('HolisticBooks Author Studio')
+            ->brandLogo(asset('images/holisticbooks-mark.svg'))
+            ->brandLogoHeight('2.35rem')
+            ->favicon(asset('images/holisticbooks-mark.svg'))
             ->colors([
                 'primary' => Color::Emerald,
                 'warning' => Color::Amber,
