@@ -46,6 +46,17 @@ export default async function ReaderDashboardPage() {
                 <p className="text-xs font-semibold uppercase tracking-[.15em] text-[#a85b3f]">{entry.access_type}</p>
                 <h3 className="mt-2 font-semibold text-[#171717]">{entry.book.title}</h3>
                 <p className="mt-2 line-clamp-2 text-sm text-[#6f665e]">{entry.book.description ?? "Prêt à reprendre."}</p>
+                {entry.reading_progress ? (
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between text-[0.68rem] font-semibold text-[#766e64]">
+                      <span>Progression</span>
+                      <span>{Math.round(Number(entry.reading_progress.progress_percent ?? 0))}%</span>
+                    </div>
+                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#eee6dc]">
+                      <div className="h-full rounded-full bg-[#173d2c]" style={{ width: `${Math.max(0, Math.min(100, Number(entry.reading_progress.progress_percent ?? 0)))}%` }} />
+                    </div>
+                  </div>
+                ) : null}
               </Link>
             ))}
           </div>
