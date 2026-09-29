@@ -22,7 +22,7 @@ class PublicRightsVisibilityTest extends TestCase
             ->assertJsonMissing(['id' => $book->id]);
 
         $this->getJson("/api/v1/books/{$book->id}")
-            ->assertUnauthorized();
+            ->assertForbidden();
     }
 
     public function test_published_book_with_clear_rights_is_public(): void
