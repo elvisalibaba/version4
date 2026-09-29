@@ -22,7 +22,7 @@ class PaymentControllerTest extends TestCase
         config()->set('easypay.base_url', 'https://payments.test');
         config()->set('easypay.mode', 'sandbox');
         config()->set('easypay.correlation_id', 'test-cid');
-        config()->set('easypay.publishable_key', 'test-token');
+        config()->set('easypay.token', 'test-token');
         config()->set('easypay.frontend_url', 'https://holistique-books.test');
     }
 
@@ -65,6 +65,19 @@ class PaymentControllerTest extends TestCase
             ],
         ]);
 
+        Http::assertSent(function ($request): bool {
+            $payload = $request->data();
+            $orderRef = (string) ($payload['order_ref'] ?? '');
+
+            return str_contains($request->url(), '/sandbox/payment/initialization')
+                && str_contains($request->url(), 'cid=test-cid')
+                && str_contains($request->url(), 'token=test-token')
+                && preg_match('/^[A-Z0-9]{6,16}$/', $orderRef) === 1
+                && ($payload['currency'] ?? null) === 'USD'
+                && ($payload['channels'] ?? null) === [['channel' => 'MOBILE MONEY']]
+                && ($payload['customer_name'] ?? null) === 'Elvis Makasi';
+        });
+
         $response->assertOk()
             ->assertJsonPath('data.transactionId', 'EP-TEST-001')
             ->assertJsonPath('data.paymentUrl', 'https://payments.test/sandbox/payment/initialization?reference=EP-TEST-001');
@@ -86,6 +99,55 @@ class PaymentControllerTest extends TestCase
             'provider_reference' => 'EP-TEST-001',
             'status' => 'pending',
         ]);
+    }
+
+    public function test_reader_can_initialize_cdf_easypay_checkout(): void
+    {
+        [$user] = $this->reader();
+        Sanctum::actingAs($user);
+
+        $book = Book::factory()->create([
+            'title' => 'Livre CDF',
+            'price' => 25000,
+            'currency_code' => 'CDF',
+            'is_single_sale_enabled' => true,
+        ]);
+
+        BookFormat::factory()->create([
+            'book_id' => $book->id,
+            'format' => 'ebook',
+            'price' => 25000,
+            'currency_code' => 'CDF',
+            'is_published' => true,
+        ]);
+
+        Http::fake([
+            '*payment/initialization*' => Http::response([
+                'code' => 1,
+                'reference' => 'EP-CDF-001',
+            ], 200),
+        ]);
+
+        $this->postJson('/api/v1/payments/easypay/init', [
+            'book_id' => $book->id,
+            'book_format' => 'ebook',
+            'channel' => 'ALL',
+            'customer' => [
+                'firstName' => 'Elvis',
+                'lastName' => 'Makasi',
+            ],
+        ])->assertOk();
+
+        Http::assertSent(function ($request): bool {
+            $payload = $request->data();
+
+            return ($payload['currency'] ?? null) === 'CDF'
+                && ($payload['amount'] ?? null) === 25000.0
+                && ($payload['channels'] ?? null) === [
+                    ['channel' => 'CREDIT CARD'],
+                    ['channel' => 'MOBILE MONEY'],
+                ];
+        });
     }
 
     public function test_verified_successful_payment_grants_digital_library_access(): void
