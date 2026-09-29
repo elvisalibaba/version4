@@ -3,11 +3,13 @@ import {
   BookOpen,
   CircleDollarSign,
   Gem,
+  Globe2,
   Heart,
   LibraryBig,
   PlusCircle,
   Receipt,
   UserRound,
+  WalletCards,
 } from "lucide-react";
 
 export type DashboardIconName =
@@ -15,11 +17,13 @@ export type DashboardIconName =
   | "book-open"
   | "circle-dollar-sign"
   | "gem"
+  | "globe-2"
   | "heart"
   | "library-big"
   | "plus-circle"
   | "receipt"
-  | "user-round";
+  | "user-round"
+  | "wallet-cards";
 
 type DashboardIconProps = {
   name: DashboardIconName;
@@ -36,6 +40,8 @@ export function DashboardIcon({ name, className }: DashboardIconProps) {
       return <CircleDollarSign className={className} />;
     case "gem":
       return <Gem className={className} />;
+    case "globe-2":
+      return <Globe2 className={className} />;
     case "heart":
       return <Heart className={className} />;
     case "library-big":
@@ -46,6 +52,8 @@ export function DashboardIcon({ name, className }: DashboardIconProps) {
       return <Receipt className={className} />;
     case "user-round":
       return <UserRound className={className} />;
+    case "wallet-cards":
+      return <WalletCards className={className} />;
     default:
       return <BookOpen className={className} />;
   }
