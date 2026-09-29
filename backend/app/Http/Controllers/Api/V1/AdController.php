@@ -36,9 +36,15 @@ class AdController extends Controller
             ->where(fn ($query) => $query->whereNull('ends_at')->orWhere('ends_at', '>=', $now))
             ->whereHas('campaign', fn ($query) => $query
                 ->where('status', 'active')
+                ->where(fn ($query) => $query->whereNull('channels')->orWhereJsonContains('channels', $channel))
                 ->where(fn ($query) => $query->whereNull('starts_at')->orWhere('starts_at', '<=', $now))
                 ->where(fn ($query) => $query->whereNull('ends_at')->orWhere('ends_at', '>=', $now)))
-            ->whereHas('creative', fn ($query) => $query->where('is_active', true))
+            ->whereHas('creative', fn ($query) => $query
+                ->where('is_active', true)
+                ->when(
+                    is_array($placement->allowed_creative_types) && $placement->allowed_creative_types !== [],
+                    fn ($query) => $query->whereIn('creative_type', $placement->allowed_creative_types),
+                ))
             ->orderByDesc('weight')
             ->inRandomOrder()
             ->first();

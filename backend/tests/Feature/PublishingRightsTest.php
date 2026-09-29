@@ -25,6 +25,18 @@ class PublishingRightsTest extends TestCase
         ]);
     }
 
+    public function test_reference_author_is_hidden_from_public_author_directory_without_licensed_public_title(): void
+    {
+        $author = AuthorProfile::query()->where('display_name', 'Robert Kiyosaki')->firstOrFail();
+
+        $this->getJson('/api/v1/authors')
+            ->assertOk()
+            ->assertJsonMissing(['id' => $author->id]);
+
+        $this->getJson("/api/v1/authors/{$author->id}")
+            ->assertNotFound();
+    }
+
     public function test_reference_author_title_cannot_publish_without_active_rights(): void
     {
         $author = AuthorProfile::query()->where('display_name', 'Robert Kiyosaki')->firstOrFail();
