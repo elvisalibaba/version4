@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AuthorController;
 use App\Http\Controllers\Api\V1\AuthorDistributionController;
 use App\Http\Controllers\Api\V1\AuthorFinanceController;
 use App\Http\Controllers\Api\V1\AuthorWorkspaceController;
+use App\Http\Controllers\Api\V1\AdController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BookAccessController;
 use App\Http\Controllers\Api\V1\BookController;
@@ -54,6 +55,8 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::get('mobile', [PublicContentController::class, 'mobile'])->name('mobile.config');
     Route::get('mobile/download', [MobileAppController::class, 'download'])->name('mobile.download');
     Route::get('mobile/bootstrap', [MobileDeviceController::class, 'bootstrap'])->name('mobile.bootstrap');
+    Route::get('ads/{placementCode}', [AdController::class, 'serve'])->middleware('throttle:120,1')->name('ads.serve');
+    Route::post('ads/{assignment}/events', [AdController::class, 'track'])->middleware('throttle:240,1')->name('ads.track');
     Route::post('editorial-training', [EditorialTrainingController::class, 'store'])->middleware('throttle:20,1')->name('editorial-training.store');
     Route::post('payments/easypay/notify', [PaymentController::class, 'notify'])->middleware('throttle:120,1')->name('payments.easypay.notify');
     Route::post('books/{book}/engagement', [EngagementController::class, 'store'])->middleware('throttle:120,1')->name('books.engagement.store');

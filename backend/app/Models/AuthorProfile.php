@@ -28,12 +28,18 @@ class AuthorProfile extends Model
     protected $fillable = [
         'id', 'display_name', 'avatar_url', 'bio', 'website', 'location', 'social_links',
         'professional_headline', 'phone', 'genres', 'publishing_goals', 'favorite_book',
+        'country_code', 'catalog_origin', 'rights_status', 'is_reference_profile', 'reference_source_url', 'rights_notes',
         'favorite_author', 'favorite_character', 'press_mentions',
     ];
 
     protected function casts(): array
     {
-        return ['social_links' => 'array', 'genres' => 'array', 'press_mentions' => 'array'];
+        return [
+            'social_links' => 'array',
+            'genres' => 'array',
+            'press_mentions' => 'array',
+            'is_reference_profile' => 'boolean',
+        ];
     }
 
     public function profile(): BelongsTo

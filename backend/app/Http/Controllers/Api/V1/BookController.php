@@ -21,7 +21,13 @@ class BookController extends Controller
     {
         $books = Book::query()
             ->publiclyAvailable()
-            ->with(['author', 'formats' => fn ($query) => $query->where('is_published', true)])
+            ->with([
+                'author',
+                'publishingHouse',
+                'imprint',
+                'mediaEditions' => fn ($query) => $query->where('status', 'published'),
+                'formats' => fn ($query) => $query->where('is_published', true),
+            ])
             ->when(request()->string('search')->isNotEmpty(), function ($query): void {
                 $search = request()->string('search')->toString();
                 $query->where(fn ($query) => $query->where('title', 'like', "%{$search}%")
@@ -92,7 +98,7 @@ class BookController extends Controller
 
         $book->subscriptionPlans()->sync($book->is_subscription_available ? $planIds : []);
 
-        return new BookResource($book->load(['author', 'formats', 'subscriptionPlans']));
+        return new BookResource($book->load(['author', 'publishingHouse', 'imprint', 'mediaEditions', 'formats', 'subscriptionPlans']));
     }
 
     public function show(Book $book): BookResource
@@ -101,7 +107,12 @@ class BookController extends Controller
             Gate::authorize('view', $book);
         }
 
-        return new BookResource($book->load(['author', 'formats', 'subscriptionPlans:id,name,slug,description,monthly_price,currency_code,is_active,max_devices,offline_days,downloads_enabled']));
+        return new BookResource($book->load([
+            'author', 'publishingHouse', 'imprint',
+            'mediaEditions' => fn ($query) => $query->where('status', 'published')->with('chapters'),
+            'formats',
+            'subscriptionPlans:id,name,slug,description,monthly_price,currency_code,is_active,max_devices,offline_days,downloads_enabled'
+        ]));
     }
 
     public function update(UpdateBookRequest $request, Book $book, PrivateBookFileService $files, BookDocumentMetadataService $metadata): BookResource

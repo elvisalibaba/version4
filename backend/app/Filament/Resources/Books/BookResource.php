@@ -7,6 +7,7 @@ use App\Filament\Resources\Books\Pages\EditBook;
 use App\Filament\Resources\Books\Pages\ListBooks;
 use App\Models\AuthorProfile;
 use App\Models\Book;
+use App\Models\Category;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
@@ -113,10 +114,14 @@ class BookResource extends Resource
                         ->helperText('Rempli automatiquement. Vous pouvez l’adapter pour un nom de plume ou une mention éditoriale.'),
                     TextInput::make('isbn')->label('ISBN')->maxLength(50),
                     TextInput::make('language')->label('Langue')->default('fr')->maxLength(10),
-                    TextInput::make('publisher')->label('Éditeur')->default('Holistique Books')->maxLength(255),
+                    TextInput::make('publisher')->label('Éditeur affiché')->default('Holistique Books')->maxLength(255),
+                    Select::make('publishing_house_id')->relationship('publishingHouse','name')->label('Maison d’édition')->searchable()->preload(),
+                    Select::make('imprint_id')->relationship('imprint','name')->label('Label / Imprint')->searchable()->preload(),
                     DatePicker::make('publication_date')->label('Date de publication'),
                     Textarea::make('description')->label('Description')->rows(6)->columnSpanFull(),
-                    TagsInput::make('categories')->label('Catégories')->columnSpanFull(),
+                    Select::make('categories')->label('Catégories')->multiple()->searchable()->preload()
+                        ->options(fn () => Category::query()->where('is_active', true)->orderBy('sort_order')->pluck('name','name')->all())
+                        ->columnSpanFull(),
                     TagsInput::make('tags')->label('Tags')->columnSpanFull(),
                 ]),
 
