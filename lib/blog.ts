@@ -131,10 +131,12 @@ export async function getBlogPreview(count = 4) {
   return (await getAllBlogPosts()).slice(0, count);
 }
 
-export async function createBlogPost(_input: CreateBlogPostInput): Promise<BlogPost> {
+export async function createBlogPost(input: CreateBlogPostInput): Promise<BlogPost> {
+  void input;
   throw new Error("La gestion du blog a été déplacée vers l’administration Laravel.");
 }
 
-export async function deleteBlogPost(_slug: string) {
+export async function deleteBlogPost(slug: string) {
+  void slug;
   throw new Error("La gestion du blog a été déplacée vers l’administration Laravel.");
 }
