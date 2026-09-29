@@ -106,9 +106,10 @@ export function isCinetPayChannel(value: unknown): value is CinetPayChannel {
   return typeof value === "string" && CINETPAY_CHANNELS.includes(value as CinetPayChannel);
 }
 
-export function channelRequiresCardCustomerFields(_channel: CinetPayChannel) {
+export function channelRequiresCardCustomerFields(channel: CinetPayChannel) {
   // La documentation EasyPay fournie n'impose pas d'adresse ou de code postal
   // pour l'initialisation Gateway. On ne bloque donc pas inutilement le checkout.
+  void channel;
   return false;
 }
 
