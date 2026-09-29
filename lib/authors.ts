@@ -15,7 +15,7 @@ type ApiAuthor = {
   favorite_book: string | null;
   favorite_author: string | null;
   favorite_character: string | null;
-  press_mentions: unknown[];
+  press_mentions: Array<Record<string, unknown>>;
   social_links: Record<string, unknown>;
   published_books_count?: number;
   books?: ApiBook[];
