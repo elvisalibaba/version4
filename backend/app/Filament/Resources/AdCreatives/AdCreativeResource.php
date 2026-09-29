@@ -8,6 +8,7 @@ use App\Filament\Resources\AdCreatives\Pages\EditAdCreative;
 use App\Models\AdCreative;
 use BackedEnum;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -38,7 +39,14 @@ class AdCreativeResource extends Resource
             Toggle::make('is_active')->label('Active')->default(true),
             TextInput::make('headline')->label('Titre affiché')->columnSpanFull(),
             Textarea::make('body')->label('Texte')->rows(4)->columnSpanFull(),
-            TextInput::make('asset_url')->label('Asset URL')->url()->columnSpanFull(),
+            FileUpload::make('asset_url')
+                ->label('Visuel / vidéo')
+                ->disk('public')
+                ->directory('advertising')
+                ->acceptedFileTypes(['image/jpeg','image/png','image/webp','video/mp4','video/webm'])
+                ->maxSize(51200)
+                ->helperText('Image ou courte vidéo publicitaire.')
+                ->columnSpanFull(),
             TextInput::make('click_url')->label('URL cible')->url()->columnSpanFull(),
             TextInput::make('cta_label')->label('CTA'),
             TextInput::make('alt_text')->label('Texte alternatif'),

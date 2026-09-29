@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BookOpen, Clapperboard, Headphones, LibraryBig } from "lucide-react";
 import { DashboardTopbar } from "@/components/ui/dashboard-topbar";
+import { ProtectedMediaPlayer } from "@/components/reader/protected-media-player";
 import { EmptyState } from "@/components/ui/empty-state";
 import { requireRole } from "@/lib/auth";
 import { getReaderLibrary } from "@/lib/reader-api";
@@ -35,8 +36,15 @@ export default async function ReaderMediaPage() {
                 <h2 className="mt-2 text-lg font-semibold text-[#17231d]">{edition.title || entry.book.title}</h2>
                 <p className="mt-1 text-sm text-[#766e64]">{entry.book.author_display_name || "Holistique Books"}</p>
                 {edition.duration_seconds ? <p className="mt-2 text-xs text-[#887f74]">Durée : {Math.max(1, Math.round(edition.duration_seconds / 60))} min</p> : null}
-                <Link href={`/book/${entry.book.id}`} className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#173d2c]">
-                  <BookOpen className="h-4 w-4" /> Ouvrir l’œuvre
+                <div className="mt-5">
+                  <ProtectedMediaPlayer
+                    editionId={edition.id}
+                    mediaType={edition.media_type as "audiobook" | "video"}
+                    title={edition.title || entry.book.title}
+                  />
+                </div>
+                <Link href={`/book/${entry.book.id}`} className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[#173d2c]">
+                  <BookOpen className="h-4 w-4" /> Fiche de l’œuvre
                 </Link>
               </article>
             ))}

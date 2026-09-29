@@ -9,6 +9,7 @@ use App\Models\MediaEdition;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
@@ -42,7 +43,18 @@ class MediaEditionResource extends Resource
                 TextInput::make('presenter')->label('Présentateur'),
                 TextInput::make('duration_seconds')->label('Durée (secondes)')->numeric()->minValue(0),
                 TextInput::make('provider')->label('Fournisseur / CDN'),
-                TextInput::make('storage_path')->label('Chemin stockage privé')->columnSpanFull(),
+                FileUpload::make('storage_path')
+                    ->label('Fichier média privé')
+                    ->disk('books')
+                    ->directory('media')
+                    ->visibility('private')
+                    ->acceptedFileTypes([
+                        'audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/aac',
+                        'video/mp4', 'video/webm', 'application/octet-stream',
+                    ])
+                    ->maxSize(524288)
+                    ->helperText('MP3, M4A/AAC, MP4 ou WebM. Le streaming est servi par une URL temporaire signée.')
+                    ->columnSpanFull(),
                 TextInput::make('streaming_url')->label('URL streaming')->url()->columnSpanFull(),
                 TextInput::make('preview_url')->label('URL extrait')->url()->columnSpanFull(),
                 TextInput::make('mime_type')->label('MIME'),

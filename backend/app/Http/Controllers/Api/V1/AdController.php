@@ -8,6 +8,7 @@ use App\Models\AdEvent;
 use App\Models\AdPlacement;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class AdController extends Controller
@@ -46,6 +47,11 @@ class AdController extends Controller
             return response()->json(['data' => null]);
         }
 
+        $assetUrl = $assignment->creative->asset_url;
+        if (is_string($assetUrl) && $assetUrl !== '' && ! str_starts_with($assetUrl, 'http://') && ! str_starts_with($assetUrl, 'https://')) {
+            $assetUrl = Storage::disk('public')->url($assetUrl);
+        }
+
         return response()->json([
             'data' => [
                 'assignment_id' => $assignment->id,
@@ -66,7 +72,7 @@ class AdController extends Controller
                     'type' => $assignment->creative->creative_type,
                     'headline' => $assignment->creative->headline,
                     'body' => $assignment->creative->body,
-                    'asset_url' => $assignment->creative->asset_url,
+                    'asset_url' => $assetUrl,
                     'click_url' => $assignment->creative->click_url,
                     'cta_label' => $assignment->creative->cta_label,
                     'alt_text' => $assignment->creative->alt_text,
