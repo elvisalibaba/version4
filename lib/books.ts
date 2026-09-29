@@ -8,7 +8,7 @@ import {
   findPreferredFormat,
   isCheckoutBookFormat,
 } from "@/lib/book-formats";
-import type { ApiBook, ApiBookFormat, ApiPagination, BookFormatType } from "@/types/api";
+import type { ApiBook, ApiBookFormat, ApiPagination } from "@/types/api";
 
 type GetPublishedBooksOptions = {
   searchQuery?: string;
@@ -44,6 +44,7 @@ function mapBook(book: ApiBook, favoriteIds = new Set<string>()) {
     ...book,
     price: effectivePrice,
     currency_code: currencyCode,
+    rating_avg: book.rating_avg === null ? null : numberValue(book.rating_avg),
     author_name: resolveBookAuthorName(book.author_display_name, book.author_display_name),
     author_avatar_url: null,
     cover_signed_url: book.cover_url,
@@ -109,14 +110,21 @@ export async function getBookById(bookId: string) {
       DIGITAL_BOOK_FORMATS,
     );
     const purchaseFormats = formats
-      .filter((format): format is ApiBookFormat & { format: BookFormatType } => format.is_published && isCheckoutBookFormat(format.format))
-      .sort((a, b) => CHECKOUT_BOOK_FORMATS.indexOf(a.format as never) - CHECKOUT_BOOK_FORMATS.indexOf(b.format as never));
+      .filter((format): format is ApiBookFormat & { format: import("@/lib/book-formats").CheckoutBookFormat } =>
+        format.is_published && isCheckoutBookFormat(format.format),
+      )
+      .map((format) => ({ ...format, price: numberValue(format.price) }))
+      .sort((a, b) => CHECKOUT_BOOK_FORMATS.indexOf(a.format) - CHECKOUT_BOOK_FORMATS.indexOf(b.format));
 
     return {
       ...mapped,
       digital_format: digitalFormat ?? null,
       purchase_formats: purchaseFormats,
-      subscription_plans: book.subscription_plans ?? [],
+      subscription_plans: (book.subscription_plans ?? []).map((plan) => ({
+        ...plan,
+        monthly_price: numberValue(plan.monthly_price),
+        is_active: plan.is_active ?? true,
+      })),
     };
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;
