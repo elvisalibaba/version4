@@ -13,6 +13,10 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "public/pdf.worker.min.mjs",
+    // Laravel / Filament generated assets and dependencies are not application source.
+    "backend/public/**",
+    "backend/vendor/**",
+    "backend/node_modules/**",
   ]),
 ]);
 
