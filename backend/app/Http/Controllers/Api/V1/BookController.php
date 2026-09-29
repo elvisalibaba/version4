@@ -105,7 +105,7 @@ class BookController extends Controller
 
     public function show(Book $book): BookResource
     {
-        if ($book->status !== 'published') {
+        if ($book->status !== 'published' || $book->copyright_status !== 'clear') {
             Gate::authorize('view', $book);
         }
 

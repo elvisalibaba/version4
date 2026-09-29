@@ -76,7 +76,7 @@ class Book extends Model
     protected function publiclyAvailable(Builder $query): Builder
     {
         return $query->whereIn('status', ['published', 'coming_soon'])
-            ->where('copyright_status', '!=', 'blocked');
+            ->where('copyright_status', 'clear');
     }
 
     public function author(): BelongsTo
