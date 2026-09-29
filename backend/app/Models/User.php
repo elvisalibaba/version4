@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\HolisticResetPasswordNotification;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -24,6 +25,11 @@ class User extends Authenticatable implements FilamentUser
     public function profile(): HasOne
     {
         return $this->hasOne(Profile::class, 'id', 'id');
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new HolisticResetPasswordNotification((string) $token));
     }
 
     public function canAccessPanel(Panel $panel): bool

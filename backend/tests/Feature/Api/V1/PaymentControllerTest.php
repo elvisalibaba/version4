@@ -6,8 +6,10 @@ use App\Models\Book;
 use App\Models\BookFormat;
 use App\Models\Profile;
 use App\Models\User;
+use App\Notifications\PaymentReceiptNotification;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -152,6 +154,7 @@ class PaymentControllerTest extends TestCase
 
     public function test_verified_successful_payment_grants_digital_library_access(): void
     {
+        Notification::fake();
         [$user] = $this->reader();
         Sanctum::actingAs($user);
 
@@ -205,6 +208,9 @@ class PaymentControllerTest extends TestCase
             'access_type' => 'purchase',
             'status' => 'active',
         ]);
+
+        Notification::assertSentTo($user, PaymentReceiptNotification::class);
+        $this->assertNotNull(\App\Models\Order::query()->findOrFail($orderId)->payment_receipt_sent_at);
     }
 
     public function test_unauthenticated_checkout_is_rejected(): void
@@ -218,7 +224,7 @@ class PaymentControllerTest extends TestCase
      */
     private function reader(): array
     {
-        $user = User::factory()->create(['email' => 'reader@example.com']);
+        $user = User::factory()->create(['email' => 'reader@example.com', 'email_verified_at' => now()]);
         $profile = Profile::factory()->create([
             'id' => $user->id,
             'email' => $user->email,

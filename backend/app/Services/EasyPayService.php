@@ -8,6 +8,8 @@ use App\Models\Library;
 use App\Models\Order;
 use App\Models\PaymentAttempt;
 use App\Models\Profile;
+use App\Notifications\PaymentReceiptNotification;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -174,6 +176,8 @@ class EasyPayService
             default => 'pending',
         };
 
+        $wasAlreadyPaid = $order->payment_status === 'paid';
+
         DB::transaction(function () use ($order, $attempt, $result, $providerStatus, $status): void {
             if ($order->payment_status !== 'paid') {
                 $order->payment_status = $status;
@@ -203,6 +207,12 @@ class EasyPayService
             }
         });
 
+        $freshOrder = $order->fresh(['profile.user', 'items.book']);
+
+        if ($status === 'paid' && ! $wasAlreadyPaid && $freshOrder?->payment_receipt_sent_at === null) {
+            $this->sendPaymentReceipt($freshOrder);
+        }
+
         return [
             'orderId' => $order->id,
             'paymentStatus' => $order->fresh()->payment_status,
@@ -220,6 +230,26 @@ class EasyPayService
         }
 
         return data_get($payload, 'transaction.reference') ?: data_get($payload, 'payment.reference');
+    }
+
+    private function sendPaymentReceipt(Order $order): void
+    {
+        $user = $order->profile?->user;
+
+        if ($user === null || $user->email_verified_at === null) {
+            return;
+        }
+
+        try {
+            $user->notify(new PaymentReceiptNotification($order));
+            $order->forceFill(['payment_receipt_sent_at' => now()])->save();
+        } catch (Throwable $error) {
+            Log::warning('Impossible d’envoyer le reçu de paiement Holistique Books.', [
+                'order_id' => $order->id,
+                'user_id' => $order->user_id,
+                'exception' => $error,
+            ]);
+        }
     }
 
     private function createSingleBookOrder(Profile $profile, array $data): Order

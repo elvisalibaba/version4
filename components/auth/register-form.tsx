@@ -239,6 +239,13 @@ export function RegisterForm({
 
       setPassword("");
       setPasswordConfirmation("");
+
+      if (payload?.verification_required && payload?.email) {
+        const params = new URLSearchParams({ email: payload.email, next: safeNextPath });
+        window.location.assign(`/verify-email?${params.toString()}`);
+        return;
+      }
+
       window.location.assign(safeNextPath);
     } catch {
       setError("Le service d’inscription est momentanément indisponible.");

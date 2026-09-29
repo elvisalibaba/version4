@@ -21,6 +21,7 @@ class LibraryResource extends JsonResource
             'purchased_at' => $this->purchased_at,
             'expires_at' => $this->expires_at,
             'last_opened_at' => $this->last_opened_at,
+            'reading_progress' => $this->getAttribute('reading_progress_snapshot'),
             'book' => new BookResource($this->whenLoaded('book')),
             'subscription' => new SubscriptionResource($this->whenLoaded('subscription')),
         ];
