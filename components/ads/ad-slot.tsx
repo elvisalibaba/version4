@@ -56,7 +56,11 @@ export function AdSlot({
   useEffect(() => {
     let cancelled = false;
 
-    void fetch(endpoint, { cache: "no-store", headers: { Accept: "application/json" } })
+    const target = new URL(endpoint, window.location.origin);
+    const session = adSession();
+    if (session) target.searchParams.set("session", session);
+
+    void fetch(target.toString(), { cache: "no-store", headers: { Accept: "application/json" } })
       .then(async (response) => {
         if (!response.ok) return null;
         const payload = (await response.json()) as { data?: AdPayload | null };

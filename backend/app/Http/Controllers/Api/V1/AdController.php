@@ -28,7 +28,12 @@ class AdController extends Controller
         }
 
         $now = now();
-        $assignment = AdAssignment::query()
+        $session = $request->string('session')->toString();
+        $sessionHash = $session !== ''
+            ? hash_hmac('sha256', $session, (string) config('app.key'))
+            : null;
+
+        $candidates = AdAssignment::query()
             ->with(['campaign', 'creative', 'placement'])
             ->where('placement_id', $placement->id)
             ->where('status', 'active')
@@ -47,7 +52,24 @@ class AdController extends Controller
                 ))
             ->orderByDesc('weight')
             ->inRandomOrder()
-            ->first();
+            ->limit(20)
+            ->get();
+
+        $assignment = $candidates->first(function (AdAssignment $candidate) use ($sessionHash): bool {
+            $cap = $candidate->campaign?->frequency_cap;
+
+            if ($sessionHash === null || $cap === null || $cap <= 0) {
+                return true;
+            }
+
+            $impressions = AdEvent::query()
+                ->where('event_type', 'impression')
+                ->where('session_hash', $sessionHash)
+                ->whereHas('assignment', fn ($query) => $query->where('campaign_id', $candidate->campaign_id))
+                ->count();
+
+            return $impressions < $cap;
+        });
 
         if ($assignment === null) {
             return response()->json(['data' => null]);

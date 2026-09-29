@@ -72,6 +72,59 @@ class AdvertisingDeliveryTest extends TestCase
         ]);
     }
 
+    public function test_frequency_cap_prevents_repeated_delivery_for_same_session(): void
+    {
+        $campaign = AdCampaign::query()->create([
+            'advertiser_name' => 'Annonceur Cap',
+            'name' => 'Cap one',
+            'objective' => 'awareness',
+            'status' => 'active',
+            'channels' => ['web'],
+            'budget' => 100,
+            'spent' => 0,
+            'currency_code' => 'USD',
+            'frequency_cap' => 1,
+        ]);
+
+        $placement = AdPlacement::query()->create([
+            'code' => 'test.web.cap',
+            'name' => 'Cap placement',
+            'channel' => 'web',
+            'surface' => 'home',
+            'allowed_creative_types' => ['banner'],
+            'is_active' => true,
+        ]);
+
+        $creative = AdCreative::query()->create([
+            'campaign_id' => $campaign->id,
+            'title' => 'Cap creative',
+            'creative_type' => 'banner',
+            'is_active' => true,
+        ]);
+
+        $assignment = AdAssignment::query()->create([
+            'campaign_id' => $campaign->id,
+            'creative_id' => $creative->id,
+            'placement_id' => $placement->id,
+            'status' => 'active',
+            'weight' => 100,
+        ]);
+
+        $session = 'cap-session';
+        $this->getJson('/api/v1/ads/test.web.cap?channel=web&session='.$session)
+            ->assertOk()
+            ->assertJsonPath('data.assignment_id', $assignment->id);
+
+        $this->postJson("/api/v1/ads/{$assignment->id}/events", [
+            'event_type' => 'impression',
+            'session' => $session,
+        ])->assertCreated();
+
+        $this->getJson('/api/v1/ads/test.web.cap?channel=web&session='.$session)
+            ->assertOk()
+            ->assertJsonPath('data', null);
+    }
+
     public function test_campaign_is_not_served_on_unapproved_channel(): void
     {
         $campaign = AdCampaign::query()->create([
