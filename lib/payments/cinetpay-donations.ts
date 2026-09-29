@@ -68,14 +68,10 @@ function cleanString(value: unknown) {
 function getEasyPayConfig(): EasyPayConfig {
   const correlationIdRaw =
     cleanString(process.env.EASYPAY_CORRELATION_ID) ??
-    cleanString(process.env.EASYPAY_CID) ??
-    cleanString(process.env.NEXT_PUBLIC_EASYPAY_CORRELATION_ID) ??
-    cleanString(process.env.NEXT_PUBLIC_EASYPAY_CID);
+    cleanString(process.env.EASYPAY_CID);
   const publishableKeyRaw =
-    cleanString(process.env.EASYPAY_PUBLISHABLE_KEY) ??
     cleanString(process.env.EASYPAY_TOKEN) ??
-    cleanString(process.env.NEXT_PUBLIC_EASYPAY_PUBLISHABLE_KEY) ??
-    cleanString(process.env.NEXT_PUBLIC_EASYPAY_TOKEN);
+    cleanString(process.env.EASYPAY_PUBLISHABLE_KEY);
   const modeRaw = process.env.EASYPAY_MODE?.trim().toLowerCase() ?? "sandbox";
   const baseUrl = process.env.EASYPAY_BASE_URL?.replace(/\/$/, "") || "https://www.e-com-easypay.com";
   const missing: string[] = [];
@@ -133,8 +129,10 @@ function buildEasyPayModeUrl(config: EasyPayConfig, path: string) {
 }
 
 function createDonationOrderRef() {
-  const randomSuffix = Math.random().toString(36).slice(2, 8).toUpperCase();
-  return `HB-DON-${Date.now()}-${randomSuffix}`;
+  // EasyPay exige 6 à 16 caractères alphanumériques.
+  const time = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `HBD${time}${random}`.replace(/[^A-Z0-9]/g, "").slice(0, 16);
 }
 
 function toProviderAmount(amount: number) {
@@ -253,28 +251,20 @@ export async function verifyCinetPayDonationTransaction(transactionId: string): 
 
   const config = getEasyPayConfig();
   const encodedReference = encodeURIComponent(normalizedTransactionId);
-  const checkingEndpoints = [
-    buildEasyPayModeUrl(config, `/payment/${encodedReference}/checking-status`),
-    buildEasyPayModeUrl(config, `/payment/${encodedReference}/checking-payment`),
-  ];
+  const checkingEndpoint = buildEasyPayModeUrl(config, `/payment/${encodedReference}/checking-status`);
 
   let result: EasyPayCheckingResponse | null = null;
-  let lastError: unknown = null;
-
-  for (const endpoint of checkingEndpoints) {
-    try {
-      result = await fetchJson<EasyPayCheckingResponse>(endpoint, {});
-      break;
-    } catch (error) {
-      lastError = error;
+  try {
+    result = await fetchJson<EasyPayCheckingResponse>(checkingEndpoint, {});
+  } catch (error) {
+    if (error instanceof DonationFlowError) {
+      throw error;
     }
+
+    throw new DonationFlowError("Verification EasyPay indisponible pour cette transaction.", 502);
   }
 
   if (!result) {
-    if (lastError instanceof DonationFlowError) {
-      throw lastError;
-    }
-
     throw new DonationFlowError("Verification EasyPay indisponible pour cette transaction.", 502);
   }
 
