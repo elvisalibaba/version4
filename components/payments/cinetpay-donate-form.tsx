@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ChevronDown, HeartHandshake } from "lucide-react";
-import { channelRequiresCardCustomerFields, type CinetPayChannel } from "@/lib/payments/validation";
+import { type CinetPayChannel } from "@/lib/payments/validation";
 
 type DonationCustomerDefaults = {
   customerId?: string | null;
@@ -111,13 +111,8 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
       return;
     }
 
-    if (!firstName.trim() || !lastName.trim() || !email.trim() || !phoneNumber.trim()) {
-      setError("Nom, prenom, email et telephone sont requis pour lancer le don.");
-      return;
-    }
-
-    if (channelRequiresCardCustomerFields(channel) && (!address.trim() || !city.trim() || !country.trim() || !zipCode.trim())) {
-      setError("Pour la carte bancaire ou le guichet complet, renseignez adresse, ville, pays ISO et code postal.");
+    if (!`${firstName} ${lastName}`.trim()) {
+      setError("Le nom du donateur est requis pour lancer le paiement EasyPay.");
       return;
     }
 
@@ -227,7 +222,7 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
           </Field>
         </SectionCard>
 
-        <SectionCard title="Coordonnees du donateur" hint="Ces informations sont necessaires pour lancer la transaction.">
+        <SectionCard title="Coordonnées du donateur" hint="Le nom est requis par EasyPay. Email et téléphone restent facultatifs.">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Prenom">
               <input value={firstName} onChange={(event) => setFirstName(event.target.value)} className={inputClassName} />
@@ -254,7 +249,7 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
           </summary>
           <div className="grid gap-4 border-t border-[#d5d9d9] px-4 py-4">
             <div className="rounded-lg border border-[#f3a847] bg-[#fff8e8] px-4 py-3 text-sm leading-6 text-[#5c3b00]">
-              Ces champs sont requis pour le paiement par carte bancaire et pour l option `Choisir sur EasyPay`.
+              Ces informations sont facultatives pour l’initialisation EasyPay actuelle, mais peuvent être utiles pour votre suivi client.
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -322,8 +317,7 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
       </div>
 
       <div className="mt-4 rounded-lg border border-[#d5d9d9] bg-[#f7fafa] px-4 py-3 text-sm leading-6 text-[#565959]">
-        EasyPay affiche les moyens disponibles selon votre pays. Pour la carte bancaire et le guichet complet, il faut
-        renseigner l adresse, la ville, le pays ISO et le code postal.
+        EasyPay affiche les moyens disponibles selon votre pays et votre opérateur.
       </div>
     </form>
   );
