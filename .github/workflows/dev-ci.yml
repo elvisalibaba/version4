@@ -5,6 +5,9 @@ on:
     branches: [dev]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 concurrency:
   group: dev-ci-${{ github.ref }}
   cancel-in-progress: true
@@ -65,6 +68,18 @@ jobs:
           path: backend/composer.lock
           if-no-files-found: error
           retention-days: 1
+      - name: Commit resolved Composer lockfile
+        working-directory: .
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend/composer.lock
+          if git diff --cached --quiet; then
+            echo "composer.lock already up to date"
+          else
+            git commit -m "chore: lock Filament backend dependencies"
+            git push origin HEAD:dev
+          fi
       - run: php artisan optimize:clear
       - run: php artisan route:list
       - run: php artisan test
