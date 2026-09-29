@@ -131,6 +131,12 @@ export type ApiLibraryEntry = {
   purchased_at: string;
   expires_at: string | null;
   last_opened_at: string | null;
+  reading_progress?: {
+    locator: string | null;
+    locator_type: string | null;
+    progress_percent: number | string;
+    updated_at: string | null;
+  } | null;
   book: ApiBook;
   subscription?: ApiSubscription | null;
 };

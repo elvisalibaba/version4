@@ -19,6 +19,12 @@ class AuthorProfile extends Model
 
     protected $keyType = 'string';
 
+    protected $attributes = [
+        'social_links' => '[]',
+        'genres' => '[]',
+        'press_mentions' => '[]',
+    ];
+
     protected $fillable = [
         'id', 'display_name', 'avatar_url', 'bio', 'website', 'location', 'social_links',
         'professional_headline', 'phone', 'genres', 'publishing_goals', 'favorite_book',

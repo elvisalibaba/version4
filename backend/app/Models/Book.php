@@ -17,6 +17,12 @@ class Book extends Model
     /** @use HasFactory<\Database\Factories\BookFactory> */
     use HasFactory, HasUuids;
 
+    protected $attributes = [
+        'co_authors' => '[]',
+        'categories' => '[]',
+        'tags' => '[]',
+    ];
+
     protected $fillable = [
         'title', 'subtitle', 'description', 'price', 'author_id', 'author_display_name', 'cover_url', 'file_url',
         'status', 'co_authors', 'isbn', 'language', 'publisher', 'publication_date', 'page_count', 'categories',

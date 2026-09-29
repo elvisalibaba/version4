@@ -36,7 +36,18 @@ export default async function ReaderLibraryPage() {
                   </div>
                   <h2 className="mt-3 text-lg font-semibold text-[#171717]">{entry.book.title}</h2>
                   <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#6f665e]">{entry.book.description ?? "Livre disponible dans votre bibliothèque."}</p>
-                  <Link href={`/book/${entry.book.id}?read=1`} className="cta-primary mt-4 px-4 py-2 text-sm"><BookOpen className="h-4 w-4" /> Lire</Link>
+                  {entry.reading_progress ? (
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between text-[0.68rem] font-semibold text-[#766e64]">
+                        <span>Lecture</span>
+                        <span>{Math.round(Number(entry.reading_progress.progress_percent ?? 0))}%</span>
+                      </div>
+                      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#eee6dc]">
+                        <div className="h-full rounded-full bg-[#173d2c]" style={{ width: `${Math.max(0, Math.min(100, Number(entry.reading_progress.progress_percent ?? 0)))}%` }} />
+                      </div>
+                    </div>
+                  ) : null}
+                  <Link href={`/book/${entry.book.id}?read=1`} className="cta-primary mt-4 px-4 py-2 text-sm"><BookOpen className="h-4 w-4" /> {entry.reading_progress ? "Reprendre" : "Lire"}</Link>
                 </div>
               </article>
             ))}

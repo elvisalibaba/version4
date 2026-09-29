@@ -9,16 +9,20 @@ use App\Http\Resources\UserResource;
 use App\Models\AuthorProfile;
 use App\Models\Profile;
 use App\Models\User;
+use App\Notifications\WelcomeNotification;
+use App\Services\EmailVerificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class AuthController extends Controller
 {
-    public function register(RegisterRequest $request): JsonResponse
+    public function register(RegisterRequest $request, EmailVerificationService $verification): JsonResponse
     {
         $data = $request->validated();
 
@@ -70,9 +74,19 @@ class AuthController extends Controller
             return $user;
         });
 
+        try {
+            $verification->issue($user);
+        } catch (Throwable $error) {
+            Log::warning('Impossible d’envoyer le code de vérification email.', [
+                'user_id' => $user->id,
+                'exception' => $error,
+            ]);
+        }
+
         return response()->json([
-            'data' => new UserResource($user->load('profile.authorProfile')),
-            'token' => $user->createToken('web')->plainTextToken,
+            'message' => 'Compte créé. Vérifiez votre adresse email pour continuer.',
+            'verification_required' => true,
+            'email' => $user->email,
         ], 201);
     }
 
@@ -85,9 +99,71 @@ class AuthController extends Controller
             throw ValidationException::withMessages(['email' => 'Les identifiants fournis sont incorrects.']);
         }
 
+        if ($user->email_verified_at === null) {
+            return response()->json([
+                'message' => 'Confirmez votre adresse email avant de vous connecter.',
+                'verification_required' => true,
+                'email' => $user->email,
+            ], 403);
+        }
+
         return response()->json([
             'data' => new UserResource($user->load('profile.authorProfile')),
             'token' => $user->createToken($data['device_name'] ?? 'web')->plainTextToken,
+        ]);
+    }
+
+    public function verifyEmail(Request $request, EmailVerificationService $verification): JsonResponse
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email'],
+            'code' => ['required', 'digits:6'],
+            'device_name' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        $user = User::query()->where('email', mb_strtolower($data['email']))->first();
+
+        if ($user === null) {
+            throw ValidationException::withMessages(['email' => 'Compte introuvable.']);
+        }
+
+        $verification->verify($user, $data['code']);
+        $user->load('profile.authorProfile');
+
+        try {
+            $user->notify(new WelcomeNotification());
+        } catch (Throwable $error) {
+            Log::warning('Impossible d’envoyer le mail de bienvenue.', [
+                'user_id' => $user->id,
+                'exception' => $error,
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Adresse email confirmée.',
+            'data' => new UserResource($user),
+            'token' => $user->createToken($data['device_name'] ?? 'web')->plainTextToken,
+        ]);
+    }
+
+    public function resendVerification(Request $request, EmailVerificationService $verification): JsonResponse
+    {
+        $data = $request->validate(['email' => ['required', 'email']]);
+        $user = User::query()->where('email', mb_strtolower($data['email']))->first();
+
+        if ($user !== null && $user->email_verified_at === null) {
+            try {
+                $verification->issue($user);
+            } catch (Throwable $error) {
+                Log::warning('Impossible de renvoyer le code de vérification email.', [
+                    'user_id' => $user->id,
+                    'exception' => $error,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Si ce compte nécessite une vérification, un nouveau code a été envoyé.',
         ]);
     }
 
