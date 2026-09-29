@@ -101,6 +101,29 @@ return new class extends Migration
             $table->index(['book_id', 'status']);
         });
 
+        Schema::create('rights_acquisition_targets', function (Blueprint $table): void {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('author_profile_id')->nullable()->constrained('author_profiles')->nullOnDelete();
+            $table->string('title');
+            $table->string('original_publisher')->nullable();
+            $table->string('isbn')->nullable()->index();
+            $table->string('status', 30)->default('prospect')->index();
+            $table->unsignedTinyInteger('priority')->default(3)->index();
+            $table->json('territories')->nullable();
+            $table->json('languages')->nullable();
+            $table->json('desired_media')->nullable();
+            $table->decimal('estimated_budget', 14, 2)->nullable();
+            $table->string('currency_code', 3)->default('USD');
+            $table->string('contact_name')->nullable();
+            $table->string('contact_email')->nullable();
+            $table->string('source_url', 2048)->nullable();
+            $table->timestamp('next_action_at')->nullable()->index();
+            $table->text('notes')->nullable();
+            $table->timestamps();
+
+            $table->index(['status', 'priority']);
+        });
+
         Schema::create('media_editions', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('book_id')->constrained()->cascadeOnDelete();
@@ -298,6 +321,41 @@ return new class extends Migration
             }
         }
 
+        $targets = [
+            ['Robert Kiyosaki', 'Rich Dad Poor Dad', 'https://richdad.com/about/robert-kiyosaki/'],
+            ['Paulo Coelho', 'The Alchemist', null],
+            ['Chimamanda Ngozi Adichie', 'Half of a Yellow Sun', null],
+            ['Stephen King', 'The Shining', null],
+            ['J. K. Rowling', 'Harry Potter and the Philosopher’s Stone', null],
+            ['James Patterson', 'Along Came a Spider', null],
+            ['Dan Brown', 'The Da Vinci Code', null],
+            ['Margaret Atwood', 'The Handmaid’s Tale', null],
+            ['Yuval Noah Harari', 'Sapiens', null],
+            ['Khaled Hosseini', 'The Kite Runner', null],
+        ];
+
+        foreach ($targets as [$authorName, $title, $source]) {
+            $authorId = DB::table('author_profiles')->where('display_name', $authorName)->value('id');
+
+            if ($authorId && ! DB::table('rights_acquisition_targets')->where('author_profile_id', $authorId)->where('title', $title)->exists()) {
+                DB::table('rights_acquisition_targets')->insert([
+                    'id' => (string) Str::uuid(),
+                    'author_profile_id' => $authorId,
+                    'title' => $title,
+                    'status' => 'prospect',
+                    'priority' => $authorName === 'Robert Kiyosaki' ? 1 : 3,
+                    'territories' => json_encode(['CD']),
+                    'languages' => json_encode(['fr']),
+                    'desired_media' => json_encode(['ebook', 'print', 'audiobook']),
+                    'currency_code' => 'USD',
+                    'source_url' => $source,
+                    'notes' => 'Cible interne d’acquisition. Aucun droit de publication ou distribution n’est acquis à ce stade.',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
         $houseId = (string) Str::uuid();
         DB::table('publishing_houses')->insertOrIgnore([
             'id' => $houseId,
@@ -356,6 +414,7 @@ return new class extends Migration
         Schema::dropIfExists('ad_campaigns');
         Schema::dropIfExists('media_chapters');
         Schema::dropIfExists('media_editions');
+        Schema::dropIfExists('rights_acquisition_targets');
         Schema::dropIfExists('rights_contracts');
 
         Schema::table('books', function (Blueprint $table): void {
