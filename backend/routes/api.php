@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\HighlightController;
 use App\Http\Controllers\Api\V1\LibraryController;
 use App\Http\Controllers\Api\V1\MobileAppController;
+use App\Http\Controllers\Api\V1\MobileDeviceController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\PasswordController;
 use App\Http\Controllers\Api\V1\PaymentController;
@@ -49,6 +50,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::get('home/flash-sale', [PublicContentController::class, 'flashSale'])->name('home.flash-sale');
     Route::get('mobile', [PublicContentController::class, 'mobile'])->name('mobile.config');
     Route::get('mobile/download', [MobileAppController::class, 'download'])->name('mobile.download');
+    Route::get('mobile/bootstrap', [MobileDeviceController::class, 'bootstrap'])->name('mobile.bootstrap');
     Route::post('editorial-training', [EditorialTrainingController::class, 'store'])->middleware('throttle:20,1')->name('editorial-training.store');
     Route::post('payments/easypay/notify', [PaymentController::class, 'notify'])->middleware('throttle:120,1')->name('payments.easypay.notify');
     Route::post('books/{book}/engagement', [EngagementController::class, 'store'])->middleware('throttle:120,1')->name('books.engagement.store');
@@ -72,6 +74,10 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::get('read/{book}', ReadController::class)->name('read');
 
         Route::post('mobile/trial/claim', [MobileAppController::class, 'claimTrial'])->name('mobile.trial.claim');
+        Route::post('mobile/devices', [MobileDeviceController::class, 'upsertDevice'])->name('mobile.devices.upsert');
+        Route::post('mobile/devices/{deviceUuid}/heartbeat', [MobileDeviceController::class, 'heartbeat'])->name('mobile.devices.heartbeat');
+        Route::delete('mobile/devices/{deviceUuid}', [MobileDeviceController::class, 'revokeDevice'])->name('mobile.devices.revoke');
+        Route::post('mobile/push-token', [MobileDeviceController::class, 'upsertPushToken'])->name('mobile.push-token.upsert');
 
         Route::get('reader/dashboard', [ReaderDashboardController::class, 'dashboard'])->name('reader.dashboard');
         Route::get('reader/affiliate', [ReaderDashboardController::class, 'affiliate'])->name('reader.affiliate');
