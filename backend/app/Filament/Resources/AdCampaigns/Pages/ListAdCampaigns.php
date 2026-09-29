@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Filament\\Resources\\AdCampaigns\\Pages;
+namespace App\Filament\Resources\AdCampaigns\Pages;
 
-use App\\Filament\\Resources\\AdCampaigns\\AdCampaignResource;
-use Filament\\Actions\\CreateAction;
-use Filament\\Resources\\Pages\\ListRecords;
+use App\Filament\Resources\AdCampaigns\AdCampaignResource;
+use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ListRecords;
 
 class ListAdCampaigns extends ListRecords
 {

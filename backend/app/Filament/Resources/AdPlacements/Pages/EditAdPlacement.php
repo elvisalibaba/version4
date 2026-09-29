@@ -1,9 +1,9 @@
 <?php
 
-namespace App\\Filament\\Resources\\AdPlacements\\Pages;
+namespace App\Filament\Resources\AdPlacements\Pages;
 
-use App\\Filament\\Resources\\AdPlacements\\AdPlacementResource;
-use Filament\\Resources\\Pages\\EditRecord;
+use App\Filament\Resources\AdPlacements\AdPlacementResource;
+use Filament\Resources\Pages\EditRecord;
 
 class EditAdPlacement extends EditRecord
 {

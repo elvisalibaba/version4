@@ -1,9 +1,9 @@
 <?php
 
-namespace App\\Filament\\Resources\\PublishingHouses\\Pages;
+namespace App\Filament\Resources\PublishingHouses\Pages;
 
-use App\\Filament\\Resources\\PublishingHouses\\PublishingHouseResource;
-use Filament\\Resources\\Pages\\CreateRecord;
+use App\Filament\Resources\PublishingHouses\PublishingHouseResource;
+use Filament\Resources\Pages\CreateRecord;
 
 class CreatePublishingHouse extends CreateRecord
 {

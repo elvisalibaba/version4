@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Filament\\Resources\\PublishingImprints\\Pages;
+namespace App\Filament\Resources\PublishingImprints\Pages;
 
-use App\\Filament\\Resources\\PublishingImprints\\PublishingImprintResource;
-use Filament\\Actions\\CreateAction;
-use Filament\\Resources\\Pages\\ListRecords;
+use App\Filament\Resources\PublishingImprints\PublishingImprintResource;
+use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ListRecords;
 
 class ListPublishingImprints extends ListRecords
 {

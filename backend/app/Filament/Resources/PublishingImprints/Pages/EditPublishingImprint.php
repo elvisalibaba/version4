@@ -1,9 +1,9 @@
 <?php
 
-namespace App\\Filament\\Resources\\PublishingImprints\\Pages;
+namespace App\Filament\Resources\PublishingImprints\Pages;
 
-use App\\Filament\\Resources\\PublishingImprints\\PublishingImprintResource;
-use Filament\\Resources\\Pages\\EditRecord;
+use App\Filament\Resources\PublishingImprints\PublishingImprintResource;
+use Filament\Resources\Pages\EditRecord;
 
 class EditPublishingImprint extends EditRecord
 {

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Filament\\Resources\\AdPlacements\\Pages;
+namespace App\Filament\Resources\AdPlacements\Pages;
 
-use App\\Filament\\Resources\\AdPlacements\\AdPlacementResource;
-use Filament\\Actions\\CreateAction;
-use Filament\\Resources\\Pages\\ListRecords;
+use App\Filament\Resources\AdPlacements\AdPlacementResource;
+use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ListRecords;
 
 class ListAdPlacements extends ListRecords
 {

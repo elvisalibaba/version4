@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Filament\\Resources\\MediaEditions\\Pages;
+namespace App\Filament\Resources\MediaEditions\Pages;
 
-use App\\Filament\\Resources\\MediaEditions\\MediaEditionResource;
-use Filament\\Actions\\CreateAction;
-use Filament\\Resources\\Pages\\ListRecords;
+use App\Filament\Resources\MediaEditions\MediaEditionResource;
+use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ListRecords;
 
 class ListMediaEditions extends ListRecords
 {

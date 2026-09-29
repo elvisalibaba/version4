@@ -1,9 +1,9 @@
 <?php
 
-namespace App\\Filament\\Resources\\AdCreatives\\Pages;
+namespace App\Filament\Resources\AdCreatives\Pages;
 
-use App\\Filament\\Resources\\AdCreatives\\AdCreativeResource;
-use Filament\\Resources\\Pages\\EditRecord;
+use App\Filament\Resources\AdCreatives\AdCreativeResource;
+use Filament\Resources\Pages\EditRecord;
 
 class EditAdCreative extends EditRecord
 {

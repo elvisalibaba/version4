@@ -1,9 +1,9 @@
 <?php
 
-namespace App\\Filament\\Resources\\AdPlacements\\Pages;
+namespace App\Filament\Resources\AdPlacements\Pages;
 
-use App\\Filament\\Resources\\AdPlacements\\AdPlacementResource;
-use Filament\\Resources\\Pages\\CreateRecord;
+use App\Filament\Resources\AdPlacements\AdPlacementResource;
+use Filament\Resources\Pages\CreateRecord;
 
 class CreateAdPlacement extends CreateRecord
 {

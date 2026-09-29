@@ -1,9 +1,9 @@
 <?php
 
-namespace App\\Filament\\Resources\\MediaEditions\\Pages;
+namespace App\Filament\Resources\MediaEditions\Pages;
 
-use App\\Filament\\Resources\\MediaEditions\\MediaEditionResource;
-use Filament\\Resources\\Pages\\CreateRecord;
+use App\Filament\Resources\MediaEditions\MediaEditionResource;
+use Filament\Resources\Pages\CreateRecord;
 
 class CreateMediaEdition extends CreateRecord
 {
