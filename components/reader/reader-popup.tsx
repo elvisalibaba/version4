@@ -16,6 +16,12 @@ type ReaderHighlight = {
   created_at: string;
 };
 
+type ReaderProgress = {
+  locator: string | null;
+  locator_type: string | null;
+  progress_percent: number | string;
+};
+
 type TocItem = {
   href: string;
   label: string;
@@ -181,6 +187,9 @@ export function ReaderPopup({
   const [epubTheme, setEpubTheme] = useState<EpubTheme>("light");
   const [epubLineHeight, setEpubLineHeight] = useState(1.7);
   const [epubProgress, setEpubProgress] = useState(0);
+  const [epubCurrentCfi, setEpubCurrentCfi] = useState<string | null>(null);
+  const [resumeEpubCfi, setResumeEpubCfi] = useState<string | null>(null);
+  const [progressHydrated, setProgressHydrated] = useState(false);
   const [epubCurrentPage, setEpubCurrentPage] = useState(1);
   const [epubTotalPages, setEpubTotalPages] = useState(0);
   const [epubToc, setEpubToc] = useState<TocItem[]>([]);
@@ -342,6 +351,9 @@ export function ReaderPopup({
       setIsGuestReader(false);
       setPdfJumpInput("1");
       setEpubProgress(0);
+      setEpubCurrentCfi(null);
+      setResumeEpubCfi(null);
+      setProgressHydrated(false);
       setEpubCurrentPage(1);
       setEpubTotalPages(0);
       setEpubToc([]);
@@ -368,17 +380,40 @@ export function ReaderPopup({
 
         setReaderProfileId(user.id);
 
-        const highlightsResponse = await fetch(`/api/backend/books/${encodeURIComponent(bookId)}/highlights`, {
-          cache: "no-store",
-          headers: { Accept: "application/json" },
-        });
-        if (!highlightsResponse.ok) {
+        const [highlightsResponse, progressResponse] = await Promise.all([
+          fetch(`/api/backend/books/${encodeURIComponent(bookId)}/highlights`, {
+            cache: "no-store",
+            headers: { Accept: "application/json" },
+          }),
+          fetch(`/api/backend/books/${encodeURIComponent(bookId)}/progress`, {
+            cache: "no-store",
+            headers: { Accept: "application/json" },
+          }),
+        ]);
+
+        if (highlightsResponse.ok) {
+          const highlightPayload = await highlightsResponse.json();
+          setHighlights((highlightPayload.data ?? []) as ReaderHighlight[]);
+        } else {
           console.warn("[ReaderPopup] Laravel API could not load highlights.");
-          return;
         }
 
-        const highlightPayload = await highlightsResponse.json();
-        setHighlights((highlightPayload.data ?? []) as ReaderHighlight[]);
+        if (progressResponse.ok) {
+          const progressPayload = await progressResponse.json();
+          const progress = (progressPayload.data ?? null) as ReaderProgress | null;
+
+          if (progress?.locator_type === "page" && progress.locator) {
+            const page = Math.max(1, Number.parseInt(progress.locator, 10) || 1);
+            setPdfPageNumber(page);
+            setPdfJumpInput(String(page));
+          }
+
+          if (progress?.locator_type === "epub_cfi" && progress.locator) {
+            setResumeEpubCfi(progress.locator);
+          }
+        }
+
+        setProgressHydrated(true);
       } catch {
         setError("Le lecteur securise ne repond pas pour le moment.");
       }
@@ -448,6 +483,7 @@ export function ReaderPopup({
         const location = locationValue as EpubLocation;
         const percentage = location.start?.percentage ?? 0;
         setEpubProgress(Math.round(percentage * 100));
+        setEpubCurrentCfi(location.start?.cfi ?? null);
         setEpubCurrentPage(location.start?.displayed?.page ?? 1);
         setEpubTotalPages(location.start?.displayed?.total ?? 0);
       });
@@ -473,7 +509,11 @@ export function ReaderPopup({
         }
       }
 
-      await rendition.display();
+      try {
+        await rendition.display(resumeEpubCfi ?? undefined);
+      } catch {
+        await rendition.display();
+      }
     }
 
     renderEpub().catch((readerError) => {
@@ -489,7 +529,7 @@ export function ReaderPopup({
       bookRef.current?.destroy?.();
       bookRef.current = null;
     };
-  }, [fileUrl, isEpub, open]);
+  }, [fileUrl, isEpub, open, resumeEpubCfi]);
 
   useEffect(() => {
     const rendition = renditionRef.current;
@@ -523,6 +563,56 @@ export function ReaderPopup({
   useEffect(() => {
     setPdfJumpInput(String(pdfPageNumber));
   }, [pdfPageNumber]);
+
+  useEffect(() => {
+    if (!open || isGuestReader || !readerProfileId || !progressHydrated) {
+      return;
+    }
+
+    let payload: Record<string, unknown> | null = null;
+
+    if (isPdf && pdfPageCount > 0) {
+      payload = {
+        locator: String(pdfPageNumber),
+        locator_type: "page",
+        progress_percent: Math.max(0, Math.min(100, (pdfPageNumber / pdfPageCount) * 100)),
+        device_name: "web",
+      };
+    } else if (isEpub && epubCurrentCfi) {
+      payload = {
+        locator: epubCurrentCfi,
+        locator_type: "epub_cfi",
+        progress_percent: Math.max(0, Math.min(100, epubProgress)),
+        device_name: "web",
+      };
+    }
+
+    if (!payload) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      void fetch(`/api/backend/books/${encodeURIComponent(bookId)}/progress`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload),
+      }).catch(() => undefined);
+    }, 900);
+
+    return () => window.clearTimeout(timeout);
+  }, [
+    bookId,
+    epubCurrentCfi,
+    epubProgress,
+    isEpub,
+    isGuestReader,
+    isPdf,
+    open,
+    pdfPageCount,
+    pdfPageNumber,
+    progressHydrated,
+    readerProfileId,
+  ]);
 
   function openFullScreen() {
     if (!containerRef.current) {
