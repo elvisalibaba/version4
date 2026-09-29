@@ -1,0 +1,77 @@
+name: Production package
+
+on:
+  push:
+    branches: [production]
+  workflow_dispatch:
+
+concurrency:
+  group: production-package-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    name: Build Laravel cPanel ZIP
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, pdo_mysql, fileinfo, openssl, curl, intl, xml, zip
+          coverage: none
+
+      - name: Install production PHP dependencies
+        working-directory: backend
+        run: composer install --no-dev --no-interaction --prefer-dist --no-progress --optimize-autoloader
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build Filament / Vite assets
+        working-directory: backend
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+          php artisan filament:assets || true
+
+      - name: Prepare cPanel release directory
+        run: |
+          mkdir -p release
+          cp -a backend/. release/
+          rm -rf release/node_modules
+          rm -rf release/tests
+          rm -rf release/.agents
+          rm -rf release/.claude
+          rm -f release/.env
+          rm -f release/deploy-cpanel.sh
+          rm -rf release/storage/logs/*
+          mkdir -p release/storage/logs
+          mkdir -p release/storage/framework/cache/data
+          mkdir -p release/storage/framework/sessions
+          mkdir -p release/storage/framework/views
+          chmod -R ug+rwX release/storage release/bootstrap/cache || true
+
+      - name: Create deployment archive
+        run: |
+          cd release
+          zip -r ../holisticbooks-api-production.zip . -x ".git/*" -x "*.DS_Store"
+          cd ..
+          sha256sum holisticbooks-api-production.zip > holisticbooks-api-production.sha256
+
+      - name: Upload production package
+        uses: actions/upload-artifact@v4
+        with:
+          name: holisticbooks-api-production
+          path: |
+            holisticbooks-api-production.zip
+            holisticbooks-api-production.sha256
+          if-no-files-found: error
+          retention-days: 30
