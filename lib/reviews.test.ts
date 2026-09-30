@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildReviewsPath, formatReviewSummary, reviewErrorMessage } from "@/lib/reviews";
+import { buildReviewsPath, formatReviewSummary, reviewErrorMessage } from "./reviews";
 
 describe("reviews helpers", () => {
   it("builds a safe paginated reviews path", () => {
