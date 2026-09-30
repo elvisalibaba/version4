@@ -18,6 +18,10 @@ export type BookReview = {
 export type ReviewsResponse = {
   data: BookReview[];
   current_user_review: BookReview | null;
+  summary?: {
+    rating_avg: number | null;
+    reviews_count: number;
+  };
   links?: {
     first?: string | null;
     last?: string | null;
