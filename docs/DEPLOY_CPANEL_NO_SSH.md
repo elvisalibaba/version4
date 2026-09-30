@@ -201,3 +201,51 @@ tests api.aba.cd
 ```
 
 Toujours sauvegarder la base avant une migration potentiellement destructive.
+
+
+## 6 bis. Limites PHP pour les uploads Filament
+
+Dans **cPanel > MultiPHP INI Editor** pour `api.aba.cd`, utiliser au minimum :
+
+```ini
+upload_max_filesize = 512M
+post_max_size = 550M
+memory_limit = 512M
+max_execution_time = 300
+max_input_time = 300
+```
+
+Laravel/Livewire utilise aussi un stockage temporaire avant que Filament ne déplace le fichier vers son disque final. Le projet configure désormais :
+
+```env
+LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK=local
+LIVEWIRE_TEMPORARY_FILE_UPLOAD_DIRECTORY=livewire-tmp
+```
+
+Le package cPanel crée explicitement :
+
+```text
+storage/app/private/books/catalog
+storage/app/private/books/media
+storage/app/private/livewire-tmp
+storage/app/public/covers
+storage/app/public/livewire-tmp
+```
+
+Après extraction, vérifier que `storage/` et `bootstrap/cache/` sont inscriptibles par PHP.
+
+## 6 ter. Diagnostic admin production
+
+Sans SSH, lancer temporairement via Cron :
+
+```cron
+* * * * * /usr/local/bin/ea-php83 /home/khspevnk/holistic-api/artisan holistic:diagnose-admin >> /home/khspevnk/holistic-api/storage/logs/admin-diagnostic.log 2>&1
+```
+
+Attendre une exécution, supprimer immédiatement le Cron, puis consulter :
+
+```text
+/home/khspevnk/holistic-api/storage/logs/admin-diagnostic.log
+```
+
+Le diagnostic vérifie notamment les limites PHP, les permissions de stockage, les disques `local`, `books` et `public`, ainsi que les tables et colonnes nécessaires aux écrans Filament.
