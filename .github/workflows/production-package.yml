@@ -64,6 +64,11 @@ jobs:
           mkdir -p release-private/storage/framework/cache/data
           mkdir -p release-private/storage/framework/sessions
           mkdir -p release-private/storage/framework/views
+          mkdir -p release-private/storage/app/private/books/catalog
+          mkdir -p release-private/storage/app/private/books/media
+          mkdir -p release-private/storage/app/private/livewire-tmp
+          mkdir -p release-private/storage/app/public/covers
+          mkdir -p release-private/storage/app/public/livewire-tmp
           chmod -R ug+rwX release-private/storage release-private/bootstrap/cache || true
 
       - name: Prepare public api.aba.cd package
