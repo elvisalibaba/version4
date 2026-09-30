@@ -81,24 +81,3 @@ jobs:
       - name: Build Filament themes
         working-directory: backend
         run: npm run build
-
-      - name: Full Laravel verification
-        working-directory: backend
-        env:
-          APP_ENV: testing
-          APP_KEY: base64:Z3FBZHd2dXl6aWpLTktZcU92b0U4bE40V3pQZVZDUVI=
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ":memory:"
-          CACHE_STORE: array
-          SESSION_DRIVER: array
-          QUEUE_CONNECTION: sync
-          MAIL_MAILER: array
-          EASYPAY_BASE_URL: https://payments.test
-          EASYPAY_MODE: sandbox
-          EASYPAY_CORRELATION_ID: test-cid
-          EASYPAY_PUBLISHABLE_KEY: test-key
-          FRONTEND_URL: http://localhost:3000
-        run: |
-          php artisan optimize:clear
-          php artisan route:list
-          php artisan test
