@@ -8,6 +8,7 @@ import {
   LockKeyhole, ShieldCheck, UserPlus,
 } from "lucide-react";
 import { FavoriteBookButton } from "@/components/books/favorite-book-button";
+import { BookReviews } from "@/components/books/book-reviews";
 import { CinetPayButtons } from "@/components/payments/cinetpay-buttons";
 import { ReaderPopup } from "@/components/reader/reader-popup";
 import { getLibraryAccessLabel } from "@/lib/access-labels";
@@ -19,6 +20,7 @@ type BookDetailView = {
   author_name: string; author_avatar_url?: string | null; cover_signed_url: string | null; price: number;
   currency_code: string; display_price_label: string; offer_summary_label: string; categories: string[];
   language?: string | null; page_count?: number | null; is_favorite?: boolean; is_free: boolean;
+  rating_avg?: number | null; ratings_count?: number | null;
   is_single_sale_enabled: boolean; is_subscription_available: boolean;
   purchase_formats: Array<{ format: CheckoutBookFormat; price: number; currency_code: string }>;
   subscription_plans: SubscriptionPlan[];
@@ -110,6 +112,13 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
                   {book.subscription_plans.map((plan) => <div key={plan.id} className="flex items-center justify-between gap-3 rounded-2xl bg-[#f0e8df] p-4"><div><p className="font-extrabold">{plan.name}</p><p className="mt-1 text-xs text-[#80746a]">Abonnement mensuel</p></div><p className="font-extrabold text-[#b9432d]">{money(plan.monthly_price, plan.currency_code)}</p></div>)}
                 </div>
               </section>
+
+              <BookReviews
+                bookId={book.id}
+                isAuthenticated={isAuthenticated}
+                ratingAvg={book.rating_avg}
+                ratingsCount={book.ratings_count}
+              />
 
               <section className="mt-10 rounded-[1.8rem] bg-[#efe5d9] p-6 sm:p-8">
                 <div className="flex items-start gap-4"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#173f38] text-[#f5b942]"><ShieldCheck className="h-5 w-5" /></span><div><h2 className="font-display text-xl font-extrabold">Une lecture pensée pour vous</h2><p className="mt-2 text-sm leading-7 text-[#665c53]">Lisez sur téléphone, tablette ou ordinateur. Votre bibliothèque, votre progression et vos notes restent liées à votre compte.</p></div></div>
