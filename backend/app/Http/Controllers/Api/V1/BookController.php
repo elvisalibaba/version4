@@ -22,6 +22,12 @@ class BookController extends Controller
     {
         $books = Book::query()
             ->publiclyAvailable()
+            ->withAvg([
+                'ratings as visible_rating_avg' => fn ($query) => $query->where('is_hidden', false),
+            ], 'rating')
+            ->withCount([
+                'ratings as visible_ratings_count' => fn ($query) => $query->where('is_hidden', false),
+            ])
             ->with([
                 'author',
                 'publishingHouse',
@@ -108,6 +114,12 @@ class BookController extends Controller
         if ($book->status !== 'published' || $book->copyright_status !== 'clear') {
             Gate::authorize('view', $book);
         }
+
+        $book->loadAvg([
+            'ratings as visible_rating_avg' => fn ($query) => $query->where('is_hidden', false),
+        ], 'rating')->loadCount([
+            'ratings as visible_ratings_count' => fn ($query) => $query->where('is_hidden', false),
+        ]);
 
         return new BookResource($book->load([
             'author', 'publishingHouse', 'imprint',
