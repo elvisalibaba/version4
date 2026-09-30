@@ -1,19 +1,28 @@
 import { NextResponse } from "next/server";
 import { ApiError } from "@/lib/api/client";
-import { apiServer } from "@/lib/api/server";
+import { apiServer, getServerAuthToken } from "@/lib/api/server";
 import type { ApiBook } from "@/types/api";
 
 export async function GET(_request: Request, context: { params: Promise<{ bookId: string }> }) {
   const { bookId } = await context.params;
 
   try {
-    const [{ data: access }, { data: book }] = await Promise.all([
-      apiServer<{ data: { hasAccess: boolean } }>(`books/${encodeURIComponent(bookId)}/access`),
-      apiServer<{ data: ApiBook & { file_format?: string | null } }>(`books/${encodeURIComponent(bookId)}`),
-    ]);
+    const token = await getServerAuthToken();
+    const { data: book } = await apiServer<{ data: ApiBook & { file_format?: string | null } }>(
+      `books/${encodeURIComponent(bookId)}`,
+      { authenticated: false },
+    );
 
-    if (!access.hasAccess) {
-      return NextResponse.json({ error: "Accès à ce livre refusé." }, { status: 403 });
+    if (token) {
+      const { data: access } = await apiServer<{ data: { hasAccess: boolean } }>(
+        `books/${encodeURIComponent(bookId)}/access`,
+      );
+
+      if (!access.hasAccess) {
+        return NextResponse.json({ error: "Accès à ce livre refusé." }, { status: 403 });
+      }
+    } else if (!book.is_free) {
+      return NextResponse.json({ error: "Connectez-vous pour lire ce livre." }, { status: 401 });
     }
 
     const fileType = book.file_format === "pdf" ? "pdf" : "epub";

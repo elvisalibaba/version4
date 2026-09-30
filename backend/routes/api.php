@@ -66,6 +66,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::post('payments/easypay/notify', [PaymentController::class, 'notify'])->middleware('throttle:120,1')->name('payments.easypay.notify');
     Route::post('books/{book}/engagement', [EngagementController::class, 'store'])->middleware('throttle:120,1')->name('books.engagement.store');
     Route::get('books/{book}/reviews', [ReviewController::class, 'index'])->middleware('throttle:120,1')->name('books.reviews.index');
+    Route::get('books/{book}/read-free', [ReadController::class, 'free'])->middleware('throttle:120,1')->name('books.read-free');
 
     Route::middleware(['auth:sanctum', 'verified'])->group(function (): void {
         Route::get('auth/me', [AuthController::class, 'me'])->name('auth.me');

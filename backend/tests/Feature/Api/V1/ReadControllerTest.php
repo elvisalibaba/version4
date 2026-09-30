@@ -26,6 +26,35 @@ class ReadControllerTest extends TestCase
         $this->getJson("/api/v1/read/{$book->id}")->assertUnauthorized();
     }
 
+    public function test_guest_can_stream_a_free_published_book_from_public_endpoint(): void
+    {
+        $book = $this->createBookWithPrivateFile([
+            'price' => 0,
+            'status' => 'published',
+            'copyright_status' => 'clear',
+            'is_single_sale_enabled' => true,
+        ]);
+
+        $this->get("/api/v1/books/{$book->id}/read-free")
+            ->assertOk()
+            ->assertStreamed()
+            ->assertHeader('Content-Type', 'application/pdf');
+    }
+
+    public function test_guest_cannot_stream_a_paid_book_from_public_endpoint(): void
+    {
+        $book = $this->createBookWithPrivateFile([
+            'price' => 5,
+            'status' => 'published',
+            'copyright_status' => 'clear',
+            'is_single_sale_enabled' => true,
+        ]);
+
+        $this->getJson("/api/v1/books/{$book->id}/read-free")
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Ce livre n’est pas disponible en lecture gratuite.');
+    }
+
     public function test_paid_book_without_entitlement_returns_403(): void
     {
         [$user, $profile] = $this->createReader();
