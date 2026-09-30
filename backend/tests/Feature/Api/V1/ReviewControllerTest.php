@@ -11,6 +11,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -85,7 +86,7 @@ class ReviewControllerTest extends TestCase
         [$user, $profile] = $this->reader();
         $book = Book::factory()->subscriptionOnly()->create();
         $plan = SubscriptionPlan::factory()->create();
-        $plan->books()->attach($book->id);
+        $plan->books()->attach($book->id, ['id' => (string) Str::uuid()]);
 
         Subscription::factory()->create([
             'user_id' => $profile->id,
