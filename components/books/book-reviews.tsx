@@ -75,6 +75,7 @@ export function BookReviews({
   const [text, setText] = useState("");
 
   const currentReview = response?.current_user_review ?? null;
+  const canReview = response?.can_review !== false;
   const total = response?.summary?.reviews_count ?? response?.meta?.total ?? ratingsCount ?? 0;
   const lastPage = Math.max(1, response?.meta?.last_page ?? 1);
 
@@ -312,7 +313,19 @@ export function BookReviews({
         </div>
 
         <aside className="rounded-[1.6rem] border border-[#ded2c6] bg-[#fffdf9] p-5 lg:sticky lg:top-28">
-          {isAuthenticated ? (
+          {isAuthenticated && !canReview && !currentReview ? (
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#c34d35]">
+                Votre livre
+              </p>
+              <h3 className="mt-2 font-display text-xl font-extrabold">
+                Vous êtes l’auteur de ce livre
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-[#756a61]">
+                Pour garder des avis fiables, les auteurs ne peuvent pas noter leurs propres livres.
+              </p>
+            </div>
+          ) : isAuthenticated ? (
             <form onSubmit={submit}>
               <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#c34d35]">
                 {currentReview ? "Votre avis" : "Donner votre avis"}

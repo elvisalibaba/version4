@@ -10,14 +10,20 @@ use App\Http\Resources\ReviewResource;
 use App\Models\Book;
 use App\Models\Rating;
 use App\Services\ReviewVerificationService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 class ReviewController extends Controller
 {
+    private const DUPLICATE_MESSAGE = 'Vous avez déjà publié un avis pour ce livre.';
+
+    private const OWN_BOOK_MESSAGE = 'Vous ne pouvez pas noter votre propre livre.';
+
     public function index(
         IndexBookReviewsRequest $request,
         Book $book,
@@ -82,6 +88,9 @@ class ReviewController extends Controller
             'current_user_review' => $currentReview
                 ? (new ReviewResource($currentReview))->resolve($request)
                 : null,
+            'can_review' => $currentProfileId === null
+                ? null
+                : ! $this->isOwnBook($book, $currentProfileId),
         ]);
     }
 
@@ -94,18 +103,28 @@ class ReviewController extends Controller
         $profile = $request->user()->profile;
         abort_unless($profile !== null, 403);
 
+        abort_if($this->isOwnBook($book, $profile->id), 403, self::OWN_BOOK_MESSAGE);
+
         if (Rating::query()->where('user_id', $profile->id)->where('book_id', $book->id)->exists()) {
             throw ValidationException::withMessages([
-                'rating' => 'Vous avez déjà publié un avis pour ce livre.',
+                'rating' => self::DUPLICATE_MESSAGE,
             ]);
         }
 
-        $rating = Rating::query()->create([
-            'user_id' => $profile->id,
-            'book_id' => $book->id,
-            'rating' => $request->integer('rating'),
-            'review_text' => $request->validated('text'),
-        ])->load('profile:id,name,first_name,last_name');
+        try {
+            $rating = Rating::query()->create([
+                'user_id' => $profile->id,
+                'book_id' => $book->id,
+                'rating' => $request->integer('rating'),
+                'review_text' => $request->validated('text'),
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            throw ValidationException::withMessages([
+                'rating' => self::DUPLICATE_MESSAGE,
+            ]);
+        }
+
+        $rating->load('profile:id,name,first_name,last_name');
 
         $rating->setAttribute('verified_purchase', $verification->isVerified($book, $profile->id));
         $rating->setAttribute('is_mine', true);
@@ -151,5 +170,17 @@ class ReviewController extends Controller
             $book->status === 'published' && $book->copyright_status === 'clear',
             404,
         );
+    }
+
+    private function isOwnBook(Book $book, string $profileId): bool
+    {
+        if ($book->author_id === $profileId) {
+            return true;
+        }
+
+        return DB::table('book_authors')
+            ->where('book_id', $book->id)
+            ->where('author_id', $profileId)
+            ->exists();
     }
 }

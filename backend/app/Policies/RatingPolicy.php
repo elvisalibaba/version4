@@ -11,8 +11,7 @@ class RatingPolicy
     {
         $profile = $user->profile;
 
-        return $profile !== null
-            && ($profile->role === 'admin' || $rating->user_id === $profile->id);
+        return $profile !== null && $rating->user_id === $profile->id;
     }
 
     public function delete(User $user, Rating $rating): bool

@@ -24,11 +24,7 @@ class ReviewVerificationService
             return [];
         }
 
-        $book->loadMissing(['formats', 'subscriptionPlans:id']);
-
-        if ($this->isFree($book)) {
-            return $ids->all();
-        }
+        $book->loadMissing(['subscriptionPlans:id']);
 
         $permanentIds = Library::query()
             ->where('book_id', $book->id)
@@ -63,17 +59,5 @@ class ReviewVerificationService
             $this->verifiedProfileIds($book, collect([$profileId])),
             true,
         );
-    }
-
-    private function isFree(Book $book): bool
-    {
-        $preferredFormat = $book->formats
-            ->where('is_published', true)
-            ->whereIn('format', ['holistique_store', 'ebook'])
-            ->sortBy(fn ($format): int => $format->format === 'holistique_store' ? 0 : 1)
-            ->first();
-
-        return $book->is_single_sale_enabled
-            && (float) ($preferredFormat?->price ?? $book->price) <= 0;
     }
 }

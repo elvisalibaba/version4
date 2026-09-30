@@ -15,6 +15,8 @@ class BookResource extends JsonResource
             $coverUrl = Storage::disk('public')->url($coverUrl);
         }
 
+        $hasVisibleAggregates = array_key_exists('visible_ratings_count', $this->resource->getAttributes());
+
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -63,10 +65,12 @@ class BookResource extends JsonResource
             'clicks_count' => $this->clicks_count,
             'purchases_count' => $this->purchases_count,
             'is_free' => $this->is_single_sale_enabled && (float) $this->price <= 0,
-            'rating_avg' => ($this->getAttribute('visible_rating_avg') ?? $this->rating_avg) !== null
-                ? (float) ($this->getAttribute('visible_rating_avg') ?? $this->rating_avg)
-                : null,
-            'ratings_count' => (int) ($this->getAttribute('visible_ratings_count') ?? $this->ratings_count ?? 0),
+            'rating_avg' => $hasVisibleAggregates
+                ? ($this->getAttribute('visible_rating_avg') !== null ? (float) $this->getAttribute('visible_rating_avg') : null)
+                : ($this->rating_avg !== null ? (float) $this->rating_avg : null),
+            'ratings_count' => $hasVisibleAggregates
+                ? (int) $this->getAttribute('visible_ratings_count')
+                : (int) ($this->ratings_count ?? 0),
             'is_single_sale_enabled' => $this->is_single_sale_enabled,
             'is_subscription_available' => $this->is_subscription_available,
             'formats' => $this->whenLoaded('formats', fn () => $this->formats->map(fn ($format): array => [

@@ -8,7 +8,6 @@ export type BookReview = {
   verified_purchase: boolean;
   is_mine: boolean;
   author: {
-    id: string;
     name: string;
   };
   created_at: string;
@@ -18,6 +17,7 @@ export type BookReview = {
 export type ReviewsResponse = {
   data: BookReview[];
   current_user_review: BookReview | null;
+  can_review?: boolean | null;
   summary?: {
     rating_avg: number | null;
     reviews_count: number;
