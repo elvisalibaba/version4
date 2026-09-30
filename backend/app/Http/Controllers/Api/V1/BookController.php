@@ -106,12 +106,6 @@ class BookController extends Controller
 
         $book->subscriptionPlans()->sync($book->is_subscription_available ? $planIds : []);
 
-        $book->loadAvg([
-            'ratings as visible_rating_avg' => fn ($query) => $query->where('is_hidden', false),
-        ], 'rating')->loadCount([
-            'ratings as visible_ratings_count' => fn ($query) => $query->where('is_hidden', false),
-        ]);
-
         return new BookResource($book->load(['author', 'publishingHouse', 'imprint', 'mediaEditions', 'formats', 'subscriptionPlans']));
     }
 
@@ -120,6 +114,12 @@ class BookController extends Controller
         if ($book->status !== 'published' || $book->copyright_status !== 'clear') {
             Gate::authorize('view', $book);
         }
+
+        $book->loadAvg([
+            'ratings as visible_rating_avg' => fn ($query) => $query->where('is_hidden', false),
+        ], 'rating')->loadCount([
+            'ratings as visible_ratings_count' => fn ($query) => $query->where('is_hidden', false),
+        ]);
 
         return new BookResource($book->load([
             'author', 'publishingHouse', 'imprint',
