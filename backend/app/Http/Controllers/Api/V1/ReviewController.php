@@ -68,7 +68,17 @@ class ReviewController extends Controller
             }
         }
 
+        $summary = Rating::query()
+            ->visible()
+            ->where('book_id', $book->id)
+            ->selectRaw('COUNT(*) as reviews_count, AVG(rating) as rating_avg')
+            ->first();
+
         return ReviewResource::collection($reviews)->additional([
+            'summary' => [
+                'rating_avg' => $summary?->rating_avg !== null ? (float) $summary->rating_avg : null,
+                'reviews_count' => (int) ($summary?->reviews_count ?? 0),
+            ],
             'current_user_review' => $currentReview
                 ? (new ReviewResource($currentReview))->resolve($request)
                 : null,
