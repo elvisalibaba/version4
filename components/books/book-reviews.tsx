@@ -75,7 +75,7 @@ export function BookReviews({
   const [text, setText] = useState("");
 
   const currentReview = response?.current_user_review ?? null;
-  const total = response?.meta?.total ?? ratingsCount ?? 0;
+  const total = response?.summary?.reviews_count ?? response?.meta?.total ?? ratingsCount ?? 0;
   const lastPage = Math.max(1, response?.meta?.last_page ?? 1);
 
   const load = useCallback(async () => {
@@ -126,9 +126,9 @@ export function BookReviews({
   }, [currentReview]);
 
   const average = useMemo(() => {
-    const value = Number(ratingAvg ?? 0);
+    const value = Number(response?.summary?.rating_avg ?? ratingAvg ?? 0);
     return Number.isFinite(value) && total > 0 ? value : null;
-  }, [ratingAvg, total]);
+  }, [ratingAvg, response?.summary?.rating_avg, total]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
