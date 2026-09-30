@@ -63,8 +63,8 @@ class BookResource extends JsonResource
             'clicks_count' => $this->clicks_count,
             'purchases_count' => $this->purchases_count,
             'is_free' => $this->is_single_sale_enabled && (float) $this->price <= 0,
-            'rating_avg' => $this->rating_avg,
-            'ratings_count' => $this->ratings_count,
+            'rating_avg' => $this->getAttribute('visible_rating_avg') ?? $this->rating_avg,
+            'ratings_count' => $this->getAttribute('visible_ratings_count') ?? $this->ratings_count,
             'is_single_sale_enabled' => $this->is_single_sale_enabled,
             'is_subscription_available' => $this->is_subscription_available,
             'formats' => $this->whenLoaded('formats', fn () => $this->formats->map(fn ($format): array => [
