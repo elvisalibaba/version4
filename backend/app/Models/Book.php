@@ -100,6 +100,11 @@ class Book extends Model
         return $this->hasMany(BookAsset::class);
     }
 
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(Rating::class);
+    }
+
     public function subscriptionPlans(): BelongsToMany
     {
         return $this->belongsToMany(SubscriptionPlan::class, 'subscription_plan_books', 'book_id', 'plan_id');
