@@ -41,14 +41,16 @@ class DiagnoseAdminCatalogue extends Command
             return self::FAILURE;
         }
 
-        foreach (['users', 'profiles', 'author_profiles', 'books'] as $table) {
+        foreach (['users', 'profiles', 'author_profiles', 'books', 'categories', 'subscription_plans', 'publishing_houses', 'publishing_house_members', 'rights_acquisition_targets', 'ad_placements', 'media_editions'] as $table) {
             $exists = DB::getSchemaBuilder()->hasTable($table);
             $this->line("TABLE {$table}: ".($exists ? 'OK' : 'MISSING'));
         }
 
         foreach ([
             'books' => ['id', 'title', 'author_id', 'co_authors', 'categories', 'tags', 'cover_url'],
-            'author_profiles' => ['id', 'display_name', 'social_links', 'genres', 'press_mentions'],
+            'author_profiles' => ['id', 'display_name', 'social_links', 'genres', 'press_mentions', 'country_code', 'catalog_origin', 'rights_status'],
+            'categories' => ['id', 'name', 'slug', 'parent_id', 'sort_order', 'is_active', 'is_featured', 'content_types'],
+            'subscription_plans' => ['id', 'name', 'slug', 'monthly_price', 'currency_code', 'max_devices', 'offline_days', 'downloads_enabled', 'is_active'],
         ] as $table => $columns) {
             foreach ($columns as $column) {
                 $exists = DB::getSchemaBuilder()->hasColumn($table, $column);
@@ -71,14 +73,20 @@ class DiagnoseAdminCatalogue extends Command
             $this->warn('AUTHOR_PROFILE_ACCOUNT_FK: CHECK_SKIPPED - '.$e->getMessage());
         }
 
-        try {
-            $privateProbe = 'diagnostics/private-write-test-'.now()->format('YmdHis').'.txt';
-            Storage::disk('local')->put($privateProbe, 'ok');
-            $this->line('PRIVATE_STORAGE_WRITE: '.(Storage::disk('local')->exists($privateProbe) ? 'OK' : 'FAILED'));
-            Storage::disk('local')->delete($privateProbe);
-        } catch (Throwable $e) {
-            $this->error('PRIVATE_STORAGE_WRITE: ERROR - '.$e->getMessage());
-            return self::FAILURE;
+        foreach ([
+            'local' => 'diagnostics/private-write-test-',
+            'books' => 'diagnostics/books-write-test-',
+        ] as $diskName => $prefix) {
+            try {
+                $probe = $prefix.now()->format('YmdHis').'.txt';
+                $disk = Storage::disk($diskName);
+                $disk->put($probe, 'ok');
+                $this->line(strtoupper($diskName).'_STORAGE_WRITE: '.($disk->exists($probe) ? 'OK' : 'FAILED'));
+                $disk->delete($probe);
+            } catch (Throwable $e) {
+                $this->error(strtoupper($diskName).'_STORAGE_WRITE: ERROR - '.$e->getMessage());
+                return self::FAILURE;
+            }
         }
 
         try {
