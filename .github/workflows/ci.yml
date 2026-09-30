@@ -54,6 +54,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
+          extensions: mbstring, intl, pdo_sqlite, sqlite3, fileinfo, zip
           coverage: none
 
       - name: Validate Composer manifest
@@ -68,6 +69,28 @@ jobs:
         working-directory: backend
         run: |
           find app routes config database tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Backend tests
+        working-directory: backend
+        env:
+          APP_ENV: testing
+          APP_KEY: base64:Z3FBZHd2dXl6aWpLTktZcU92b0U4bE40V3pQZVZDUVI=
+          APP_DEBUG: false
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+          CACHE_STORE: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+          MAIL_MAILER: array
+          EASYPAY_BASE_URL: https://payments.test
+          EASYPAY_MODE: sandbox
+          EASYPAY_CORRELATION_ID: test-cid
+          EASYPAY_PUBLISHABLE_KEY: test-key
+          FRONTEND_URL: http://localhost:3000
+        run: |
+          php artisan optimize:clear
+          php artisan route:list
+          php artisan test
 
       - name: Setup Node for Filament themes
         uses: actions/setup-node@v4

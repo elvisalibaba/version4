@@ -27,7 +27,15 @@ export function BookCard({ book }: { book: Book }) {
         <p className="text-[.68rem] font-bold uppercase tracking-[.16em] text-[#b85135]">{book.author_name ?? "Auteur Holistique"}</p>
         <h3 className="mt-1.5 line-clamp-2 font-serif text-xl leading-tight text-[#17231d]"><Link href={href} onClick={trackClick} className="hover:text-[#b85135]">{book.title}</Link></h3>
         <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#ddd1c0] pt-3">
-          <span className="flex items-center gap-1 text-sm font-bold"><Star className="h-3.5 w-3.5 fill-[#e8ac42] text-[#e8ac42]" />{book.rating_avg ? book.rating_avg.toFixed(1) : "Nouveau"}</span>
+          <span className="flex items-center gap-1 text-sm font-bold">
+            <Star className="h-3.5 w-3.5 fill-[#e8ac42] text-[#e8ac42]" />
+            {book.rating_avg ? (
+              <>
+                {book.rating_avg.toFixed(1)}
+                <span className="font-semibold text-[#8a7e73]">({book.ratings_count ?? 0})</span>
+              </>
+            ) : "Nouveau"}
+          </span>
           <Link href={href} onClick={trackClick} className="flex items-center gap-1 text-sm font-bold text-[#173d2c]">{price}<ArrowUpRight className="h-4 w-4" /></Link>
         </div>
       </div>

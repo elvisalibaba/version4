@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\V1\PublicContentController;
 use App\Http\Controllers\Api\V1\PublicMediaController;
 use App\Http\Controllers\Api\V1\ReadController;
 use App\Http\Controllers\Api\V1\ReaderDashboardController;
+use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\ReadingProgressController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use Illuminate\Support\Facades\Route;
@@ -64,6 +65,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::post('editorial-training', [EditorialTrainingController::class, 'store'])->middleware('throttle:20,1')->name('editorial-training.store');
     Route::post('payments/easypay/notify', [PaymentController::class, 'notify'])->middleware('throttle:120,1')->name('payments.easypay.notify');
     Route::post('books/{book}/engagement', [EngagementController::class, 'store'])->middleware('throttle:120,1')->name('books.engagement.store');
+    Route::get('books/{book}/reviews', [ReviewController::class, 'index'])->middleware('throttle:120,1')->name('books.reviews.index');
 
     Route::middleware(['auth:sanctum', 'verified'])->group(function (): void {
         Route::get('auth/me', [AuthController::class, 'me'])->name('auth.me');
@@ -72,6 +74,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::apiResource('books', BookController::class)->only(['store', 'update', 'destroy']);
         Route::post('books/{book}', [BookController::class, 'update'])->name('books.update.multipart');
         Route::get('books/{book}/access', [BookAccessController::class, 'show'])->name('books.access');
+        Route::post('books/{book}/reviews', [ReviewController::class, 'store'])->middleware('throttle:10,1')->name('books.reviews.store');
+        Route::put('reviews/{rating}', [ReviewController::class, 'update'])->middleware('throttle:30,1')->name('reviews.update');
+        Route::delete('reviews/{rating}', [ReviewController::class, 'destroy'])->middleware('throttle:30,1')->name('reviews.destroy');
 
         Route::get('library', [LibraryController::class, 'index'])->name('library.index');
         Route::get('favorites', [FavoriteController::class, 'index'])->name('favorites.index');
