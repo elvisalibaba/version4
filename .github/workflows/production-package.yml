@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   package:
-    name: Build Laravel cPanel ZIP
+    name: Build Laravel cPanel dual ZIP
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -42,36 +42,67 @@ jobs:
           npm run build
           php artisan filament:assets || true
 
-      - name: Prepare cPanel release directory
+      - name: Set release names
         run: |
-          mkdir -p release
-          cp -a backend/. release/
-          rm -rf release/node_modules
-          rm -rf release/tests
-          rm -rf release/.agents
-          rm -rf release/.claude
-          rm -f release/.env
-          rm -f release/deploy-cpanel.sh
-          rm -rf release/storage/logs/*
-          mkdir -p release/storage/logs
-          mkdir -p release/storage/framework/cache/data
-          mkdir -p release/storage/framework/sessions
-          mkdir -p release/storage/framework/views
-          chmod -R ug+rwX release/storage release/bootstrap/cache || true
+          RELEASE_DATE="$(date -u +%Y-%m-%d)"
+          echo "RELEASE_DATE=$RELEASE_DATE" >> "$GITHUB_ENV"
+          echo "PRIVATE_ZIP=holisticbooks-api-production-publishing-platform-$RELEASE_DATE.zip" >> "$GITHUB_ENV"
+          echo "PUBLIC_ZIP=holisticbooks-api-public-publishing-platform-$RELEASE_DATE.zip" >> "$GITHUB_ENV"
 
-      - name: Create deployment archive
+      - name: Prepare private Laravel package
         run: |
-          cd release
-          zip -r ../holisticbooks-api-production.zip . -x ".git/*" -x "*.DS_Store"
-          cd ..
-          sha256sum holisticbooks-api-production.zip > holisticbooks-api-production.sha256
+          mkdir -p release-private
+          cp -a backend/. release-private/
+          rm -rf release-private/node_modules
+          rm -rf release-private/tests
+          rm -rf release-private/.agents
+          rm -rf release-private/.claude
+          rm -f release-private/.env
+          rm -f release-private/deploy-cpanel.sh
+          rm -rf release-private/storage/logs/*
+          mkdir -p release-private/storage/logs
+          mkdir -p release-private/storage/framework/cache/data
+          mkdir -p release-private/storage/framework/sessions
+          mkdir -p release-private/storage/framework/views
+          chmod -R ug+rwX release-private/storage release-private/bootstrap/cache || true
 
-      - name: Upload production package
+      - name: Prepare public api.aba.cd package
+        run: |
+          mkdir -p release-public
+          cp -a backend/public/. release-public/
+
+          # api.aba.cd lives in /home/<cpanel-user>/public_html/api.aba.cd
+          # Laravel itself lives in /home/<cpanel-user>/holistic-api.
+          # From the public document root, ../../holistic-api resolves to the private app.
+          sed -i "s#__DIR__.'/../storage/#__DIR__.'/../../holistic-api/storage/#g" release-public/index.php
+          sed -i "s#__DIR__.'/../vendor/#__DIR__.'/../../holistic-api/vendor/#g" release-public/index.php
+          sed -i "s#__DIR__.'/../bootstrap/#__DIR__.'/../../holistic-api/bootstrap/#g" release-public/index.php
+
+          grep -F "__DIR__.'/../../holistic-api/vendor/autoload.php'" release-public/index.php
+          grep -F "__DIR__.'/../../holistic-api/bootstrap/app.php'" release-public/index.php
+
+      - name: Create deployment archives
+        run: |
+          (
+            cd release-private
+            zip -r "../$PRIVATE_ZIP" . -x ".git/*" -x "*.DS_Store"
+          )
+          (
+            cd release-public
+            zip -r "../$PUBLIC_ZIP" . -x ".git/*" -x "*.DS_Store"
+          )
+
+          sha256sum "$PRIVATE_ZIP" > "$PRIVATE_ZIP.sha256"
+          sha256sum "$PUBLIC_ZIP" > "$PUBLIC_ZIP.sha256"
+
+      - name: Upload cPanel packages
         uses: actions/upload-artifact@v4
         with:
-          name: holisticbooks-api-production
+          name: holisticbooks-api-publishing-platform-${{ env.RELEASE_DATE }}
           path: |
-            holisticbooks-api-production.zip
-            holisticbooks-api-production.sha256
+            ${{ env.PRIVATE_ZIP }}
+            ${{ env.PUBLIC_ZIP }}
+            ${{ env.PRIVATE_ZIP }}.sha256
+            ${{ env.PUBLIC_ZIP }}.sha256
           if-no-files-found: error
           retention-days: 30

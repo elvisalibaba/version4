@@ -14,26 +14,30 @@ GitHub Actions construit le backend Laravel à la place du serveur :
 
 Le serveur cPanel ne doit donc pas exécuter Composer ou npm.
 
-## 1. Paquet de production
+## 1. Paquets de production
 
 Chaque push sur la branche `production` déclenche le workflow `Production package`.
 
-Dans GitHub :
+Le workflow génère quatre fichiers datés :
 
-1. ouvrir **Actions** ;
-2. ouvrir le dernier run **Production package** ;
-3. télécharger l'artifact **holisticbooks-api-production** ;
-4. décompresser l'artifact localement : il contient `holisticbooks-api-production.zip` et son checksum SHA-256.
+- `holisticbooks-api-production-publishing-platform-YYYY-MM-DD.zip`
+- `holisticbooks-api-public-publishing-platform-YYYY-MM-DD.zip`
+- `holisticbooks-api-production-publishing-platform-YYYY-MM-DD.zip.sha256`
+- `holisticbooks-api-public-publishing-platform-YYYY-MM-DD.zip.sha256`
 
-Le ZIP Laravel contient directement `app/`, `bootstrap/`, `public/`, `vendor/`, etc.
+Le ZIP **production** contient toute l'application Laravel prête à fonctionner : `app/`, `bootstrap/`, `config/`, `database/`, `public/`, `resources/`, `routes/`, `storage/`, `vendor/`, `artisan`, etc.
+
+Le ZIP **public** contient uniquement les fichiers exposés par `api.aba.cd` et un `index.php` déjà adapté pour charger Laravel depuis `../../holistic-api`.
 
 ## 2. cPanel File Manager
 
-Créer un dossier privé hors de `public_html`, par exemple :
+### Application Laravel privée
+
+Le dossier privé reste :
 
 `/home/CPANEL_USER/holistic-api`
 
-Uploader `holisticbooks-api-production.zip` dans ce dossier puis l'extraire.
+Uploader le ZIP **production** dans ce dossier puis l'extraire.
 
 Le résultat attendu :
 
@@ -52,13 +56,35 @@ Le résultat attendu :
   composer.json
 ```
 
+### Document Root public
+
+Le Document Root existant de `api.aba.cd` reste :
+
+`/home/CPANEL_USER/public_html/api.aba.cd`
+
+Uploader le ZIP **public** dans ce dossier puis l'extraire.
+
+Le résultat attendu contient notamment :
+
+```text
+/home/CPANEL_USER/public_html/api.aba.cd/
+  index.php
+  .htaccess
+  build/
+  ...
+```
+
+Ne jamais copier toute l'application Laravel dans `public_html`.
+
 ## 3. Document Root
 
-Dans **cPanel > Domains**, le Document Root de `api.aba.cd` doit être :
+Dans **cPanel > Domains**, le Document Root de `api.aba.cd` doit rester :
 
-`/home/CPANEL_USER/holistic-api/public`
+`/home/CPANEL_USER/public_html/api.aba.cd`
 
-Ne jamais exposer la racine Laravel.
+Le `index.php` du paquet public charge l'application privée située dans :
+
+`/home/CPANEL_USER/holistic-api`
 
 ## 4. Fichier .env
 
