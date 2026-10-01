@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:holistic_books/src/core/constants/app_colors.dart';
-import 'package:holistic_books/src/core/constants/app_dimensions.dart';
 import 'package:holistic_books/src/core/widgets/app_logo.dart';
 import 'package:holistic_books/src/core/widgets/book_cover.dart';
 import 'package:holistic_books/src/features/books/data/books_repository.dart';
