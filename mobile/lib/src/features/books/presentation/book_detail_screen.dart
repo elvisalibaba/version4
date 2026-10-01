@@ -18,7 +18,7 @@ class BookDetailScreen extends StatelessWidget {
           Text('Fiche livre', style: Theme.of(context).textTheme.headlineMedium),
           const Spacer(),
           FilledButton.icon(
-            onPressed: () => context.push('/reader/' + bookId),
+            onPressed: () => context.push('/reader/$bookId'),
             icon: const Icon(Icons.chrome_reader_mode_rounded),
             label: const Text('Lire maintenant'),
           ),
