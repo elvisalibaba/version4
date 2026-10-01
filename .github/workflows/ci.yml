@@ -130,3 +130,7 @@ jobs:
       - name: Analyze mobile
         working-directory: mobile
         run: flutter analyze
+
+      - name: Test mobile
+        working-directory: mobile
+        run: flutter test
