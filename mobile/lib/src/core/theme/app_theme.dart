@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:holistic_books/src/core/theme/app_colors.dart';
+import 'package:holistic_books/src/core/theme/app_metrics.dart';
 
 class AppTheme {
   static ThemeData get light {
@@ -27,7 +28,7 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
       ),
       navigationBarTheme: NavigationBarThemeData(
-        height: 72,
+        height: AppMetrics.bottomBarHeight,
         backgroundColor: AppColors.white,
         indicatorColor: AppColors.surfaceStrong,
         iconTheme: WidgetStateProperty.resolveWith((states) {
@@ -39,7 +40,7 @@ class AppTheme {
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
-            fontSize: 11,
+            fontSize: AppMetrics.navLabelSize,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
             color: selected ? AppColors.primary : AppColors.inactive,
           );
