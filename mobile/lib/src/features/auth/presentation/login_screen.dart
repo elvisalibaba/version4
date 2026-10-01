@@ -28,7 +28,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final api = ref.read(apiClientProvider);
       final response = await api.dio.post<Map<String, dynamic>>(
         '/auth/login',
-        data: {'email': _email.text.trim(), 'password': _password.text},
+        data: {'email': _email.text.trim(), 'password': _password.text, 'device_name': 'HolisticBooks Mobile'},
       );
       final directToken = response.data?['token'] as String?;
       final data = response.data?['data'] as Map<String, dynamic>?;
@@ -57,6 +57,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (_error != null) ...[const SizedBox(height: 12), Text(_error!)],
         const SizedBox(height: 20),
         FilledButton(onPressed: _loading ? null : _login, child: Text(_loading ? 'Connexion...' : 'Se connecter')),
+        TextButton(onPressed: () => context.push('/register'), child: const Text('Créer un compte lecteur')),
       ],
     ),
   );
