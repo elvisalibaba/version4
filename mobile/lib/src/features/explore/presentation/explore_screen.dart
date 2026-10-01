@@ -205,7 +205,7 @@ class _GenresSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (state.status) {
-      SectionStatus.loading => const SectionLoadingSkeleton(height: 52),
+      SectionStatus.loading => const SectionLoadingSkeleton(height: AppMetrics.genreSkeletonHeight),
       SectionStatus.empty => const SectionEmptyState(
           message: 'Aucun genre disponible.',
         ),
