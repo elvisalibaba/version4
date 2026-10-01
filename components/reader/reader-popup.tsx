@@ -200,14 +200,16 @@ export function ReaderPopup({
   const [pdfJumpInput, setPdfJumpInput] = useState("1");
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
   const [isGuestReader, setIsGuestReader] = useState(false);
+  const [guestPreviewLimit, setGuestPreviewLimit] = useState<number | null>(null);
+  const [previewGateOpen, setPreviewGateOpen] = useState(false);
 
   const isEpub = useMemo(() => fileType === "epub", [fileType]);
   const isPdf = useMemo(() => fileType === "pdf", [fileType]);
   const pdfStep = pdfSpreadMode ? 2 : 1;
-  const pdfVisiblePages = useMemo(
-    () => (pdfSpreadMode ? [pdfPageNumber, pdfPageNumber + 1] : [pdfPageNumber]),
-    [pdfPageNumber, pdfSpreadMode],
-  );
+  const pdfVisiblePages = useMemo(() => {
+    const pages = pdfSpreadMode ? [pdfPageNumber, pdfPageNumber + 1] : [pdfPageNumber];
+    return guestPreviewLimit ? pages.filter((page) => page <= guestPreviewLimit) : pages;
+  }, [guestPreviewLimit, pdfPageNumber, pdfSpreadMode]);
   const currentReaderPage = isPdf ? pdfPageNumber : epubCurrentPage;
   const currentColorOption = getHighlightColorOption(highlightColor);
   const pdfPageLabel =
@@ -222,9 +224,21 @@ export function ReaderPopup({
   }, [isEpub, isPdf, pdfStep]);
 
   const goNext = useCallback(() => {
+    if (isGuestReader && guestPreviewLimit && currentReaderPage >= guestPreviewLimit) {
+      setPreviewGateOpen(true);
+      return;
+    }
+
     if (isEpub) renditionRef.current?.next();
-    if (isPdf) setPdfPageNumber((previous) => Math.min(Math.max(1, pdfPageCount - (pdfSpreadMode ? 1 : 0)), previous + pdfStep));
-  }, [isEpub, isPdf, pdfPageCount, pdfSpreadMode, pdfStep]);
+    if (isPdf) {
+      setPdfPageNumber((previous) => {
+        const maxPage = guestPreviewLimit
+          ? Math.min(guestPreviewLimit, Math.max(1, pdfPageCount - (pdfSpreadMode ? 1 : 0)))
+          : Math.max(1, pdfPageCount - (pdfSpreadMode ? 1 : 0));
+        return Math.min(maxPage, previous + pdfStep);
+      });
+    }
+  }, [currentReaderPage, guestPreviewLimit, isEpub, isGuestReader, isPdf, pdfPageCount, pdfSpreadMode, pdfStep]);
 
   useEffect(() => {
     if (!open) {
@@ -349,6 +363,8 @@ export function ReaderPopup({
       setPdfSpreadMode(false);
       setMobileToolsOpen(false);
       setIsGuestReader(false);
+      setGuestPreviewLimit(null);
+      setPreviewGateOpen(false);
       setPdfJumpInput("1");
       setEpubProgress(0);
       setEpubCurrentCfi(null);
@@ -372,6 +388,9 @@ export function ReaderPopup({
 
         setFileUrl(readerPayload.readerUrl);
         setFileType(readerPayload.fileType);
+        setGuestPreviewLimit(
+          typeof readerPayload.previewPageLimit === "number" ? readerPayload.previewPageLimit : null,
+        );
 
         const authPayload = authResponse.ok ? await authResponse.json() : { data: null };
         const user = authPayload.data ?? null;
@@ -638,7 +657,14 @@ export function ReaderPopup({
       return;
     }
 
-    const normalizedPage = Math.max(1, Math.min(pdfPageCount || parsedPage, Math.floor(parsedPage)));
+    if (isGuestReader && guestPreviewLimit && parsedPage > guestPreviewLimit) {
+      setPreviewGateOpen(true);
+      setPdfJumpInput(String(guestPreviewLimit));
+      return;
+    }
+
+    const effectivePageCount = guestPreviewLimit ? Math.min(pdfPageCount || guestPreviewLimit, guestPreviewLimit) : (pdfPageCount || parsedPage);
+    const normalizedPage = Math.max(1, Math.min(effectivePageCount, Math.floor(parsedPage)));
     setPdfPageNumber(pdfSpreadMode && normalizedPage > 1 && normalizedPage % 2 === 0 ? normalizedPage - 1 : normalizedPage);
   }
 
@@ -902,7 +928,13 @@ export function ReaderPopup({
                               <button
                                 key={`${item.href}-${item.label}`}
                                 type="button"
-                                onClick={() => renditionRef.current?.display(item.href)}
+                                onClick={() => {
+                                  if (isGuestReader) {
+                                    setPreviewGateOpen(true);
+                                    return;
+                                  }
+                                  void renditionRef.current?.display(item.href);
+                                }}
                                 className="block w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm text-white/80 transition hover:border-[#f7c78f]/40 hover:bg-white/10"
                                 style={{ paddingLeft: `${item.depth * 14 + 12}px` }}
                               >
@@ -926,7 +958,7 @@ export function ReaderPopup({
                             <input
                               type="number"
                               min="1"
-                              max={pdfPageCount || undefined}
+                              max={guestPreviewLimit ? Math.min(pdfPageCount || guestPreviewLimit, guestPreviewLimit) : (pdfPageCount || undefined)}
                               value={pdfJumpInput}
                               onChange={(event) => setPdfJumpInput(event.target.value)}
                               className="min-h-11 flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white"
@@ -999,9 +1031,9 @@ export function ReaderPopup({
 
                   {isGuestReader ? (
                     <div className="mt-4 rounded-[1.15rem] border border-[#f7c78f]/25 bg-[#f7c78f]/10 p-4">
-                      <p className="text-sm font-semibold text-white">Vous lisez librement, en mode invité.</p>
+                      <p className="text-sm font-semibold text-white">Aperçu gratuit jusqu’à 10 pages.</p>
                       <p className="mt-2 text-sm leading-6 text-white/65">
-                        Les réglages, le sommaire et toute la lecture restent disponibles. Un compte est utile uniquement pour conserver vos notes et retrouver le livre plus tard.
+                        Vous pouvez découvrir les 10 premières pages sans compte. Créez un compte lecteur pour continuer gratuitement au-delà de l’aperçu et conserver votre progression.
                       </p>
                       <Link
                         href={`/register?role=reader&next=${encodeURIComponent(`/book/${bookId}`)}`}
@@ -1101,6 +1133,28 @@ export function ReaderPopup({
         </div>
         {fileUrl ? <div className="relative h-1.5 shrink-0 bg-[#d5d2cc]" aria-label={`Progression ${readerProgress}%`}><div className="h-full bg-[#e8ac42] transition-[width] duration-300" style={{ width: `${Math.max(0, Math.min(100, readerProgress))}%` }} /></div> : null}
       </div>
+      {previewGateOpen ? (
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[2rem] bg-white p-7 text-[#1d1a17] shadow-2xl">
+            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#c34d35]">Aperçu terminé</p>
+            <h3 className="mt-3 font-display text-2xl font-extrabold">Vous avez lu les 10 pages gratuites.</h3>
+            <p className="mt-3 text-sm leading-7 text-[#665c53]">
+              Créez un compte lecteur gratuit pour continuer le livre complet, synchroniser votre progression et retrouver vos lectures sur mobile.
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <Link href={`/register?role=reader&next=${encodeURIComponent(`/book/${bookId}`)}`} className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#173f38] px-4 text-sm font-extrabold text-white">
+                Créer un compte
+              </Link>
+              <Link href={`/login?next=${encodeURIComponent(`/book/${bookId}`)}`} className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#d8cabc] px-4 text-sm font-extrabold">
+                Se connecter
+              </Link>
+            </div>
+            <button type="button" onClick={() => setPreviewGateOpen(false)} className="mt-4 w-full text-sm font-semibold text-[#7a6655]">
+              Revenir aux 10 premières pages
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
