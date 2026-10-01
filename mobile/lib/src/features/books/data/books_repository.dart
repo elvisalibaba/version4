@@ -10,6 +10,10 @@ final booksProvider = FutureProvider<List<Book>>((ref) {
   return ref.watch(booksRepositoryProvider).fetchBooks();
 });
 
+final bookProvider = FutureProvider.family<Book, String>((ref, bookId) {
+  return ref.watch(booksRepositoryProvider).fetchBook(bookId);
+});
+
 class BooksRepository {
   BooksRepository(this._api);
   final ApiClient _api;
@@ -21,5 +25,14 @@ class BooksRepository {
         .whereType<Map<String, dynamic>>()
         .map(Book.fromJson)
         .toList(growable: false);
+  }
+
+  Future<Book> fetchBook(String bookId) async {
+    final response = await _api.dio.get<Map<String, dynamic>>('/books/$bookId');
+    final payload = response.data?['data'] as Map<String, dynamic>?;
+    if (payload == null) {
+      throw StateError('Livre introuvable');
+    }
+    return Book.fromJson(payload);
   }
 }
