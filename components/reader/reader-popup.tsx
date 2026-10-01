@@ -657,7 +657,14 @@ export function ReaderPopup({
       return;
     }
 
-    const normalizedPage = Math.max(1, Math.min(pdfPageCount || parsedPage, Math.floor(parsedPage)));
+    if (isGuestReader && guestPreviewLimit && parsedPage > guestPreviewLimit) {
+      setPreviewGateOpen(true);
+      setPdfJumpInput(String(guestPreviewLimit));
+      return;
+    }
+
+    const effectivePageCount = guestPreviewLimit ? Math.min(pdfPageCount || guestPreviewLimit, guestPreviewLimit) : (pdfPageCount || parsedPage);
+    const normalizedPage = Math.max(1, Math.min(effectivePageCount, Math.floor(parsedPage)));
     setPdfPageNumber(pdfSpreadMode && normalizedPage > 1 && normalizedPage % 2 === 0 ? normalizedPage - 1 : normalizedPage);
   }
 
@@ -921,7 +928,13 @@ export function ReaderPopup({
                               <button
                                 key={`${item.href}-${item.label}`}
                                 type="button"
-                                onClick={() => renditionRef.current?.display(item.href)}
+                                onClick={() => {
+                                  if (isGuestReader) {
+                                    setPreviewGateOpen(true);
+                                    return;
+                                  }
+                                  void renditionRef.current?.display(item.href);
+                                }}
                                 className="block w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm text-white/80 transition hover:border-[#f7c78f]/40 hover:bg-white/10"
                                 style={{ paddingLeft: `${item.depth * 14 + 12}px` }}
                               >
@@ -945,7 +958,7 @@ export function ReaderPopup({
                             <input
                               type="number"
                               min="1"
-                              max={pdfPageCount || undefined}
+                              max={guestPreviewLimit ? Math.min(pdfPageCount || guestPreviewLimit, guestPreviewLimit) : (pdfPageCount || undefined)}
                               value={pdfJumpInput}
                               onChange={(event) => setPdfJumpInput(event.target.value)}
                               className="min-h-11 flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white"
