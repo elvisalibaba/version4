@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:holistic_books/src/core/config/app_config.dart';
+import 'package:holistic_books/src/core/constants/app_colors.dart';
 import 'package:holistic_books/src/core/network/api_client.dart';
 import 'package:holistic_books/src/features/reader/data/reader_repository.dart';
 import 'package:pdfx/pdfx.dart';
@@ -91,7 +92,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   Widget build(BuildContext context) {
     final controller = _controller;
     return Scaffold(
-      appBar: AppBar(title: Text(_authenticated ? 'Lecture' : 'Aperçu gratuit'), actions: [Padding(padding: const EdgeInsets.only(right: 16), child: Center(child: Text(_pageCount > 0 ? '$_page / $_pageCount' : 'Page $_page')))]),
+      appBar: AppBar(backgroundColor: AppColors.white, title: Text(_authenticated ? 'Lecture' : 'Aperçu gratuit'), actions: [Padding(padding: const EdgeInsets.only(right: 16), child: Center(child: Text(_pageCount > 0 ? '$_page / $_pageCount' : 'Page $_page')))]),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -111,7 +112,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                           Positioned(
                             left: 16, right: 16, bottom: 16,
                             child: SafeArea(
-                              child: Card(
+                              child: Card(color: AppColors.white,
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   child: Text('Aperçu invité : pages 1 à 10. Créez un compte pour lire la suite.', textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
