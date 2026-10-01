@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:holistic_books/src/core/constants/app_colors.dart';
 import 'package:holistic_books/src/core/constants/app_dimensions.dart';
 import 'package:holistic_books/src/core/widgets/app_button.dart';
+import 'package:holistic_books/src/core/widgets/book_cover.dart';
+import 'package:holistic_books/src/features/books/data/books_repository.dart';
 
-class BookDetailScreen extends StatelessWidget {
+class BookDetailScreen extends ConsumerWidget {
   const BookDetailScreen({required this.bookId, super.key});
   final String bookId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final book = ref.watch(bookProvider(bookId));
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Détails du livre'),
@@ -19,82 +24,96 @@ class BookDetailScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_rounded),
         ),
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: AppDimensions.contentMaxWidth),
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(
-              AppDimensions.horizontalPadding,
-              20,
-              AppDimensions.horizontalPadding,
-              AppDimensions.bottomPadding,
-            ),
-            children: [
-              Center(
-                child: Container(
-                  width: 180,
-                  height: 250,
-                  decoration: BoxDecoration(
-                    color: AppColors.softBlue,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFDCEAF7)),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.auto_stories_rounded,
-                    size: 68,
-                    color: AppColors.primary,
+      body: book.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text('Impossible de charger ce livre.\n$error', textAlign: TextAlign.center),
+          ),
+        ),
+        data: (item) => Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: AppDimensions.contentMaxWidth),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+              children: [
+                Center(
+                  child: BookCover(
+                    imageUrl: item.coverUrl,
+                    width: 210,
+                    height: 300,
+                    borderRadius: 18,
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Votre lecture HolisticBooks',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Consultez ce titre dans le lecteur sécurisé. Les visiteurs disposent d’un aperçu de 10 pages avant création de compte.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  height: 1.45,
-                  color: AppColors.mutedInk,
+                const SizedBox(height: 24),
+                Text(
+                  item.title,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
-              ),
-              const SizedBox(height: 28),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFE9E9ED)),
+                const SizedBox(height: 8),
+                Text(
+                  item.authorName,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.mutedInk,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.shield_outlined, color: AppColors.primary),
-                    SizedBox(width: 12),
-                    Expanded(
+                const SizedBox(height: 12),
+                Center(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: AppColors.softBlue,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                       child: Text(
-                        'Lecture sécurisée, progression synchronisée après connexion.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          height: 1.4,
-                          color: AppColors.mutedInk,
+                        item.priceLabel,
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              AppButton(
-                label: 'Lire maintenant',
-                icon: const Icon(Icons.chrome_reader_mode_rounded, size: 18),
-                onPressed: () => context.push('/reader/$bookId'),
-              ),
-            ],
+                if (item.description?.trim().isNotEmpty == true) ...[
+                  const SizedBox(height: 24),
+                  Text(
+                    item.description!,
+                    style: const TextStyle(
+                      color: AppColors.mutedInk,
+                      height: 1.55,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+                if (item.categories.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: item.categories.take(4).map((category) {
+                      return Chip(
+                        label: Text(category),
+                        backgroundColor: AppColors.white,
+                        side: const BorderSide(color: Color(0xFFE5E5E9)),
+                      );
+                    }).toList(growable: false),
+                  ),
+                ],
+                const SizedBox(height: 28),
+                AppButton(
+                  label: 'Lire maintenant',
+                  icon: const Icon(Icons.chrome_reader_mode_rounded, size: 18),
+                  onPressed: () => context.push('/reader/$bookId'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
