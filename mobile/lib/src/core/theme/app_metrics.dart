@@ -26,4 +26,7 @@ abstract final class AppMetrics {
   static const recommendedWidth = 148.0;
   static const recommendedCoverHeight = 205.0;
   static const bottomBarHeight = 72.0;
+  static const genreSkeletonHeight = 52.0;
+  static const placeholderIconSize = 42.0;
+  static const navLabelSize = 11.0;
 }
