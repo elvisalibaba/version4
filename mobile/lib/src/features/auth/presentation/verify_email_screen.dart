@@ -49,7 +49,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
       children: [
         Text('Code de vérification', style: Theme.of(context).textTheme.headlineMedium),
         const SizedBox(height: 8),
-        Text('Un code à 6 chiffres a été envoyé à ' + widget.email + '.'),
+        Text('Un code à 6 chiffres a été envoyé à ${widget.email}.'),
         const SizedBox(height: 24),
         TextField(controller: _code, keyboardType: TextInputType.number, maxLength: 6, decoration: const InputDecoration(labelText: 'Code OTP')),
         if (_error != null) Text(_error!),
