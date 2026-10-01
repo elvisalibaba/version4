@@ -17,11 +17,11 @@ abstract final class AppMetrics {
 
   static const avatar = 46.0;
   static const searchHeight = 54.0;
-  static const featuredHeight = 160.0;
+  static const featuredHeight = 176.0;
   static const featuredCoverWidth = 88.0;
   static const featuredCoverHeight = 120.0;
   static const continueCardWidth = 300.0;
-  static const continueCardHeight = 118.0;
+  static const continueCardHeight = 160.0;
   static const continueCoverWidth = 58.0;
   static const recommendedWidth = 148.0;
   static const recommendedCoverHeight = 205.0;
