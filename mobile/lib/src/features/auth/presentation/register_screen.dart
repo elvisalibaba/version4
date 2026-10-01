@@ -36,7 +36,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         },
       );
       if (!mounted) return;
-      context.go('/verify-email?email=' + Uri.encodeComponent(_email.text.trim()));
+      context.go('/verify-email?email=${Uri.encodeComponent(_email.text.trim())}');
     } catch (_) {
       if (mounted) setState(() => _error = 'Création du compte impossible. Vérifiez les informations saisies.');
     } finally {
