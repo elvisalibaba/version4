@@ -87,12 +87,12 @@ class FeaturedBookCard extends StatelessWidget {
                 Row(
                   children: [
                     const _ReaderAvatar(label: 'A'),
-                    const Transform.translate(
-                      offset: Offset(-6, 0),
+                    Transform.translate(
+                      offset: const Offset(-6, 0),
                       child: _ReaderAvatar(label: 'M'),
                     ),
-                    const Transform.translate(
-                      offset: Offset(-12, 0),
+                    Transform.translate(
+                      offset: const Offset(-12, 0),
                       child: _ReaderAvatar(label: 'J'),
                     ),
                     Transform.translate(
