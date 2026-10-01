@@ -15,7 +15,7 @@ class ReaderRepository {
     required String bookId,
     required bool authenticated,
   }) async {
-    final path = authenticated ? '/read/' + bookId : '/books/' + bookId + '/read-free';
+    final path = authenticated ? '/read/$bookId' : '/books/$bookId/read-free';
     final response = await _api.dio.get<List<int>>(
       path,
       options: Options(
