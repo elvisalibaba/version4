@@ -23,7 +23,7 @@ class PlaceholderTabScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 42, color: AppColors.primary),
+                Icon(icon, size: AppMetrics.placeholderIconSize, color: AppColors.primary),
                 const SizedBox(height: AppMetrics.largeGap),
                 Text(
                   title,
