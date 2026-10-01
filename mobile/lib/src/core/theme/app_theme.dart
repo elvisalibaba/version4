@@ -1,57 +1,60 @@
 import 'package:flutter/material.dart';
-import 'package:holistic_books/src/core/constants/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:holistic_books/src/core/theme/app_colors.dart';
 
 class AppTheme {
-  static ThemeData get light => ThemeData(
-        useMaterial3: true,
-        fontFamily: 'Poppins',
-        scaffoldBackgroundColor: AppColors.background,
-        colorScheme: const ColorScheme.light(
-          primary: AppColors.primary,
-          secondary: AppColors.primaryLight,
-          surface: AppColors.white,
-          error: AppColors.danger,
-          onPrimary: AppColors.white,
-          onSurface: AppColors.ink,
-        ),
-        textTheme: const TextTheme(
-          headlineLarge: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, height: 1.05, color: AppColors.ink),
-          headlineMedium: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.ink),
-          headlineSmall: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.ink),
-          titleMedium: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.ink),
-          bodyMedium: TextStyle(fontSize: 13, height: 1.35, color: AppColors.mutedInk),
-          labelLarge: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: AppColors.background,
-          foregroundColor: AppColors.ink,
-          elevation: 0,
-          centerTitle: false,
-          surfaceTintColor: Colors.transparent,
-        ),
-        cardTheme: CardThemeData(
-          color: AppColors.white,
-          elevation: 0,
-          surfaceTintColor: Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        ),
-        navigationBarTheme: const NavigationBarThemeData(
-          height: 68,
-          backgroundColor: AppColors.white,
-          indicatorColor: AppColors.softBlue,
-          labelTextStyle: WidgetStatePropertyAll(
-            TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.ink),
-          ),
-        ),
-      );
+  static ThemeData get light {
+    final baseTextTheme = GoogleFonts.interTextTheme();
+
+    return ThemeData(
+      useMaterial3: true,
+      scaffoldBackgroundColor: AppColors.background,
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.primary,
+        surface: AppColors.background,
+        error: AppColors.error,
+        onPrimary: AppColors.white,
+        onSurface: AppColors.textPrimary,
+      ),
+      textTheme: baseTextTheme.apply(
+        bodyColor: AppColors.textPrimary,
+        displayColor: AppColors.textPrimary,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.textPrimary,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        height: 72,
+        backgroundColor: AppColors.white,
+        indicatorColor: AppColors.surfaceStrong,
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            color: selected ? AppColors.primary : AppColors.inactive,
+          );
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return TextStyle(
+            fontSize: 11,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            color: selected ? AppColors.primary : AppColors.inactive,
+          );
+        }),
+      ),
+    );
+  }
 
   static ThemeData get dark => ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        fontFamily: 'Poppins',
         colorScheme: ColorScheme.fromSeed(
           brightness: Brightness.dark,
           seedColor: AppColors.primary,
         ),
+        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
       );
 }
