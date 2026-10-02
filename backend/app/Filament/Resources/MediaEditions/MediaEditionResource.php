@@ -53,10 +53,20 @@ class MediaEditionResource extends Resource
                         'video/mp4', 'video/webm', 'application/octet-stream',
                     ])
                     ->maxSize(524288)
-                    ->helperText('MP3, M4A/AAC, MP4 ou WebM. Le streaming est servi par une URL temporaire signée.')
+                    ->helperText('MP3, M4A/AAC, MP4 ou WebM. Le fichier est stocké en privé et diffusé par le lecteur sécurisé HolisticBooks.')
                     ->columnSpanFull(),
-                TextInput::make('streaming_url')->label('URL streaming')->url()->columnSpanFull(),
-                TextInput::make('preview_url')->label('URL extrait')->url()->columnSpanFull(),
+                FileUpload::make('preview_url')
+                    ->label('Fichier extrait / aperçu')
+                    ->disk('books')
+                    ->directory('media/previews')
+                    ->visibility('private')
+                    ->acceptedFileTypes([
+                        'audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/aac',
+                        'video/mp4', 'video/webm', 'application/octet-stream',
+                    ])
+                    ->maxSize(262144)
+                    ->helperText('Importez directement l’extrait audio ou vidéo. Aucun lien YouTube ou URL externe n’est nécessaire.')
+                    ->columnSpanFull(),
                 TextInput::make('mime_type')->label('MIME'),
                 Select::make('drm_scheme')->label('DRM')->options(['none'=>'Aucun','signed_url'=>'URL signée','aes_256_gcm'=>'AES-256-GCM'])->default('none'),
                 Select::make('status')->options(['draft'=>'Brouillon','processing'=>'Traitement','published'=>'Publié','archived'=>'Archivé'])->default('draft')->required(),
