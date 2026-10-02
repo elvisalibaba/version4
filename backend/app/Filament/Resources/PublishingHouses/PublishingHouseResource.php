@@ -8,6 +8,7 @@ use App\Filament\Resources\PublishingHouses\Pages\EditPublishingHouse;
 use App\Models\PublishingHouse;
 use BackedEnum;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -41,6 +42,16 @@ class PublishingHouseResource extends Resource
                 TextInput::make('email')->email(),
                 TextInput::make('phone')->label('Téléphone'),
                 TextInput::make('website')->url()->columnSpanFull(),
+                FileUpload::make('logo_url')
+                    ->label('Logo de la maison')
+                    ->disk('public')
+                    ->directory('branding/publishing-houses')
+                    ->visibility('public')
+                    ->image()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])
+                    ->maxSize(5120)
+                    ->helperText('Importez le logo au lieu de saisir une URL.')
+                    ->columnSpanFull(),
                 TextInput::make('country_code')->label('Pays (ISO)')->maxLength(2),
                 TextInput::make('city')->label('Ville'),
                 TextInput::make('primary_currency')->label('Devise')->default('USD')->maxLength(3),
