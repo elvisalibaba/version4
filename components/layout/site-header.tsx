@@ -9,8 +9,11 @@ function isDynamicError(error: unknown) {
 }
 
 const links = [
-  { label: "Librairie", href: "/books" }, { label: "Lire gratuitement", href: "/library" },
-  { label: "Auteurs", href: "/authors" }, { label: "Magazine", href: "/blog" },
+  { label: "Librairie", href: "/books" },
+  { label: "Élèves & Étudiants", href: "/education" },
+  { label: "Lire gratuitement", href: "/library" },
+  { label: "Auteurs", href: "/authors" },
+  { label: "Magazine", href: "/blog" },
   { label: "Services éditoriaux", href: "/services" },
 ];
 
