@@ -382,20 +382,26 @@ export function ReaderPopup({
         const readerPayload = await readerResponse.json();
 
         if (!readerResponse.ok) {
-          setError(readerPayload.error ?? "Impossible d ouvrir ce livre.");
+          setError(readerPayload.error ?? "Impossible d’ouvrir ce livre.");
           return;
         }
 
         setFileUrl(readerPayload.readerUrl);
         setFileType(readerPayload.fileType);
+
+        const guestPreview = Boolean(readerPayload.isGuestPreview);
+        setIsGuestReader(guestPreview);
         setGuestPreviewLimit(
           typeof readerPayload.previewPageLimit === "number" ? readerPayload.previewPageLimit : null,
         );
 
         const authPayload = authResponse.ok ? await authResponse.json() : { data: null };
         const user = authPayload.data ?? null;
-        setIsGuestReader(!user);
-        if (!user) return;
+
+        // La décision "aperçu invité" vient de la route de lecture, pas de la
+        // simple présence d’un cookie. Cela évite qu’un cookie expiré bloque
+        // ou contourne la limite des 10 pages.
+        if (!user || guestPreview) return;
 
         setReaderProfileId(user.id);
 
@@ -434,7 +440,7 @@ export function ReaderPopup({
 
         setProgressHydrated(true);
       } catch {
-        setError("Le lecteur securise ne repond pas pour le moment.");
+        setError("Le lecteur sécurisé ne répond pas pour le moment.");
       }
     }
 
