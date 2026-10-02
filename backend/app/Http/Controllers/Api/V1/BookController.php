@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Book\StoreBookRequest;
 use App\Http\Requests\Book\UpdateBookRequest;
 use App\Http\Resources\BookResource;
+use App\Models\AcademicTaxonomy;
 use App\Models\Book;
 use App\Services\BookDocumentMetadataService;
 use App\Services\BookTaxonomyService;
@@ -45,9 +46,35 @@ class BookController extends Controller
             ->when(request()->string('category')->isNotEmpty(), fn ($query) => $query->whereJsonContains('categories', request()->string('category')->toString()))
             ->when(request()->string('education')->isNotEmpty(), function ($query): void {
                 $education = request()->string('education')->toString();
+                $taxonomy = AcademicTaxonomy::query()
+                    ->where('slug', $education)
+                    ->orWhere('code', $education)
+                    ->first();
+
+                if (! $taxonomy) {
+                    $query->whereRaw('1 = 0');
+                    return;
+                }
+
+                $taxonomyIds = collect([$taxonomy->id]);
+                $frontier = collect([$taxonomy->id]);
+
+                while ($frontier->isNotEmpty()) {
+                    $children = AcademicTaxonomy::query()
+                        ->whereIn('parent_id', $frontier)
+                        ->pluck('id');
+
+                    $newChildren = $children->diff($taxonomyIds);
+                    if ($newChildren->isEmpty()) {
+                        break;
+                    }
+
+                    $taxonomyIds = $taxonomyIds->merge($newChildren);
+                    $frontier = $newChildren;
+                }
+
                 $query->whereHas('educationTaxonomies', fn ($taxonomyQuery) => $taxonomyQuery
-                    ->where('academic_taxonomies.slug', $education)
-                    ->orWhere('academic_taxonomies.code', $education));
+                    ->whereIn('academic_taxonomies.id', $taxonomyIds));
             })
             ->when(request()->string('education_audience')->isNotEmpty(), function ($query): void {
                 $audience = request()->string('education_audience')->toString();
