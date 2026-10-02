@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 class BookResource extends JsonResource
 {
@@ -102,7 +103,17 @@ class BookResource extends JsonResource
                 'duration_seconds' => $edition->duration_seconds,
                 'narrator' => $edition->narrator,
                 'presenter' => $edition->presenter,
-                'preview_url' => $edition->preview_url,
+                'preview_url' => blank($edition->preview_url)
+                    ? null
+                    : (
+                        str_starts_with((string) $edition->preview_url, 'http://') || str_starts_with((string) $edition->preview_url, 'https://')
+                            ? $edition->preview_url
+                            : URL::temporarySignedRoute(
+                                'api.v1.media-editions.preview',
+                                now()->addMinutes(15),
+                                ['mediaEdition' => $edition->id],
+                            )
+                    ),
                 'status' => $edition->status,
             ])),
             'subscription_plans' => $this->whenLoaded('subscriptionPlans'),
