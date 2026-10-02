@@ -15,6 +15,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
@@ -64,6 +65,7 @@ class PublishingHouseResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
+            ImageColumn::make('logo_url')->label('Logo')->disk('public')->square(),
             TextColumn::make('name')->label('Maison')->searchable()->sortable(),
             TextColumn::make('status')->badge(),
             TextColumn::make('country_code')->label('Pays'),
