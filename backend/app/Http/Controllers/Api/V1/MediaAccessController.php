@@ -24,15 +24,22 @@ class MediaAccessController extends Controller
 
         abort_unless($access->canRead($profile, $mediaEdition->book), 403, 'Accès média non autorisé.');
 
-        $playbackUrl = $mediaEdition->streaming_url;
+        $playbackUrl = null;
+        $expiresInSeconds = null;
 
-        if (blank($playbackUrl) && filled($mediaEdition->storage_path)) {
+        if (filled($mediaEdition->storage_path)) {
             $playbackUrl = URL::temporarySignedRoute(
                 'api.v1.media-editions.stream',
                 now()->addMinutes(15),
                 ['mediaEdition' => $mediaEdition->id],
             );
+            $expiresInSeconds = 900;
+        } elseif (filled($mediaEdition->streaming_url)) {
+            // Compatibilité avec les anciens enregistrements externes.
+            $playbackUrl = $mediaEdition->streaming_url;
         }
+
+        $previewUrl = $this->resolvePreviewUrl($mediaEdition);
 
         return response()->json([
             'data' => [
@@ -45,8 +52,8 @@ class MediaAccessController extends Controller
                 'narrator' => $mediaEdition->narrator,
                 'presenter' => $mediaEdition->presenter,
                 'playback_url' => $playbackUrl,
-                'preview_url' => $mediaEdition->preview_url,
-                'expires_in_seconds' => filled($mediaEdition->storage_path) && blank($mediaEdition->streaming_url) ? 900 : null,
+                'preview_url' => $previewUrl,
+                'expires_in_seconds' => $expiresInSeconds,
                 'chapters' => $mediaEdition->chapters->map(fn ($chapter): array => [
                     'id' => $chapter->id,
                     'position' => $chapter->position,
@@ -63,12 +70,55 @@ class MediaAccessController extends Controller
     {
         abort_unless($mediaEdition->status === 'published' && filled($mediaEdition->storage_path), 404);
 
+        return $this->streamPrivatePath(
+            $request,
+            (string) $mediaEdition->storage_path,
+            $mediaEdition->mime_type,
+        );
+    }
+
+    public function preview(Request $request, MediaEdition $mediaEdition): StreamedResponse
+    {
+        abort_unless($mediaEdition->status === 'published' && filled($mediaEdition->preview_url), 404);
+
+        $path = (string) $mediaEdition->preview_url;
+
+        abort_if(
+            str_starts_with($path, 'http://') || str_starts_with($path, 'https://'),
+            404,
+        );
+
+        return $this->streamPrivatePath($request, $path, null);
+    }
+
+    private function resolvePreviewUrl(MediaEdition $mediaEdition): ?string
+    {
+        if (blank($mediaEdition->preview_url)) {
+            return null;
+        }
+
+        $preview = (string) $mediaEdition->preview_url;
+
+        if (str_starts_with($preview, 'http://') || str_starts_with($preview, 'https://')) {
+            return $preview;
+        }
+
+        return URL::temporarySignedRoute(
+            'api.v1.media-editions.preview',
+            now()->addMinutes(15),
+            ['mediaEdition' => $mediaEdition->id],
+        );
+    }
+
+    private function streamPrivatePath(Request $request, string $path, ?string $mimeType): StreamedResponse
+    {
         $disk = Storage::disk('books');
-        $path = (string) $mediaEdition->storage_path;
+        $path = ltrim($path, '/');
+
         abort_unless($disk->exists($path), 404);
 
         $size = $disk->size($path);
-        $mime = $mediaEdition->mime_type ?: $disk->mimeType($path) ?: 'application/octet-stream';
+        $mime = $mimeType ?: $disk->mimeType($path) ?: 'application/octet-stream';
         $range = $request->header('Range');
         $start = 0;
         $end = max(0, $size - 1);
@@ -107,7 +157,9 @@ class MediaAccessController extends Controller
                         $remaining = $start;
                         while ($remaining > 0 && ! feof($stream)) {
                             $chunk = fread($stream, min(8192, $remaining));
-                            if ($chunk === false || $chunk === '') break;
+                            if ($chunk === false || $chunk === '') {
+                                break;
+                            }
                             $remaining -= strlen($chunk);
                         }
                     }
@@ -116,10 +168,16 @@ class MediaAccessController extends Controller
                 $remaining = $length;
                 while ($remaining > 0 && ! feof($stream)) {
                     $chunk = fread($stream, min(65536, $remaining));
-                    if ($chunk === false || $chunk === '') break;
+                    if ($chunk === false || $chunk === '') {
+                        break;
+                    }
+
                     echo $chunk;
                     $remaining -= strlen($chunk);
-                    if (function_exists('flush')) flush();
+
+                    if (function_exists('flush')) {
+                        flush();
+                    }
                 }
             } finally {
                 fclose($stream);

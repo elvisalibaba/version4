@@ -7,6 +7,7 @@ use App\Filament\Resources\Profiles\Pages\ListProfiles;
 use App\Models\Profile;
 use BackedEnum;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -14,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -55,6 +57,16 @@ class ProfileResource extends Resource
                         ])
                         ->required(),
                     TextInput::make('name')->label('Nom affiché')->maxLength(255),
+                    FileUpload::make('avatar_url')
+                        ->label('Photo de profil')
+                        ->disk('public')
+                        ->directory('avatars/profiles')
+                        ->visibility('public')
+                        ->image()
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                        ->maxSize(5120)
+                        ->helperText('Importez une photo JPG, PNG ou WebP. Aucune URL à saisir.')
+                        ->columnSpanFull(),
                     TextInput::make('first_name')->label('Prénom')->maxLength(255),
                     TextInput::make('last_name')->label('Nom')->maxLength(255),
                     TextInput::make('phone')->label('Téléphone')->maxLength(50),
@@ -71,6 +83,7 @@ class ProfileResource extends Resource
         return $table
             ->defaultSort('created_at', 'desc')
             ->columns([
+                ImageColumn::make('avatar_url')->label('Photo')->disk('public')->circular()->defaultImageUrl(null),
                 TextColumn::make('name')->label('Nom')->searchable()->sortable(),
                 TextColumn::make('email')->label('E-mail')->searchable()->copyable(),
                 TextColumn::make('role')->label('Rôle')->badge()->sortable(),

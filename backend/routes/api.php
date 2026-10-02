@@ -58,6 +58,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::get('media-editions/{mediaEdition}/stream', [MediaAccessController::class, 'stream'])
         ->middleware(['signed', 'throttle:240,1'])
         ->name('media-editions.stream');
+    Route::get('media-editions/{mediaEdition}/preview', [MediaAccessController::class, 'preview'])
+        ->middleware(['signed', 'throttle:240,1'])
+        ->name('media-editions.preview');
     Route::get('home/flash-sale', [PublicContentController::class, 'flashSale'])->name('home.flash-sale');
     Route::get('mobile', [PublicContentController::class, 'mobile'])->name('mobile.config');
     Route::get('mobile/download', [MobileAppController::class, 'download'])->name('mobile.download');

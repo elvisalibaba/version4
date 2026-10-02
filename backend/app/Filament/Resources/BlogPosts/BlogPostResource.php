@@ -9,6 +9,7 @@ use App\Models\BlogPost;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -61,7 +62,15 @@ class BlogPostResource extends Resource
                     DatePicker::make('published_at')->label('Date de publication')->required()->default(now()),
                     Textarea::make('excerpt')->label('Résumé')->rows(4)->required()->columnSpanFull(),
                     TextInput::make('cover_label')->label('Label couverture')->default('Magazine editorial')->maxLength(255),
-                    TextInput::make('cover_image_url')->label('URL image couverture')->url()->maxLength(2048),
+                    FileUpload::make('cover_image_url')
+                        ->label('Image de couverture')
+                        ->disk('public')
+                        ->directory('blog/covers')
+                        ->visibility('public')
+                        ->image()
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                        ->maxSize(8192)
+                        ->helperText('Importez l’image de couverture directement.'),
                     TextInput::make('cover_image_alt')->label('Texte alternatif')->maxLength(255),
                 ]),
 
@@ -78,7 +87,14 @@ class BlogPostResource extends Resource
                                 ->required()
                                 ->default('paragraph'),
                             Textarea::make('text')->label('Texte')->rows(5),
-                            TextInput::make('url')->label('URL image')->url(),
+                            FileUpload::make('url')
+                                ->label('Image')
+                                ->disk('public')
+                                ->directory('blog/content')
+                                ->visibility('public')
+                                ->image()
+                                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                                ->maxSize(8192),
                             TextInput::make('alt')->label('Texte alternatif'),
                             TextInput::make('caption')->label('Légende'),
                         ])

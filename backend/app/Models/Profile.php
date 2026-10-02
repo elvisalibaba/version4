@@ -17,7 +17,7 @@ class Profile extends Model
     public const UPDATED_AT = null;
 
     protected $fillable = [
-        'id', 'email', 'name', 'role', 'first_name', 'last_name', 'phone', 'country', 'city',
+        'id', 'email', 'name', 'avatar_url', 'role', 'first_name', 'last_name', 'phone', 'country', 'city',
         'preferred_language', 'favorite_categories', 'marketing_opt_in', 'referred_by_affiliate_user_id',
         'referred_by_affiliate_code', 'affiliate_source_type', 'affiliate_source_book_id', 'affiliate_source_plan_id',
     ];
