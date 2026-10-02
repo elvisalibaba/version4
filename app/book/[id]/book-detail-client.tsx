@@ -51,7 +51,9 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
   const registerHref = `/register?role=reader&next=${encodeURIComponent(returnPath)}`;
   const subscriptionHref = isAuthenticated ? "/dashboard/reader/subscriptions" : loginHref;
   const accessMessage = book.is_free
-    ? "Cette édition numérique est offerte. Commencez la lecture immédiatement, sans paiement."
+    ? isAuthenticated
+      ? "Cette édition numérique est offerte. Vous pouvez lire le livre complet avec votre compte."
+      : "Lisez les 10 premières pages immédiatement, sans compte. Créez ensuite un compte lecteur gratuit pour continuer le livre complet."
     : accessState?.hasPurchaseAccess
       ? "Ce livre vous appartient et reste accessible dans votre bibliothèque."
       : accessState?.hasSubscriptionAccess
@@ -130,15 +132,34 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
                 <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#c34d35]">Votre accès</p>
                 <p className="mt-3 font-display text-3xl font-extrabold tracking-[-0.04em]">{book.display_price_label}</p>
                 <p className="mt-3 text-sm leading-7 text-[#6b6057]">{accessMessage}</p>
-                {book.is_free ? <div className="mt-5 space-y-2 text-sm font-semibold text-[#51483f]"><p className="flex items-center gap-2"><Check className="h-4 w-4 text-[#168164]" />Lecture immédiate</p><p className="flex items-center gap-2"><Check className="h-4 w-4 text-[#168164]" />Aucun paiement</p></div> : null}
+                {book.is_free ? (
+                  <div className="mt-5 space-y-2 text-sm font-semibold text-[#51483f]">
+                    <p className="flex items-center gap-2"><Check className="h-4 w-4 text-[#168164]" />{isAuthenticated ? "Livre complet avec votre compte" : "10 pages à lire sans compte"}</p>
+                    <p className="flex items-center gap-2"><Check className="h-4 w-4 text-[#168164]" />Aucun paiement</p>
+                    {!isAuthenticated ? <p className="flex items-center gap-2"><Check className="h-4 w-4 text-[#168164]" />Compte gratuit seulement pour continuer après l’aperçu</p> : null}
+                  </div>
+                ) : null}
 
                 <div className="mt-6 grid gap-3">
-                  {canRead ? <button type="button" onClick={() => setReaderOpen(true)} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#e85d3f] px-6 text-sm font-extrabold text-white transition hover:bg-[#cf4d33]"><BookOpen className="h-4 w-4" /> Lire maintenant</button> : null}
+                  {canRead ? (
+                    <button type="button" onClick={() => setReaderOpen(true)} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#e85d3f] px-6 text-sm font-extrabold text-white transition hover:bg-[#cf4d33]">
+                      <BookOpen className="h-4 w-4" /> {book.is_free && !isAuthenticated ? "Lire 10 pages gratuitement" : "Lire maintenant"}
+                    </button>
+                  ) : null}
                   {!canRead && book.is_single_sale_enabled ? <button type="button" onClick={() => setPurchaseOpen((open) => !open)} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#e85d3f] px-6 text-sm font-extrabold text-white transition hover:bg-[#cf4d33]"><CreditCard className="h-4 w-4" /> {purchaseOpen ? "Fermer" : "Acheter ce livre"}<ChevronDown className={`h-4 w-4 transition ${purchaseOpen ? "rotate-180" : ""}`} /></button> : null}
                   {!canRead && book.is_subscription_available ? <Link href={subscriptionHref} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#173f38] px-6 text-sm font-extrabold text-white">Lire avec Holistique Plus <ArrowRight className="h-4 w-4" /></Link> : null}
                   {accessState?.hasLibraryEntry ? <Link href="/dashboard/reader/library" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#ded2c6] text-sm font-bold"><Library className="h-4 w-4" /> Ma bibliothèque</Link> : null}
                 </div>
-                {book.is_free && !isAuthenticated ? <Link href={registerHref} className="mt-5 inline-flex items-start gap-2 border-t border-[#e8ddd2] pt-5 text-xs font-semibold leading-5 text-[#8a5444]"><UserPlus className="mt-0.5 h-4 w-4 shrink-0" />Créer un compte pour conserver progression et notes</Link> : null}
+                {book.is_free && !isAuthenticated ? (
+                  <div className="mt-5 border-t border-[#e8ddd2] pt-5">
+                    <p className="text-xs font-semibold leading-5 text-[#6f6157]">
+                      Pas besoin de compte pour commencer. L’inscription n’est demandée qu’après les 10 premières pages.
+                    </p>
+                    <Link href={registerHref} className="mt-3 inline-flex items-center gap-2 text-xs font-extrabold text-[#8a5444]">
+                      <UserPlus className="h-4 w-4 shrink-0" />Créer mon compte lecteur
+                    </Link>
+                  </div>
+                ) : null}
                 <p className="mt-5 flex items-center gap-2 text-[0.68rem] font-semibold text-[#8b7f74]"><LockKeyhole className="h-3.5 w-3.5" /> Paiement sécurisé et accès après confirmation</p>
               </div>
             </aside>

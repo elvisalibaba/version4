@@ -13,13 +13,29 @@ export async function GET(_request: Request, context: { params: Promise<{ bookId
       { authenticated: false },
     );
 
-    if (token) {
-      const { data: access } = await apiServer<{ data: { hasAccess: boolean } }>(
-        `books/${encodeURIComponent(bookId)}/access`,
-      );
+    let useGuestPreview = !token;
 
-      if (!access.hasAccess) {
-        return NextResponse.json({ error: "Accès à ce livre refusé." }, { status: 403 });
+    if (token) {
+      try {
+        const { data: access } = await apiServer<{ data: { hasAccess: boolean } }>(
+          `books/${encodeURIComponent(bookId)}/access`,
+        );
+
+        if (!access.hasAccess) {
+          if (!book.is_free) {
+            return NextResponse.json({ error: "Accès à ce livre refusé." }, { status: 403 });
+          }
+
+          useGuestPreview = true;
+        }
+      } catch (error) {
+        if (error instanceof ApiError && (error.status === 401 || error.status === 403) && book.is_free) {
+          // Un cookie ancien ou expiré ne doit jamais empêcher l’aperçu public
+          // d’un livre gratuit. On retombe proprement sur le flux invité.
+          useGuestPreview = true;
+        } else {
+          throw error;
+        }
       }
     } else if (!book.is_free) {
       return NextResponse.json({ error: "Connectez-vous pour lire ce livre." }, { status: 401 });
@@ -30,13 +46,20 @@ export async function GET(_request: Request, context: { params: Promise<{ bookId
     return NextResponse.json({
       readerUrl: `/api/read/${encodeURIComponent(bookId)}/file`,
       fileType,
-      isGuestPreview: !token,
-      previewPageLimit: !token ? 10 : null,
+      isGuestPreview: useGuestPreview,
+      previewPageLimit: useGuestPreview ? 10 : null,
     });
   } catch (error) {
     if (error instanceof ApiError) {
       return NextResponse.json(
-        { error: error.status === 401 ? "Connectez-vous pour lire ce livre." : "Impossible d’ouvrir ce livre." },
+        {
+          error:
+            error.status === 401
+              ? "Connectez-vous pour lire ce livre."
+              : error.status === 404
+                ? "Le fichier de lecture est introuvable."
+                : "Impossible d’ouvrir ce livre.",
+        },
         { status: error.status },
       );
     }
