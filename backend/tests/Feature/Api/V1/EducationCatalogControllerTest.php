@@ -46,6 +46,21 @@ class EducationCatalogControllerTest extends TestCase
             ->assertJsonMissing(['title' => 'Roman sans classement scolaire']);
     }
 
+    public function test_parent_academic_filter_includes_books_classified_in_descendants(): void
+    {
+        $this->seed(RdcEducationCatalogSeeder::class);
+
+        $primary = AcademicTaxonomy::query()->where('code', 'RDC_PRIMARY')->firstOrFail();
+        $primaryFive = AcademicTaxonomy::query()->where('code', 'RDC_PRIMARY_5')->firstOrFail();
+
+        $book = Book::factory()->create(['title' => 'Sciences cinquième primaire']);
+        $book->educationTaxonomies()->attach($primaryFive);
+
+        $this->getJson('/api/v1/books?education='.$primary->slug)
+            ->assertOk()
+            ->assertJsonFragment(['title' => 'Sciences cinquième primaire']);
+    }
+
     public function test_books_can_be_filtered_by_student_audience(): void
     {
         $this->seed(RdcEducationCatalogSeeder::class);
