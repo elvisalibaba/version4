@@ -41,6 +41,28 @@ class ReadControllerTest extends TestCase
             ->assertHeader('Content-Type', 'application/pdf');
     }
 
+    public function test_guest_can_stream_a_free_book_from_legacy_local_storage(): void
+    {
+        Storage::fake('books');
+        Storage::fake('local');
+
+        $book = Book::factory()->free()->create([
+            'price' => 0,
+            'status' => 'published',
+            'copyright_status' => 'clear',
+            'is_single_sale_enabled' => true,
+            'file_url' => 'catalog/legacy-book.pdf',
+            'file_format' => 'pdf',
+        ]);
+
+        Storage::disk('local')->put('catalog/legacy-book.pdf', '%PDF-1.4 legacy');
+
+        $this->get("/api/v1/books/{$book->id}/read-free")
+            ->assertOk()
+            ->assertStreamed()
+            ->assertHeader('Content-Type', 'application/pdf');
+    }
+
     public function test_guest_cannot_stream_a_paid_book_from_public_endpoint(): void
     {
         $book = $this->createBookWithPrivateFile([

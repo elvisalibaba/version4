@@ -57,7 +57,12 @@ export function PdfReaderSurface({ fileUrl, pageNumbers, scale, spreadMode, onPa
         ]);
 
         if (!response.ok) {
-          throw new Error("Impossible de charger ce PDF dans le lecteur securise.");
+          const payload = await response.json().catch(() => null) as { message?: string; error?: string } | null;
+          throw new Error(
+            payload?.message ??
+              payload?.error ??
+              `Impossible de charger ce PDF dans le lecteur sécurisé (HTTP ${response.status}).`,
+          );
         }
 
         pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
