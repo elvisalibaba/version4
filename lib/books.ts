@@ -13,6 +13,8 @@ import type { ApiBook, ApiBookFormat, ApiPagination } from "@/types/api";
 type GetPublishedBooksOptions = {
   searchQuery?: string;
   category?: string;
+  education?: string;
+  educationAudience?: "school" | "university";
 };
 
 type ApiFavoriteBook = ApiBook;
@@ -71,6 +73,8 @@ export async function getPublishedBooks(options: GetPublishedBooksOptions = {}) 
   const params = new URLSearchParams();
   if (options.searchQuery?.trim()) params.set("search", options.searchQuery.trim());
   if (options.category?.trim() && options.category.trim().toLowerCase() !== "all") params.set("category", options.category.trim());
+  if (options.education?.trim()) params.set("education", options.education.trim());
+  if (options.educationAudience) params.set("education_audience", options.educationAudience);
 
   try {
     const [response, favoriteIds] = await Promise.all([

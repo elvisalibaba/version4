@@ -10,8 +10,10 @@ import {
   Headphones,
   PenTool,
   Search,
+  School,
   Sparkles,
   Star,
+  GraduationCap,
 } from "lucide-react";
 import { AdSlot } from "@/components/ads/ad-slot";
 import { AllAuthorsSection } from "@/components/home/all-authors-section";
@@ -199,6 +201,49 @@ export default async function HomePage() {
           books={freeBooks}
           href="/books?access=free"
         />
+
+        <section className="overflow-hidden rounded-[2rem] border border-[#d9ccbf] bg-[#fffdf9]">
+          <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="bg-[#173d2c] p-7 text-white sm:p-10">
+              <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#f4b942]">Éducation RDC</p>
+              <h2 className="mt-3 font-display text-3xl font-extrabold leading-tight tracking-[-0.045em] sm:text-4xl">
+                Une bibliothèque pensée aussi pour apprendre.
+              </h2>
+              <p className="mt-4 text-sm leading-7 text-white/75">
+                Retrouvez les ouvrages scolaires et universitaires par classe, section, option, cycle LMD, domaine et filière.
+              </p>
+              <Link href="/education" className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-5 text-sm font-extrabold text-[#173d2c]">
+                Explorer l’espace Éducation <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="grid gap-4 p-6 sm:grid-cols-2 sm:p-8">
+              <Link href="/education?audience=school" className="group rounded-3xl border border-[#e1d6ca] bg-[#f8f4ed] p-6 transition hover:-translate-y-1 hover:shadow-lg">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#e85d3f] text-white">
+                  <School className="h-6 w-6" />
+                </span>
+                <h3 className="mt-5 text-xl font-extrabold text-[#1d1a17]">Élèves</h3>
+                <p className="mt-2 text-sm leading-6 text-[#766b61]">
+                  Primaire, CTEB, Humanités générales, techniques et professionnelles.
+                </p>
+                <span className="mt-5 inline-flex items-center gap-1 text-sm font-extrabold text-[#b9432d]">
+                  Choisir mon niveau <ChevronRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                </span>
+              </Link>
+              <Link href="/education?audience=university" className="group rounded-3xl border border-[#e1d6ca] bg-[#f8f4ed] p-6 transition hover:-translate-y-1 hover:shadow-lg">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#173d2c] text-white">
+                  <GraduationCap className="h-6 w-6" />
+                </span>
+                <h3 className="mt-5 text-xl font-extrabold text-[#1d1a17]">Étudiants</h3>
+                <p className="mt-2 text-sm leading-6 text-[#766b61]">
+                  Licence, Master, Doctorat, domaines LMD, filières et mentions RegESU.
+                </p>
+                <span className="mt-5 inline-flex items-center gap-1 text-sm font-extrabold text-[#176052]">
+                  Explorer les domaines <ChevronRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                </span>
+              </Link>
+            </div>
+          </div>
+        </section>
 
         <section className="relative overflow-hidden rounded-[2rem] bg-[#e85d3f] px-6 py-9 text-white sm:px-10 sm:py-12">
           <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full border-[38px] border-white/10" />
