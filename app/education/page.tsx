@@ -214,8 +214,21 @@ export default async function EducationPage({ searchParams }: EducationPageProps
             {selectedNode?.kind === "domain" && selectedNode.children.length > 0 ? (
               <TaxonomyGroup title={"Filières · " + selectedNode.name} nodes={selectedNode.children} audience="university" selectedSlug={selectedNode.slug} />
             ) : null}
+            {selectedNode?.kind === "field" && selectedNode.children.length > 0 ? (
+              <TaxonomyGroup title={"Mentions · " + selectedNode.name} nodes={selectedNode.children} audience="university" selectedSlug={selectedNode.slug} />
+            ) : null}
           </div>
         )}
+
+        {audience === "school" && selectedNode?.kind === "section" && selectedNode.children.length > 0 ? (
+          <TaxonomyGroup
+            title={"Options · " + selectedNode.name}
+            description="Choisissez l’option ou la spécialisation la plus précise pour affiner les ouvrages."
+            nodes={selectedNode.children}
+            audience="school"
+            selectedSlug={selectedNode.slug}
+          />
+        ) : null}
 
         <section className="rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-[#e2d7cb] sm:p-7">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
