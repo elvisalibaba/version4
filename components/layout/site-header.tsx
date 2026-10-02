@@ -18,11 +18,11 @@ const links = [
 ];
 
 export async function SiteHeader() {
-  let user: { id: string } | null = null;
+  let user: { id: string; avatarUrl: string | null } | null = null;
   let role: string | null = null;
   try {
     const profile = await getCurrentUserProfile();
-    user = profile ? { id: profile.id } : null;
+    user = profile ? { id: profile.id, avatarUrl: profile.avatar_url } : null;
     role = profile?.role ?? null;
   } catch (error) {
     if (isDynamicError(error)) throw error;
@@ -49,7 +49,14 @@ export async function SiteHeader() {
           <Link href="/books" className="grid h-11 w-11 place-items-center rounded-full transition hover:bg-[#efe6d8] lg:hidden" aria-label="Rechercher"><Search className="h-5 w-5" /></Link>
           <Link href={favoritesHref} className="hidden h-11 w-11 place-items-center rounded-full transition hover:bg-[#efe6d8] sm:grid" aria-label="Favoris"><Heart className="h-5 w-5" /></Link>
           <Link href="/cart" className="grid h-11 w-11 place-items-center rounded-full transition hover:bg-[#efe6d8]" aria-label="Panier"><ShoppingBag className="h-5 w-5" /></Link>
-          <Link href={accountHref} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#173d2c] px-3.5 text-sm font-bold text-white transition hover:bg-[#23573f] sm:px-4"><UserRound className="h-4 w-4" /><span className="hidden sm:inline">{user ? "Mon espace" : "Connexion"}</span></Link>
+          <Link href={accountHref} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#173d2c] px-2.5 text-sm font-bold text-white transition hover:bg-[#23573f] sm:px-3.5">
+            {user?.avatarUrl ? (
+              <Image src={user.avatarUrl} alt="Photo de profil" width={28} height={28} className="h-7 w-7 rounded-full object-cover ring-1 ring-white/30" />
+            ) : (
+              <UserRound className="h-4 w-4" />
+            )}
+            <span className="hidden sm:inline">{user ? "Mon espace" : "Connexion"}</span>
+          </Link>
           {user ? <LogoutButton label="Sortir" className="hidden h-11 items-center rounded-full border border-[#d9cebd] px-3 text-xs font-bold transition hover:bg-[#efe6d8] xl:inline-flex" /> : null}
           <details className="relative xl:hidden"><summary className="grid h-11 w-11 cursor-pointer list-none place-items-center rounded-full hover:bg-[#efe6d8] [&::-webkit-details-marker]:hidden" aria-label="Ouvrir le menu"><Menu className="h-5 w-5" /></summary><nav className="absolute right-0 top-13 w-64 rounded-2xl border border-[#d9cebd] bg-[#fffaf2] p-2 shadow-2xl">{links.map((link) => <Link key={link.href} href={link.href} className="block rounded-xl px-4 py-3 text-sm font-bold hover:bg-[#efe6d8]">{link.label}</Link>)}{user ? <div className="border-t border-[#d9cebd] pt-2"><LogoutButton label="Déconnexion" className="flex h-11 w-full items-center rounded-xl px-4 text-sm font-bold hover:bg-[#efe6d8]" /></div> : null}</nav></details>
         </div>

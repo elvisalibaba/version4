@@ -8,6 +8,7 @@ use App\Filament\Resources\MediaChapters\Pages\ListMediaChapters;
 use App\Models\MediaChapter;
 use BackedEnum;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -36,8 +37,18 @@ class MediaChapterResource extends Resource
             TextInput::make('title')->label('Titre')->required()->columnSpanFull(),
             TextInput::make('starts_at_second')->label('Début (sec)')->numeric()->minValue(0),
             TextInput::make('ends_at_second')->label('Fin (sec)')->numeric()->minValue(0),
-            TextInput::make('storage_path')->label('Chemin stockage')->columnSpanFull(),
-            TextInput::make('streaming_url')->label('URL streaming')->url()->columnSpanFull(),
+            FileUpload::make('storage_path')
+                ->label('Fichier du chapitre / piste')
+                ->disk('books')
+                ->directory('media/chapters')
+                ->visibility('private')
+                ->acceptedFileTypes([
+                    'audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/aac',
+                    'video/mp4', 'video/webm', 'application/octet-stream',
+                ])
+                ->maxSize(262144)
+                ->helperText('Importez le fichier du chapitre. Le streaming externe n’est plus demandé.')
+                ->columnSpanFull(),
             Toggle::make('is_preview')->label('Extrait gratuit'),
         ])]);
     }

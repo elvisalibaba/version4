@@ -12,6 +12,7 @@ use App\Models\HomeFeaturedConfig;
 use App\Models\MobileAppConfig;
 use App\Models\MobileAppVersion;
 use App\Models\SubscriptionPlan;
+use App\Support\PublicMediaUrl;
 use Illuminate\Http\JsonResponse;
 
 class PublicContentController extends Controller
@@ -46,19 +47,23 @@ class PublicContentController extends Controller
             'data' => BlogPost::query()
                 ->orderByDesc('published_at')
                 ->orderByDesc('created_at')
-                ->get(),
+                ->get()
+                ->map(fn (BlogPost $post): array => $this->serializeBlogPost($post))
+                ->values(),
         ]);
     }
 
     public function blogPost(BlogPost $post): JsonResponse
     {
-        return response()->json(['data' => $post]);
+        return response()->json(['data' => $this->serializeBlogPost($post)]);
     }
 
     public function blogBySlug(string $slug): JsonResponse
     {
+        $post = BlogPost::query()->where('slug', $slug)->firstOrFail();
+
         return response()->json([
-            'data' => BlogPost::query()->where('slug', $slug)->firstOrFail(),
+            'data' => $this->serializeBlogPost($post),
         ]);
     }
 
@@ -99,6 +104,15 @@ class PublicContentController extends Controller
             'selected_book_ids' => $ids,
             'books' => BookResource::collection($books)->resolve(),
         ]);
+    }
+
+    private function serializeBlogPost(BlogPost $post): array
+    {
+        $payload = $post->toArray();
+        $payload['cover_image_url'] = PublicMediaUrl::resolve($post->cover_image_url);
+        $payload['content_blocks'] = PublicMediaUrl::resolveContentBlocks($post->content_blocks ?? []);
+
+        return $payload;
     }
 
     public function mobile(): JsonResponse
