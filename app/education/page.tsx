@@ -171,8 +171,8 @@ export default async function EducationPage({ searchParams }: EducationPageProps
           </Link>
           <Link href={educationHref("school", "rdc-cteb")} className="rounded-3xl border border-[#dfd4c8] bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg">
             <Shapes className="h-7 w-7 text-[#2d6f62]" />
-            <h2 className="mt-5 text-lg font-extrabold">CTEB</h2>
-            <p className="mt-2 text-sm leading-6 text-[#786d62]">7e et 8e années de l’Éducation de Base.</p>
+            <h2 className="mt-5 text-lg font-extrabold">Secondaire / CTEB</h2>
+            <p className="mt-2 text-sm leading-6 text-[#786d62]">7e et 8e années de l’Éducation de Base, avant les Humanités.</p>
           </Link>
           <Link href={educationHref("school", "rdc-humanities")} className="rounded-3xl border border-[#dfd4c8] bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg">
             <BookOpen className="h-7 w-7 text-[#77548d]" />
