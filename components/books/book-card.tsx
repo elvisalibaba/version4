@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Star } from "lucide-react";
+import { ArrowUpRight, BookOpen, Star } from "lucide-react";
 import { FavoriteBookButton } from "@/components/books/favorite-book-button";
 import { trackBookEngagement } from "@/lib/book-engagement-client";
 
@@ -24,8 +24,8 @@ export function BookCard({ book }: { book: Book }) {
         <span className={`absolute bottom-3 left-3 rounded-full px-3 py-1.5 text-[.65rem] font-bold uppercase tracking-wide shadow-sm ${book.is_free ? "bg-[#e8ac42] text-[#173d2c]" : "bg-white/95 text-[#173d2c]"}`}>{book.offer_summary_label ?? (book.is_free ? "Lecture gratuite" : "eBook")}</span>
       </div>
       <div className="mx-auto mt-5 max-w-[270px] sm:max-w-none">
-        <p className="text-[.68rem] font-bold uppercase tracking-[.16em] text-[#b85135]">{book.author_name ?? "Auteur Holistique"}</p>
-        <h3 className="mt-1.5 line-clamp-2 font-serif text-xl leading-tight text-[#17231d]"><Link href={href} onClick={trackClick} className="hover:text-[#b85135]">{book.title}</Link></h3>
+        <p className="line-clamp-1 text-[.62rem] font-bold uppercase tracking-[.14em] text-[#b85135] sm:text-[.68rem] sm:tracking-[.16em]">{book.author_name ?? "Auteur Holistique"}</p>
+        <h3 className="mt-1.5 line-clamp-2 font-serif text-base leading-tight text-[#17231d] sm:text-xl"><Link href={href} onClick={trackClick} className="hover:text-[#b85135]">{book.title}</Link></h3>
         <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#ddd1c0] pt-3">
           <span className="flex items-center gap-1 text-sm font-bold">
             <Star className="h-3.5 w-3.5 fill-[#e8ac42] text-[#e8ac42]" />
@@ -36,7 +36,18 @@ export function BookCard({ book }: { book: Book }) {
               </>
             ) : "Nouveau"}
           </span>
-          <Link href={href} onClick={trackClick} className="flex items-center gap-1 text-sm font-bold text-[#173d2c]">{price}<ArrowUpRight className="h-4 w-4" /></Link>
+          {book.is_free ? (
+            <Link
+              href={`/book/${book.id}?read=1`}
+              onClick={trackClick}
+              className="inline-flex items-center gap-1 rounded-full bg-[#173d2c] px-2.5 py-1.5 text-xs font-extrabold text-white transition hover:bg-[#23573f]"
+              aria-label={`Lire gratuitement ${book.title}`}
+            >
+              <BookOpen className="h-3.5 w-3.5" /> Lire
+            </Link>
+          ) : (
+            <Link href={href} onClick={trackClick} className="flex items-center gap-1 text-sm font-bold text-[#173d2c]">{price}<ArrowUpRight className="h-4 w-4" /></Link>
+          )}
         </div>
       </div>
     </article>
