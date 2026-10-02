@@ -17,12 +17,8 @@ class PrivateBookFileService
 
     public function stream(Book $book): StreamedResponse
     {
-        $path = $this->resolvePath($book);
-        $disk = Storage::disk('books');
-
-        if (! $disk->exists($path)) {
-            abort(404, 'Aucun fichier lisible disponible.');
-        }
+        [$diskName, $path] = $this->resolveReadableFile($book);
+        $disk = Storage::disk($diskName);
 
         $stream = $disk->readStream($path);
         if ($stream === false) {
@@ -42,6 +38,31 @@ class PrivateBookFileService
             'X-Content-Type-Options' => 'nosniff',
             'X-Robots-Tag' => 'noindex, noarchive',
         ]);
+    }
+
+    /**
+     * @return array{string, string}
+     */
+    private function resolveReadableFile(Book $book): array
+    {
+        $path = $this->resolvePath($book);
+
+        $candidates = [
+            ['books', $path],
+            ['local', $path],
+        ];
+
+        if (! str_starts_with($path, 'books/')) {
+            $candidates[] = ['local', 'books/'.$path];
+        }
+
+        foreach ($candidates as [$diskName, $candidatePath]) {
+            if (Storage::disk($diskName)->exists($candidatePath)) {
+                return [$diskName, $candidatePath];
+            }
+        }
+
+        abort(404, 'Aucun fichier lisible disponible.');
     }
 
     private function resolvePath(Book $book): string
@@ -65,7 +86,7 @@ class PrivateBookFileService
             abort(404, 'Aucun fichier privé lisible disponible.');
         }
 
-        return $path;
+        return ltrim($path, '/');
     }
 
     private function mimeTypeFromPath(string $path): string
