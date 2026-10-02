@@ -9,6 +9,17 @@ export type CopyrightStatus = "clear" | "review" | "blocked";
 export type BookFormatType = "holistique_store" | "ebook" | "paperback" | "pocket" | "hardcover" | "audiobook";
 export type MediaEditionType = "ebook" | "audiobook" | "video" | "print" | "bundle";
 
+export type ApiAcademicTaxonomy = {
+  id: string;
+  parent_id: string | null;
+  audience: "school" | "university";
+  kind: "root" | "level" | "class" | "stream" | "section" | "option" | "group" | "cycle" | "domain" | "field" | "mention";
+  code: string | null;
+  name: string;
+  slug: string;
+  is_official: boolean;
+};
+
 export type ApiMediaEdition = {
   id: string;
   media_type: MediaEditionType;
@@ -116,6 +127,7 @@ export type ApiBook = {
   page_count: number | null;
   co_authors?: string[];
   categories: string[];
+  education_taxonomies?: ApiAcademicTaxonomy[];
   tags: string[];
   age_rating?: string | null;
   edition?: string | null;
