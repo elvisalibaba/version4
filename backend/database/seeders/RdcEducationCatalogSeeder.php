@@ -95,21 +95,25 @@ class RdcEducationCatalogSeeder extends Seeder
         $this->node('RDC_OPT_IFME', 'Formation aux métiers de l’enseignement (IFME)', 'school', 'option', $pedagogy, 40, self::PROGRAMMES_SOURCE, 'Parcours lié à la réforme de la formation initiale des enseignants.');
 
         $technical = $this->node('RDC_HUM_TECH', 'Humanités techniques', 'school', 'stream', $humanities, 200, self::EDU_SOURCE);
-        $technicalSections = [
-            ['RDC_TECH_COMM', 'Commerciale et Gestion'],
-            ['RDC_TECH_SECRET', 'Secrétariat-Administration'],
-            ['RDC_TECH_INDUSTRY', 'Technique Industrielle'],
-            ['RDC_TECH_AGRI', 'Technique Agricole'],
-            ['RDC_TECH_SOCIAL', 'Technique Sociale'],
-            ['RDC_TECH_IT', 'Technique Informatique'],
-            ['RDC_TECH_ART', 'Technique Artistique'],
-            ['RDC_TECH_ELECTRIC', 'Électricité'],
-            ['RDC_TECH_ELECTRONIC', 'Électronique'],
-            ['RDC_TECH_PETRO', 'Pétrochimie'],
-        ];
-        foreach ($technicalSections as $index => [$code, $name]) {
-            $this->node($code, $name, 'school', 'section', $technical, ($index + 1) * 10, self::PROGRAMMES_SOURCE);
-        }
+
+        $commerce = $this->node('RDC_TECH_COMM', 'Commerciale et Gestion', 'school', 'section', $technical, 10, self::PROGRAMMES_SOURCE);
+        $this->node('RDC_OPT_COMM_GESTION', 'Commerciale et Gestion', 'school', 'option', $commerce, 10, self::PROGRAMMES_SOURCE, null, ['exam_code' => '301']);
+
+        $secretariat = $this->node('RDC_TECH_SECRET', 'Secrétariat-Administration', 'school', 'section', $technical, 20, self::PROGRAMMES_SOURCE);
+        $this->node('RDC_OPT_SECRET_ADMIN', 'Secrétariat-Administration', 'school', 'option', $secretariat, 10, self::PROGRAMMES_SOURCE);
+
+        $industry = $this->node('RDC_TECH_INDUSTRY', 'Technique Industrielle', 'school', 'section', $technical, 30, self::PROGRAMMES_SOURCE);
+        $this->node('RDC_TECH_ELECTRIC', 'Électricité', 'school', 'option', $industry, 10, self::PROGRAMMES_SOURCE);
+        $this->node('RDC_TECH_ELECTRONIC', 'Électronique', 'school', 'option', $industry, 20, 'https://edu-nc.gouv.cd/wp-content/uploads/2023/06/ELECTRONIQUE.pdf');
+        $this->node('RDC_TECH_PETRO', 'Pétrochimie industrielle', 'school', 'option', $industry, 30, 'https://edu-nc.gouv.cd/wp-content/uploads/2023/06/PETROCHIMIE.pdf');
+        $this->node('RDC_OPT_CONSTRUCTION', 'Construction', 'school', 'option', $industry, 40, self::SECONDARY_SOURCE, null, ['exam_code' => '904']);
+
+        $agriculture = $this->node('RDC_TECH_AGRI', 'Technique Agricole', 'school', 'section', $technical, 40, self::PROGRAMMES_SOURCE);
+        $this->node('RDC_OPT_AGRICULTURE', 'Agriculture', 'school', 'option', $agriculture, 10, self::SECONDARY_SOURCE, null, ['exam_code' => '801']);
+
+        $this->node('RDC_TECH_SOCIAL', 'Technique Sociale', 'school', 'section', $technical, 50, self::PROGRAMMES_SOURCE);
+        $this->node('RDC_TECH_IT', 'Technique Informatique', 'school', 'section', $technical, 60, self::PROGRAMMES_SOURCE);
+        $this->node('RDC_TECH_ART', 'Technique Artistique', 'school', 'section', $technical, 70, self::PROGRAMMES_SOURCE);
 
         $professional = $this->node('RDC_HUM_PRO', 'Humanités professionnelles', 'school', 'stream', $humanities, 300, self::EDU_SOURCE);
         $this->node('RDC_PRO_COUTURE', 'Coupe et Couture', 'school', 'option', $professional, 10, self::SECONDARY_SOURCE);
