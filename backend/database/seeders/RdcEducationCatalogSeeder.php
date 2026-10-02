@@ -150,5 +150,40 @@ class RdcEducationCatalogSeeder extends Seeder
         ] as [$code, $name, $sort]) {
             $this->node($code, $name, 'university', 'domain', $domains, $sort, self::ESU_SOURCE);
         }
+
+        $humanSociety = AcademicTaxonomy::query()->where('code', 'ESU_DOMAIN_1')->firstOrFail();
+
+        $theology = $this->node(
+            'ESU_FIELD_10',
+            'Théologie Protestante',
+            'university',
+            'field',
+            $humanSociety,
+            100,
+            self::ESU_SOURCE,
+            'Filière officielle RegESU destinée aux étudiants en théologie.',
+            ['regesu_id' => 10, 'featured' => true],
+        );
+
+        foreach ([
+            ['ESU_MENTION_37', 'Théologie Pastorale', 10, 1, 'Licence'],
+            ['ESU_MENTION_38', 'Exégèses et Théologies Bibliques : Ancien Testament', 20, 2, 'Master'],
+            ['ESU_MENTION_39', 'Exégèses et Théologies Bibliques : Nouveau Testament', 30, 2, 'Master'],
+            ['ESU_MENTION_40', 'Théologie systématique et éthique', 40, 2, 'Master'],
+            ['ESU_MENTION_41', 'Théologie Pastorale', 50, 2, 'Master'],
+            ['ESU_MENTION_42', 'Histoire de l’Église', 60, 2, 'Master'],
+        ] as [$code, $name, $sort, $cycleId, $cycle]) {
+            $this->node(
+                $code,
+                $name,
+                'university',
+                'mention',
+                $theology,
+                $sort,
+                self::ESU_SOURCE,
+                null,
+                ['regesu_id' => (int) str_replace('ESU_MENTION_', '', $code), 'cycle_id' => $cycleId, 'cycle' => $cycle],
+            );
+        }
     }
 }
