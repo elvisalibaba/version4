@@ -21,7 +21,10 @@ class EducationCatalogControllerTest extends TestCase
             ->assertJsonFragment(['code' => 'RDC_PRIMARY', 'name' => 'Primaire'])
             ->assertJsonFragment(['code' => 'RDC_CTEB'])
             ->assertJsonFragment(['code' => 'RDC_HUMANITIES', 'name' => 'Humanités'])
-            ->assertJsonFragment(['code' => 'ESU_DOMAIN_4', 'name' => 'Sciences et Technologie']);
+            ->assertJsonFragment(['code' => 'ESU_DOMAIN_4', 'name' => 'Sciences et Technologie'])
+            ->assertJsonFragment(['code' => 'ESU_FIELD_10', 'name' => 'Théologie Protestante'])
+            ->assertJsonFragment(['code' => 'ESU_MENTION_37', 'name' => 'Théologie Pastorale'])
+            ->assertJsonFragment(['code' => 'ESU_MENTION_40', 'name' => 'Théologie systématique et éthique']);
 
         $this->assertSame(
             8,
