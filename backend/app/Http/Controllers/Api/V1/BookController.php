@@ -49,6 +49,11 @@ class BookController extends Controller
                     ->where('academic_taxonomies.slug', $education)
                     ->orWhere('academic_taxonomies.code', $education));
             })
+            ->when(request()->string('education_audience')->isNotEmpty(), function ($query): void {
+                $audience = request()->string('education_audience')->toString();
+                $query->whereHas('educationTaxonomies', fn ($taxonomyQuery) => $taxonomyQuery
+                    ->where('academic_taxonomies.audience', $audience));
+            })
             ->latest('published_at')
             ->orderByDesc('id')
             ->paginate(24);
