@@ -120,6 +120,16 @@ class Book extends Model
         return $this->belongsToMany(Category::class, 'book_categories', 'book_id', 'category_id');
     }
 
+    public function educationTaxonomies(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            AcademicTaxonomy::class,
+            'book_academic_taxonomy',
+            'book_id',
+            'academic_taxonomy_id',
+        )->withTimestamps();
+    }
+
     public function publishingHouse(): BelongsTo
     {
         return $this->belongsTo(PublishingHouse::class);

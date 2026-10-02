@@ -30,6 +30,8 @@ export async function GET(_request: Request, context: { params: Promise<{ bookId
     return NextResponse.json({
       readerUrl: `/api/read/${encodeURIComponent(bookId)}/file`,
       fileType,
+      isGuestPreview: !token,
+      previewPageLimit: !token ? 10 : null,
     });
   } catch (error) {
     if (error instanceof ApiError) {

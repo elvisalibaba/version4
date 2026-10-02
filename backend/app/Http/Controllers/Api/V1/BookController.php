@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Book\StoreBookRequest;
 use App\Http\Requests\Book\UpdateBookRequest;
 use App\Http\Resources\BookResource;
+use App\Models\AcademicTaxonomy;
 use App\Models\Book;
 use App\Services\BookDocumentMetadataService;
 use App\Services\BookTaxonomyService;
@@ -32,6 +33,7 @@ class BookController extends Controller
                 'author',
                 'publishingHouse',
                 'imprint',
+                'educationTaxonomies',
                 'mediaEditions' => fn ($query) => $query->where('status', 'published'),
                 'formats' => fn ($query) => $query->where('is_published', true),
             ])
@@ -42,6 +44,43 @@ class BookController extends Controller
                     ->orWhere('author_display_name', 'like', "%{$search}%"));
             })
             ->when(request()->string('category')->isNotEmpty(), fn ($query) => $query->whereJsonContains('categories', request()->string('category')->toString()))
+            ->when(request()->string('education')->isNotEmpty(), function ($query): void {
+                $education = request()->string('education')->toString();
+                $taxonomy = AcademicTaxonomy::query()
+                    ->where('slug', $education)
+                    ->orWhere('code', $education)
+                    ->first();
+
+                if (! $taxonomy) {
+                    $query->whereRaw('1 = 0');
+                    return;
+                }
+
+                $taxonomyIds = collect([$taxonomy->id]);
+                $frontier = collect([$taxonomy->id]);
+
+                while ($frontier->isNotEmpty()) {
+                    $children = AcademicTaxonomy::query()
+                        ->whereIn('parent_id', $frontier)
+                        ->pluck('id');
+
+                    $newChildren = $children->diff($taxonomyIds);
+                    if ($newChildren->isEmpty()) {
+                        break;
+                    }
+
+                    $taxonomyIds = $taxonomyIds->merge($newChildren);
+                    $frontier = $newChildren;
+                }
+
+                $query->whereHas('educationTaxonomies', fn ($taxonomyQuery) => $taxonomyQuery
+                    ->whereIn('academic_taxonomies.id', $taxonomyIds));
+            })
+            ->when(request()->string('education_audience')->isNotEmpty(), function ($query): void {
+                $audience = request()->string('education_audience')->toString();
+                $query->whereHas('educationTaxonomies', fn ($taxonomyQuery) => $taxonomyQuery
+                    ->where('academic_taxonomies.audience', $audience));
+            })
             ->latest('published_at')
             ->orderByDesc('id')
             ->paginate(24);
@@ -106,7 +145,7 @@ class BookController extends Controller
 
         $book->subscriptionPlans()->sync($book->is_subscription_available ? $planIds : []);
 
-        return new BookResource($book->load(['author', 'publishingHouse', 'imprint', 'mediaEditions', 'formats', 'subscriptionPlans']));
+        return new BookResource($book->load(['author', 'publishingHouse', 'imprint', 'educationTaxonomies', 'mediaEditions', 'formats', 'subscriptionPlans']));
     }
 
     public function show(Book $book): BookResource
@@ -122,7 +161,7 @@ class BookController extends Controller
         ]);
 
         return new BookResource($book->load([
-            'author', 'publishingHouse', 'imprint',
+            'author', 'publishingHouse', 'imprint', 'educationTaxonomies',
             'mediaEditions' => fn ($query) => $query->where('status', 'published')->with('chapters'),
             'formats',
             'subscriptionPlans:id,name,slug,description,monthly_price,currency_code,is_active,max_devices,offline_days,downloads_enabled'
@@ -198,7 +237,7 @@ class BookController extends Controller
             $book->subscriptionPlans()->sync($book->is_subscription_available ? $planIds : []);
         }
 
-        return new BookResource($book->load(['author', 'formats', 'subscriptionPlans']));
+        return new BookResource($book->load(['author', 'educationTaxonomies', 'formats', 'subscriptionPlans']));
     }
 
     public function destroy(Book $book): Response
