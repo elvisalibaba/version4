@@ -382,20 +382,23 @@ export function ReaderPopup({
         const readerPayload = await readerResponse.json();
 
         if (!readerResponse.ok) {
-          setError(readerPayload.error ?? "Impossible d ouvrir ce livre.");
+          setError(readerPayload.error ?? "Impossible d’ouvrir ce livre.");
           return;
         }
 
         setFileUrl(readerPayload.readerUrl);
         setFileType(readerPayload.fileType);
+
+        const guestPreview = Boolean(readerPayload.isGuestPreview);
+        setIsGuestReader(guestPreview);
         setGuestPreviewLimit(
           typeof readerPayload.previewPageLimit === "number" ? readerPayload.previewPageLimit : null,
         );
 
         const authPayload = authResponse.ok ? await authResponse.json() : { data: null };
         const user = authPayload.data ?? null;
-        setIsGuestReader(!user);
-        if (!user) return;
+
+        if (!user || guestPreview) return;
 
         setReaderProfileId(user.id);
 
@@ -434,7 +437,7 @@ export function ReaderPopup({
 
         setProgressHydrated(true);
       } catch {
-        setError("Le lecteur securise ne repond pas pour le moment.");
+        setError("Le lecteur sécurisé ne répond pas pour le moment.");
       }
     }
 
@@ -1036,7 +1039,7 @@ export function ReaderPopup({
                         Vous pouvez découvrir les 10 premières pages sans compte. Créez un compte lecteur pour continuer gratuitement au-delà de l’aperçu et conserver votre progression.
                       </p>
                       <Link
-                        href={`/register?role=reader&next=${encodeURIComponent(`/book/${bookId}`)}`}
+                        href={`/register?role=reader&next=${encodeURIComponent(`/book/${bookId}?read=1`)}`}
                         className="mt-4 inline-flex min-h-11 items-center justify-center rounded-full bg-[#f7c78f] px-4 text-sm font-semibold text-[#111827]"
                       >
                         Créer un compte lecteur
@@ -1142,10 +1145,10 @@ export function ReaderPopup({
               Créez un compte lecteur gratuit pour continuer le livre complet, synchroniser votre progression et retrouver vos lectures sur mobile.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <Link href={`/register?role=reader&next=${encodeURIComponent(`/book/${bookId}`)}`} className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#173f38] px-4 text-sm font-extrabold text-white">
+              <Link href={`/register?role=reader&next=${encodeURIComponent(`/book/${bookId}?read=1`)}`} className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#173f38] px-4 text-sm font-extrabold text-white">
                 Créer un compte
               </Link>
-              <Link href={`/login?next=${encodeURIComponent(`/book/${bookId}`)}`} className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#d8cabc] px-4 text-sm font-extrabold">
+              <Link href={`/login?next=${encodeURIComponent(`/book/${bookId}?read=1`)}`} className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#d8cabc] px-4 text-sm font-extrabold">
                 Se connecter
               </Link>
             </div>
