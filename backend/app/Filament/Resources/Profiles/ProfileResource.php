@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -82,6 +83,7 @@ class ProfileResource extends Resource
         return $table
             ->defaultSort('created_at', 'desc')
             ->columns([
+                ImageColumn::make('avatar_url')->label('Photo')->disk('public')->circular()->defaultImageUrl(null),
                 TextColumn::make('name')->label('Nom')->searchable()->sortable(),
                 TextColumn::make('email')->label('E-mail')->searchable()->copyable(),
                 TextColumn::make('role')->label('Rôle')->badge()->sortable(),
