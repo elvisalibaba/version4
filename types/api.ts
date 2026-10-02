@@ -57,6 +57,7 @@ export type ApiAuthorProfile = {
 
 export type ApiProfile = {
   role: UserRole;
+  avatar_url: string | null;
   first_name: string | null;
   last_name: string | null;
   phone: string | null;
