@@ -8,6 +8,7 @@ export type CurrentUserProfile = {
   email: string;
   name: string | null;
   role: UserRole;
+  avatar_url: string | null;
   first_name: string | null;
   last_name: string | null;
   phone: string | null;
@@ -25,6 +26,7 @@ function flattenUser(user: ApiUser): CurrentUserProfile {
     email: user.email,
     name: user.name,
     role: user.profile.role,
+    avatar_url: user.profile.avatar_url,
     first_name: user.profile.first_name,
     last_name: user.profile.last_name,
     phone: user.profile.phone,
