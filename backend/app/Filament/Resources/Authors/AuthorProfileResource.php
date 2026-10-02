@@ -8,6 +8,7 @@ use App\Filament\Resources\Authors\Pages\ListAuthorProfiles;
 use App\Models\AuthorProfile;
 use BackedEnum;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
@@ -42,7 +43,16 @@ class AuthorProfileResource extends Resource
                 TextInput::make('location')->label('Localisation')->maxLength(255),
                 TextInput::make('country_code')->label('Pays (ISO)')->maxLength(2),
                 TextInput::make('website')->label('Site web')->url()->maxLength(2048),
-                TextInput::make('avatar_url')->label('Avatar URL')->url()->maxLength(2048),
+                FileUpload::make('avatar_url')
+                    ->label('Photo / avatar')
+                    ->disk('public')
+                    ->directory('avatars/authors')
+                    ->visibility('public')
+                    ->image()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                    ->maxSize(5120)
+                    ->helperText('Importez directement la photo de l’auteur. Les anciennes URL restent compatibles.')
+                    ->columnSpanFull(),
                 TagsInput::make('genres')->label('Genres')->columnSpanFull(),
                 Textarea::make('bio')->label('Biographie')->rows(6)->columnSpanFull(),
                 Textarea::make('publishing_goals')->label('Objectifs de publication')->rows(4)->columnSpanFull(),
