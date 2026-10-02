@@ -8,6 +8,7 @@ use App\Filament\Resources\PublishingImprints\Pages\EditPublishingImprint;
 use App\Models\PublishingImprint;
 use BackedEnum;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -38,7 +39,16 @@ class PublishingImprintResource extends Resource
             TextInput::make('slug')->required(),
             Toggle::make('is_active')->label('Actif')->default(true),
             Textarea::make('description')->columnSpanFull(),
-            TextInput::make('logo_url')->label('Logo URL')->url()->columnSpanFull(),
+            FileUpload::make('logo_url')
+                ->label('Logo du label')
+                ->disk('public')
+                ->directory('branding/imprints')
+                ->visibility('public')
+                ->image()
+                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'])
+                ->maxSize(5120)
+                ->helperText('Importez le logo du label.')
+                ->columnSpanFull(),
         ])]);
     }
 
