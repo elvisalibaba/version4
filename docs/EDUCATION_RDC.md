@@ -40,6 +40,19 @@ Et les 8 domaines officiels LMD :
 
 La commande `php artisan education:sync-regesu` importe/actualise les filières et mentions publiées par RegESU.
 
+### Parcours Théologie
+
+HolisticBooks met en avant la filière officielle RegESU **Théologie Protestante**, rattachée au domaine **Sciences de l’Homme et de la Société**. Le socle précharge les mentions publiées par RegESU :
+
+- Théologie Pastorale — Licence
+- Exégèses et Théologies Bibliques : Ancien Testament — Master
+- Exégèses et Théologies Bibliques : Nouveau Testament — Master
+- Théologie systématique et éthique — Master
+- Théologie Pastorale — Master
+- Histoire de l’Église — Master
+
+Ces entrées portent les codes RegESU `ESU_FIELD_10` et `ESU_MENTION_37` à `ESU_MENTION_42`, ce qui permet à la synchronisation officielle de les actualiser sans créer de doublons.
+
 ## Sources officielles
 
 - MINEDU-NC — système éducatif : https://edu-nc.gouv.cd/systeme-educatif
