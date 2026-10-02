@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\PublicMediaUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,6 +22,7 @@ class UserResource extends JsonResource
             'email_verified_at' => $this->email_verified_at,
             'profile' => $this->whenLoaded('profile', fn (): array => [
                 'role' => $this->profile->role,
+                'avatar_url' => PublicMediaUrl::resolve($this->profile->avatar_url),
                 'first_name' => $this->profile->first_name,
                 'last_name' => $this->profile->last_name,
                 'phone' => $this->profile->phone,
