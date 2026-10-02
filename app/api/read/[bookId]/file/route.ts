@@ -2,26 +2,42 @@ import { NextResponse } from "next/server";
 import { getApiBaseUrl } from "@/lib/api/client";
 import { getServerAuthToken } from "@/lib/api/server";
 
-export async function GET(_request: Request, context: { params: Promise<{ bookId: string }> }) {
-  const { bookId } = await context.params;
-  const token = await getServerAuthToken();
-  const encodedBookId = encodeURIComponent(bookId);
-  const targetUrl = token
-    ? `${getApiBaseUrl()}/api/v1/read/${encodedBookId}`
-    : `${getApiBaseUrl()}/api/v1/books/${encodedBookId}/read-free`;
-
+async function proxyFile(targetUrl: string, token?: string | null) {
   const headers: HeadersInit = { Accept: "*/*" };
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(targetUrl, {
+  return fetch(targetUrl, {
     headers,
     cache: "no-store",
   });
+}
+
+export async function GET(_request: Request, context: { params: Promise<{ bookId: string }> }) {
+  const { bookId } = await context.params;
+  const token = await getServerAuthToken();
+  const encodedBookId = encodeURIComponent(bookId);
+  const apiBase = getApiBaseUrl();
+
+  let response = token
+    ? await proxyFile(`${apiBase}/api/v1/read/${encodedBookId}`, token)
+    : await proxyFile(`${apiBase}/api/v1/books/${encodedBookId}/read-free`);
+
+  if (token && (response.status === 401 || response.status === 403)) {
+    // Le navigateur peut encore porter un cookie expiré. Pour un livre gratuit,
+    // le backend public décidera lui-même si l’aperçu est autorisé.
+    response = await proxyFile(`${apiBase}/api/v1/books/${encodedBookId}/read-free`);
+  }
 
   if (!response.ok) {
-    const payload = await response.json().catch(() => ({ error: "Lecture impossible." }));
+    const payload = await response.json().catch(() => ({
+      error:
+        response.status === 404
+          ? "Le fichier de lecture est introuvable."
+          : "Lecture impossible.",
+    }));
+
     return NextResponse.json(payload, { status: response.status });
   }
 
