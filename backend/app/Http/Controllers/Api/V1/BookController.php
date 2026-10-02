@@ -32,6 +32,7 @@ class BookController extends Controller
                 'author',
                 'publishingHouse',
                 'imprint',
+                'educationTaxonomies',
                 'mediaEditions' => fn ($query) => $query->where('status', 'published'),
                 'formats' => fn ($query) => $query->where('is_published', true),
             ])
@@ -42,6 +43,12 @@ class BookController extends Controller
                     ->orWhere('author_display_name', 'like', "%{$search}%"));
             })
             ->when(request()->string('category')->isNotEmpty(), fn ($query) => $query->whereJsonContains('categories', request()->string('category')->toString()))
+            ->when(request()->string('education')->isNotEmpty(), function ($query): void {
+                $education = request()->string('education')->toString();
+                $query->whereHas('educationTaxonomies', fn ($taxonomyQuery) => $taxonomyQuery
+                    ->where('academic_taxonomies.slug', $education)
+                    ->orWhere('academic_taxonomies.code', $education));
+            })
             ->latest('published_at')
             ->orderByDesc('id')
             ->paginate(24);
@@ -106,7 +113,7 @@ class BookController extends Controller
 
         $book->subscriptionPlans()->sync($book->is_subscription_available ? $planIds : []);
 
-        return new BookResource($book->load(['author', 'publishingHouse', 'imprint', 'mediaEditions', 'formats', 'subscriptionPlans']));
+        return new BookResource($book->load(['author', 'publishingHouse', 'imprint', 'educationTaxonomies', 'mediaEditions', 'formats', 'subscriptionPlans']));
     }
 
     public function show(Book $book): BookResource
@@ -122,7 +129,7 @@ class BookController extends Controller
         ]);
 
         return new BookResource($book->load([
-            'author', 'publishingHouse', 'imprint',
+            'author', 'publishingHouse', 'imprint', 'educationTaxonomies',
             'mediaEditions' => fn ($query) => $query->where('status', 'published')->with('chapters'),
             'formats',
             'subscriptionPlans:id,name,slug,description,monthly_price,currency_code,is_active,max_devices,offline_days,downloads_enabled'
@@ -198,7 +205,7 @@ class BookController extends Controller
             $book->subscriptionPlans()->sync($book->is_subscription_available ? $planIds : []);
         }
 
-        return new BookResource($book->load(['author', 'formats', 'subscriptionPlans']));
+        return new BookResource($book->load(['author', 'educationTaxonomies', 'formats', 'subscriptionPlans']));
     }
 
     public function destroy(Book $book): Response
