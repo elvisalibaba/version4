@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Books;
 use App\Filament\Resources\Books\Pages\CreateBook;
 use App\Filament\Resources\Books\Pages\EditBook;
 use App\Filament\Resources\Books\Pages\ListBooks;
+use App\Models\AcademicTaxonomy;
 use App\Models\AuthorProfile;
 use App\Models\Book;
 use App\Models\Category;
@@ -125,6 +126,35 @@ class BookResource extends Resource
                     TagsInput::make('tags')->label('Tags')->columnSpanFull(),
                 ]),
 
+            Section::make('Éducation scolaire et universitaire')
+                ->description('Classez ce livre pour les élèves ou étudiants : niveau, classe, section, option, cycle LMD, domaine, filière ou mention. Plusieurs classifications peuvent être associées au même livre.')
+                ->schema([
+                    Select::make('educationTaxonomies')
+                        ->label('Public académique ciblé')
+                        ->relationship('educationTaxonomies', 'name')
+                        ->multiple()
+                        ->searchable()
+                        ->preload()
+                        ->getOptionLabelFromRecordUsing(fn (AcademicTaxonomy $record): string => sprintf(
+                            '%s · %s · %s',
+                            $record->audience === 'university' ? 'Université' : 'Scolaire',
+                            match ($record->kind) {
+                                'class' => 'Classe',
+                                'stream' => 'Filière',
+                                'section' => 'Section',
+                                'option' => 'Option',
+                                'cycle' => 'Cycle',
+                                'domain' => 'Domaine',
+                                'field' => 'Filière',
+                                'mention' => 'Mention',
+                                default => 'Niveau',
+                            },
+                            $record->name,
+                        ))
+                        ->helperText('Exemples : 5e primaire, Humanités scientifiques, Technique Informatique, Licence 2, Sciences et Technologie.')
+                        ->columnSpanFull(),
+                ]),
+
             Section::make('Commercialisation')
                 ->columns(3)
                 ->schema([
@@ -231,6 +261,7 @@ class BookResource extends Resource
             ->columns([
                 TextColumn::make('title')->label('Titre')->searchable()->sortable()->limit(45),
                 TextColumn::make('author.display_name')->label('Auteur')->searchable()->toggleable(),
+                TextColumn::make('educationTaxonomies.name')->label('Éducation')->badge()->limitList(3)->toggleable(),
                 TextColumn::make('price')->label('Prix')->money(fn (Book $record): string => $record->currency_code)->sortable(),
                 TextColumn::make('status')->label('Statut')->badge()->sortable(),
                 TextColumn::make('review_status')->label('Éditorial')->badge()->toggleable(),
@@ -250,6 +281,11 @@ class BookResource extends Resource
                         'archived' => 'Archivé',
                         'coming_soon' => 'À venir',
                     ]),
+                SelectFilter::make('educationTaxonomies')
+                    ->relationship('educationTaxonomies', 'name')
+                    ->label('Niveau / filière')
+                    ->searchable()
+                    ->preload(),
                 SelectFilter::make('copyright_status')
                     ->label('Droits')
                     ->options([
