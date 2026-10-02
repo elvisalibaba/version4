@@ -18,6 +18,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -81,6 +82,7 @@ class AuthorProfileResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
+            ImageColumn::make('avatar_url')->label('Photo')->disk('public')->circular(),
             TextColumn::make('display_name')->label('Auteur')->searchable()->sortable(),
             IconColumn::make('profile.id')->label('Compte')->boolean()->getStateUsing(fn(AuthorProfile $record):bool=>$record->profile()->exists()),
             TextColumn::make('catalog_origin')->label('Origine')->badge(),
