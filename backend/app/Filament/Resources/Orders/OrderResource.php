@@ -38,7 +38,7 @@ class OrderResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return StaffAccess::allows('commerce.manage');
+        return StaffAccess::allows('commerce.view') || StaffAccess::allows('commerce.manage');
     }
 
     public static function canCreate(): bool
