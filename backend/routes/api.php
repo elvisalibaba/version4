@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PublicContentController;
 use App\Http\Controllers\Api\V1\PublicMediaController;
 use App\Http\Controllers\Api\V1\PromotionEventController;
+use App\Http\Controllers\Api\V1\ProtectedBookPageController;
 use App\Http\Controllers\Api\V1\ReadController;
 use App\Http\Controllers\Api\V1\ReaderDashboardController;
 use App\Http\Controllers\Api\V1\ReviewController;
@@ -78,6 +79,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::post('books/{book}/engagement', [EngagementController::class, 'store'])->middleware('throttle:120,1')->name('books.engagement.store');
     Route::get('books/{book}/reviews', [ReviewController::class, 'index'])->middleware('throttle:120,1')->name('books.reviews.index');
     Route::get('books/{book}/read-free', [ReadController::class, 'free'])->middleware('throttle:120,1')->name('books.read-free');
+    Route::get('books/{book}/preview/pages/{page}', [ProtectedBookPageController::class, 'preview'])->whereNumber('page')->middleware('throttle:120,1')->name('books.preview.page');
 
     Route::middleware(['auth:sanctum', 'verified'])->group(function (): void {
         Route::get('auth/me', [AuthController::class, 'me'])->name('auth.me');
@@ -99,6 +101,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::post('payments/easypay/orders/{order}/reconcile', [PaymentController::class, 'reconcile'])->middleware('throttle:30,1')->name('payments.easypay.reconcile');
         Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
         Route::get('read/{book}', ReadController::class)->name('read');
+        Route::get('read/{book}/pages/{page}', [ProtectedBookPageController::class, 'authenticated'])->whereNumber('page')->middleware('throttle:240,1')->name('read.page');
         Route::get('media-editions/{mediaEdition}/access', [MediaAccessController::class, 'access'])->name('media-editions.access');
 
         Route::post('mobile/trial/claim', [MobileAppController::class, 'claimTrial'])->name('mobile.trial.claim');
