@@ -49,7 +49,9 @@ class BookAccessController extends Controller
 
         return response()->json([
             'data' => [
-                'hasAccess' => $hasAccess,
+                'hasAccess' => $hasAccess && $book->can_read_on_platform,
+                'readerPermissions' => $book->readerPermissions(),
+                'rightsAgreementReference' => $book->rights_agreement_reference,
                 'hasPurchaseAccess' => $hasPurchaseAccess,
                 'hasSubscriptionAccess' => $hasSubscriptionAccess,
                 'hasLibraryEntry' => $libraryEntry !== null,
