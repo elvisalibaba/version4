@@ -10,6 +10,7 @@ import {
   Clapperboard,
   PlusCircle,
   Receipt,
+  ShieldAlert,
   UserRound,
   WalletCards,
 } from "lucide-react";
@@ -26,6 +27,7 @@ export type DashboardIconName =
   | "library-big"
   | "plus-circle"
   | "receipt"
+  | "shield-alert"
   | "user-round"
   | "wallet-cards";
 
@@ -58,6 +60,8 @@ export function DashboardIcon({ name, className }: DashboardIconProps) {
       return <PlusCircle className={className} />;
     case "receipt":
       return <Receipt className={className} />;
+    case "shield-alert":
+      return <ShieldAlert className={className} />;
     case "user-round":
       return <UserRound className={className} />;
     case "wallet-cards":
