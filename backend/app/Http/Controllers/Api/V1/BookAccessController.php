@@ -50,7 +50,7 @@ class BookAccessController extends Controller
         return response()->json([
             'data' => [
                 'hasAccess' => $hasAccess && $book->can_read_on_platform,
-                'readerPermissions' => $book->readerPermissions(),
+                'readerPermissions' => array_merge($book->readerPermissions(), ['can_download' => false]),
                 'rightsAgreementReference' => $book->rights_agreement_reference,
                 'hasPurchaseAccess' => $hasPurchaseAccess,
                 'hasSubscriptionAccess' => $hasSubscriptionAccess,
