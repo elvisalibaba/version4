@@ -60,7 +60,7 @@ class RightsContractResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return StaffAccess::allows('rights.manage');
+        return StaffAccess::allows('rights.view') || StaffAccess::allows('rights.manage');
     }
 
     public static function canCreate(): bool
