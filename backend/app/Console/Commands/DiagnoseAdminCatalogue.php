@@ -22,6 +22,12 @@ class DiagnoseAdminCatalogue extends Command
         $this->line('PHP_POST_MAX_SIZE: '.ini_get('post_max_size'));
         $this->line('PHP_MEMORY_LIMIT: '.ini_get('memory_limit'));
         $this->line('PHP_MAX_EXECUTION_TIME: '.ini_get('max_execution_time'));
+        $this->line('PHP_MAX_FILE_UPLOADS: '.ini_get('max_file_uploads'));
+        $this->line('PHP_UPLOAD_TMP_DIR: '.(ini_get('upload_tmp_dir') ?: '[system default]'));
+        $this->line('SYSTEM_TEMP_DIR: '.sys_get_temp_dir());
+        $this->line('SYSTEM_TEMP_WRITABLE: '.(is_writable(sys_get_temp_dir()) ? 'OK' : 'NOT_WRITABLE'));
+        $this->line('LIVEWIRE_TEMP_RULES: '.(string) config('livewire.temporary_file_upload.rules'));
+        $this->line('LIVEWIRE_TEMP_DIRECTORY: '.(string) config('livewire.temporary_file_upload.directory'));
 
         foreach ([
             storage_path() => 'STORAGE_ROOT_WRITABLE',

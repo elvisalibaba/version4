@@ -235,7 +235,7 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
             </div>
 
             {books.length > 0 ? (
-              <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-9 sm:gap-x-5 sm:gap-y-11 lg:grid-cols-3 xl:grid-cols-4">
                 {books.map((book) => (
                   <BookCard key={book.id} book={book} />
                 ))}
