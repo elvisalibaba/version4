@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PublishingReviews;
 
+use App\Support\StaffAccess;
 use App\Filament\Resources\PublishingReviews\Pages\CreatePublishingReviewCase;
 use App\Filament\Resources\PublishingReviews\Pages\EditPublishingReviewCase;
 use App\Filament\Resources\PublishingReviews\Pages\ListPublishingReviewCases;
@@ -30,6 +31,26 @@ class PublishingReviewCaseResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return 'Direction éditoriale';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('editorial.review');
+    }
+
+    public static function canCreate(): bool
+    {
+        return StaffAccess::allows('editorial.review');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return StaffAccess::allows('editorial.review');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return StaffAccess::allows('editorial.review');
     }
 
     public static function form(Schema $schema): Schema
