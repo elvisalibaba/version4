@@ -43,6 +43,12 @@ export type PublishLabInitialValues = {
   submittedAt: string | null;
   reviewedAt: string | null;
   reviewNote: string | null;
+  writingStatus: string;
+  targetWordCount: string;
+  currentWordCount: string;
+  nextAuthorAction: string;
+  editorialDeadline: string;
+  authorPrivateNotes: string;
 };
 
 export type PublishLabFormProps = {
@@ -82,6 +88,12 @@ const defaults: PublishLabInitialValues = {
   submittedAt: null,
   reviewedAt: null,
   reviewNote: null,
+  writingStatus: "idea",
+  targetWordCount: "",
+  currentWordCount: "",
+  nextAuthorAction: "",
+  editorialDeadline: "",
+  authorPrivateNotes: "",
 };
 
 function splitCsv(value: string) {
@@ -132,6 +144,12 @@ export function PublishLabForm({
   const [ebookFile, setEbookFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [sampleFile, setSampleFile] = useState<File | null>(null);
+  const [writingStatus, setWritingStatus] = useState(initial.writingStatus);
+  const [targetWordCount, setTargetWordCount] = useState(initial.targetWordCount);
+  const [currentWordCount, setCurrentWordCount] = useState(initial.currentWordCount);
+  const [nextAuthorAction, setNextAuthorAction] = useState(initial.nextAuthorAction);
+  const [editorialDeadline, setEditorialDeadline] = useState(initial.editorialDeadline);
+  const [authorPrivateNotes, setAuthorPrivateNotes] = useState(initial.authorPrivateNotes);
   const [busy, setBusy] = useState(false);
   const [statusText, setStatusText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -182,6 +200,13 @@ export function PublishLabForm({
       form.set("is_single_sale_enabled", singleSale ? "1" : "0");
       form.set("is_subscription_available", subscription ? "1" : "0");
       form.set("status", intent === "submit" ? "published" : "draft");
+      form.set("writing_status", writingStatus || "idea");
+
+      if (targetWordCount) form.set("target_word_count", targetWordCount);
+      if (currentWordCount) form.set("current_word_count", currentWordCount);
+      if (nextAuthorAction.trim()) form.set("next_author_action", nextAuthorAction.trim());
+      if (editorialDeadline) form.set("editorial_deadline", editorialDeadline);
+      if (authorPrivateNotes.trim()) form.set("author_private_notes", authorPrivateNotes.trim());
 
       if (isbn.trim()) form.set("isbn", isbn.replace(/\D/g, ""));
       if (publisher.trim()) form.set("publisher", publisher.trim());
@@ -281,6 +306,35 @@ export function PublishLabForm({
         <Field label="Position dans la série"><input type="number" min="1" value={seriesPosition} onChange={(e) => setSeriesPosition(e.target.value)} className="form-input" /></Field>
         <Field label="Texte alternatif couverture"><input value={coverAltText} onChange={(e) => setCoverAltText(e.target.value)} className="form-input" /></Field>
         <Field label="Pages d’extrait"><input type="number" min="0" value={samplePages} onChange={(e) => setSamplePages(e.target.value)} className="form-input" /></Field>
+      </fieldset>
+
+      <fieldset disabled={busy || disabled} className="rounded-[1.75rem] border border-[#d8e5dd] bg-[#f7fbf8] p-5 sm:p-7">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[.17em] text-[#39705a]">Atelier d’écriture</p>
+          <h2 className="mt-2 text-lg font-bold text-[#173d2c]">Piloter le manuscrit comme un projet éditorial</h2>
+          <p className="mt-1 text-sm leading-6 text-[#65736b]">Ces informations restent dans votre espace auteur et aident l’équipe éditoriale à suivre l’avancement.</p>
+        </div>
+
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+          <Field label="État de l’écriture">
+            <select value={writingStatus} onChange={(e) => setWritingStatus(e.target.value)} className="form-input">
+              <option value="idea">Idée / concept</option>
+              <option value="outline">Plan / structure</option>
+              <option value="writing">Rédaction en cours</option>
+              <option value="self_review">Relecture auteur</option>
+              <option value="submitted">Soumis à l’équipe éditoriale</option>
+              <option value="editor_review">En traitement éditorial</option>
+              <option value="changes_requested">Corrections demandées</option>
+              <option value="ready_for_layout">Prêt pour mise en page</option>
+              <option value="completed">Manuscrit finalisé</option>
+            </select>
+          </Field>
+          <Field label="Échéance cible"><input type="date" value={editorialDeadline} onChange={(e) => setEditorialDeadline(e.target.value)} className="form-input" /></Field>
+          <Field label="Objectif de mots"><input type="number" min="1" value={targetWordCount} onChange={(e) => setTargetWordCount(e.target.value)} className="form-input" /></Field>
+          <Field label="Nombre de mots actuel"><input type="number" min="0" value={currentWordCount} onChange={(e) => setCurrentWordCount(e.target.value)} className="form-input" /></Field>
+          <Field label="Prochaine action" full><textarea rows={3} value={nextAuthorAction} onChange={(e) => setNextAuthorAction(e.target.value)} className="form-input resize-y py-3" placeholder="Ex. terminer le chapitre 6, intégrer les remarques de l’éditeur..." /></Field>
+          <Field label="Notes privées de l’auteur" full><textarea rows={4} value={authorPrivateNotes} onChange={(e) => setAuthorPrivateNotes(e.target.value)} className="form-input resize-y py-3" placeholder="Notes personnelles de travail, non publiques." /></Field>
+        </div>
       </fieldset>
 
       <fieldset disabled={busy || disabled} className="rounded-[1.75rem] border border-[#e5d9cc] bg-white p-5 sm:p-7">
