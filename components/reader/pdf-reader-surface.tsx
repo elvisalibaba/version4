@@ -28,7 +28,7 @@ export function PdfReaderSurface({
   onPageCount,
   onError,
 }: PdfReaderSurfaceProps) {
-  const [loadingPages, setLoadingPages] = useState<Set<number>>(new Set());
+  const [loadedPages, setLoadedPages] = useState<Set<string>>(new Set());
 
   const visiblePages = useMemo(() => {
     const uniquePages = Array.from(new Set(pageNumbers.filter((page) => page > 0)));
@@ -43,15 +43,19 @@ export function PdfReaderSurface({
     }
   }, [onPageCount, pageCountHint]);
 
-  useEffect(() => {
-    setLoadingPages(new Set(visiblePages));
-    onError(null);
-  }, [fileUrl, onError, visiblePages]);
+  const loadingPages = visiblePages.filter(
+    (pageNumber) => !loadedPages.has(`${fileUrl}:${pageNumber}`),
+  );
 
   function markLoaded(pageNumber: number) {
-    setLoadingPages((current) => {
+    const key = `${fileUrl}:${pageNumber}`;
+    setLoadedPages((current) => {
+      if (current.has(key)) {
+        return current;
+      }
+
       const next = new Set(current);
-      next.delete(pageNumber);
+      next.add(key);
       return next;
     });
   }
@@ -66,10 +70,10 @@ export function PdfReaderSurface({
       className="relative flex h-full min-h-0 w-full items-start justify-center overflow-auto rounded-none bg-[#2b211b] p-1.5 sm:rounded-[1.35rem] sm:p-4"
       onContextMenu={(event) => event.preventDefault()}
     >
-      {loadingPages.size > 0 ? (
+      {loadingPages.length > 0 ? (
         <div className="pointer-events-none absolute inset-x-0 top-4 z-30 flex justify-center">
           <span className="rounded-full bg-black/70 px-4 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur">
-            Chargement sécurisé de {loadingPages.size > 1 ? "vos pages" : "la page"}...
+            Chargement sécurisé de {loadingPages.length > 1 ? "vos pages" : "la page"}...
           </span>
         </div>
       ) : null}
