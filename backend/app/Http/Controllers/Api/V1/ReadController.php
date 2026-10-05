@@ -15,6 +15,7 @@ class ReadController extends Controller
     {
         abort_unless($access->canRead($request->user()->profile, $book), 403, 'Vous ne disposez pas d’un accès actif à ce livre.');
         abort_unless($book->can_read_on_platform, 403, 'La licence de ce titre n’autorise pas la lecture sur Holistique Books.');
+        abort_if($book->reading_access_mode === 'preview_only', 403, 'Ce titre est limité à un aperçu et ne peut pas ouvrir le manuscrit complet.');
 
         return $files->stream($book);
     }
@@ -25,6 +26,7 @@ class ReadController extends Controller
             $book->status === 'published'
                 && $book->copyright_status === 'clear'
                 && $book->can_read_on_platform
+                && $book->reading_access_mode !== 'preview_only'
                 && $book->is_single_sale_enabled
                 && (float) $book->price <= 0,
             403,
