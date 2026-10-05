@@ -29,7 +29,7 @@ class Book extends Model
         'bat_status' => 'pending',
         'reading_access_mode' => 'standard',
         'can_read_on_platform' => true,
-        'allow_download' => true,
+        'allow_download' => false,
         'allow_print' => true,
         'allow_copy' => true,
         'reader_watermark_enabled' => false,
