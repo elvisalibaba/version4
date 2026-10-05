@@ -13,7 +13,10 @@ use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
-    public function __construct(private PromotionPricingService $promotions) {}
+    public function __construct(
+        private PromotionPricingService $promotions,
+        private MarketPricingService $marketPricing,
+    ) {}
 
     /**
      * @param  array{items: array<int, array{book_id: string, format_id?: string|null, book_format: string, quantity?: int}>, currency_code?: string, payment_provider?: string|null, payment_channel?: string|null}  $data
@@ -22,7 +25,12 @@ class OrderService
     {
         return DB::transaction(function () use ($profile, $data): Order {
             $currencyCode = mb_strtoupper(Arr::get($data, 'currency_code', 'USD'));
-            $resolvedItems = collect($data['items'])->map(function (array $item) use ($currencyCode): array {
+            $profileCountry = is_string($profile->country) && mb_strlen(trim($profile->country)) === 2
+                ? mb_strtoupper(trim($profile->country))
+                : null;
+            $marketCountryCode = mb_strtoupper((string) Arr::get($data, 'market_country_code', $profileCountry ?? ''));
+
+            $resolvedItems = collect($data['items'])->map(function (array $item) use ($currencyCode, $marketCountryCode): array {
                 $book = Book::query()->where('status', 'published')->findOrFail($item['book_id']);
                 $format = isset($item['format_id']) ? BookFormat::query()->whereBelongsTo($book)->find($item['format_id']) : null;
 
@@ -36,7 +44,14 @@ class OrderService
                     throw ValidationException::withMessages(['currency_code' => 'Tous les articles doivent utiliser la même devise.']);
                 }
 
-                $pricing = $this->promotions->bestFor($book, $basePrice, $currencyCode);
+                $marketPricing = $this->marketPricing->resolve(
+                    $book,
+                    $basePrice,
+                    $currencyCode,
+                    $marketCountryCode !== '' ? $marketCountryCode : null,
+                );
+
+                $pricing = $this->promotions->bestFor($book, $marketPricing['price'], $currencyCode);
 
                 return [
                     'book_id' => $book->id,
