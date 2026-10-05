@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\BookFormat;
 use App\Models\Order;
 use App\Models\Profile;
+use App\Models\PromotionEvent;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -60,6 +61,20 @@ class OrderService
             ]);
 
             $order->items()->createMany($resolvedItems->all());
+
+            foreach ($order->items()->whereNotNull('promotion_campaign_id')->get() as $item) {
+                PromotionEvent::query()->create([
+                    'promotion_campaign_id' => $item->promotion_campaign_id,
+                    'book_id' => $item->book_id,
+                    'user_id' => $profile->id,
+                    'order_id' => $order->id,
+                    'event_type' => 'checkout',
+                    'channel' => 'checkout',
+                    'revenue_amount' => $item->price * $item->quantity,
+                    'currency_code' => $item->currency_code,
+                    'occurred_at' => now(),
+                ]);
+            }
 
             return $order->load(['items.book', 'items.format']);
         });
