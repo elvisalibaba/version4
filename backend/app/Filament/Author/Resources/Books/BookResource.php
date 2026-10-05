@@ -8,6 +8,7 @@ use App\Filament\Author\Resources\Books\Pages\ListBooks;
 use App\Models\Book;
 use App\Services\PublicationReadinessService;
 use BackedEnum;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
@@ -142,6 +143,84 @@ class BookResource extends Resource
                         ])
                         ->maxSize(460800)
                         ->helperText('Le manuscrit peut être ajouté maintenant ou plus tard. Maximum 450 Mo.'),
+                ]),
+
+            Section::make('Atelier d’écriture')
+                ->description('Pilotez votre manuscrit comme un véritable projet éditorial : avancement, objectif, prochaine action et échéance.')
+                ->columns(2)
+                ->schema([
+                    Select::make('writing_status')
+                        ->label('État de l’écriture')
+                        ->options([
+                            'idea' => 'Idée / concept',
+                            'outline' => 'Plan / structure',
+                            'writing' => 'Rédaction en cours',
+                            'self_review' => 'Relecture auteur',
+                            'submitted' => 'Soumis à l’équipe éditoriale',
+                            'editor_review' => 'En traitement éditorial',
+                            'changes_requested' => 'Corrections demandées',
+                            'ready_for_layout' => 'Prêt pour mise en page',
+                            'completed' => 'Manuscrit finalisé',
+                        ])
+                        ->default('idea')
+                        ->required(),
+
+                    DatePicker::make('editorial_deadline')
+                        ->label('Échéance cible'),
+
+                    TextInput::make('target_word_count')
+                        ->label('Objectif de mots')
+                        ->numeric()
+                        ->minValue(1),
+
+                    TextInput::make('current_word_count')
+                        ->label('Nombre de mots actuel')
+                        ->numeric()
+                        ->minValue(0),
+
+                    Textarea::make('next_author_action')
+                        ->label('Prochaine action')
+                        ->rows(3)
+                        ->placeholder('Ex. terminer le chapitre 6, intégrer les remarques de l’éditeur...')
+                        ->columnSpanFull(),
+
+                    Textarea::make('author_private_notes')
+                        ->label('Notes privées de l’auteur')
+                        ->rows(5)
+                        ->helperText('Visible dans votre espace auteur, destinée au suivi personnel du projet.')
+                        ->columnSpanFull(),
+
+                    Placeholder::make('manuscript_versions')
+                        ->label('Versions du manuscrit')
+                        ->content(fn (?Book $record): string => $record
+                            ? $record->manuscriptVersions()->count().' version(s) archivée(s)'
+                            : 'La première version sera créée après l’enregistrement du manuscrit.'),
+
+                    Placeholder::make('editorial_stage_workspace')
+                        ->label('Étape maison d’édition')
+                        ->content(fn (?Book $record): string => $record?->editorial_stage ?? 'intake'),
+                ]),
+
+            Section::make('Droits de lecture accordés')
+                ->description('Ces paramètres sont définis par Holistique Books selon votre contrat de droits.')
+                ->columns(3)
+                ->schema([
+                    Placeholder::make('reader_mode_display')
+                        ->label('Mode')
+                        ->content(fn (?Book $record): string => $record?->reading_access_mode ?? 'standard'),
+                    Placeholder::make('download_right_display')
+                        ->label('Téléchargement')
+                        ->content(fn (?Book $record): string => $record?->allow_download ? 'Autorisé' : 'Non autorisé'),
+                    Placeholder::make('print_right_display')
+                        ->label('Impression')
+                        ->content(fn (?Book $record): string => $record?->allow_print ? 'Autorisée' : 'Non autorisée'),
+                    Placeholder::make('copy_right_display')
+                        ->label('Copie')
+                        ->content(fn (?Book $record): string => $record?->allow_copy ? 'Autorisée' : 'Non autorisée'),
+                    Placeholder::make('agreement_reference_display')
+                        ->label('Référence accord')
+                        ->content(fn (?Book $record): string => $record?->rights_agreement_reference ?: 'Non renseignée')
+                        ->columnSpan(2),
                 ]),
 
             Section::make('Prix et disponibilité')
