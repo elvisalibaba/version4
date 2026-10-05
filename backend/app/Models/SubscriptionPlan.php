@@ -10,6 +10,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SubscriptionPlan extends Model
 {
+    protected static function booted(): void
+    {
+        static::saving(function (SubscriptionPlan $plan): void {
+            $plan->downloads_enabled = false;
+        });
+    }
+
     /** @use HasFactory<\Database\Factories\SubscriptionPlanFactory> */
     use HasFactory, HasUuids;
 
