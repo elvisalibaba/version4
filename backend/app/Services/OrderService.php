@@ -31,11 +31,29 @@ class OrderService
             $marketCountryCode = mb_strtoupper((string) Arr::get($data, 'market_country_code', $profileCountry ?? ''));
 
             $resolvedItems = collect($data['items'])->map(function (array $item) use ($currencyCode, $marketCountryCode): array {
-                $book = Book::query()->where('status', 'published')->findOrFail($item['book_id']);
-                $format = isset($item['format_id']) ? BookFormat::query()->whereBelongsTo($book)->find($item['format_id']) : null;
+                $book = Book::query()
+                    ->where('status', 'published')
+                    ->where('copyright_status', 'clear')
+                    ->findOrFail($item['book_id']);
 
-                if ($format !== null && ($format->format !== $item['book_format'] || ! $format->is_published)) {
+                $formatQuery = BookFormat::query()
+                    ->whereBelongsTo($book)
+                    ->where('is_published', true);
+
+                $format = isset($item['format_id'])
+                    ? (clone $formatQuery)->whereKey($item['format_id'])->first()
+                    : (clone $formatQuery)->where('format', $item['book_format'])->first();
+
+                if (isset($item['format_id']) && $format === null) {
                     throw ValidationException::withMessages(['items' => 'Le format sélectionné n’est pas disponible.']);
+                }
+
+                if ($format !== null && $format->format !== $item['book_format']) {
+                    throw ValidationException::withMessages(['items' => 'Le format sélectionné ne correspond pas à la commande.']);
+                }
+
+                if ($format === null && in_array($item['book_format'], ['paperback', 'pocket', 'hardcover', 'audiobook'], true)) {
+                    throw ValidationException::withMessages(['items' => 'Ce format physique ou média n’est pas publié pour ce livre.']);
                 }
 
                 $basePrice = (float) ($format?->price ?? $book->price);
