@@ -93,4 +93,50 @@ class AdminCatalogueCreationTest extends TestCase
         $this->assertNotNull($book->cover_url);
         Storage::disk('public')->assertExists($book->cover_url);
     }
+
+    public function test_admin_can_create_authorless_bible_and_get_a_generated_cover(): void
+    {
+        Storage::fake('public');
+        Storage::fake('books');
+
+        $admin = User::factory()->create();
+        Profile::factory()->admin()->create([
+            'id' => $admin->id,
+            'email' => $admin->email,
+            'name' => $admin->name,
+        ]);
+
+        $this->actingAs($admin);
+        Filament::setCurrentPanel('admin');
+
+        Livewire::test(CreateBook::class)
+            ->fillForm([
+                'title' => 'Bible de test',
+                'authorship_type' => 'sacred_text',
+                'editorial_pole' => 'ecclesial',
+                'work_type' => 'bible',
+                'editorial_stage' => 'intake',
+                'bat_status' => 'pending',
+                'price' => 0,
+                'currency_code' => 'USD',
+                'status' => 'draft',
+                'review_status' => 'draft',
+                'copyright_status' => 'review',
+                'is_single_sale_enabled' => true,
+                'is_subscription_available' => false,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $book = \App\Models\Book::query()->where('title', 'Bible de test')->firstOrFail();
+
+        $this->assertNull($book->author_id);
+        $this->assertSame('sacred_text', $book->authorship_type);
+        $this->assertSame('ecclesial', $book->editorial_pole);
+        $this->assertSame('bible', $book->work_type);
+        $this->assertSame('generated_placeholder', $book->cover_source);
+        $this->assertNotNull($book->cover_url);
+        Storage::disk('public')->assertExists($book->cover_url);
+    }
+
 }
