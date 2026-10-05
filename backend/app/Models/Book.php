@@ -229,6 +229,11 @@ class Book extends Model
         return $this->hasMany(AuthorRoyaltyTransaction::class);
     }
 
+    public function marketPrices(): HasMany
+    {
+        return $this->hasMany(BookMarketPrice::class);
+    }
+
     public function editorialEvents(): HasMany
     {
         return $this->hasMany(BookEditorialEvent::class)->orderByDesc('created_at');
