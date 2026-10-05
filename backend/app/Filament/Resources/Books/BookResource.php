@@ -58,7 +58,7 @@ class BookResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return StaffAccess::allows('catalog.manage');
+        return StaffAccess::allows('catalog.view') || StaffAccess::allows('catalog.manage');
     }
 
     public static function canCreate(): bool
