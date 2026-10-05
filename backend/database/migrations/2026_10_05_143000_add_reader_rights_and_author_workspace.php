@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::table('books', function (Blueprint $table): void {
             $table->string('reading_access_mode', 30)->default('standard')->after('copyright_note')->index();
             $table->boolean('can_read_on_platform')->default(true)->after('reading_access_mode');
-            $table->boolean('allow_download')->default(true)->after('can_read_on_platform');
+            $table->boolean('allow_download')->default(false)->after('can_read_on_platform');
             $table->boolean('allow_print')->default(true)->after('allow_download');
             $table->boolean('allow_copy')->default(true)->after('allow_print');
             $table->boolean('reader_watermark_enabled')->default(false)->after('allow_copy');
