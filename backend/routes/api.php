@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\AdController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BookAccessController;
 use App\Http\Controllers\Api\V1\BookController;
+use App\Http\Controllers\Api\V1\BookPricingController;
 use App\Http\Controllers\Api\V1\EditorialTrainingController;
 use App\Http\Controllers\Api\V1\EducationCatalogController;
 use App\Http\Controllers\Api\V1\EngagementController;
@@ -48,6 +49,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     });
 
     Route::apiResource('books', BookController::class)->only(['index', 'show']);
+    Route::get('books/{book}/pricing', [BookPricingController::class, 'show'])->name('books.pricing');
     Route::get('education/catalog', [EducationCatalogController::class, 'index'])->name('education.catalog');
     Route::get('authors', [AuthorController::class, 'index'])->name('authors.index');
     Route::get('authors/{author}', [AuthorController::class, 'show'])->name('authors.show');
