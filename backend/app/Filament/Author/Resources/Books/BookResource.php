@@ -10,6 +10,7 @@ use App\Services\PublicationReadinessService;
 use BackedEnum;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -84,7 +85,36 @@ class BookResource extends Resource
                         ->numeric()
                         ->minValue(1)
                         ->helperText('Calculé automatiquement à partir du PDF.'),
-                    Textarea::make('description')->label('Description')->required()->rows(7)->columnSpanFull(),
+                    Textarea::make('description')->label('Description')->rows(7)->columnSpanFull(),
+                    Select::make('editorial_pole')
+                        ->label('Pôle éditorial')
+                        ->options([
+                            'general' => 'Catalogue général',
+                            'ecclesial' => 'Pôle ecclésial / édition spirituelle',
+                            'institutional' => 'Pôle institutionnel',
+                            'entrepreneurial' => 'Pôle entrepreneurial',
+                        ])
+                        ->default('general')
+                        ->required(),
+                    Select::make('work_type')
+                        ->label('Type d’ouvrage')
+                        ->options([
+                            'book' => 'Livre',
+                            'bible' => 'Bible / texte biblique',
+                            'theology' => 'Théologie',
+                            'devotional' => 'Dévotion / méditation',
+                            'sermon' => 'Prédication / sermon',
+                            'prayer' => 'Prière / vie spirituelle',
+                            'study_guide' => 'Guide d’étude',
+                            'academic' => 'Ouvrage académique',
+                            'manual' => 'Manuel',
+                            'essay' => 'Essai',
+                            'novel' => 'Roman',
+                            'biography' => 'Biographie',
+                            'other' => 'Autre',
+                        ])
+                        ->default('book')
+                        ->required(),
                     TagsInput::make('categories')->label('Catégories')->columnSpanFull(),
                     TagsInput::make('tags')->label('Mots-clés')->columnSpanFull(),
                 ]),
@@ -110,8 +140,8 @@ class BookResource extends Resource
                             'application/epub+zip',
                             'application/octet-stream',
                         ])
-                        ->maxSize(204800)
-                        ->required(),
+                        ->maxSize(460800)
+                        ->helperText('Le manuscrit peut être ajouté maintenant ou plus tard. Maximum 450 Mo.'),
                 ]),
 
             Section::make('Prix et disponibilité')

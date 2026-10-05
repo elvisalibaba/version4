@@ -59,17 +59,39 @@ class BookResource extends Resource
     {
         return $schema->components([
             Section::make('Identité du livre')
-                ->description('Sélectionnez un auteur du catalogue ou créez-le directement si la maison d’édition ne l’a pas encore enregistré.')
+                ->description('Seul le titre est indispensable. Un ouvrage peut être anonyme, collectif, institutionnel ou être un texte sacré sans auteur lié.')
                 ->columns(2)
                 ->schema([
-                    TextInput::make('title')->label('Titre')->required()->maxLength(255),
-                    TextInput::make('subtitle')->label('Sous-titre')->maxLength(255),
+                    TextInput::make('title')
+                        ->label('Titre')
+                        ->required()
+                        ->maxLength(255),
+
+                    TextInput::make('subtitle')
+                        ->label('Sous-titre')
+                        ->maxLength(255),
+
+                    Select::make('authorship_type')
+                        ->label('Type d’attribution')
+                        ->options([
+                            'named' => 'Auteur identifié',
+                            'collective' => 'Collectif',
+                            'institutional' => 'Institution / organisation',
+                            'anonymous' => 'Anonyme / non attribué',
+                            'traditional' => 'Tradition / attribution historique',
+                            'sacred_text' => 'Texte sacré',
+                        ])
+                        ->default('named')
+                        ->required()
+                        ->live(),
+
                     Select::make('author_id')
-                        ->label('Auteur principal')
+                        ->label('Auteur du catalogue')
                         ->relationship('author', 'display_name')
                         ->searchable()
                         ->preload()
-                        ->required()
+                        ->nullable()
+                        ->helperText('Facultatif. Laissez vide pour une Bible, un ouvrage collectif, institutionnel ou anonyme.')
                         ->createOptionAction(fn ($action) => $action
                             ->label('Créer un nouvel auteur')
                             ->modalHeading('Ajouter un auteur au catalogue')
@@ -92,11 +114,8 @@ class BookResource extends Resource
                                 ->label('Site web')
                                 ->url()
                                 ->maxLength(255),
-                            TagsInput::make('genres')
-                                ->label('Genres'),
-                            Textarea::make('bio')
-                                ->label('Biographie')
-                                ->rows(5),
+                            TagsInput::make('genres')->label('Genres'),
+                            Textarea::make('bio')->label('Biographie')->rows(5),
                         ])
                         ->createOptionUsing(function (array $data): string {
                             $author = AuthorProfile::query()->create([
@@ -104,36 +123,187 @@ class BookResource extends Resource
                                 'genres' => $data['genres'] ?? [],
                                 'social_links' => [],
                                 'press_mentions' => [],
+                                'catalog_origin' => 'admin_catalog',
+                                'rights_status' => 'unknown',
+                                'is_reference_profile' => false,
                             ]);
 
                             return (string) $author->getKey();
                         })
                         ->live()
                         ->afterStateUpdated(function (Set $set, ?string $state): void {
-                            $set(
-                                'author_display_name',
-                                $state ? AuthorProfile::query()->find($state)?->display_name : null,
-                            );
+                            $name = $state ? AuthorProfile::query()->find($state)?->display_name : null;
+
+                            if ($name) {
+                                $set('author_credit', $name);
+                            }
                         }),
-                    TextInput::make('author_display_name')
-                        ->label('Nom auteur affiché')
+
+                    TextInput::make('author_credit')
+                        ->label('Crédit auteur affiché')
                         ->maxLength(255)
-                        ->helperText('Rempli automatiquement. Vous pouvez l’adapter pour un nom de plume ou une mention éditoriale.'),
-                    TextInput::make('isbn')->label('ISBN')->maxLength(50),
-                    TextInput::make('language')->label('Langue')->default('fr')->maxLength(10),
-                    TextInput::make('publisher')->label('Éditeur affiché')->default('Holistique Books')->maxLength(255),
-                    Select::make('publishing_house_id')->relationship('publishingHouse','name')->label('Maison d’édition')->searchable()->preload(),
-                    Select::make('imprint_id')->relationship('imprint','name')->label('Label / Imprint')->searchable()->preload(),
-                    DatePicker::make('publication_date')->label('Date de publication'),
-                    Textarea::make('description')->label('Description')->rows(6)->columnSpanFull(),
-                    Select::make('categories')->label('Catégories')->multiple()->searchable()->preload()
-                        ->options(fn () => Category::query()->where('is_active', true)->orderBy('sort_order')->pluck('name','name')->all())
+                        ->placeholder('Ex. Collectif, Église X, Texte sacré, Jean Dupont')
+                        ->helperText('Le texte réellement affiché au lecteur. Facultatif.')
+                        ->afterStateHydrated(function (TextInput $component, ?Book $record): void {
+                            if ($record && blank($component->getState())) {
+                                $component->state($record->author_credit ?: $record->author_display_name);
+                            }
+                        }),
+
+                    TextInput::make('isbn')
+                        ->label('ISBN')
+                        ->maxLength(50),
+
+                    TextInput::make('language')
+                        ->label('Langue')
+                        ->default('fr')
+                        ->maxLength(10),
+
+                    TextInput::make('publisher')
+                        ->label('Éditeur affiché')
+                        ->default('Holistique Books')
+                        ->maxLength(255),
+
+                    Select::make('publishing_house_id')
+                        ->relationship('publishingHouse', 'name')
+                        ->label('Maison d’édition')
+                        ->searchable()
+                        ->preload()
+                        ->nullable(),
+
+                    Select::make('imprint_id')
+                        ->relationship('imprint', 'name')
+                        ->label('Label / Imprint')
+                        ->searchable()
+                        ->preload()
+                        ->nullable(),
+
+                    DatePicker::make('publication_date')
+                        ->label('Date de publication'),
+
+                    TextInput::make('edition')
+                        ->label('Édition / version')
+                        ->maxLength(255)
+                        ->placeholder('Ex. 2e édition, Édition révisée, Louis Segond 1910'),
+
+                    TextInput::make('series_name')
+                        ->label('Collection / série')
+                        ->maxLength(255),
+
+                    TextInput::make('series_position')
+                        ->label('N° dans la série')
+                        ->numeric()
+                        ->minValue(1),
+
+                    Textarea::make('description')
+                        ->label('Description')
+                        ->rows(6)
                         ->columnSpanFull(),
-                    TagsInput::make('tags')->label('Tags')->columnSpanFull(),
+
+                    Select::make('categories')
+                        ->label('Catégories')
+                        ->multiple()
+                        ->searchable()
+                        ->preload()
+                        ->options(fn () => Category::query()
+                            ->where('is_active', true)
+                            ->orderBy('sort_order')
+                            ->pluck('name', 'name')
+                            ->all())
+                        ->columnSpanFull(),
+
+                    TagsInput::make('tags')
+                        ->label('Mots-clés')
+                        ->columnSpanFull(),
+                ]),
+
+            Section::make('Positionnement éditorial')
+                ->description('Classement interne aligné sur les pôles Holistique Books : général, ecclésial, institutionnel et entrepreneurial.')
+                ->columns(3)
+                ->schema([
+                    Select::make('editorial_pole')
+                        ->label('Pôle éditorial')
+                        ->options([
+                            'general' => 'Catalogue général',
+                            'ecclesial' => 'Pôle ecclésial / édition spirituelle',
+                            'institutional' => 'Pôle institutionnel',
+                            'entrepreneurial' => 'Pôle entrepreneurial',
+                        ])
+                        ->default('general')
+                        ->required()
+                        ->live(),
+
+                    Select::make('work_type')
+                        ->label('Type d’ouvrage')
+                        ->options([
+                            'book' => 'Livre',
+                            'bible' => 'Bible / texte biblique',
+                            'theology' => 'Théologie',
+                            'devotional' => 'Dévotion / méditation',
+                            'sermon' => 'Prédication / sermon',
+                            'prayer' => 'Prière / vie spirituelle',
+                            'hymnal' => 'Recueil de chants / hymnes',
+                            'study_guide' => 'Guide d’étude',
+                            'academic' => 'Ouvrage académique',
+                            'manual' => 'Manuel / guide pratique',
+                            'essay' => 'Essai',
+                            'novel' => 'Roman',
+                            'biography' => 'Biographie / mémoires',
+                            'magazine' => 'Magazine',
+                            'report' => 'Rapport / publication institutionnelle',
+                            'other' => 'Autre',
+                        ])
+                        ->default('book')
+                        ->required()
+                        ->live(),
+
+                    TextInput::make('age_rating')
+                        ->label('Public / âge')
+                        ->maxLength(30),
+                ]),
+
+            Section::make('Édition spirituelle / ecclésiale')
+                ->description('Métadonnées facultatives pour Bibles, théologie, dévotion, prédication, prière et ouvrages de ministère.')
+                ->columns(2)
+                ->visible(fn (Get $get): bool => $get('editorial_pole') === 'ecclesial'
+                    || in_array($get('work_type'), ['bible', 'theology', 'devotional', 'sermon', 'prayer', 'hymnal', 'study_guide'], true))
+                ->schema([
+                    TextInput::make('spiritual_metadata.tradition')
+                        ->label('Tradition / courant')
+                        ->placeholder('Ex. chrétienne, protestante, catholique, évangélique'),
+
+                    TextInput::make('spiritual_metadata.denomination')
+                        ->label('Dénomination / ministère')
+                        ->placeholder('Facultatif'),
+
+                    TextInput::make('spiritual_metadata.bible_translation')
+                        ->label('Traduction biblique')
+                        ->placeholder('Ex. Louis Segond 1910, TOB, Bible de Jérusalem'),
+
+                    Select::make('spiritual_metadata.testament')
+                        ->label('Portée biblique')
+                        ->options([
+                            'old' => 'Ancien Testament',
+                            'new' => 'Nouveau Testament',
+                            'both' => 'Bible complète',
+                            'na' => 'Non applicable',
+                        ]),
+
+                    TextInput::make('spiritual_metadata.scripture_reference')
+                        ->label('Référence / corpus')
+                        ->placeholder('Ex. Psaumes, Évangiles, épîtres'),
+
+                    TextInput::make('spiritual_metadata.target_audience')
+                        ->label('Public spirituel')
+                        ->placeholder('Ex. pasteurs, étudiants en théologie, fidèles, jeunesse'),
+
+                    TagsInput::make('spiritual_metadata.topics')
+                        ->label('Thèmes spirituels')
+                        ->columnSpanFull(),
                 ]),
 
             Section::make('Éducation scolaire et universitaire')
-                ->description('Classez ce livre pour les élèves ou étudiants : niveau, classe, section, option, cycle LMD, domaine, filière ou mention. Plusieurs classifications peuvent être associées au même livre.')
+                ->description('Classement académique facultatif.')
                 ->schema([
                     Select::make('educationTaxonomies')
                         ->label('Public académique ciblé')
@@ -157,11 +327,105 @@ class BookResource extends Resource
                             },
                             $record->name,
                         ))
-                        ->helperText('Exemples : 5e primaire, Humanités scientifiques, Technique Informatique, Licence 2, Sciences et Technologie.')
                         ->columnSpanFull(),
                 ]),
 
-            Section::make('Commercialisation')
+            Section::make('Fichiers et couverture')
+                ->description('La couverture est toujours garantie : upload manuel en priorité, sinon première page du PDF, sinon couverture de secours générée automatiquement.')
+                ->columns(2)
+                ->schema([
+                    FileUpload::make('cover_url')
+                        ->label('Couverture')
+                        ->disk('public')
+                        ->directory('covers')
+                        ->image()
+                        ->imageEditor()
+                        ->maxSize(20480)
+                        ->helperText('JPG, PNG ou WebP. Facultatif : le système génère automatiquement une couverture si vous n’en fournissez pas.'),
+
+                    FileUpload::make('file_url')
+                        ->label('Fichier principal / manuscrit')
+                        ->disk('books')
+                        ->directory('catalog')
+                        ->visibility('private')
+                        ->acceptedFileTypes([
+                            'application/pdf',
+                            'application/epub+zip',
+                            'application/vnd.amazon.ebook',
+                            'application/x-mobipocket-ebook',
+                            'application/octet-stream',
+                            'application/msword',
+                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        ])
+                        ->maxSize(460800)
+                        ->helperText('Jusqu’à 450 Mo. Le catalogue peut être créé même si le fichier final n’est pas encore disponible.'),
+
+                    TextInput::make('page_count')
+                        ->label('Nombre de pages')
+                        ->numeric()
+                        ->minValue(1)
+                        ->helperText('Calculé automatiquement pour les PDF quand le serveur le permet.'),
+
+                    TextInput::make('file_format')
+                        ->label('Format détecté')
+                        ->disabled()
+                        ->dehydrated(),
+                ]),
+
+            Section::make('Chaîne éditoriale')
+                ->description('Suivi de production jusqu’au BAT, à l’impression/diffusion et à la publication.')
+                ->columns(3)
+                ->schema([
+                    Select::make('editorial_stage')
+                        ->label('Étape éditoriale')
+                        ->options([
+                            'intake' => '01 · Collecte / réception',
+                            'brief' => '02 · Brief / diagnostic',
+                            'contract' => '03 · Contrat / cadrage',
+                            'planning' => '04 · Planification',
+                            'writing' => '05 · Rédaction / manuscrit',
+                            'correction_1' => '06 · Première correction',
+                            'correction_2' => '07 · Seconde relecture',
+                            'layout' => '08 · Mise en page',
+                            'design' => '09 · Design / couverture',
+                            'bat' => '10 · Bon à tirer (BAT)',
+                            'production' => '11 · Production / impression',
+                            'distribution' => '12 · Diffusion / distribution',
+                            'published' => '13 · Publié / suivi',
+                        ])
+                        ->default('intake')
+                        ->required(),
+
+                    Select::make('review_status')
+                        ->label('Validation éditoriale')
+                        ->options([
+                            'draft' => 'Brouillon',
+                            'submitted' => 'Soumis',
+                            'approved' => 'Approuvé',
+                            'rejected' => 'Rejeté',
+                            'changes_requested' => 'Corrections demandées',
+                        ])
+                        ->default('draft')
+                        ->required(),
+
+                    Select::make('bat_status')
+                        ->label('BAT')
+                        ->options([
+                            'pending' => 'En attente',
+                            'in_review' => 'En contrôle',
+                            'approved' => 'BAT approuvé',
+                            'rejected' => 'BAT refusé / à corriger',
+                        ])
+                        ->default('pending')
+                        ->required(),
+
+                    Textarea::make('review_note')
+                        ->label('Note éditoriale')
+                        ->rows(3)
+                        ->columnSpanFull(),
+                ]),
+
+            Section::make('Commercialisation et publication')
                 ->columns(3)
                 ->schema([
                     Toggle::make('is_free')
@@ -179,6 +443,7 @@ class BookResource extends Resource
                                 $set('price', null);
                             }
                         }),
+
                     TextInput::make('price')
                         ->label('Prix')
                         ->numeric()
@@ -186,11 +451,16 @@ class BookResource extends Resource
                         ->default(0)
                         ->required()
                         ->disabled(fn (Get $get): bool => (bool) $get('is_free'))
-                        ->dehydrated()
-                        ->helperText('Mettez 0 ou activez « Livre gratuit ».'),
-                    TextInput::make('currency_code')->label('Devise')->default('USD')->maxLength(3)->required(),
+                        ->dehydrated(),
+
+                    TextInput::make('currency_code')
+                        ->label('Devise')
+                        ->default('USD')
+                        ->maxLength(3)
+                        ->required(),
+
                     Select::make('status')
-                        ->label('Statut')
+                        ->label('Statut public')
                         ->options([
                             'draft' => 'Brouillon',
                             'published' => 'Publié',
@@ -199,57 +469,14 @@ class BookResource extends Resource
                         ])
                         ->default('draft')
                         ->required(),
+
                     Toggle::make('is_single_sale_enabled')
                         ->label('Vente individuelle / lecture gratuite')
-                        ->default(true)
-                        ->helperText('Doit rester actif pour qu’un livre à 0 USD soit lisible gratuitement sans compte.'),
-                    Toggle::make('is_subscription_available')->label('Disponible par abonnement'),
-                    TextInput::make('page_count')
-                        ->label('Nombre de pages')
-                        ->numeric()
-                        ->minValue(1)
-                        ->helperText('Calculé automatiquement à partir du PDF.'),
-                ]),
+                        ->default(true),
 
-            Section::make('Fichiers')
-                ->columns(2)
-                ->schema([
-                    FileUpload::make('cover_url')
-                        ->label('Couverture')
-                        ->disk('public')
-                        ->directory('covers')
-                        ->image()
-                        ->imageEditor()
-                        ->helperText('Facultative : la première page du PDF sera utilisée automatiquement.')
-                        ->maxSize(10240),
-                    FileUpload::make('file_url')
-                        ->label('PDF / EPUB privé')
-                        ->disk('books')
-                        ->directory('catalog')
-                        ->visibility('private')
-                        ->acceptedFileTypes([
-                            'application/pdf',
-                            'application/epub+zip',
-                            'application/octet-stream',
-                        ])
-                        ->maxSize(460800)
-                        ->helperText('PDF ou EPUB privé, jusqu’à 450 Mo. Pour un fichier plus lourd, optimisez/comprimez le document avant import.'),
-                ]),
+                    Toggle::make('is_subscription_available')
+                        ->label('Disponible par abonnement'),
 
-            Section::make('Validation éditoriale et droits')
-                ->columns(2)
-                ->schema([
-                    Select::make('review_status')
-                        ->label('Validation éditoriale')
-                        ->options([
-                            'draft' => 'Brouillon',
-                            'submitted' => 'Soumis',
-                            'approved' => 'Approuvé',
-                            'rejected' => 'Rejeté',
-                            'changes_requested' => 'Corrections demandées',
-                        ])
-                        ->default('draft')
-                        ->required(),
                     Select::make('copyright_status')
                         ->label('Droits')
                         ->options([
@@ -259,8 +486,11 @@ class BookResource extends Resource
                         ])
                         ->default('review')
                         ->required(),
-                    Textarea::make('review_note')->label('Note éditoriale')->rows(3),
-                    Textarea::make('copyright_note')->label('Note copyright')->rows(3),
+
+                    Textarea::make('copyright_note')
+                        ->label('Note droits / copyright')
+                        ->rows(3)
+                        ->columnSpan(2),
                 ]),
         ]);
     }
@@ -270,18 +500,79 @@ class BookResource extends Resource
         return $table
             ->defaultSort('created_at', 'desc')
             ->columns([
-                TextColumn::make('title')->label('Titre')->searchable()->sortable()->limit(45),
-                TextColumn::make('author.display_name')->label('Auteur')->searchable()->toggleable(),
-                TextColumn::make('educationTaxonomies.name')->label('Éducation')->badge()->limitList(3)->toggleable(),
-                TextColumn::make('price')->label('Prix')->money(fn (Book $record): string => $record->currency_code)->sortable(),
-                TextColumn::make('status')->label('Statut')->badge()->sortable(),
-                TextColumn::make('review_status')->label('Éditorial')->badge()->toggleable(),
-                TextColumn::make('copyright_status')->label('Droits')->badge()->toggleable(),
-                IconColumn::make('is_subscription_available')->label('Abonnement')->boolean(),
-                TextColumn::make('purchases_count')->label('Achats')->numeric()->sortable()->toggleable(),
-                TextColumn::make('views_count')->label('Vues réelles')->numeric()->sortable()->toggleable(),
-                TextColumn::make('clicks_count')->label('Clics réels')->numeric()->sortable()->toggleable(),
-                TextColumn::make('created_at')->label('Créé le')->dateTime('d/m/Y H:i')->sortable()->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('title')
+                    ->label('Titre')
+                    ->searchable()
+                    ->sortable()
+                    ->limit(45),
+
+                TextColumn::make('author_credit')
+                    ->label('Auteur / crédit')
+                    ->formatStateUsing(fn (mixed $state, Book $record): string => $record->displayAuthorName() ?: 'Sans auteur')
+                    ->searchable(['author_credit', 'author_display_name'])
+                    ->toggleable(),
+
+                TextColumn::make('editorial_pole')
+                    ->label('Pôle')
+                    ->badge()
+                    ->sortable(),
+
+                TextColumn::make('work_type')
+                    ->label('Type')
+                    ->badge()
+                    ->toggleable(),
+
+                TextColumn::make('editorial_stage')
+                    ->label('Chaîne éditoriale')
+                    ->badge()
+                    ->toggleable(),
+
+                TextColumn::make('price')
+                    ->label('Prix')
+                    ->money(fn (Book $record): string => $record->currency_code)
+                    ->sortable(),
+
+                TextColumn::make('status')
+                    ->label('Statut')
+                    ->badge()
+                    ->sortable(),
+
+                TextColumn::make('review_status')
+                    ->label('Éditorial')
+                    ->badge()
+                    ->toggleable(),
+
+                TextColumn::make('copyright_status')
+                    ->label('Droits')
+                    ->badge()
+                    ->toggleable(),
+
+                TextColumn::make('cover_source')
+                    ->label('Cover')
+                    ->badge()
+                    ->toggleable(),
+
+                IconColumn::make('is_subscription_available')
+                    ->label('Abonnement')
+                    ->boolean(),
+
+                TextColumn::make('purchases_count')
+                    ->label('Achats')
+                    ->numeric()
+                    ->sortable()
+                    ->toggleable(),
+
+                TextColumn::make('views_count')
+                    ->label('Vues')
+                    ->numeric()
+                    ->sortable()
+                    ->toggleable(),
+
+                TextColumn::make('created_at')
+                    ->label('Créé le')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('status')
@@ -292,11 +583,55 @@ class BookResource extends Resource
                         'archived' => 'Archivé',
                         'coming_soon' => 'À venir',
                     ]),
+
+                SelectFilter::make('editorial_pole')
+                    ->label('Pôle éditorial')
+                    ->options([
+                        'general' => 'Catalogue général',
+                        'ecclesial' => 'Pôle ecclésial',
+                        'institutional' => 'Pôle institutionnel',
+                        'entrepreneurial' => 'Pôle entrepreneurial',
+                    ]),
+
+                SelectFilter::make('work_type')
+                    ->label('Type d’ouvrage')
+                    ->options([
+                        'book' => 'Livre',
+                        'bible' => 'Bible',
+                        'theology' => 'Théologie',
+                        'devotional' => 'Dévotion',
+                        'sermon' => 'Prédication',
+                        'prayer' => 'Prière',
+                        'study_guide' => 'Guide d’étude',
+                        'academic' => 'Académique',
+                        'manual' => 'Manuel',
+                        'magazine' => 'Magazine',
+                    ]),
+
+                SelectFilter::make('editorial_stage')
+                    ->label('Étape éditoriale')
+                    ->options([
+                        'intake' => 'Collecte',
+                        'brief' => 'Brief',
+                        'contract' => 'Contrat',
+                        'planning' => 'Planification',
+                        'writing' => 'Rédaction',
+                        'correction_1' => 'Première correction',
+                        'correction_2' => 'Seconde relecture',
+                        'layout' => 'Mise en page',
+                        'design' => 'Design',
+                        'bat' => 'BAT',
+                        'production' => 'Production',
+                        'distribution' => 'Distribution',
+                        'published' => 'Publié',
+                    ]),
+
                 SelectFilter::make('educationTaxonomies')
                     ->relationship('educationTaxonomies', 'name')
                     ->label('Niveau / filière')
                     ->searchable()
                     ->preload(),
+
                 SelectFilter::make('copyright_status')
                     ->label('Droits')
                     ->options([

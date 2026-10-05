@@ -22,31 +22,55 @@ class Book extends Model
         'co_authors' => '[]',
         'categories' => '[]',
         'tags' => '[]',
+        'authorship_type' => 'named',
+        'editorial_pole' => 'general',
+        'work_type' => 'book',
+        'editorial_stage' => 'intake',
+        'bat_status' => 'pending',
     ];
 
     protected $fillable = [
-        'title', 'subtitle', 'description', 'price', 'author_id', 'author_display_name', 'cover_url', 'file_url',
-        'status', 'co_authors', 'isbn', 'language', 'publisher', 'publication_date', 'page_count', 'categories',
-        'tags', 'age_rating', 'edition', 'series_name', 'series_position', 'file_format', 'file_size', 'sample_url',
+        'title', 'subtitle', 'description', 'price',
+        'author_id', 'authorship_type', 'author_credit', 'author_display_name',
+        'cover_url', 'cover_source', 'file_url',
+        'status', 'co_authors', 'isbn', 'language', 'publisher', 'publication_date', 'page_count',
+        'categories', 'tags', 'editorial_pole', 'work_type', 'editorial_stage',
+        'spiritual_metadata', 'ingestion_metadata',
+        'age_rating', 'edition', 'series_name', 'series_position',
+        'file_format', 'file_size', 'sample_url',
         'publishing_house_id', 'imprint_id',
         'sample_pages', 'cover_thumbnail_url', 'cover_alt_text', 'published_at', 'currency_code',
-        'is_single_sale_enabled', 'is_subscription_available', 'review_status', 'submitted_at', 'reviewed_at',
-        'reviewed_by', 'review_note', 'copyright_status', 'copyright_note',
+        'is_single_sale_enabled', 'is_subscription_available',
+        'review_status', 'submitted_at', 'reviewed_at', 'reviewed_by', 'review_note',
+        'bat_status', 'bat_approved_at', 'bat_approved_by',
+        'copyright_status', 'copyright_note',
     ];
 
     protected function casts(): array
     {
         return [
-            'price' => 'decimal:2', 'co_authors' => 'array', 'categories' => 'array', 'tags' => 'array',
-            'publication_date' => 'date', 'published_at' => 'datetime', 'submitted_at' => 'datetime',
-            'reviewed_at' => 'datetime', 'is_single_sale_enabled' => 'boolean',
-            'is_subscription_available' => 'boolean', 'rating_avg' => 'decimal:2',
+            'price' => 'decimal:2',
+            'co_authors' => 'array',
+            'categories' => 'array',
+            'tags' => 'array',
+            'spiritual_metadata' => 'array',
+            'ingestion_metadata' => 'array',
+            'publication_date' => 'date',
+            'published_at' => 'datetime',
+            'submitted_at' => 'datetime',
+            'reviewed_at' => 'datetime',
+            'bat_approved_at' => 'datetime',
+            'is_single_sale_enabled' => 'boolean',
+            'is_subscription_available' => 'boolean',
+            'rating_avg' => 'decimal:2',
         ];
     }
 
     protected static function booted(): void
     {
         static::saving(function (Book $book): void {
+            // Anonymous, collective, institutional and sacred texts can be
+            // catalogued without a linked AuthorProfile.
             if ($book->status !== 'published' || blank($book->author_id)) {
                 return;
             }
@@ -77,6 +101,32 @@ class Book extends Model
     {
         return $query->whereIn('status', ['published', 'coming_soon'])
             ->where('copyright_status', 'clear');
+    }
+
+    public function displayAuthorName(): ?string
+    {
+        $credit = trim((string) ($this->author_credit ?: $this->author_display_name));
+
+        if ($credit !== '') {
+            return $credit;
+        }
+
+        if ($this->relationLoaded('author') && $this->author) {
+            return $this->author->display_name;
+        }
+
+        if (filled($this->author_id)) {
+            return $this->author()->value('display_name');
+        }
+
+        return match ($this->authorship_type) {
+            'anonymous' => 'Anonyme',
+            'collective' => 'Collectif',
+            'institutional' => 'Institution',
+            'traditional' => 'Tradition',
+            'sacred_text' => 'Texte sacré',
+            default => null,
+        };
     }
 
     public function author(): BelongsTo
@@ -158,5 +208,10 @@ class Book extends Model
     public function royaltyTransactions(): HasMany
     {
         return $this->hasMany(AuthorRoyaltyTransaction::class);
+    }
+
+    public function editorialEvents(): HasMany
+    {
+        return $this->hasMany(BookEditorialEvent::class)->orderByDesc('created_at');
     }
 }

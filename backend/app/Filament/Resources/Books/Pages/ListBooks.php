@@ -4,8 +4,10 @@ namespace App\Filament\Resources\Books\Pages;
 
 use App\Filament\Resources\Books\BookResource;
 use App\Models\AuthorProfile;
+use App\Models\Book;
 use App\Services\AdminBookImportService;
 use App\Services\AdminBookPublicationService;
+use App\Services\BookDocumentMetadataService;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Checkbox;
@@ -15,6 +17,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Throwable;
 
 class ListBooks extends ListRecords
 {
@@ -23,7 +26,45 @@ class ListBooks extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make()->label('Ajouter un livre'),
+            CreateAction::make()
+                ->label('Ajouter un livre')
+                ->icon('heroicon-o-plus'),
+
+            Action::make('repairMissingCovers')
+                ->label('Réparer les covers')
+                ->icon('heroicon-o-photo')
+                ->color('gray')
+                ->requiresConfirmation()
+                ->modalHeading('Générer les couvertures manquantes')
+                ->modalDescription('Le système traite jusqu’à 100 livres sans couverture : première page du PDF si possible, sinon couverture Holistique Books générée automatiquement.')
+                ->action(function (BookDocumentMetadataService $metadata): void {
+                    $books = Book::query()
+                        ->where(function ($query): void {
+                            $query->whereNull('cover_url')->orWhere('cover_url', '');
+                        })
+                        ->orderBy('created_at')
+                        ->limit(100)
+                        ->get();
+
+                    $repaired = 0;
+                    $failed = 0;
+
+                    foreach ($books as $book) {
+                        try {
+                            $book = $metadata->enrich($book);
+                            filled($book->cover_url) ? $repaired++ : $failed++;
+                        } catch (Throwable) {
+                            $failed++;
+                        }
+                    }
+
+                    Notification::make()
+                        ->title("Covers réparées : {$repaired}")
+                        ->body($failed > 0 ? "{$failed} livre(s) restent à vérifier." : 'Tous les livres traités disposent maintenant d’une couverture.')
+                        ->success()
+                        ->send();
+                }),
+
             Action::make('publishImportedBooks')
                 ->label('Valider et publier les imports')
                 ->icon('heroicon-o-check-badge')
@@ -58,20 +99,21 @@ class ListBooks extends ListRecords
                         ? $notification->warning()->send()
                         : $notification->success()->send();
                 }),
+
             Action::make('preparedBulkImport')
-                ->label('Importer un lot préparé (jusqu’à 50)')
+                ->label('Importer un lot ZIP (jusqu’à 50)')
                 ->icon('heroicon-o-archive-box-arrow-down')
                 ->color('success')
                 ->schema([
                     FileUpload::make('archive')
-                        ->label('Lot HolisticBooks ZIP')
+                        ->label('Lot de livres ZIP')
                         ->disk('books')
                         ->directory('admin-imports/prepared')
                         ->visibility('private')
                         ->acceptedFileTypes(['application/zip', 'application/x-zip-compressed', 'multipart/x-zip'])
                         ->maxSize(460800)
-                        ->getUploadedFileNameForStorageUsing(fn (TemporaryUploadedFile $file): string => Str::uuid().'-lot-holisticbooks.zip')
-                        ->helperText('ZIP préparé contenant manifest.json, books/ et covers/. Maximum 50 livres et 450 Mo.')
+                        ->getUploadedFileNameForStorageUsing(fn (TemporaryUploadedFile $file): string => Str::uuid().'-lot-holistique-books.zip')
+                        ->helperText('Le ZIP peut contenir manifest.json, catalogue.csv, ou simplement books/. covers/ est facultatif : le système associe les covers par nom ou en génère automatiquement.')
                         ->required(),
                 ])
                 ->action(function (array $data, AdminBookImportService $importer): void {
@@ -84,66 +126,84 @@ class ListBooks extends ListRecords
                     );
 
                     $notification = Notification::make()
-                        ->title("Lot importé : {$batch->completed_items} livre(s) créé(s)")
+                        ->title("Lot traité : {$batch->completed_items} livre(s) créé(s)")
                         ->body(
                             $batch->failed_items > 0
-                                ? "{$batch->failed_items} livre(s) ont échoué. Les livres créés restent en brouillon avec droits à vérifier."
-                                : 'Tous les livres ont été créés en brouillon, gratuits par défaut, avec droits à vérifier.'
+                                ? "{$batch->failed_items} fichier(s) réellement invalides n’ont pas été ingérés. Les métadonnées facultatives ne bloquent plus l’import."
+                                : 'Tous les livres ont été créés. Les données manquantes peuvent être enrichies ensuite dans l’administration.'
                         );
 
                     $batch->failed_items > 0
                         ? $notification->warning()->send()
                         : $notification->success()->send();
                 }),
+
             Action::make('bulkImport')
-                ->label('Importer jusqu’à 10 PDF (même auteur)')
+                ->label('Import rapide jusqu’à 50 fichiers')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('primary')
                 ->schema([
                     Select::make('author_id')
-                        ->label('Auteur principal')
+                        ->label('Auteur commun')
                         ->options(fn (): array => AuthorProfile::query()
                             ->orderBy('display_name')
                             ->pluck('display_name', 'id')
                             ->all())
                         ->searchable()
-                        ->required(),
+                        ->nullable()
+                        ->helperText('Facultatif. Laissez vide pour des ouvrages anonymes, collectifs ou à compléter plus tard.'),
+
                     FileUpload::make('files')
-                        ->label('Livres PDF')
+                        ->label('Livres / manuscrits')
                         ->disk('books')
                         ->directory('admin-imports')
                         ->visibility('private')
                         ->multiple()
                         ->minFiles(1)
-                        ->maxFiles(10)
-                        ->acceptedFileTypes(['application/pdf'])
+                        ->maxFiles(50)
+                        ->acceptedFileTypes([
+                            'application/pdf',
+                            'application/epub+zip',
+                            'application/vnd.amazon.ebook',
+                            'application/x-mobipocket-ebook',
+                            'application/octet-stream',
+                        ])
                         ->maxSize(460800)
                         ->getUploadedFileNameForStorageUsing(function (TemporaryUploadedFile $file): string {
                             $title = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
+                            $extension = mb_strtolower($file->getClientOriginalExtension() ?: 'pdf');
 
-                            return Str::uuid().'--'.($title !== '' ? $title : 'livre').'.pdf';
+                            return Str::uuid().'--'.($title !== '' ? $title : 'livre').'.'.$extension;
                         })
-                        ->helperText('Maximum 10 PDF de 450 Mo chacun. Utilisez plutôt le lot préparé pour des auteurs différents.')
+                        ->helperText('Maximum 50 fichiers de 450 Mo chacun. PDF et EPUB sont directement pris en charge ; les autres formats sont conservés comme sources éditoriales.')
                         ->required(),
+
                     Checkbox::make('rights_confirmed')
-                        ->label('Je confirme que la plateforme dispose des droits nécessaires pour traiter ces fichiers.')
-                        ->accepted()
-                        ->required(),
+                        ->label('Les droits sont déjà validés pour ce lot.')
+                        ->helperText('Facultatif. Si non coché, les livres sont tout de même importés avec le statut « Droits à vérifier ».'),
                 ])
                 ->action(function (array $data, AdminBookImportService $importer): void {
                     $administrator = auth()->user()?->profile;
                     abort_unless($administrator?->role === 'admin', 403);
 
+                    $author = filled($data['author_id'] ?? null)
+                        ? AuthorProfile::query()->find($data['author_id'])
+                        : null;
+
                     $batch = $importer->import(
                         paths: $data['files'] ?? [],
-                        author: AuthorProfile::query()->findOrFail($data['author_id']),
+                        author: $author,
                         administrator: $administrator,
                         rightsConfirmed: (bool) ($data['rights_confirmed'] ?? false),
                     );
 
                     $notification = Notification::make()
                         ->title("Import terminé : {$batch->completed_items} livre(s) créé(s)")
-                        ->body($batch->failed_items > 0 ? "{$batch->failed_items} fichier(s) ont échoué. Consultez le lot {$batch->id}." : 'Les livres ont été créés en brouillon.');
+                        ->body(
+                            $batch->failed_items > 0
+                                ? "{$batch->failed_items} fichier(s) ont échoué. Consultez le lot {$batch->id}."
+                                : 'Tous les fichiers ont été intégrés au catalogue.'
+                        );
 
                     $batch->failed_items > 0
                         ? $notification->warning()->send()
