@@ -32,7 +32,7 @@ class UpdateBookRequest extends FormRequest
             'status' => ['sometimes', 'in:draft,published,archived,coming_soon'],
             'editorial_pole' => ['sometimes', 'in:general,ecclesial,institutional,entrepreneurial'],
             'work_type' => ['sometimes', 'in:book,bible,theology,devotional,sermon,prayer,hymnal,study_guide,academic,manual,essay,novel,biography,magazine,report,other'],
-            'editorial_stage' => ['sometimes', 'string', 'max:40'],
+            'editorial_stage' => ['sometimes', 'in:'.implode(',', BookEditorialWorkflow::STAGES)],
             'spiritual_metadata' => ['sometimes', 'nullable', 'array'],
             'ingestion_metadata' => ['sometimes', 'nullable', 'array'],
 
