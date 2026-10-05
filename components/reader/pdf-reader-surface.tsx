@@ -98,7 +98,6 @@ export function PdfReaderSurface({
                   width: `${Math.max(80, Math.min(220, scale * 100))}%`,
                   maxWidth: "none",
                   userSelect: "none",
-                  WebkitUserDrag: "none",
                 }}
               />
 
