@@ -58,16 +58,28 @@ export async function GET(_request: Request, context: { params: Promise<{ bookId
       ? Math.max(1, Math.min(10, Number(book.sample_pages ?? 10)))
       : null;
 
-    const query = readerToken ? `?readerToken=${encodeURIComponent(readerToken)}` : "";
-
-    return NextResponse.json({
-      readerUrl: `/api/read/${encodeURIComponent(bookId)}/file${query}`,
+    const response = NextResponse.json({
+      readerUrl: `/api/read/${encodeURIComponent(bookId)}/file`,
       fileType: "pdf",
       deliveryMode: "page_images",
       pageCount: useGuestPreview ? previewPageLimit : (book.page_count ?? null),
       isGuestPreview: useGuestPreview,
       previewPageLimit,
     });
+
+    if (readerToken) {
+      response.cookies.set({
+        name: `hb_reader_${bookId}`,
+        value: readerToken,
+        httpOnly: true,
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+        path: `/api/read/${bookId}`,
+        maxAge: 10 * 60,
+      });
+    }
+
+    return response;
   } catch (error) {
     if (error instanceof ApiError) {
       return NextResponse.json(
