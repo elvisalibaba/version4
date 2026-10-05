@@ -2,10 +2,16 @@ import { NextResponse } from "next/server";
 import { getApiBaseUrl } from "@/lib/api/client";
 import { getServerAuthToken } from "@/lib/api/server";
 
-async function proxyFile(targetUrl: string, token?: string | null) {
-  const headers: HeadersInit = { Accept: "*/*" };
+async function proxyFile(targetUrl: string, token?: string | null, readerToken?: string | null) {
+  const headers: HeadersInit = {
+    Accept: "*/*",
+    "X-Holistique-Reader": "web",
+  };
   if (token) {
     headers.Authorization = `Bearer ${token}`;
+  }
+  if (readerToken) {
+    headers["X-Holistique-Reader-Token"] = readerToken;
   }
 
   return fetch(targetUrl, {
@@ -20,8 +26,32 @@ export async function GET(_request: Request, context: { params: Promise<{ bookId
   const encodedBookId = encodeURIComponent(bookId);
   const apiBase = getApiBaseUrl();
 
-  let response = token
-    ? await proxyFile(`${apiBase}/api/v1/read/${encodedBookId}`, token)
+  let readerToken: string | null = null;
+
+  if (token) {
+    const accessResponse = await fetch(`${apiBase}/api/v1/books/${encodedBookId}/access`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+        "X-Holistique-Reader": "web",
+      },
+      cache: "no-store",
+    });
+
+    if (accessResponse.ok) {
+      const accessPayload = await accessResponse.json() as {
+        data?: {
+          hasAccess?: boolean;
+          readerSession?: { token?: string | null } | null;
+        };
+      };
+
+      readerToken = accessPayload.data?.readerSession?.token ?? null;
+    }
+  }
+
+  let response = token && readerToken
+    ? await proxyFile(`${apiBase}/api/v1/read/${encodedBookId}`, token, readerToken)
     : await proxyFile(`${apiBase}/api/v1/books/${encodedBookId}/read-free`);
 
   if (token && (response.status === 401 || response.status === 403)) {
