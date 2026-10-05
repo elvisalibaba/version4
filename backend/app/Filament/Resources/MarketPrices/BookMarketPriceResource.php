@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MarketPrices;
 
+use App\Support\StaffAccess;
 use App\Filament\Resources\MarketPrices\Pages\CreateBookMarketPrice;
 use App\Filament\Resources\MarketPrices\Pages\EditBookMarketPrice;
 use App\Filament\Resources\MarketPrices\Pages\ListBookMarketPrices;
@@ -33,6 +34,26 @@ class BookMarketPriceResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return 'Commerce';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('pricing.manage');
+    }
+
+    public static function canCreate(): bool
+    {
+        return StaffAccess::allows('pricing.manage');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return StaffAccess::allows('pricing.manage');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return StaffAccess::allows('pricing.manage');
     }
 
     public static function form(Schema $schema): Schema
