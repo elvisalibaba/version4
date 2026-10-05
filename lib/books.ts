@@ -33,7 +33,14 @@ function mapBook(book: ApiBook, favoriteIds = new Set<string>()) {
     formats.filter((format) => format.is_published && DIGITAL_BOOK_FORMATS.includes(format.format as (typeof DIGITAL_BOOK_FORMATS)[number])),
     DIGITAL_BOOK_FORMATS,
   );
-  const effectivePrice = numberValue(digitalFormat?.price ?? book.price);
+  const apiIsFree = Boolean(book.is_free);
+  const basePrice = numberValue(book.price);
+  const digitalPrice = digitalFormat ? numberValue(digitalFormat.price) : null;
+  const effectivePrice = apiIsFree
+    ? 0
+    : digitalPrice !== null && digitalPrice > 0
+      ? digitalPrice
+      : basePrice;
   const currencyCode = digitalFormat?.currency_code ?? book.currency_code ?? "USD";
   const offer = resolveBookOfferDetails({
     price: effectivePrice,
@@ -51,7 +58,7 @@ function mapBook(book: ApiBook, favoriteIds = new Set<string>()) {
     author_avatar_url: null,
     cover_signed_url: book.cover_url,
     is_favorite: favoriteIds.has(book.id),
-    is_free: offer.isFree,
+    is_free: apiIsFree,
     offer_mode: offer.offerMode,
     display_price_label: offer.displayPriceLabel,
     offer_summary_label: offer.offerSummaryLabel,
