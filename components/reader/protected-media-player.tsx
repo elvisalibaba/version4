@@ -124,6 +124,9 @@ export function ProtectedMediaPlayer({
 
       {access?.playback_url ? (
         <div className="space-y-4">
+          <div>
+            <p className="text-sm font-bold text-[#17231d]">{access.title || title}</p>
+          </div>
           {isAudio ? (
             <audio
               ref={(element) => { mediaRef.current = element; }}
