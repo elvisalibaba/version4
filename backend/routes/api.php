@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AuthorController;
 use App\Http\Controllers\Api\V1\AuthorDistributionController;
 use App\Http\Controllers\Api\V1\AuthorFinanceController;
 use App\Http\Controllers\Api\V1\AuthorWorkspaceController;
+use App\Http\Controllers\Api\V1\AuthorReviewCaseController;
 use App\Http\Controllers\Api\V1\AdController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BookAccessController;
@@ -112,6 +113,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::get('author/profile', [AuthorWorkspaceController::class, 'profileShow'])->name('author.profile.show');
         Route::post('author/profile', [AuthorWorkspaceController::class, 'profileUpdate'])->name('author.profile.update');
         Route::get('author/sales', [AuthorWorkspaceController::class, 'sales'])->name('author.sales');
+        Route::get('author/review-cases', [AuthorReviewCaseController::class, 'index'])->name('author.review-cases.index');
+        Route::get('author/review-cases/{reviewCase}', [AuthorReviewCaseController::class, 'show'])->name('author.review-cases.show');
+        Route::post('author/review-cases/{reviewCase}/appeal', [AuthorReviewCaseController::class, 'appeal'])->middleware('throttle:10,1')->name('author.review-cases.appeal');
 
         Route::get('author/finance/summary', [AuthorFinanceController::class, 'summary'])->name('author.finance.summary');
         Route::get('author/finance/royalties', [AuthorFinanceController::class, 'royalties'])->name('author.finance.royalties');
