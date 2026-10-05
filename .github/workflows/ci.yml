@@ -166,12 +166,11 @@ jobs:
           # Historical migration 2026_09_28_113039 was already deployed and must
           # remain immutable. SQLite accepted TEXT UNIQUE for push tokens while
           # MySQL 8 rejects it without a prefix length. Patch only the ephemeral
-          # CI checkout, build a MySQL schema snapshot, then run the suite on it.
+          # CI checkout, then replay the complete migration history on MySQL.
           sed -i "s/\$table->text('token')->unique();/\$table->string('token', 512)->unique();/" \
             database/migrations/2026_09_28_113039_create_mobile_and_offline_tables.php
 
           php artisan migrate:fresh --force
-          php artisan schema:dump --database=mysql --prune
           php artisan test
 
 
