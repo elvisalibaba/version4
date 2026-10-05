@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AuditEvents;
 
+use App\Support\StaffAccess;
 use App\Filament\Resources\AuditEvents\Pages\ListPlatformAuditEvents;
 use App\Models\PlatformAuditEvent;
 use BackedEnum;
@@ -22,6 +23,11 @@ class PlatformAuditEventResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return 'Gouvernance';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('audit.view');
     }
 
     public static function canCreate(): bool
