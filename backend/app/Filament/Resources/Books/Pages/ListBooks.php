@@ -23,8 +23,45 @@ class ListBooks extends ListRecords
     {
         return [
             CreateAction::make()->label('Ajouter un livre'),
+            Action::make('preparedBulkImport')
+                ->label('Importer un lot préparé (jusqu’à 50)')
+                ->icon('heroicon-o-archive-box-arrow-down')
+                ->color('success')
+                ->schema([
+                    FileUpload::make('archive')
+                        ->label('Lot HolisticBooks ZIP')
+                        ->disk('books')
+                        ->directory('admin-imports/prepared')
+                        ->visibility('private')
+                        ->acceptedFileTypes(['application/zip', 'application/x-zip-compressed', 'multipart/x-zip'])
+                        ->maxSize(460800)
+                        ->getUploadedFileNameForStorageUsing(fn (TemporaryUploadedFile $file): string => Str::uuid().'-lot-holisticbooks.zip')
+                        ->helperText('ZIP préparé contenant manifest.json, books/ et covers/. Maximum 50 livres et 450 Mo.')
+                        ->required(),
+                ])
+                ->action(function (array $data, AdminBookImportService $importer): void {
+                    $administrator = auth()->user()?->profile;
+                    abort_unless($administrator?->role === 'admin', 403);
+
+                    $batch = $importer->importPreparedArchive(
+                        archivePath: (string) $data['archive'],
+                        administrator: $administrator,
+                    );
+
+                    $notification = Notification::make()
+                        ->title("Lot importé : {$batch->completed_items} livre(s) créé(s)")
+                        ->body(
+                            $batch->failed_items > 0
+                                ? "{$batch->failed_items} livre(s) ont échoué. Les livres créés restent en brouillon avec droits à vérifier."
+                                : 'Tous les livres ont été créés en brouillon, gratuits par défaut, avec droits à vérifier.'
+                        );
+
+                    $batch->failed_items > 0
+                        ? $notification->warning()->send()
+                        : $notification->success()->send();
+                }),
             Action::make('bulkImport')
-                ->label('Importer jusqu’à 10 PDF')
+                ->label('Importer jusqu’à 10 PDF (même auteur)')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('primary')
                 ->schema([
@@ -45,13 +82,13 @@ class ListBooks extends ListRecords
                         ->minFiles(1)
                         ->maxFiles(10)
                         ->acceptedFileTypes(['application/pdf'])
-                        ->maxSize(204800)
+                        ->maxSize(460800)
                         ->getUploadedFileNameForStorageUsing(function (TemporaryUploadedFile $file): string {
                             $title = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
 
                             return Str::uuid().'--'.($title !== '' ? $title : 'livre').'.pdf';
                         })
-                        ->helperText('Maximum 10 PDF de 200 Mo chacun. Le titre, le nombre de pages et la couverture seront préparés automatiquement.')
+                        ->helperText('Maximum 10 PDF de 450 Mo chacun. Utilisez plutôt le lot préparé pour des auteurs différents.')
                         ->required(),
                     Checkbox::make('rights_confirmed')
                         ->label('Je confirme que la plateforme dispose des droits nécessaires pour traiter ces fichiers.')
