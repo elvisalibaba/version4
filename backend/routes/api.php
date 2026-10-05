@@ -115,6 +115,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
 
         Route::get('author/dashboard', [AuthorWorkspaceController::class, 'dashboard'])->name('author.dashboard');
         Route::get('author/books', [AuthorWorkspaceController::class, 'books'])->name('author.books');
+        Route::get('author/books/{book}', [AuthorWorkspaceController::class, 'book'])->name('author.books.show');
         Route::get('author/profile', [AuthorWorkspaceController::class, 'profileShow'])->name('author.profile.show');
         Route::post('author/profile', [AuthorWorkspaceController::class, 'profileUpdate'])->name('author.profile.update');
         Route::get('author/sales', [AuthorWorkspaceController::class, 'sales'])->name('author.sales');
