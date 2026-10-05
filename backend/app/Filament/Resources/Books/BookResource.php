@@ -425,6 +425,79 @@ class BookResource extends Resource
                         ->columnSpanFull(),
                 ]),
 
+            Section::make('Droits de lecture & protection')
+                ->description('Séparez clairement le droit de lire sur Holistique Books des droits de téléchargement, impression et copie prévus au contrat.')
+                ->columns(3)
+                ->schema([
+                    Select::make('reading_access_mode')
+                        ->label('Mode de lecture')
+                        ->options([
+                            'standard' => 'Standard',
+                            'platform_read_only' => 'Lecture Holistique Books uniquement',
+                            'licensed_read_only' => 'Lecture sous licence / accord auteur',
+                            'preview_only' => 'Aperçu uniquement',
+                        ])
+                        ->default('standard')
+                        ->required()
+                        ->live(),
+
+                    Toggle::make('can_read_on_platform')
+                        ->label('Lecture sur Holistique Books')
+                        ->default(true),
+
+                    Toggle::make('reader_watermark_enabled')
+                        ->label('Filigrane lecteur')
+                        ->default(false),
+
+                    Toggle::make('allow_download')
+                        ->label('Téléchargement autorisé')
+                        ->default(true),
+
+                    Toggle::make('allow_print')
+                        ->label('Impression autorisée')
+                        ->default(true),
+
+                    Toggle::make('allow_copy')
+                        ->label('Copie du contenu autorisée')
+                        ->default(true),
+
+                    TextInput::make('rights_agreement_reference')
+                        ->label('Référence contrat / accord')
+                        ->maxLength(255)
+                        ->placeholder('Ex. HB-RIGHTS-2026-0042'),
+
+                    Textarea::make('reader_rights_note')
+                        ->label('Note de licence / restrictions')
+                        ->rows(3)
+                        ->columnSpan(2)
+                        ->placeholder('Ex. Accord international : lecture sur plateforme autorisée, téléchargement et impression interdits.'),
+                ]),
+
+            Section::make('Pilotage auteur')
+                ->description('Suivi du travail d’écriture visible dans le Studio Auteur.')
+                ->columns(3)
+                ->schema([
+                    Select::make('writing_status')
+                        ->label('État de l’écriture')
+                        ->options([
+                            'idea' => 'Idée / concept',
+                            'outline' => 'Plan / structure',
+                            'writing' => 'Rédaction en cours',
+                            'self_review' => 'Relecture auteur',
+                            'submitted' => 'Soumis à l’équipe éditoriale',
+                            'editor_review' => 'En traitement éditorial',
+                            'changes_requested' => 'Corrections demandées',
+                            'ready_for_layout' => 'Prêt pour mise en page',
+                            'completed' => 'Manuscrit finalisé',
+                        ])
+                        ->default('idea')
+                        ->required(),
+                    TextInput::make('target_word_count')->label('Objectif mots')->numeric()->minValue(1),
+                    TextInput::make('current_word_count')->label('Mots actuels')->numeric()->minValue(0),
+                    Textarea::make('next_author_action')->label('Prochaine action auteur')->rows(2)->columnSpan(2),
+                    DatePicker::make('editorial_deadline')->label('Échéance'),
+                ]),
+
             Section::make('Commercialisation et publication')
                 ->columns(3)
                 ->schema([
