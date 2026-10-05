@@ -168,6 +168,7 @@ class BookResource extends Resource
                         ->afterStateUpdated(function (Set $set, Get $get, bool $state): void {
                             if ($state) {
                                 $set('price', 0);
+                                $set('is_single_sale_enabled', true);
                             } elseif ((float) $get('price') <= 0) {
                                 $set('price', null);
                             }
@@ -192,7 +193,10 @@ class BookResource extends Resource
                         ])
                         ->default('draft')
                         ->required(),
-                    Toggle::make('is_single_sale_enabled')->label('Vente individuelle')->default(true),
+                    Toggle::make('is_single_sale_enabled')
+                        ->label('Vente individuelle / lecture gratuite')
+                        ->default(true)
+                        ->helperText('Doit rester actif pour qu’un livre à 0 USD soit lisible gratuitement sans compte.'),
                     Toggle::make('is_subscription_available')->label('Disponible par abonnement'),
                     TextInput::make('page_count')
                         ->label('Nombre de pages')
@@ -222,7 +226,8 @@ class BookResource extends Resource
                             'application/epub+zip',
                             'application/octet-stream',
                         ])
-                        ->maxSize(204800),
+                        ->maxSize(460800)
+                        ->helperText('PDF ou EPUB privé, jusqu’à 450 Mo. Pour un fichier plus lourd, optimisez/comprimez le document avant import.'),
                 ]),
 
             Section::make('Validation éditoriale et droits')
