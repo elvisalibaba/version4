@@ -147,7 +147,7 @@ class AdminBookImportService
 
             $extension = mb_strtolower(pathinfo($name, PATHINFO_EXTENSION));
 
-            if (! in_array($extension, ['pdf', 'epub'], true)) {
+            if (! in_array($extension, ['pdf', 'epub', 'mobi', 'azw3'], true)) {
                 continue;
             }
 
@@ -644,7 +644,7 @@ class AdminBookImportService
         $extension = mb_strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
         if (! in_array($extension, ['pdf', 'epub'], true)) {
-            throw new RuntimeException('Les imports multiples acceptent les fichiers PDF et EPUB.');
+            throw new RuntimeException('Les imports multiples acceptent les fichiers PDF, EPUB, MOBI et AZW3.');
         }
 
         $size = $disk->size($path);
