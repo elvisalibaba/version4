@@ -29,8 +29,9 @@ class HolisticHealthCheck extends Command
 
         foreach (['books', 'public'] as $disk) {
             try {
+                Storage::disk($disk)->directories('');
                 $checks['disk_'.$disk] = [
-                    'ok' => Storage::disk($disk)->exists('.') || true,
+                    'ok' => true,
                     'driver' => config("filesystems.disks.{$disk}.driver"),
                 ];
             } catch (Throwable $error) {
