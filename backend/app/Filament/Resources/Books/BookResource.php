@@ -6,6 +6,7 @@ use App\Filament\Resources\Books\Pages\CreateBook;
 use App\Filament\Resources\Books\Pages\EditBook;
 use App\Filament\Resources\Books\Pages\ListBooks;
 use App\Models\AcademicTaxonomy;
+use App\Support\StaffAccess;
 use App\Models\AuthorProfile;
 use App\Models\Book;
 use App\Models\Category;
@@ -53,6 +54,26 @@ class BookResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return 'Catalogue';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('catalog.manage');
+    }
+
+    public static function canCreate(): bool
+    {
+        return StaffAccess::allows('catalog.manage');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return StaffAccess::allows('catalog.manage');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return StaffAccess::allows('catalog.manage');
     }
 
     public static function form(Schema $schema): Schema
