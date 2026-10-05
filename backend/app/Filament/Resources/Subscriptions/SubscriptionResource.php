@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Subscriptions;
 
+use App\Support\StaffAccess;
 use App\Filament\Resources\Subscriptions\Pages\EditSubscription;
 use App\Filament\Resources\Subscriptions\Pages\ListSubscriptions;
 use App\Models\Subscription;
@@ -34,6 +35,11 @@ class SubscriptionResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return 'Commerce';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('commerce.manage');
     }
 
     public static function form(Schema $schema): Schema

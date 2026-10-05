@@ -70,6 +70,58 @@ class AuthorWorkspaceController extends Controller
         ]);
     }
 
+    public function book(Request $request, Book $book): JsonResponse
+    {
+        $author = $this->profile($request);
+        abort_unless($book->author_id === $author->id, 404);
+
+        $book->load([
+            'author',
+            'formats',
+            'mediaEditions',
+            'subscriptionPlans',
+            'manuscriptVersions.creator:id,name,email',
+        ]);
+
+        $payload = (new BookResource($book))->resolve($request);
+
+        $payload['author_workspace'] = [
+            'writing_status' => $book->writing_status,
+            'target_word_count' => $book->target_word_count,
+            'current_word_count' => $book->current_word_count,
+            'next_author_action' => $book->next_author_action,
+            'editorial_deadline' => $book->editorial_deadline?->toDateString(),
+            'author_private_notes' => $book->author_private_notes,
+            'editorial_stage' => $book->editorial_stage,
+            'bat_status' => $book->bat_status,
+            'manuscript_versions' => $book->manuscriptVersions
+                ->take(20)
+                ->map(fn ($version): array => [
+                    'id' => $version->id,
+                    'version_number' => $version->version_number,
+                    'file_format' => $version->file_format,
+                    'file_size' => $version->file_size,
+                    'status' => $version->status,
+                    'change_summary' => $version->change_summary,
+                    'created_at' => $version->created_at?->toIso8601String(),
+                ])
+                ->values(),
+        ];
+
+        $payload['reader_rights'] = [
+            'reading_access_mode' => $book->reading_access_mode,
+            'can_read_on_platform' => (bool) $book->can_read_on_platform,
+            'allow_download' => false,
+            'allow_print' => (bool) $book->allow_print,
+            'allow_copy' => (bool) $book->allow_copy,
+            'reader_watermark_enabled' => (bool) $book->reader_watermark_enabled,
+            'rights_agreement_reference' => $book->rights_agreement_reference,
+            'reader_rights_note' => $book->reader_rights_note,
+        ];
+
+        return response()->json(['data' => $payload]);
+    }
+
     public function profileShow(Request $request): JsonResponse
     {
         $author = $this->profile($request);

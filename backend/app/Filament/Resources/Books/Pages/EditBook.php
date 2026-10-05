@@ -59,12 +59,14 @@ class EditBook extends EditRecord
             }
         }
 
-        if (
-            ($data['bat_status'] ?? $this->record->bat_status) === 'approved'
-            && $this->record->bat_status !== 'approved'
-        ) {
+        $nextBatStatus = $data['bat_status'] ?? $this->record->bat_status;
+
+        if ($nextBatStatus === 'approved' && $this->record->bat_status !== 'approved') {
             $data['bat_approved_at'] = now();
             $data['bat_approved_by'] = auth()->user()?->profile?->id;
+        } elseif ($nextBatStatus !== 'approved') {
+            $data['bat_approved_at'] = null;
+            $data['bat_approved_by'] = null;
         }
 
         return $data;

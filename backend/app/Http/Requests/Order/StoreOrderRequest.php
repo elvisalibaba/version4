@@ -28,6 +28,7 @@ class StoreOrderRequest extends FormRequest
             'items.*.book_format' => ['required', 'in:holistique_store,ebook,paperback,pocket,hardcover,audiobook'],
             'items.*.quantity' => ['nullable', 'integer', 'min:1', 'max:100'],
             'currency_code' => ['nullable', 'string', 'size:3'],
+            'market_country_code' => ['nullable', 'string', 'size:2'],
             'payment_provider' => ['nullable', 'string', 'max:100'],
             'payment_channel' => ['nullable', 'string', 'max:100'],
         ];

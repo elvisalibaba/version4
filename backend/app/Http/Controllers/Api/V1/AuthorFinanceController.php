@@ -30,6 +30,65 @@ class AuthorFinanceController extends Controller
         ]);
     }
 
+    public function statement(Request $request): JsonResponse
+    {
+        $profile = $this->authorProfile($request);
+        $from = $request->date('from') ?? now()->startOfMonth();
+        $to = $request->date('to') ?? now()->endOfMonth();
+
+        abort_if($from->gt($to), 422, 'La date de début doit précéder la date de fin.');
+
+        $base = AuthorRoyaltyTransaction::query()
+            ->where('user_id', $profile->id)
+            ->whereBetween('earned_at', [$from->startOfDay(), $to->endOfDay()]);
+
+        $totals = (clone $base)->selectRaw('
+            COALESCE(SUM(gross_amount), 0) as gross_amount,
+            COALESCE(SUM(printing_cost), 0) as printing_cost,
+            COALESCE(SUM(platform_fee), 0) as platform_fee,
+            COALESCE(SUM(tax_withholding), 0) as tax_withholding,
+            COALESCE(SUM(net_royalty), 0) as net_royalty
+        ')->first();
+
+        $byBook = (clone $base)
+            ->selectRaw('book_id, currency_code, COUNT(*) as transactions_count,
+                SUM(gross_amount) as gross_amount,
+                SUM(platform_fee) as platform_fee,
+                SUM(printing_cost) as printing_cost,
+                SUM(tax_withholding) as tax_withholding,
+                SUM(net_royalty) as net_royalty')
+            ->with('book:id,title')
+            ->groupBy('book_id', 'currency_code')
+            ->orderByDesc('net_royalty')
+            ->get();
+
+        $bySource = (clone $base)
+            ->selectRaw('source, currency_code, COUNT(*) as transactions_count,
+                SUM(gross_amount) as gross_amount,
+                SUM(net_royalty) as net_royalty')
+            ->groupBy('source', 'currency_code')
+            ->orderBy('source')
+            ->get();
+
+        return response()->json([
+            'data' => [
+                'period' => [
+                    'from' => $from->toDateString(),
+                    'to' => $to->toDateString(),
+                ],
+                'totals' => [
+                    'gross_amount' => (float) ($totals->gross_amount ?? 0),
+                    'printing_cost' => (float) ($totals->printing_cost ?? 0),
+                    'platform_fee' => (float) ($totals->platform_fee ?? 0),
+                    'tax_withholding' => (float) ($totals->tax_withholding ?? 0),
+                    'net_royalty' => (float) ($totals->net_royalty ?? 0),
+                ],
+                'by_book' => $byBook,
+                'by_source' => $bySource,
+            ],
+        ]);
+    }
+
     public function royalties(Request $request): JsonResponse
     {
         $profile = $this->authorProfile($request);

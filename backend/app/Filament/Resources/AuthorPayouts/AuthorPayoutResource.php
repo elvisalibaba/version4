@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AuthorPayouts;
 
+use App\Support\StaffAccess;
 use App\Filament\Resources\AuthorPayouts\Pages\ListAuthorPayouts;
 use App\Models\AuthorPayout;
 use App\Services\AuthorRoyaltyService;
@@ -30,6 +31,11 @@ class AuthorPayoutResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return 'Finance auteurs';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('finance.manage');
     }
 
     public static function canCreate(): bool

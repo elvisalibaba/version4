@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\FlashSales;
 
+use App\Support\StaffAccess;
 use App\Filament\Resources\FlashSales\Pages\CreateFlashSaleConfig;
 use App\Filament\Resources\FlashSales\Pages\EditFlashSaleConfig;
 use App\Filament\Resources\FlashSales\Pages\ListFlashSaleConfigs;
@@ -36,6 +37,11 @@ class FlashSaleConfigResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return 'Contenu';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('marketing.manage');
     }
 
     public static function canCreate(): bool

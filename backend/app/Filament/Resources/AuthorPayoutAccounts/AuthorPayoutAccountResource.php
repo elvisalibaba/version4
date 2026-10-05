@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AuthorPayoutAccounts;
 
+use App\Support\StaffAccess;
 use App\Filament\Resources\AuthorPayoutAccounts\Pages\ListAuthorPayoutAccounts;
 use App\Models\AuthorPayoutAccount;
 use BackedEnum;
@@ -30,6 +31,11 @@ class AuthorPayoutAccountResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return 'Finance auteurs';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('finance.manage');
     }
 
     public static function canCreate(): bool

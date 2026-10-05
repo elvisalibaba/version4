@@ -10,6 +10,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BookFormat extends Model
 {
+    protected static function booted(): void
+    {
+        static::saving(function (BookFormat $format): void {
+            $format->downloadable = false;
+        });
+    }
+
     /** @use HasFactory<\Database\Factories\BookFormatFactory> */
     use HasFactory, HasUuids;
 

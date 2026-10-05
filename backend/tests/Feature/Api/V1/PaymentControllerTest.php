@@ -103,6 +103,59 @@ class PaymentControllerTest extends TestCase
         ]);
     }
 
+    public function test_checkout_retry_with_same_idempotency_key_reuses_same_order_and_provider_reference(): void
+    {
+        [$user, $profile] = $this->reader();
+        Sanctum::actingAs($user);
+
+        $book = Book::factory()->create([
+            'title' => 'Livre idempotent',
+            'price' => 12.50,
+            'currency_code' => 'USD',
+            'is_single_sale_enabled' => true,
+            'status' => 'published',
+            'copyright_status' => 'clear',
+        ]);
+
+        BookFormat::factory()->create([
+            'book_id' => $book->id,
+            'format' => 'ebook',
+            'price' => 12.50,
+            'currency_code' => 'USD',
+            'is_published' => true,
+        ]);
+
+        Http::fake([
+            '*payment/initialization*' => Http::response([
+                'code' => 1,
+                'reference' => 'EP-IDEMPOTENT-001',
+            ], 200),
+        ]);
+
+        $payload = [
+            'book_id' => $book->id,
+            'book_format' => 'ebook',
+            'channel' => 'MOBILE_MONEY',
+            'idempotency_key' => 'checkout-retry-001',
+            'customer' => [
+                'firstName' => 'Elvis',
+                'lastName' => 'Makasi',
+            ],
+        ];
+
+        $first = $this->postJson('/api/v1/payments/easypay/init', $payload)->assertOk();
+        $second = $this->postJson('/api/v1/payments/easypay/init', $payload)
+            ->assertOk()
+            ->assertJsonPath('data.reused', true);
+
+        $this->assertSame($first->json('data.orderId'), $second->json('data.orderId'));
+        $this->assertSame($first->json('data.transactionId'), $second->json('data.transactionId'));
+        $this->assertSame(1, \App\Models\Order::query()->where('user_id', $profile->id)->count());
+        $this->assertSame(1, \App\Models\PaymentAttempt::query()->where('idempotency_key', 'checkout-retry-001')->count());
+
+        Http::assertSentCount(1);
+    }
+
     public function test_reader_can_initialize_cdf_easypay_checkout(): void
     {
         [$user] = $this->reader();

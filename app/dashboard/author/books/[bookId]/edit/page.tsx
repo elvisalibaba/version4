@@ -3,10 +3,9 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { PublishLabForm } from "@/components/author/publish-lab-form";
 import { DashboardTopbar } from "@/components/ui/dashboard-topbar";
-import { apiServer } from "@/lib/api/server";
 import { requireRole } from "@/lib/auth";
-import { getSubscriptionPlans } from "@/lib/author-api";
-import type { ApiBook, BookReviewStatus } from "@/types/api";
+import { getAuthorBook, getSubscriptionPlans } from "@/lib/author-api";
+import type { BookReviewStatus } from "@/types/api";
 
 type PageProps = {
   params: Promise<{ bookId: string }>;
@@ -15,12 +14,11 @@ type PageProps = {
 export default async function EditAuthorBookPage({ params }: PageProps) {
   const { bookId } = await params;
   const profile = await requireRole(["author"]);
-  const [response, subscriptionPlans] = await Promise.all([
-    apiServer<{ data: ApiBook }>(`books/${encodeURIComponent(bookId)}`),
+  const [book, subscriptionPlans] = await Promise.all([
+    getAuthorBook(bookId).catch(() => null),
     getSubscriptionPlans(),
   ]);
 
-  const book = response.data;
   if (!book || book.author_id !== profile.id) notFound();
 
   return (
@@ -69,9 +67,37 @@ export default async function EditAuthorBookPage({ params }: PageProps) {
             submittedAt: book.submitted_at ?? null,
             reviewedAt: book.reviewed_at ?? null,
             reviewNote: book.review_note ?? null,
+            writingStatus: book.author_workspace?.writing_status ?? "idea",
+            targetWordCount: book.author_workspace?.target_word_count ? String(book.author_workspace.target_word_count) : "",
+            currentWordCount: book.author_workspace?.current_word_count ? String(book.author_workspace.current_word_count) : "",
+            nextAuthorAction: book.author_workspace?.next_author_action ?? "",
+            editorialDeadline: book.author_workspace?.editorial_deadline ?? "",
+            authorPrivateNotes: book.author_workspace?.author_private_notes ?? "",
           }}
         />
       </div>
+
+      <section className="rounded-[28px] border border-[#e5ddd1] bg-[#fffaf2] p-5 sm:p-6">
+        <p className="text-xs font-bold uppercase tracking-[.17em] text-[#a85b3f]">Droits de lecture appliqués par Holistique Books</p>
+        <h2 className="mt-2 font-serif text-2xl text-[#17231d]">Licence et protection du titre</h2>
+        <p className="mt-2 text-sm leading-6 text-[#766e64]">Ces paramètres proviennent du contrat éditorial et ne sont pas modifiables depuis le Studio Auteur.</p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ["Lecture plateforme", book.reader_rights?.can_read_on_platform ? "Autorisée" : "Bloquée"],
+            ["Téléchargement", "Interdit"],
+            ["Impression", book.reader_rights?.allow_print ? "Autorisée" : "Interdite"],
+            ["Copie", book.reader_rights?.allow_copy ? "Autorisée" : "Interdite"],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-[18px] border border-[#eadfd1] bg-white p-4">
+              <p className="text-[0.65rem] font-bold uppercase tracking-[0.12em] text-[#8b8177]">{label}</p>
+              <p className="mt-2 font-semibold text-[#17231d]">{value}</p>
+            </div>
+          ))}
+        </div>
+        {book.reader_rights?.rights_agreement_reference ? (
+          <p className="mt-4 text-sm text-[#5f574f]">Référence accord : <strong>{book.reader_rights.rights_agreement_reference}</strong></p>
+        ) : null}
+      </section>
     </section>
   );
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Book;
 
 use App\Models\Book;
+use App\Support\BookEditorialWorkflow;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateBookRequest extends FormRequest
@@ -32,9 +33,25 @@ class UpdateBookRequest extends FormRequest
             'status' => ['sometimes', 'in:draft,published,archived,coming_soon'],
             'editorial_pole' => ['sometimes', 'in:general,ecclesial,institutional,entrepreneurial'],
             'work_type' => ['sometimes', 'in:book,bible,theology,devotional,sermon,prayer,hymnal,study_guide,academic,manual,essay,novel,biography,magazine,report,other'],
-            'editorial_stage' => ['sometimes', 'string', 'max:40'],
+            'editorial_stage' => ['sometimes', 'in:'.implode(',', BookEditorialWorkflow::STAGES)],
             'spiritual_metadata' => ['sometimes', 'nullable', 'array'],
             'ingestion_metadata' => ['sometimes', 'nullable', 'array'],
+
+            'reading_access_mode' => ['sometimes', 'in:standard,platform_read_only,licensed_read_only,preview_only'],
+            'can_read_on_platform' => ['sometimes', 'boolean'],
+            'allow_download' => ['sometimes', 'boolean'],
+            'allow_print' => ['sometimes', 'boolean'],
+            'allow_copy' => ['sometimes', 'boolean'],
+            'reader_watermark_enabled' => ['sometimes', 'boolean'],
+            'rights_agreement_reference' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'reader_rights_note' => ['sometimes', 'nullable', 'string'],
+
+            'writing_status' => ['sometimes', 'in:idea,outline,writing,self_review,submitted,editor_review,changes_requested,ready_for_layout,completed'],
+            'target_word_count' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            'current_word_count' => ['sometimes', 'nullable', 'integer', 'min:0'],
+            'next_author_action' => ['sometimes', 'nullable', 'string'],
+            'editorial_deadline' => ['sometimes', 'nullable', 'date'],
+            'author_private_notes' => ['sometimes', 'nullable', 'string'],
 
             'language' => ['sometimes', 'nullable', 'string', 'max:10'],
             'isbn' => ['sometimes', 'nullable', 'string', 'max:50'],

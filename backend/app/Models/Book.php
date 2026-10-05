@@ -27,6 +27,13 @@ class Book extends Model
         'work_type' => 'book',
         'editorial_stage' => 'intake',
         'bat_status' => 'pending',
+        'reading_access_mode' => 'standard',
+        'can_read_on_platform' => true,
+        'allow_download' => false,
+        'allow_print' => true,
+        'allow_copy' => true,
+        'reader_watermark_enabled' => false,
+        'writing_status' => 'idea',
     ];
 
     protected $fillable = [
@@ -44,6 +51,10 @@ class Book extends Model
         'review_status', 'submitted_at', 'reviewed_at', 'reviewed_by', 'review_note',
         'bat_status', 'bat_approved_at', 'bat_approved_by',
         'copyright_status', 'copyright_note',
+        'reading_access_mode', 'can_read_on_platform', 'allow_download', 'allow_print', 'allow_copy',
+        'reader_watermark_enabled', 'rights_agreement_reference', 'reader_rights_note',
+        'writing_status', 'target_word_count', 'current_word_count', 'next_author_action',
+        'editorial_deadline', 'author_private_notes',
     ];
 
     protected function casts(): array
@@ -63,12 +74,20 @@ class Book extends Model
             'is_single_sale_enabled' => 'boolean',
             'is_subscription_available' => 'boolean',
             'rating_avg' => 'decimal:2',
+            'can_read_on_platform' => 'boolean',
+            'allow_download' => 'boolean',
+            'allow_print' => 'boolean',
+            'allow_copy' => 'boolean',
+            'reader_watermark_enabled' => 'boolean',
+            'editorial_deadline' => 'date',
         ];
     }
 
     protected static function booted(): void
     {
         static::saving(function (Book $book): void {
+            // Holistique Books is a platform-only reading service: source files never become downloadable.
+            $book->allow_download = false;
             // Anonymous, collective, institutional and sacred texts can be
             // catalogued without a linked AuthorProfile.
             if ($book->status !== 'published' || blank($book->author_id)) {
@@ -210,8 +229,30 @@ class Book extends Model
         return $this->hasMany(AuthorRoyaltyTransaction::class);
     }
 
+    public function marketPrices(): HasMany
+    {
+        return $this->hasMany(BookMarketPrice::class);
+    }
+
     public function editorialEvents(): HasMany
     {
         return $this->hasMany(BookEditorialEvent::class)->orderByDesc('created_at');
+    }
+
+    public function manuscriptVersions(): HasMany
+    {
+        return $this->hasMany(BookManuscriptVersion::class)->orderByDesc('version_number');
+    }
+
+    public function readerPermissions(): array
+    {
+        return [
+            'mode' => $this->reading_access_mode,
+            'can_read_on_platform' => (bool) $this->can_read_on_platform,
+            'can_download' => false,
+            'can_print' => (bool) $this->allow_print,
+            'can_copy' => (bool) $this->allow_copy,
+            'watermark' => (bool) $this->reader_watermark_enabled,
+        ];
     }
 }
