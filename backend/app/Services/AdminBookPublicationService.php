@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\AuthorProfile;
 use App\Models\Book;
 use App\Models\Profile;
 use Illuminate\Database\Eloquent\Collection;
@@ -12,6 +11,8 @@ use Throwable;
 
 class AdminBookPublicationService
 {
+    public function __construct(private BookDocumentMetadataService $metadata) {}
+
     /**
      * @param Collection<int, Book> $books
      * @return array{published:int, failed:int}
@@ -31,6 +32,9 @@ class AdminBookPublicationService
 
         foreach ($books as $book) {
             try {
+                // A catalogue item must always leave publication with a usable cover.
+                $book = $this->metadata->enrich($book);
+
                 DB::transaction(function () use ($book, $administrator): void {
                     $author = $book->author()->first();
 
@@ -42,16 +46,27 @@ class AdminBookPublicationService
                         ]);
                     }
 
+                    $fromStage = $book->editorial_stage;
+
                     $book->forceFill([
                         'status' => 'published',
                         'review_status' => 'approved',
                         'copyright_status' => 'clear',
+                        'editorial_stage' => 'published',
                         'published_at' => $book->published_at ?? now(),
                         'reviewed_at' => now(),
                         'reviewed_by' => $administrator->id,
                         'copyright_note' => $book->copyright_note
                             ?: 'Droits validés manuellement par un administrateur avant publication.',
                     ])->save();
+
+                    $book->editorialEvents()->create([
+                        'actor_id' => $administrator->id,
+                        'event_type' => 'published',
+                        'from_stage' => $fromStage,
+                        'to_stage' => 'published',
+                        'notes' => 'Livre validé et publié par un administrateur.',
+                    ]);
                 });
 
                 $published++;

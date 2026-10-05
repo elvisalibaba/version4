@@ -101,4 +101,41 @@ class AdminBookImportServiceTest extends TestCase
         Storage::disk('books')->assertExists($book->file_url);
         Storage::disk('public')->assertExists($book->cover_url);
     }
+
+    public function test_raw_zip_without_manifest_author_or_cover_is_still_imported(): void
+    {
+        if (! class_exists(ZipArchive::class)) {
+            $this->markTestSkipped('PHP ZIP extension is not available.');
+        }
+
+        Storage::fake('books');
+        Storage::fake('public');
+
+        $administrator = Profile::factory()->admin()->create();
+        Storage::disk('books')->makeDirectory('admin-imports/prepared');
+
+        $archivePath = 'admin-imports/prepared/raw-bible.zip';
+        $absoluteArchivePath = Storage::disk('books')->path($archivePath);
+
+        $zip = new ZipArchive();
+        $this->assertTrue($zip->open($absoluteArchivePath, ZipArchive::CREATE | ZipArchive::OVERWRITE));
+        $zip->addFromString('books/Bible-Louis-Segond.pdf', "%PDF-1.4\n/Type /Page\n");
+        $zip->close();
+
+        $batch = app(AdminBookImportService::class)
+            ->importPreparedArchive($archivePath, $administrator);
+
+        $this->assertSame(1, $batch->completed_items);
+        $this->assertSame(0, $batch->failed_items);
+
+        $book = Book::query()->where('title', 'Bible Louis Segond')->firstOrFail();
+
+        $this->assertNull($book->author_id);
+        $this->assertSame('sacred_text', $book->authorship_type);
+        $this->assertSame('ecclesial', $book->editorial_pole);
+        $this->assertSame('bible', $book->work_type);
+        $this->assertNotNull($book->cover_url);
+        Storage::disk('public')->assertExists($book->cover_url);
+    }
+
 }

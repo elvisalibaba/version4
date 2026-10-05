@@ -29,7 +29,10 @@ class CreateBook extends CreateRecord
         );
 
         $data['author_id'] = $author->id;
+        $data['authorship_type'] = 'named';
+        $data['author_credit'] = $author->display_name;
         $data['author_display_name'] = $author->display_name;
+        $data['editorial_stage'] = $data['editorial_stage'] ?? 'intake';
         $data['status'] = 'draft';
         $data['review_status'] = 'draft';
         $data['copyright_status'] = 'review';
@@ -42,6 +45,13 @@ class CreateBook extends CreateRecord
 
     protected function afterCreate(): void
     {
-        app(BookDocumentMetadataService::class)->enrich($this->record);
+        $this->record = app(BookDocumentMetadataService::class)->enrich($this->record);
+
+        $this->record->editorialEvents()->create([
+            'actor_id' => auth()->user()?->profile?->id,
+            'event_type' => 'created',
+            'to_stage' => $this->record->editorial_stage,
+            'notes' => 'Manuscrit créé depuis le Studio Auteur.',
+        ]);
     }
 }

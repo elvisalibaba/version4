@@ -15,7 +15,7 @@ class EditBook extends EditRecord
 
     protected function afterSave(): void
     {
-        app(BookDocumentMetadataService::class)->enrich($this->record);
+        $this->record = app(BookDocumentMetadataService::class)->enrich($this->record);
     }
 
     protected function getHeaderActions(): array
@@ -42,10 +42,21 @@ class EditBook extends EditRecord
                         return;
                     }
 
+                    $fromStage = $this->record->editorial_stage;
+
                     $this->record->update([
                         'review_status' => 'submitted',
                         'submitted_at' => now(),
                         'review_note' => null,
+                        'editorial_stage' => $fromStage === 'intake' ? 'brief' : $fromStage,
+                    ]);
+
+                    $this->record->editorialEvents()->create([
+                        'actor_id' => auth()->user()?->profile?->id,
+                        'event_type' => 'submitted_for_review',
+                        'from_stage' => $fromStage,
+                        'to_stage' => $this->record->editorial_stage,
+                        'notes' => 'Manuscrit soumis à l’équipe éditoriale depuis le Studio Auteur.',
                     ]);
 
                     Notification::make()
