@@ -450,8 +450,11 @@ class BookResource extends Resource
                         ->default(false),
 
                     Toggle::make('allow_download')
-                        ->label('Téléchargement autorisé')
-                        ->default(true),
+                        ->label('Téléchargement')
+                        ->default(false)
+                        ->disabled()
+                        ->dehydrated()
+                        ->helperText('Désactivé globalement : aucun livre ne quitte Holistique Books.'),
 
                     Toggle::make('allow_print')
                         ->label('Impression autorisée')
