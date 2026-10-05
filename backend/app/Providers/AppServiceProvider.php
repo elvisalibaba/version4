@@ -4,12 +4,15 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Models\AuthorPayout;
+use App\Models\AuthorPayoutAccount;
 use App\Models\Book;
 use App\Models\BookMarketPrice;
+use App\Models\Profile;
 use App\Models\Order;
 use App\Models\PromotionCampaign;
 use App\Models\PublishingReviewCase;
 use App\Models\RightsContract;
+use App\Models\SubscriptionPlan;
 use App\Observers\CriticalModelAuditObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -34,6 +37,9 @@ class AppServiceProvider extends ServiceProvider
             BookMarketPrice::class,
             PublishingReviewCase::class,
             AuthorPayout::class,
+            AuthorPayoutAccount::class,
+            Profile::class,
+            SubscriptionPlan::class,
             Order::class,
         ] as $auditedModel) {
             $auditedModel::observe(CriticalModelAuditObserver::class);
