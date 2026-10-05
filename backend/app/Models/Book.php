@@ -86,6 +86,8 @@ class Book extends Model
     protected static function booted(): void
     {
         static::saving(function (Book $book): void {
+            // Holistique Books is a platform-only reading service: source files never become downloadable.
+            $book->allow_download = false;
             // Anonymous, collective, institutional and sacred texts can be
             // catalogued without a linked AuthorProfile.
             if ($book->status !== 'published' || blank($book->author_id)) {
@@ -242,7 +244,7 @@ class Book extends Model
         return [
             'mode' => $this->reading_access_mode,
             'can_read_on_platform' => (bool) $this->can_read_on_platform,
-            'can_download' => (bool) $this->allow_download,
+            'can_download' => false,
             'can_print' => (bool) $this->allow_print,
             'can_copy' => (bool) $this->allow_copy,
             'watermark' => (bool) $this->reader_watermark_enabled,
