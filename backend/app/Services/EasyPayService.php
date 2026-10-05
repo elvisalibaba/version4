@@ -48,18 +48,26 @@ class EasyPayService
             ];
         }
 
-        $attempt = $existing ?? PaymentAttempt::query()->create([
-            'user_id' => $profile->id,
-            'order_id' => $order->id,
-            'provider' => 'easypay',
-            'payment_channel' => $channel,
-            'idempotency_key' => $idempotencyKey,
-            'amount' => $order->total_price,
-            'currency_code' => $order->currency_code,
-            'status' => 'created',
-            'request_payload' => [],
-            'response_payload' => [],
-        ]);
+        $attempt = $existing ?? PaymentAttempt::query()->firstOrCreate(
+            ['idempotency_key' => $idempotencyKey],
+            [
+                'user_id' => $profile->id,
+                'order_id' => $order->id,
+                'provider' => 'easypay',
+                'payment_channel' => $channel,
+                'amount' => $order->total_price,
+                'currency_code' => $order->currency_code,
+                'status' => 'created',
+                'request_payload' => [],
+                'response_payload' => [],
+            ],
+        );
+
+        if ($attempt->user_id !== $profile->id || $attempt->order_id !== $order->id) {
+            throw ValidationException::withMessages([
+                'idempotency_key' => 'Cette clé d’idempotence est déjà liée à une autre opération.',
+            ]);
+        }
 
         $customer = $data['customer'] ?? [];
         $requestPayload = [
@@ -176,34 +184,45 @@ class EasyPayService
             default => 'pending',
         };
 
-        $wasAlreadyPaid = $order->payment_status === 'paid';
+        $wasAlreadyPaid = false;
 
-        DB::transaction(function () use ($order, $attempt, $result, $providerStatus, $status): void {
-            if ($order->payment_status !== 'paid') {
-                $order->payment_status = $status;
+        DB::transaction(function () use ($order, $attempt, $result, $providerStatus, $status, &$wasAlreadyPaid): void {
+            $lockedOrder = Order::query()
+                ->whereKey($order->id)
+                ->lockForUpdate()
+                ->with(['items.book', 'items.format'])
+                ->firstOrFail();
+
+            $wasAlreadyPaid = $lockedOrder->payment_status === 'paid';
+
+            if (! $wasAlreadyPaid) {
+                $lockedOrder->payment_status = $status;
             }
 
-            $order->payment_provider = 'easypay';
-            $order->payment_provider_status = $providerStatus;
-            $order->payment_verified_at = now();
-            $order->payment_metadata = array_merge($order->payment_metadata ?? [], [
+            $lockedOrder->payment_provider = 'easypay';
+            $lockedOrder->payment_provider_status = $providerStatus;
+            $lockedOrder->payment_verified_at = now();
+            $lockedOrder->payment_metadata = array_merge($lockedOrder->payment_metadata ?? [], [
                 'last_verification_at' => now()->toIso8601String(),
                 'last_verification' => $result,
             ]);
-            $order->save();
+            $lockedOrder->save();
 
             if ($attempt) {
-                $attempt->update([
-                    'status' => $status,
-                    'response_payload' => $result,
-                    'verified_at' => now(),
-                    'failed_at' => $status === 'failed' ? now() : null,
-                ]);
+                PaymentAttempt::query()
+                    ->whereKey($attempt->id)
+                    ->lockForUpdate()
+                    ->first()?->update([
+                        'status' => $status,
+                        'response_payload' => $result,
+                        'verified_at' => now(),
+                        'failed_at' => $status === 'failed' ? now() : null,
+                    ]);
             }
 
-            if ($status === 'paid') {
-                $this->grantDigitalPurchases($order);
-                app(AuthorRoyaltyService::class)->accrueOrder($order);
+            if ($status === 'paid' && ! $wasAlreadyPaid) {
+                $this->grantDigitalPurchases($lockedOrder);
+                app(AuthorRoyaltyService::class)->accrueOrder($lockedOrder);
             }
         });
 
