@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Profiles;
 use App\Filament\Resources\Profiles\Pages\EditProfile;
 use App\Filament\Resources\Profiles\Pages\ListProfiles;
 use App\Models\Profile;
+use App\Support\StaffAccess;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
@@ -13,6 +14,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
@@ -41,6 +43,16 @@ class ProfileResource extends Resource
         return 'Utilisateurs';
     }
 
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('users.view') || StaffAccess::allows('users.manage');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return StaffAccess::allows('users.manage');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -56,6 +68,30 @@ class ProfileResource extends Resource
                             'admin' => 'Administrateur',
                         ])
                         ->required(),
+                    Select::make('staff_role')
+                        ->label('Fonction interne')
+                        ->options([
+                            'super_admin' => 'Super administrateur',
+                            'editorial_director' => 'Direction éditoriale',
+                            'editor' => 'Éditeur',
+                            'corrector' => 'Correcteur',
+                            'legal' => 'Juridique / droits',
+                            'finance' => 'Finance',
+                            'marketing' => 'Marketing',
+                            'support' => 'Support',
+                            'analyst' => 'Data / analyste',
+                        ])
+                        ->visible(fn (Get $get): bool => $get('role') === 'admin')
+                        ->helperText('Détermine les accès métier au Control Center.'),
+
+                    Select::make('staff_permissions')
+                        ->label('Permissions complémentaires')
+                        ->multiple()
+                        ->searchable()
+                        ->options(fn (): array => config('staff_permissions.permissions', []))
+                        ->visible(fn (Get $get): bool => $get('role') === 'admin')
+                        ->helperText('Ajouts ponctuels au rôle interne. Le Super Admin possède tout.')
+                        ->columnSpanFull(),
                     TextInput::make('name')->label('Nom affiché')->maxLength(255),
                     FileUpload::make('avatar_url')
                         ->label('Photo de profil')
