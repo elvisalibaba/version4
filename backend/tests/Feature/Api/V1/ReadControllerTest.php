@@ -26,7 +26,7 @@ class ReadControllerTest extends TestCase
         $this->getJson("/api/v1/read/{$book->id}")->assertUnauthorized();
     }
 
-    public function test_guest_can_stream_only_the_secure_preview_sample(): void
+    public function test_legacy_public_full_file_endpoint_is_gone(): void
     {
         $book = $this->createBookWithPrivateFile([
             'price' => 0,
@@ -35,105 +35,59 @@ class ReadControllerTest extends TestCase
             'is_single_sale_enabled' => true,
         ], withSample: true);
 
-        $this->get("/api/v1/books/{$book->id}/read-free")
-            ->assertOk()
-            ->assertStreamed()
-            ->assertHeader('Content-Type', 'application/pdf')
-            ->assertHeader('X-Holistique-Preview-Only', '1')
-            ->assertHeader('X-Holistique-Download-Allowed', '0');
-    }
-
-    public function test_guest_never_receives_the_full_book_when_no_preview_sample_exists(): void
-    {
-        $book = $this->createBookWithPrivateFile([
-            'price' => 0,
-            'status' => 'published',
-            'copyright_status' => 'clear',
-            'is_single_sale_enabled' => true,
-        ]);
-
         $this->getJson("/api/v1/books/{$book->id}/read-free")
-            ->assertNotFound()
-            ->assertJsonPath('message', 'Aucun aperçu sécurisé disponible.');
+            ->assertStatus(410)
+            ->assertJsonPath(
+                'message',
+                'Le transfert public du fichier est désactivé. Utilisez l’aperçu protégé page par page.',
+            );
     }
 
-    public function test_paid_book_without_entitlement_returns_403(): void
-    {
-        [$user, $profile] = $this->createReader();
-        $book = Book::factory()->create();
-        Sanctum::actingAs($user);
-
-        $this->getJson("/api/v1/read/{$book->id}")
-            ->assertForbidden()
-            ->assertJsonPath('message', 'Vous ne disposez pas d’un accès actif à ce livre.');
-
-        $this->assertDatabaseMissing('library', ['user_id' => $profile->id, 'book_id' => $book->id]);
-    }
-
-    public function test_authenticated_reader_can_stream_a_free_book(): void
-    {
-        [$user, $profile] = $this->createReader();
-        $book = $this->createBookWithPrivateFile(['price' => 0]);
-        Sanctum::actingAs($user);
-
-        $readerToken = $this->readerToken($book);
-
-        $this->withHeader('X-Holistique-Reader-Token', $readerToken)
-            ->get("/api/v1/read/{$book->id}")
-            ->assertOk()
-            ->assertStreamed()
-            ->assertHeader('Content-Type', 'application/pdf')
-            ->assertHeader('X-Holistique-Download-Allowed', '0');
-
-        $this->assertDatabaseHas('library', ['user_id' => $profile->id, 'book_id' => $book->id, 'access_type' => 'free']);
-    }
-
-    public function test_purchased_reader_can_stream_a_paid_book(): void
+    public function test_legacy_authenticated_full_file_endpoint_is_gone(): void
     {
         [$user, $profile] = $this->createReader();
         $book = $this->createBookWithPrivateFile();
         Library::factory()->create(['user_id' => $profile->id, 'book_id' => $book->id]);
         Sanctum::actingAs($user);
 
-        $readerToken = $this->readerToken($book);
-
-        $this->withHeader('X-Holistique-Reader-Token', $readerToken)
-            ->get("/api/v1/read/{$book->id}")
-            ->assertOk()
-            ->assertStreamed();
+        $this->getJson("/api/v1/read/{$book->id}")
+            ->assertStatus(410)
+            ->assertJsonPath(
+                'message',
+                'Le transfert du fichier complet est désactivé. Utilisez le lecteur protégé page par page.',
+            );
     }
 
-    public function test_active_subscription_can_stream_an_included_book(): void
+    public function test_protected_page_requires_a_reader_session(): void
     {
         [$user, $profile] = $this->createReader();
-        $book = $this->createBookWithPrivateFile(['is_single_sale_enabled' => false, 'is_subscription_available' => true]);
-        $plan = SubscriptionPlan::factory()->create();
-        $plan->books()->attach($book, ['id' => (string) Str::uuid(), 'created_at' => now()]);
-        Subscription::factory()->create(['user_id' => $profile->id, 'plan_id' => $plan->id]);
+        $book = $this->createBookWithPrivateFile();
+        Library::factory()->create(['user_id' => $profile->id, 'book_id' => $book->id]);
         Sanctum::actingAs($user);
 
-        $readerToken = $this->readerToken($book);
-
-        $this->withHeader('X-Holistique-Reader-Token', $readerToken)
-            ->get("/api/v1/read/{$book->id}")
-            ->assertOk()
-            ->assertStreamed();
-
-        $this->assertDatabaseHas('library', ['user_id' => $profile->id, 'book_id' => $book->id, 'access_type' => 'subscription']);
+        $this->getJson("/api/v1/read/{$book->id}/pages/1")
+            ->assertUnauthorized()
+            ->assertJsonPath('message', 'Session de lecture sécurisée requise.');
     }
 
-    private function readerToken(Book $book): string
+    public function test_access_endpoint_issues_a_short_lived_reader_session(): void
     {
+        [$user, $profile] = $this->createReader();
+        $book = $this->createBookWithPrivateFile();
+        Library::factory()->create(['user_id' => $profile->id, 'book_id' => $book->id]);
+        Sanctum::actingAs($user);
+
         $response = $this->withHeader('X-Holistique-Reader', 'test')
             ->getJson("/api/v1/books/{$book->id}/access")
             ->assertOk()
             ->assertJsonPath('data.hasAccess', true);
 
-        $token = $response->json('data.readerSession.token');
-        $this->assertIsString($token);
-        $this->assertNotSame('', $token);
-
-        return $token;
+        $this->assertIsString($response->json('data.readerSession.token'));
+        $this->assertNotNull($response->json('data.readerSession.expires_at'));
+        $this->assertDatabaseHas('book_reader_sessions', [
+            'user_id' => $profile->id,
+            'book_id' => $book->id,
+        ]);
     }
 
     /**
