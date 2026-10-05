@@ -153,13 +153,18 @@ class AdminBookImportService
 
             $base = pathinfo($name, PATHINFO_FILENAME);
             $cover = $this->matchingCoverInArchive($zip, $base);
+            $title = $this->titleFromFileName(basename($name));
+            $normalizedTitle = Str::lower(Str::ascii($title));
+            $isBible = Str::contains($normalizedTitle, ['bible', 'ancien testament', 'nouveau testament']);
 
             $entries[] = [
                 'file' => $name,
                 'cover' => $cover,
-                'title' => $this->titleFromFileName(basename($name)),
+                'title' => $title,
                 'author' => null,
-                'authorship_type' => 'anonymous',
+                'authorship_type' => $isBible ? 'sacred_text' : 'anonymous',
+                'editorial_pole' => $isBible ? 'ecclesial' : 'general',
+                'work_type' => $isBible ? 'bible' : 'book',
             ];
         }
 
