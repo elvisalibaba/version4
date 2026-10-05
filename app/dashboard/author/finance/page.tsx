@@ -12,6 +12,7 @@ import {
 import { requireRole } from "@/lib/auth";
 import {
   getAuthorFinanceSummary,
+  getAuthorFinanceStatement,
   getAuthorPayoutAccounts,
   getAuthorPayouts,
   getAuthorRoyalties,
@@ -58,8 +59,9 @@ export default async function AuthorFinancePage({
 }) {
   await requireRole(["author"]);
 
-  const [summary, payoutAccounts, payouts, royalties, query] = await Promise.all([
+  const [summary, statement, payoutAccounts, payouts, royalties, query] = await Promise.all([
     getAuthorFinanceSummary(),
+    getAuthorFinanceStatement(),
     getAuthorPayoutAccounts(),
     getAuthorPayouts(),
     getAuthorRoyalties(20),
@@ -149,6 +151,62 @@ export default async function AuthorFinancePage({
             </article>
           );
         })}
+      </section>
+
+      <section className="rounded-[28px] border border-[#e5ddd1] bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[#a94b34]">Transparence des royalties</p>
+            <h2 className="mt-2 font-serif text-2xl text-[#17231d]">Comment votre revenu est calculé</h2>
+          </div>
+          <p className="text-xs text-[#887f74]">
+            Période : {new Date(statement.period.from).toLocaleDateString("fr-FR")} au {new Date(statement.period.to).toLocaleDateString("fr-FR")}
+          </p>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          {[
+            ["Ventes brutes", statement.totals.gross_amount, "text-[#17231d]"],
+            ["Coûts impression", statement.totals.printing_cost, "text-[#8a5a11]"],
+            ["Commission plateforme", statement.totals.platform_fee, "text-[#8a5a11]"],
+            ["Retenues", statement.totals.tax_withholding, "text-[#8a5a11]"],
+            ["Net auteur", statement.totals.net_royalty, "text-[#237a43]"],
+          ].map(([label, value, className]) => (
+            <article key={String(label)} className="rounded-[20px] border border-[#eee5d9] bg-[#fffdf9] p-4">
+              <p className="text-[0.65rem] font-bold uppercase tracking-[0.12em] text-[#8b8177]">{label}</p>
+              <p className={`mt-2 text-xl font-bold ${className}`}>{money(Number(value), currency)}</p>
+            </article>
+          ))}
+        </div>
+
+        {statement.by_book.length ? (
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full min-w-[700px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-[#e9e0d4] text-[0.68rem] uppercase tracking-[0.12em] text-[#8b8177]">
+                  <th className="pb-3 font-bold">Livre</th>
+                  <th className="pb-3 font-bold">Transactions</th>
+                  <th className="pb-3 font-bold">Brut</th>
+                  <th className="pb-3 font-bold">Commission</th>
+                  <th className="pb-3 font-bold">Net auteur</th>
+                </tr>
+              </thead>
+              <tbody>
+                {statement.by_book.map((item) => (
+                  <tr key={`${item.book_id}-${item.currency_code}`} className="border-b border-[#f0e9df] last:border-0">
+                    <td className="py-3 pr-4 font-semibold text-[#17231d]">{item.book?.title ?? "Livre"}</td>
+                    <td className="py-3 pr-4 text-[#645d55]">{item.transactions_count}</td>
+                    <td className="py-3 pr-4 text-[#645d55]">{money(item.gross_amount, item.currency_code)}</td>
+                    <td className="py-3 pr-4 text-[#8a5a11]">{money(item.platform_fee, item.currency_code)}</td>
+                    <td className="py-3 font-bold text-[#237a43]">{money(item.net_royalty, item.currency_code)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="mt-5 rounded-2xl bg-[#faf7f1] px-4 py-3 text-sm text-[#766e64]">Aucune transaction de royalty sur cette période.</p>
+        )}
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,.85fr)]">

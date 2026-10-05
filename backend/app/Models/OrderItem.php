@@ -14,7 +14,7 @@ class OrderItem extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['order_id', 'book_id', 'price', 'currency_code', 'book_format', 'quantity', 'format_id'];
+    protected $fillable = ['order_id', 'book_id', 'price', 'original_price', 'promotion_campaign_id', 'currency_code', 'book_format', 'quantity', 'format_id'];
 
     protected function casts(): array
     {

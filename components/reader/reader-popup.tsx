@@ -389,6 +389,10 @@ export function ReaderPopup({
         setFileUrl(readerPayload.readerUrl);
         setFileType(readerPayload.fileType);
 
+        if (typeof readerPayload.pageCount === "number" && readerPayload.pageCount > 0) {
+          setPdfPageCount(readerPayload.pageCount);
+        }
+
         const guestPreview = Boolean(readerPayload.isGuestPreview);
         setIsGuestReader(guestPreview);
         setGuestPreviewLimit(
@@ -845,6 +849,12 @@ export function ReaderPopup({
                     pageNumbers={pdfVisiblePages}
                     scale={pdfScale}
                     spreadMode={pdfSpreadMode}
+                    pageCountHint={pdfPageCount || null}
+                    watermarkText={
+                      isGuestReader
+                        ? "Holistique Books • Aperçu"
+                        : `Holistique Books • ${readerProfileId ? readerProfileId.slice(0, 8) : "Lecteur"}`
+                    }
                     onPageCount={setPdfPageCount}
                     onError={setError}
                   />

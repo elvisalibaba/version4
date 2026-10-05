@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Authors;
 
+use App\Support\StaffAccess;
 use App\Filament\Resources\Authors\Pages\CreateAuthorProfile;
 use App\Filament\Resources\Authors\Pages\EditAuthorProfile;
 use App\Filament\Resources\Authors\Pages\ListAuthorProfiles;
@@ -77,6 +78,11 @@ class AuthorProfileResource extends Resource
                 Textarea::make('rights_notes')->label('Notes droits / agent / éditeur')->rows(4)->columnSpanFull(),
             ]),
         ]);
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('authors.manage');
     }
 
     public static function table(Table $table): Table

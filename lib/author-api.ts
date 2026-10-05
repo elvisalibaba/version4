@@ -97,6 +97,85 @@ export type AuthorPayout = {
   payout_account?: Pick<AuthorPayoutAccount, "id" | "provider" | "method" | "country_code" | "currency_code" | "account_name"> | null;
 };
 
+export type AuthorFinanceStatement = {
+  period: { from: string; to: string };
+  totals: {
+    gross_amount: number;
+    printing_cost: number;
+    platform_fee: number;
+    tax_withholding: number;
+    net_royalty: number;
+  };
+  by_book: Array<{
+    book_id: string;
+    currency_code: string;
+    transactions_count: number;
+    gross_amount: number | string;
+    platform_fee: number | string;
+    printing_cost: number | string;
+    tax_withholding: number | string;
+    net_royalty: number | string;
+    book?: { id: string; title: string } | null;
+  }>;
+  by_source: Array<{
+    source: string;
+    currency_code: string;
+    transactions_count: number;
+    gross_amount: number | string;
+    net_royalty: number | string;
+  }>;
+};
+
+export type AuthorReviewCase = {
+  id: string;
+  case_number: string;
+  case_type: "metadata" | "rights" | "content" | "quality" | "payment" | "account" | "other";
+  severity: "info" | "warning" | "blocking";
+  status: "open" | "author_action" | "under_review" | "resolved" | "rejected" | "appealed";
+  reason_code?: string | null;
+  title: string;
+  explanation: string;
+  required_action?: string | null;
+  author_response?: string | null;
+  resolution_note?: string | null;
+  resolved_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  book?: { id: string; title: string } | null;
+};
+
+export type AuthorBookWorkspace = ApiBook & {
+  author_workspace?: {
+    writing_status?: string | null;
+    target_word_count?: number | null;
+    current_word_count?: number | null;
+    next_author_action?: string | null;
+    editorial_deadline?: string | null;
+    author_private_notes?: string | null;
+    editorial_stage?: string | null;
+    bat_status?: string | null;
+    manuscript_versions?: Array<{
+      id: string;
+      version_number: number;
+      file_format?: string | null;
+      file_size?: number | null;
+      status?: string | null;
+      change_summary?: string | null;
+      created_at?: string | null;
+    }>;
+  };
+  reader_rights?: {
+    reading_access_mode?: string | null;
+    can_read_on_platform?: boolean;
+    allow_download?: boolean;
+    allow_print?: boolean;
+    allow_copy?: boolean;
+    reader_watermark_enabled?: boolean;
+    rights_agreement_reference?: string | null;
+    reader_rights_note?: string | null;
+  };
+};
+
 export type AuthorDistributionSettings = {
   book_id: string;
   primary_market: string;
@@ -122,6 +201,12 @@ export async function getAuthorBooks() {
   return (await apiServer<{ data: ApiBook[] }>("author/books")).data ?? [];
 }
 
+export async function getAuthorBook(bookId: string) {
+  return (await apiServer<{ data: AuthorBookWorkspace }>(
+    `author/books/${encodeURIComponent(bookId)}`,
+  )).data;
+}
+
 export async function getAuthorProfile() {
   return (await apiServer<{ data: ApiAuthorProfile }>("author/profile")).data;
 }
@@ -133,6 +218,15 @@ export async function getAuthorSales() {
 
 export async function getAuthorFinanceSummary() {
   return (await apiServer<{ data: AuthorFinanceSummary }>("author/finance/summary")).data;
+}
+
+export async function getAuthorFinanceStatement(from?: string, to?: string) {
+  const params = new URLSearchParams();
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  return (await apiServer<{ data: AuthorFinanceStatement }>(`author/finance/statement${suffix}`)).data;
 }
 
 export async function getAuthorRoyalties(perPage = 25) {
@@ -149,6 +243,14 @@ export async function getAuthorPayoutAccounts() {
 
 export async function getAuthorPayouts() {
   return (await apiServer<{ data: AuthorPayout[] }>("author/finance/payouts")).data ?? [];
+}
+
+export async function getAuthorReviewCases(perPage = 50) {
+  const response = await apiServer<{ data?: AuthorReviewCase[] } & Record<string, unknown>>(
+    `author/review-cases?per_page=${Math.min(100, Math.max(1, perPage))}`,
+  );
+
+  return response.data ?? [];
 }
 
 export async function getAuthorDistribution(bookId: string) {

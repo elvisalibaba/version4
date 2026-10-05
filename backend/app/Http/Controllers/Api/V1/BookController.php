@@ -145,6 +145,16 @@ class BookController extends Controller
 
             $data['status'] ??= 'draft';
         } else {
+            unset(
+                $data['reading_access_mode'],
+                $data['can_read_on_platform'],
+                $data['allow_download'],
+                $data['allow_print'],
+                $data['allow_copy'],
+                $data['reader_watermark_enabled'],
+                $data['rights_agreement_reference'],
+                $data['reader_rights_note'],
+            );
             $data['author_id'] = $profile->id;
             $data['authorship_type'] = 'named';
             $data['author_credit'] = $profile->authorProfile?->display_name
@@ -182,11 +192,20 @@ class BookController extends Controller
                 [
                     'price' => $book->price,
                     'file_url' => $path,
-                    'downloadable' => true,
+                    'downloadable' => false,
                     'is_published' => false,
                     'currency_code' => $book->currency_code,
                     'file_size_mb' => max(1, (int) ceil($uploaded->getSize() / 1024 / 1024)),
                 ],
+            );
+
+            $this->archiveManuscriptVersion(
+                $book,
+                $profile->id,
+                $path,
+                $format,
+                $uploaded->getSize(),
+                'Version initiale déposée via API.',
             );
         }
 
@@ -265,7 +284,19 @@ class BookController extends Controller
         $previousStage = $book->editorial_stage;
 
         if ($profile->role !== 'admin') {
-            unset($data['author_id'], $data['authorship_type'], $data['author_credit']);
+            unset(
+                $data['author_id'],
+                $data['authorship_type'],
+                $data['author_credit'],
+                $data['reading_access_mode'],
+                $data['can_read_on_platform'],
+                $data['allow_download'],
+                $data['allow_print'],
+                $data['allow_copy'],
+                $data['reader_watermark_enabled'],
+                $data['rights_agreement_reference'],
+                $data['reader_rights_note'],
+            );
             $data['author_display_name'] = $profile->authorProfile?->display_name
                 ?? $profile->name
                 ?? $request->user()->name;
@@ -320,11 +351,20 @@ class BookController extends Controller
                 [
                     'price' => $book->price,
                     'file_url' => $path,
-                    'downloadable' => true,
+                    'downloadable' => false,
                     'is_published' => false,
                     'currency_code' => $book->currency_code,
                     'file_size_mb' => max(1, (int) ceil($uploaded->getSize() / 1024 / 1024)),
                 ],
+            );
+
+            $this->archiveManuscriptVersion(
+                $book,
+                $profile->id,
+                $path,
+                $format,
+                $uploaded->getSize(),
+                'Nouvelle version déposée via API.',
             );
         } elseif ($book->formats()->where('format', 'holistique_store')->exists()) {
             $book->formats()->where('format', 'holistique_store')->update([
@@ -381,5 +421,34 @@ class BookController extends Controller
         $book->delete();
 
         return response()->noContent();
+    }
+
+    private function archiveManuscriptVersion(
+        Book $book,
+        string $profileId,
+        string $path,
+        string $format,
+        int $size,
+        string $summary,
+    ): void {
+        $nextVersion = ((int) $book->manuscriptVersions()->max('version_number')) + 1;
+
+        $book->manuscriptVersions()->create([
+            'created_by' => $profileId,
+            'version_number' => $nextVersion,
+            'file_path' => $path,
+            'file_format' => $format,
+            'file_size' => $size,
+            'status' => 'author_draft',
+            'change_summary' => $summary,
+        ]);
+
+        $book->editorialEvents()->create([
+            'actor_id' => $profileId,
+            'event_type' => 'manuscript_version_uploaded',
+            'to_stage' => $book->editorial_stage,
+            'notes' => 'Version '.$nextVersion.' du manuscrit archivée.',
+            'payload' => ['version_number' => $nextVersion],
+        ]);
     }
 }

@@ -21,7 +21,7 @@ export default async function AddBookPage() {
         <p className="mt-7 text-xs font-bold uppercase tracking-[.2em] text-[#f2c66f]">Nouvelle publication</p>
         <h1 className="mt-3 font-serif text-3xl sm:text-4xl">Ajouter jusqu’à trois livres</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-white/65">
-          PDF et EPUB sont envoyés vers le stockage privé Laravel. La couverture peut être fournie ou générée depuis la première page.
+          Créez un brouillon avec le titre seulement, puis enrichissez-le progressivement. PDF, EPUB, MOBI et AZW3 peuvent être déposés au stockage privé ; le PDF reste le format de lecture protégée recommandé.
         </p>
       </header>
 

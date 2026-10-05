@@ -6,6 +6,7 @@ use App\Filament\Author\Resources\Books\BookResource;
 use App\Models\AuthorProfile;
 use App\Services\BookDocumentMetadataService;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\Storage;
 
 class CreateBook extends CreateRecord
 {
@@ -46,6 +47,20 @@ class CreateBook extends CreateRecord
     protected function afterCreate(): void
     {
         $this->record = app(BookDocumentMetadataService::class)->enrich($this->record);
+
+        if (filled($this->record->file_url)) {
+            $path = (string) $this->record->file_url;
+
+            $this->record->manuscriptVersions()->create([
+                'created_by' => auth()->user()?->profile?->id,
+                'version_number' => 1,
+                'file_path' => $path,
+                'file_format' => $this->record->file_format ?: pathinfo($path, PATHINFO_EXTENSION),
+                'file_size' => Storage::disk('books')->exists($path) ? Storage::disk('books')->size($path) : null,
+                'status' => 'author_draft',
+                'change_summary' => 'Version initiale déposée depuis le Studio Auteur.',
+            ]);
+        }
 
         $this->record->editorialEvents()->create([
             'actor_id' => auth()->user()?->profile?->id,

@@ -22,9 +22,33 @@ class EasyPayService
 {
     public function initialize(Profile $profile, array $data): array
     {
-        $order = isset($data['order_id'])
-            ? $this->loadPendingOrder($profile, $data['order_id'])
-            : $this->createSingleBookOrder($profile, $data);
+        $providedIdempotencyKey = trim((string) ($data['idempotency_key'] ?? ''));
+        $existing = $providedIdempotencyKey !== ''
+            ? PaymentAttempt::query()->where('idempotency_key', $providedIdempotencyKey)->first()
+            : null;
+
+        if ($existing !== null) {
+            abort_unless($existing->user_id === $profile->id, 404);
+
+            $order = $existing->order_id
+                ? $this->loadPendingOrPaidOrder($profile, $existing->order_id)
+                : null;
+
+            if ($order && $existing->provider_reference && in_array($existing->status, ['pending', 'processing', 'paid'], true)) {
+                return [
+                    'orderId' => $order->id,
+                    'transactionId' => $existing->provider_reference,
+                    'paymentUrl' => $this->paymentUrl($existing->provider_reference),
+                    'reused' => true,
+                ];
+            }
+        }
+
+        $order = $existing?->order_id
+            ? $this->loadPendingOrder($profile, $existing->order_id)
+            : (isset($data['order_id'])
+                ? $this->loadPendingOrder($profile, $data['order_id'])
+                : $this->createSingleBookOrder($profile, $data));
 
         if (! in_array($order->currency_code, ['USD', 'CDF'], true)) {
             throw ValidationException::withMessages([
@@ -33,9 +57,11 @@ class EasyPayService
         }
 
         $channel = $data['channel'] ?? 'ALL';
-        $idempotencyKey = (string) ($data['idempotency_key'] ?? 'checkout:'.$profile->id.':'.$order->id);
+        $idempotencyKey = $providedIdempotencyKey !== ''
+            ? $providedIdempotencyKey
+            : 'checkout:'.$profile->id.':'.$order->id;
 
-        $existing = PaymentAttempt::query()
+        $existing ??= PaymentAttempt::query()
             ->where('idempotency_key', $idempotencyKey)
             ->first();
 
@@ -48,18 +74,26 @@ class EasyPayService
             ];
         }
 
-        $attempt = $existing ?? PaymentAttempt::query()->create([
-            'user_id' => $profile->id,
-            'order_id' => $order->id,
-            'provider' => 'easypay',
-            'payment_channel' => $channel,
-            'idempotency_key' => $idempotencyKey,
-            'amount' => $order->total_price,
-            'currency_code' => $order->currency_code,
-            'status' => 'created',
-            'request_payload' => [],
-            'response_payload' => [],
-        ]);
+        $attempt = $existing ?? PaymentAttempt::query()->firstOrCreate(
+            ['idempotency_key' => $idempotencyKey],
+            [
+                'user_id' => $profile->id,
+                'order_id' => $order->id,
+                'provider' => 'easypay',
+                'payment_channel' => $channel,
+                'amount' => $order->total_price,
+                'currency_code' => $order->currency_code,
+                'status' => 'created',
+                'request_payload' => [],
+                'response_payload' => [],
+            ],
+        );
+
+        if ($attempt->user_id !== $profile->id || $attempt->order_id !== $order->id) {
+            throw ValidationException::withMessages([
+                'idempotency_key' => 'Cette clé d’idempotence est déjà liée à une autre opération.',
+            ]);
+        }
 
         $customer = $data['customer'] ?? [];
         $requestPayload = [
@@ -176,34 +210,45 @@ class EasyPayService
             default => 'pending',
         };
 
-        $wasAlreadyPaid = $order->payment_status === 'paid';
+        $wasAlreadyPaid = false;
 
-        DB::transaction(function () use ($order, $attempt, $result, $providerStatus, $status): void {
-            if ($order->payment_status !== 'paid') {
-                $order->payment_status = $status;
+        DB::transaction(function () use ($order, $attempt, $result, $providerStatus, $status, &$wasAlreadyPaid): void {
+            $lockedOrder = Order::query()
+                ->whereKey($order->id)
+                ->lockForUpdate()
+                ->with(['items.book', 'items.format'])
+                ->firstOrFail();
+
+            $wasAlreadyPaid = $lockedOrder->payment_status === 'paid';
+
+            if (! $wasAlreadyPaid) {
+                $lockedOrder->payment_status = $status;
             }
 
-            $order->payment_provider = 'easypay';
-            $order->payment_provider_status = $providerStatus;
-            $order->payment_verified_at = now();
-            $order->payment_metadata = array_merge($order->payment_metadata ?? [], [
+            $lockedOrder->payment_provider = 'easypay';
+            $lockedOrder->payment_provider_status = $providerStatus;
+            $lockedOrder->payment_verified_at = now();
+            $lockedOrder->payment_metadata = array_merge($lockedOrder->payment_metadata ?? [], [
                 'last_verification_at' => now()->toIso8601String(),
                 'last_verification' => $result,
             ]);
-            $order->save();
+            $lockedOrder->save();
 
             if ($attempt) {
-                $attempt->update([
-                    'status' => $status,
-                    'response_payload' => $result,
-                    'verified_at' => now(),
-                    'failed_at' => $status === 'failed' ? now() : null,
-                ]);
+                PaymentAttempt::query()
+                    ->whereKey($attempt->id)
+                    ->lockForUpdate()
+                    ->first()?->update([
+                        'status' => $status,
+                        'response_payload' => $result,
+                        'verified_at' => now(),
+                        'failed_at' => $status === 'failed' ? now() : null,
+                    ]);
             }
 
-            if ($status === 'paid') {
-                $this->grantDigitalPurchases($order);
-                app(AuthorRoyaltyService::class)->accrueOrder($order);
+            if ($status === 'paid' && ! $wasAlreadyPaid) {
+                $this->grantDigitalPurchases($lockedOrder);
+                app(AuthorRoyaltyService::class)->accrueOrder($lockedOrder);
             }
         });
 
@@ -278,22 +323,18 @@ class EasyPayService
             throw ValidationException::withMessages(['book_id' => 'La vente unitaire n’est pas activée pour ce livre.']);
         }
 
-        $requestedFormat = $data['book_format'] ?? null;
+        $requestedFormat = $data['book_format'] ?? 'ebook';
         $format = BookFormat::query()
             ->where('book_id', $book->id)
             ->where('is_published', true)
-            ->when($requestedFormat, fn ($query) => $query->where('format', $requestedFormat))
-            ->whereIn('format', ['holistique_store', 'ebook', 'paperback', 'pocket', 'hardcover'])
-            ->orderByRaw("CASE format WHEN 'holistique_store' THEN 1 WHEN 'ebook' THEN 2 WHEN 'paperback' THEN 3 WHEN 'pocket' THEN 4 WHEN 'hardcover' THEN 5 ELSE 99 END")
+            ->where('format', $requestedFormat)
             ->first();
 
-        if ($requestedFormat && ! $format) {
+        if ($format === null && in_array($requestedFormat, ['paperback', 'pocket', 'hardcover'], true)) {
             throw ValidationException::withMessages(['book_format' => 'Le format sélectionné n’est pas disponible.']);
         }
 
-        $bookFormat = $format?->format ?? 'ebook';
-
-        if (in_array($bookFormat, ['holistique_store', 'ebook'], true)) {
+        if (in_array($requestedFormat, ['holistique_store', 'ebook'], true)) {
             $alreadyPurchased = Library::query()
                 ->where('user_id', $profile->id)
                 ->where('book_id', $book->id)
@@ -306,30 +347,42 @@ class EasyPayService
             }
         }
 
-        $price = (float) ($format?->price ?? $book->price);
-        $currency = $format?->currency_code ?? $book->currency_code;
+        $currency = mb_strtoupper((string) (
+            $data['currency_code']
+            ?? $format?->currency_code
+            ?? $book->currency_code
+            ?? 'USD'
+        ));
 
-        return DB::transaction(function () use ($profile, $book, $format, $bookFormat, $price, $currency): Order {
-            $order = Order::query()->create([
-                'user_id' => $profile->id,
-                'total_price' => $price,
-                'payment_status' => 'pending',
-                'currency_code' => $currency,
-                'payment_provider' => 'easypay',
-                'payment_metadata' => ['order_source' => 'single_book_checkout'],
-            ]);
-
-            $order->items()->create([
+        $order = app(OrderService::class)->createPending($profile, [
+            'items' => [[
                 'book_id' => $book->id,
                 'format_id' => $format?->id,
-                'book_format' => $bookFormat,
+                'book_format' => $requestedFormat,
                 'quantity' => 1,
-                'price' => $price,
-                'currency_code' => $currency,
-            ]);
+            ]],
+            'currency_code' => $currency,
+            'market_country_code' => $data['market_country_code'] ?? null,
+            'payment_provider' => 'easypay',
+            'payment_channel' => $data['channel'] ?? 'ALL',
+        ]);
 
-            return $order->load(['items.book', 'items.format']);
-        });
+        $order->update([
+            'payment_metadata' => array_merge($order->payment_metadata ?? [], [
+                'order_source' => 'single_book_checkout',
+            ]),
+        ]);
+
+        return $order->fresh(['items.book', 'items.format']);
+    }
+
+    private function loadPendingOrPaidOrder(Profile $profile, string $orderId): ?Order
+    {
+        return Order::query()
+            ->where('id', $orderId)
+            ->where('user_id', $profile->id)
+            ->with(['items.book', 'items.format'])
+            ->first();
     }
 
     private function loadPendingOrder(Profile $profile, string $orderId): Order

@@ -14,41 +14,72 @@ export async function GET(_request: Request, context: { params: Promise<{ bookId
     );
 
     let useGuestPreview = !token;
+    let readerToken: string | null = null;
 
     if (token) {
       try {
-        const { data: access } = await apiServer<{ data: { hasAccess: boolean } }>(
-          `books/${encodeURIComponent(bookId)}/access`,
-        );
+        const { data: access } = await apiServer<{
+          data: {
+            hasAccess: boolean;
+            readerSession?: { token?: string | null; expires_at?: string | null } | null;
+          };
+        }>(`books/${encodeURIComponent(bookId)}/access`);
 
-        if (!access.hasAccess) {
-          if (!book.is_free) {
-            return NextResponse.json({ error: "Accès à ce livre refusé." }, { status: 403 });
-          }
-
+        if (access.hasAccess) {
+          readerToken = access.readerSession?.token ?? null;
+        } else if (book.has_sample) {
           useGuestPreview = true;
+        } else {
+          return NextResponse.json({ error: "Accès à ce livre refusé." }, { status: 403 });
         }
       } catch (error) {
-        if (error instanceof ApiError && (error.status === 401 || error.status === 403) && book.is_free) {
-          // Un cookie ancien ou expiré ne doit jamais empêcher l’aperçu public
-          // d’un livre gratuit. On retombe proprement sur le flux invité.
+        if (
+          error instanceof ApiError
+          && (error.status === 401 || error.status === 403)
+          && book.has_sample
+        ) {
           useGuestPreview = true;
         } else {
           throw error;
         }
       }
-    } else if (!book.is_free) {
+    } else if (!book.has_sample) {
       return NextResponse.json({ error: "Connectez-vous pour lire ce livre." }, { status: 401 });
     }
 
-    const fileType = book.file_format === "pdf" ? "pdf" : "epub";
+    if (book.file_format !== "pdf" && !useGuestPreview) {
+      return NextResponse.json(
+        { error: "Ce format doit être préparé pour la lecture sécurisée avant d’être ouvert." },
+        { status: 422 },
+      );
+    }
 
-    return NextResponse.json({
+    const previewPageLimit = useGuestPreview
+      ? Math.max(1, Math.min(10, Number(book.sample_pages ?? 10)))
+      : null;
+
+    const response = NextResponse.json({
       readerUrl: `/api/read/${encodeURIComponent(bookId)}/file`,
-      fileType,
+      fileType: "pdf",
+      deliveryMode: "page_images",
+      pageCount: useGuestPreview ? previewPageLimit : (book.page_count ?? null),
       isGuestPreview: useGuestPreview,
-      previewPageLimit: useGuestPreview ? 10 : null,
+      previewPageLimit,
     });
+
+    if (readerToken) {
+      response.cookies.set({
+        name: `hb_reader_${bookId}`,
+        value: readerToken,
+        httpOnly: true,
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+        path: `/api/read/${bookId}`,
+        maxAge: 10 * 60,
+      });
+    }
+
+    return response;
   } catch (error) {
     if (error instanceof ApiError) {
       return NextResponse.json(

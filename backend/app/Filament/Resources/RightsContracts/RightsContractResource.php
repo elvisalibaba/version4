@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\RightsContracts;
 
+use App\Support\StaffAccess;
 use App\Filament\Resources\RightsContracts\Pages\ListRightsContracts;
 use App\Filament\Resources\RightsContracts\Pages\CreateRightsContract;
 use App\Filament\Resources\RightsContracts\Pages\EditRightsContract;
@@ -55,6 +56,26 @@ class RightsContractResource extends Resource
                 Textarea::make('notes')->rows(5)->columnSpanFull(),
             ]),
         ]);
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('rights.view') || StaffAccess::allows('rights.manage');
+    }
+
+    public static function canCreate(): bool
+    {
+        return StaffAccess::allows('rights.manage');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return StaffAccess::allows('rights.manage');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return StaffAccess::allows('rights.manage');
     }
 
     public static function table(Table $table): Table

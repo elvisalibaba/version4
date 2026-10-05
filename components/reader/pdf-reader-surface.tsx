@@ -1,201 +1,118 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist/types/src/display/api";
+import { useEffect, useMemo, useState } from "react";
 
 type PdfReaderSurfaceProps = {
   fileUrl: string;
   pageNumbers: number[];
   scale: number;
   spreadMode: boolean;
+  pageCountHint: number | null;
+  watermarkText?: string | null;
   onPageCount: (count: number) => void;
   onError: (message: string | null) => void;
 };
 
-const READER_FETCH_HEADERS = {
-  "X-Holistique-Reader": "web",
-};
+function pageUrl(fileUrl: string, pageNumber: number) {
+  const separator = fileUrl.includes("?") ? "&" : "?";
+  return `${fileUrl}${separator}page=${pageNumber}`;
+}
 
-export function PdfReaderSurface({ fileUrl, pageNumbers, scale, spreadMode, onPageCount, onError }: PdfReaderSurfaceProps) {
-  const documentRef = useRef<PDFDocumentProxy | null>(null);
-  const renderTasksRef = useRef<Map<number, RenderTask>>(new Map());
-  const canvasMapRef = useRef<Map<number, HTMLCanvasElement>>(new Map());
-  const [isLoadingDocument, setIsLoadingDocument] = useState(true);
-  const [isRenderingPages, setIsRenderingPages] = useState(false);
-  const [resolvedPageCount, setResolvedPageCount] = useState(0);
+export function PdfReaderSurface({
+  fileUrl,
+  pageNumbers,
+  scale,
+  spreadMode,
+  pageCountHint,
+  watermarkText,
+  onPageCount,
+  onError,
+}: PdfReaderSurfaceProps) {
+  const [loadedPages, setLoadedPages] = useState<Set<string>>(new Set());
 
   const visiblePages = useMemo(() => {
     const uniquePages = Array.from(new Set(pageNumbers.filter((page) => page > 0)));
-    return resolvedPageCount > 0 ? uniquePages.filter((page) => page <= resolvedPageCount) : uniquePages;
-  }, [pageNumbers, resolvedPageCount]);
+    return pageCountHint && pageCountHint > 0
+      ? uniquePages.filter((page) => page <= pageCountHint)
+      : uniquePages;
+  }, [pageCountHint, pageNumbers]);
 
-  function registerCanvas(pageNumber: number, node: HTMLCanvasElement | null) {
-    if (node) {
-      canvasMapRef.current.set(pageNumber, node);
-      return;
+  useEffect(() => {
+    if (pageCountHint && pageCountHint > 0) {
+      onPageCount(pageCountHint);
     }
+  }, [onPageCount, pageCountHint]);
 
-    canvasMapRef.current.delete(pageNumber);
+  const loadingPages = visiblePages.filter(
+    (pageNumber) => !loadedPages.has(`${fileUrl}:${pageNumber}`),
+  );
+
+  function markLoaded(pageNumber: number) {
+    const key = `${fileUrl}:${pageNumber}`;
+    setLoadedPages((current) => {
+      if (current.has(key)) {
+        return current;
+      }
+
+      const next = new Set(current);
+      next.add(key);
+      return next;
+    });
   }
 
-  useEffect(() => {
-    let cancelled = false;
-    const renderTasks = renderTasksRef.current;
-
-    async function loadDocument() {
-      setIsLoadingDocument(true);
-      onError(null);
-
-      try {
-        const [pdfjs, response] = await Promise.all([
-          import("pdfjs-dist"),
-          fetch(fileUrl, {
-            headers: READER_FETCH_HEADERS,
-            cache: "no-store",
-            credentials: "same-origin",
-          }),
-        ]);
-
-        if (!response.ok) {
-          const payload = await response.json().catch(() => null) as { message?: string; error?: string } | null;
-          throw new Error(
-            payload?.message ??
-              payload?.error ??
-              `Impossible de charger ce PDF dans le lecteur sécurisé (HTTP ${response.status}).`,
-          );
-        }
-
-        pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-        const bytes = await response.arrayBuffer();
-        const loadingTask = pdfjs.getDocument({
-          data: bytes,
-          disableAutoFetch: true,
-          disableStream: true,
-        });
-        const pdfDocument = await loadingTask.promise;
-
-        if (cancelled) {
-          void pdfDocument.destroy();
-          return;
-        }
-
-        documentRef.current = pdfDocument;
-        setResolvedPageCount(pdfDocument.numPages);
-        onPageCount(pdfDocument.numPages);
-      } catch (error) {
-        if (!cancelled) {
-          onError(error instanceof Error ? error.message : "Lecture PDF indisponible.");
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingDocument(false);
-        }
-      }
-    }
-
-    loadDocument();
-
-    return () => {
-      cancelled = true;
-      renderTasks.forEach((task) => task.cancel?.());
-      renderTasks.clear();
-
-      if (documentRef.current) {
-        const currentDocument = documentRef.current;
-        documentRef.current = null;
-        void currentDocument.destroy?.();
-      }
-    };
-  }, [fileUrl, onError, onPageCount]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const renderTasks = renderTasksRef.current;
-
-    async function renderPages() {
-      const pdfDocument = documentRef.current;
-      if (!pdfDocument || visiblePages.length === 0) {
-        return;
-      }
-
-      setIsRenderingPages(true);
-      onError(null);
-
-      try {
-        for (const pageNumber of visiblePages) {
-          const canvas = canvasMapRef.current.get(pageNumber);
-          if (!canvas) {
-            continue;
-          }
-
-          const page = await pdfDocument.getPage(pageNumber);
-          if (cancelled) {
-            return;
-          }
-
-          const viewport = page.getViewport({ scale });
-          const devicePixelRatio = window.devicePixelRatio || 1;
-          const context = canvas.getContext("2d");
-
-          if (!context) {
-            throw new Error("Impossible d initialiser le rendu PDF.");
-          }
-
-          canvas.width = Math.floor(viewport.width * devicePixelRatio);
-          canvas.height = Math.floor(viewport.height * devicePixelRatio);
-          canvas.style.width = `${viewport.width}px`;
-          canvas.style.height = `${viewport.height}px`;
-
-          renderTasks.get(pageNumber)?.cancel?.();
-          const renderTask = page.render({
-            canvas,
-            canvasContext: context,
-            viewport,
-            transform: devicePixelRatio !== 1 ? [devicePixelRatio, 0, 0, devicePixelRatio, 0, 0] : undefined,
-          });
-
-          renderTasks.set(pageNumber, renderTask);
-          await renderTask.promise;
-        }
-      } catch (error: unknown) {
-        if (!cancelled && (!(error instanceof Error) || error.name !== "RenderingCancelledException")) {
-          onError(error instanceof Error ? error.message : "Cette page PDF ne peut pas etre affichee.");
-        }
-      } finally {
-        if (!cancelled) {
-          setIsRenderingPages(false);
-        }
-      }
-    }
-
-    renderPages();
-
-    return () => {
-      cancelled = true;
-      visiblePages.forEach((pageNumber) => renderTasks.get(pageNumber)?.cancel?.());
-    };
-  }, [onError, scale, visiblePages]);
+  function markError(pageNumber: number) {
+    markLoaded(pageNumber);
+    onError(`La page ${pageNumber} ne peut pas être affichée dans le lecteur sécurisé.`);
+  }
 
   return (
     <div
       className="relative flex h-full min-h-0 w-full items-start justify-center overflow-auto rounded-none bg-[#2b211b] p-1.5 sm:rounded-[1.35rem] sm:p-4"
       onContextMenu={(event) => event.preventDefault()}
     >
-      {(isLoadingDocument || isRenderingPages) && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#2b211b]/75 text-sm font-medium text-white backdrop-blur-sm">
-          Chargement du lecteur PDF...
+      {loadingPages.length > 0 ? (
+        <div className="pointer-events-none absolute inset-x-0 top-4 z-30 flex justify-center">
+          <span className="rounded-full bg-black/70 px-4 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur">
+            Chargement sécurisé de {loadingPages.length > 1 ? "vos pages" : "la page"}...
+          </span>
         </div>
-      )}
+      ) : null}
 
       <div className={`grid w-full gap-6 ${spreadMode && visiblePages.length > 1 ? "xl:grid-cols-2" : "max-w-5xl"}`}>
         {visiblePages.map((pageNumber) => (
           <figure
             key={pageNumber}
-            className="rounded-xl border border-[#d8c7b2] bg-[#f8f1e7] p-1.5 shadow-[0_24px_60px_rgba(15,23,42,0.38)] sm:rounded-[1.5rem] sm:p-4"
+            className="relative overflow-hidden rounded-xl border border-[#d8c7b2] bg-[#f8f1e7] p-1.5 shadow-[0_24px_60px_rgba(15,23,42,0.38)] sm:rounded-[1.5rem] sm:p-4"
           >
-            <div className="flex justify-center">
-              <canvas ref={(node) => registerCanvas(pageNumber, node)} className="max-w-full rounded-[0.85rem] shadow-[0_12px_30px_rgba(15,23,42,0.16)]" />
+            <div className="relative flex justify-center overflow-auto">
+              {/* Le navigateur ne reçoit que le rendu JPEG de cette page, jamais le PDF source complet. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={pageUrl(fileUrl, pageNumber)}
+                alt={`Page ${pageNumber}`}
+                draggable={false}
+                onLoad={() => markLoaded(pageNumber)}
+                onError={() => markError(pageNumber)}
+                className="select-none rounded-[0.85rem] shadow-[0_12px_30px_rgba(15,23,42,0.16)]"
+                style={{
+                  width: `${Math.max(80, Math.min(220, scale * 100))}%`,
+                  maxWidth: "none",
+                  userSelect: "none",
+                }}
+              />
+
+              {watermarkText ? (
+                <div
+                  className="pointer-events-none absolute inset-0 grid select-none place-items-center overflow-hidden"
+                  aria-hidden="true"
+                >
+                  <div className="-rotate-[28deg] whitespace-nowrap text-center text-lg font-black uppercase tracking-[0.28em] text-[#1f2937]/[0.10] sm:text-2xl">
+                    {watermarkText}
+                  </div>
+                </div>
+              ) : null}
             </div>
+
             <figcaption className="mt-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#7a6655]">
               Page {pageNumber}
             </figcaption>
