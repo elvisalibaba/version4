@@ -11,6 +11,7 @@ use App\Models\FlashSaleConfig;
 use App\Models\HomeFeaturedConfig;
 use App\Models\MobileAppConfig;
 use App\Models\MobileAppVersion;
+use App\Models\PromotionCampaign;
 use App\Models\SubscriptionPlan;
 use App\Support\PublicMediaUrl;
 use Illuminate\Http\JsonResponse;
@@ -103,6 +104,32 @@ class PublicContentController extends Controller
             'discount_percentage' => $config?->discount_percentage ?? 20,
             'selected_book_ids' => $ids,
             'books' => BookResource::collection($books)->resolve(),
+        ]);
+    }
+
+    public function promotions(): JsonResponse
+    {
+        $campaigns = PromotionCampaign::query()
+            ->where('is_active', true)
+            ->where(fn ($query) => $query->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
+            ->where(fn ($query) => $query->whereNull('ends_at')->orWhere('ends_at', '>=', now()))
+            ->orderBy('priority')
+            ->get();
+
+        return response()->json([
+            'data' => $campaigns->map(fn (PromotionCampaign $campaign): array => [
+                'id' => $campaign->id,
+                'name' => $campaign->name,
+                'headline' => $campaign->headline,
+                'description' => $campaign->description,
+                'discount_type' => $campaign->discount_type,
+                'discount_value' => $campaign->discount_value,
+                'currency_code' => $campaign->currency_code,
+                'selected_book_ids' => $campaign->selected_book_ids ?? [],
+                'channels' => $campaign->channels ?? [],
+                'starts_at' => $campaign->starts_at,
+                'ends_at' => $campaign->ends_at,
+            ])->values(),
         ]);
     }
 
