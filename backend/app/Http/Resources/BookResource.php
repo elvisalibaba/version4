@@ -11,10 +11,22 @@ class BookResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $coverUrl = $this->cover_url;
-        if (is_string($coverUrl) && $coverUrl !== '' && ! str_starts_with($coverUrl, 'http://') && ! str_starts_with($coverUrl, 'https://')) {
-            $coverUrl = Storage::disk('public')->url($coverUrl);
-        }
+        $resolvePublicMedia = static function (?string $value): ?string {
+            if (! is_string($value) || trim($value) === '') {
+                return null;
+            }
+
+            $value = trim($value);
+
+            if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
+                return $value;
+            }
+
+            return Storage::disk('public')->url(ltrim($value, '/'));
+        };
+
+        $coverUrl = $resolvePublicMedia($this->cover_url);
+        $coverThumbnailUrl = $resolvePublicMedia($this->cover_thumbnail_url);
 
         $hasVisibleAggregates = array_key_exists('visible_ratings_count', $this->resource->getAttributes());
 
@@ -26,10 +38,13 @@ class BookResource extends JsonResource
             'price' => $this->price,
             'currency_code' => $this->currency_code,
             'author_id' => $this->author_id,
-            'author_display_name' => $this->author_display_name ?? $this->whenLoaded('author', fn () => $this->author?->display_name),
+            'authorship_type' => $this->authorship_type,
+            'author_credit' => $this->author_credit,
+            'author_display_name' => $this->resource->displayAuthorName(),
             'cover_url' => $coverUrl,
             'cover_alt_text' => $this->cover_alt_text,
-            'cover_thumbnail_url' => $this->cover_thumbnail_url,
+            'cover_thumbnail_url' => $coverThumbnailUrl,
+            'cover_source' => $this->cover_source,
             'status' => $this->status,
             'review_status' => $this->review_status,
             'review_note' => $this->review_note,
@@ -62,6 +77,12 @@ class BookResource extends JsonResource
                 'is_official' => $taxonomy->is_official,
             ])->values()),
             'tags' => $this->tags,
+            'editorial_pole' => $this->editorial_pole,
+            'work_type' => $this->work_type,
+            'editorial_stage' => $this->editorial_stage,
+            'spiritual_metadata' => $this->spiritual_metadata,
+            'bat_status' => $this->bat_status,
+            'bat_approved_at' => $this->bat_approved_at,
             'age_rating' => $this->age_rating,
             'edition' => $this->edition,
             'series_name' => $this->series_name,
