@@ -75,15 +75,28 @@ class PromotionCampaignResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table->defaultSort('created_at', 'desc')->columns([
-            TextColumn::make('name')->label('Campagne')->searchable(),
-            TextColumn::make('internal_code')->label('Code')->badge(),
-            TextColumn::make('discount_value')->label('Remise')
-                ->formatStateUsing(fn ($state, PromotionCampaign $record) => $record->discount_type === 'percentage' ? $state.'%' : $state.' '.($record->currency_code ?: '')),
-            IconColumn::make('is_active')->label('Active')->boolean(),
-            TextColumn::make('starts_at')->label('Début')->dateTime('d/m/Y H:i'),
-            TextColumn::make('ends_at')->label('Fin')->dateTime('d/m/Y H:i'),
-        ])->recordActions([EditAction::make()]);
+        return $table
+            ->modifyQueryUsing(fn ($query) => $query
+                ->withCount([
+                    'events as impressions_count' => fn ($query) => $query->where('event_type', 'impression'),
+                    'events as clicks_count' => fn ($query) => $query->where('event_type', 'click'),
+                    'events as checkouts_count' => fn ($query) => $query->where('event_type', 'checkout'),
+                    'events as conversions_count' => fn ($query) => $query->where('event_type', 'conversion'),
+                ]))
+            ->defaultSort('created_at', 'desc')
+            ->columns([
+                TextColumn::make('name')->label('Campagne')->searchable(),
+                TextColumn::make('internal_code')->label('Code')->badge(),
+                TextColumn::make('discount_value')->label('Remise')
+                    ->formatStateUsing(fn ($state, PromotionCampaign $record) => $record->discount_type === 'percentage' ? $state.'%' : $state.' '.($record->currency_code ?: '')),
+                IconColumn::make('is_active')->label('Active')->boolean(),
+                TextColumn::make('impressions_count')->label('Impressions')->numeric(),
+                TextColumn::make('clicks_count')->label('Clics')->numeric(),
+                TextColumn::make('checkouts_count')->label('Paniers')->numeric(),
+                TextColumn::make('conversions_count')->label('Conversions')->numeric(),
+                TextColumn::make('starts_at')->label('Début')->dateTime('d/m/Y H:i'),
+                TextColumn::make('ends_at')->label('Fin')->dateTime('d/m/Y H:i'),
+            ])->recordActions([EditAction::make()]);
     }
 
     public static function getPages(): array
