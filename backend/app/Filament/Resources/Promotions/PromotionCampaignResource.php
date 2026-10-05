@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Promotions;
 
+use App\Support\StaffAccess;
 use App\Filament\Resources\Promotions\Pages\CreatePromotionCampaign;
 use App\Filament\Resources\Promotions\Pages\EditPromotionCampaign;
 use App\Filament\Resources\Promotions\Pages\ListPromotionCampaigns;
@@ -33,6 +34,26 @@ class PromotionCampaignResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return 'Marketing & Promotions';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('marketing.manage');
+    }
+
+    public static function canCreate(): bool
+    {
+        return StaffAccess::allows('marketing.manage');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return StaffAccess::allows('marketing.manage');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return StaffAccess::allows('marketing.manage');
     }
 
     public static function form(Schema $schema): Schema
