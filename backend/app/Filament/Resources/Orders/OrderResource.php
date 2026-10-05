@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Orders;
 
+use App\Support\StaffAccess;
 use App\Filament\Resources\Orders\Pages\EditOrder;
 use App\Filament\Resources\Orders\Pages\ListOrders;
 use App\Models\Order;
@@ -33,6 +34,26 @@ class OrderResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return 'Commerce';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('commerce.manage');
+    }
+
+    public static function canCreate(): bool
+    {
+        return StaffAccess::allows('commerce.manage');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return StaffAccess::allows('commerce.manage');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return StaffAccess::allows('commerce.manage');
     }
 
     public static function form(Schema $schema): Schema
