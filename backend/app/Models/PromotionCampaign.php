@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PromotionCampaign extends Model
 {
@@ -31,6 +32,11 @@ class PromotionCampaign extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(Profile::class, 'created_by');
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(PromotionEvent::class, 'promotion_campaign_id');
     }
 
     public function isRunning(): bool
