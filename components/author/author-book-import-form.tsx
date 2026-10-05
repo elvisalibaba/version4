@@ -22,7 +22,7 @@ export function AuthorBookImportForm(props: Pick<PublishLabFormProps, "subscript
     // Validate every selected book before uploading any file.
     for (let index = 0; index < count; index += 1) {
       if (completed.includes(index)) continue;
-      if (!forms.current[index]?.validate()) {
+      if (!forms.current[index]?.validate(nextIntent)) {
         setActive(index);
         setError(`Vérifiez les informations du livre ${index + 1}.`);
         return;
