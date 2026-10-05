@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\Book;
 use App\Models\Order;
 use App\Models\Profile;
+use App\Models\PromotionCampaign;
 use App\Models\Subscription;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -37,6 +38,25 @@ class PlatformStatsOverview extends BaseWidget
                 ->description(Order::query()->where('payment_status', 'paid')->count().' commandes payées')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('success'),
+
+            Stat::make('Droits à vérifier', Book::query()->where('copyright_status', 'review')->count())
+                ->description('Titres non publiables tant que les droits ne sont pas validés')
+                ->descriptionIcon('heroicon-m-shield-exclamation')
+                ->color('warning'),
+
+            Stat::make('Validation éditoriale', Book::query()->where('review_status', 'submitted')->count())
+                ->description(Book::query()->where('bat_status', 'pending')->count().' BAT en attente')
+                ->descriptionIcon('heroicon-m-document-check')
+                ->color('warning'),
+
+            Stat::make('Promotions actives', PromotionCampaign::query()
+                ->where('is_active', true)
+                ->where(fn ($query) => $query->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
+                ->where(fn ($query) => $query->whereNull('ends_at')->orWhere('ends_at', '>=', now()))
+                ->count())
+                ->description('Campagnes actuellement applicables au catalogue')
+                ->descriptionIcon('heroicon-m-megaphone')
+                ->color('primary'),
         ];
     }
 }
