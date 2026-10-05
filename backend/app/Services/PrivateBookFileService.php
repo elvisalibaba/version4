@@ -91,6 +91,14 @@ class PrivateBookFileService
 
     private function mimeTypeFromPath(string $path): string
     {
-        return str_ends_with(mb_strtolower($path), '.pdf') ? 'application/pdf' : 'application/epub+zip';
+        return match (mb_strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
+            'pdf' => 'application/pdf',
+            'epub' => 'application/epub+zip',
+            'mobi' => 'application/x-mobipocket-ebook',
+            'azw', 'azw3' => 'application/vnd.amazon.ebook',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            default => 'application/octet-stream',
+        };
     }
 }
