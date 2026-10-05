@@ -210,7 +210,7 @@ class BookResource extends Resource
                         ->content(fn (?Book $record): string => $record?->reading_access_mode ?? 'standard'),
                     Placeholder::make('download_right_display')
                         ->label('Téléchargement')
-                        ->content(fn (?Book $record): string => $record?->allow_download ? 'Autorisé' : 'Non autorisé'),
+                        ->content(fn (?Book $record): string => 'Non autorisé — lecture uniquement sur Holistique Books'),
                     Placeholder::make('print_right_display')
                         ->label('Impression')
                         ->content(fn (?Book $record): string => $record?->allow_print ? 'Autorisée' : 'Non autorisée'),
