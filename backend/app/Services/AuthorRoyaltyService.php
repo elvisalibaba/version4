@@ -67,6 +67,7 @@ class AuthorRoyaltyService
             $netRoyalty,
             $platformFee,
             $payableAt,
+            $quantity,
         ): AuthorRoyaltyTransaction {
             $transaction = AuthorRoyaltyTransaction::query()->create([
                 'user_id' => $item->book->author_id,
