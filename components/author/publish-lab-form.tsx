@@ -9,7 +9,7 @@ import type { ApiSubscriptionPlan, BookReviewStatus } from "@/types/api";
 export type SubmissionIntent = "draft" | "submit";
 
 export type PublishLabFormHandle = {
-  validate: () => boolean;
+  validate: (intent?: SubmissionIntent) => boolean;
   save: (intent: SubmissionIntent) => Promise<boolean>;
 };
 
@@ -142,27 +142,30 @@ export function PublishLabForm({
     return Boolean(isbn && digits.length !== 13);
   }, [isbn]);
 
-  function validationMessage() {
+  function validationMessage(intent: SubmissionIntent = "draft") {
     if (!title.trim()) return "Le titre est obligatoire.";
-    if (!authorFullName.trim()) return "Le nom de l’auteur est obligatoire.";
-    if (!description.trim()) return "La description est obligatoire.";
-    if (!category.trim()) return "Sélectionnez une catégorie.";
-    if (!singleSale && !subscription) return "Activez au moins un mode d’accès.";
-    if (subscription && planIds.length === 0) return "Sélectionnez au moins un plan Premium.";
-    if (!isEdit && !ebookFile) return "Ajoutez un fichier PDF ou EPUB.";
-    if (ebookFile && !/\.(pdf|epub)$/i.test(ebookFile.name)) return "Le fichier doit être un PDF ou un EPUB.";
     if (isbnInvalid) return "L’ISBN doit contenir 13 chiffres.";
+
+    if (
+      intent === "submit"
+      && !isEdit
+      && !ebookFile
+      && !initial.ebookPath
+    ) {
+      return "Ajoutez le manuscrit avant de l’envoyer à l’équipe éditoriale.";
+    }
+
     return null;
   }
 
-  function validate() {
-    const message = validationMessage();
+  function validate(intent: SubmissionIntent = "draft") {
+    const message = validationMessage(intent);
     setError(message);
     return message === null;
   }
 
   async function save(intent: SubmissionIntent) {
-    if (savingRef.current || disabled || !validate()) return false;
+    if (savingRef.current || disabled || !validate(intent)) return false;
     savingRef.current = true;
     setBusy(true);
     setError(null);
@@ -170,9 +173,9 @@ export function PublishLabForm({
     try {
       const form = new FormData();
       form.set("title", title.trim());
-      form.set("author_display_name", authorFullName.trim());
-      form.set("subtitle", subtitle.trim());
-      form.set("description", description.trim());
+      if (authorFullName.trim()) form.set("author_display_name", authorFullName.trim());
+      if (subtitle.trim()) form.set("subtitle", subtitle.trim());
+      if (description.trim()) form.set("description", description.trim());
       form.set("price", String(Math.max(0, Number(price || 0))));
       form.set("currency_code", "USD");
       form.set("language", language.trim() || "fr");
@@ -192,13 +195,14 @@ export function PublishLabForm({
       if (samplePages) form.set("sample_pages", samplePages);
 
       splitCsv(coAuthors).forEach((value) => form.append("co_authors[]", value));
-      form.append("categories[]", category.trim());
+      if (category.trim()) form.append("categories[]", category.trim());
       splitCsv(tags).forEach((value) => form.append("tags[]", value));
       if (subscription) planIds.forEach((id) => form.append("subscription_plan_ids[]", id));
 
       if (ebookFile) {
         form.set("file", ebookFile);
-        form.set("file_format", ebookFile.name.toLowerCase().endsWith(".pdf") ? "pdf" : "epub");
+        const extension = ebookFile.name.split(".").pop()?.toLowerCase() || "file";
+        form.set("file_format", extension);
       }
 
       let effectiveCover = coverFile;
@@ -259,10 +263,10 @@ export function PublishLabForm({
 
       <fieldset disabled={busy || disabled} className="grid gap-5 rounded-[1.75rem] border border-[#e5d9cc] bg-white p-5 sm:grid-cols-2 sm:p-7">
         <Field label="Titre *"><input value={title} onChange={(e) => setTitle(e.target.value)} className="form-input" /></Field>
-        <Field label="Nom public de l’auteur *"><input value={authorFullName} onChange={(e) => setAuthorFullName(e.target.value)} className="form-input" /></Field>
+        <Field label="Nom public de l’auteur"><input value={authorFullName} onChange={(e) => setAuthorFullName(e.target.value)} className="form-input" /></Field>
         <Field label="Sous-titre"><input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="form-input" /></Field>
-        <Field label="Catégorie principale *"><input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Roman, Business, Spiritualité…" className="form-input" /></Field>
-        <Field label="Description *" full><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={6} className="form-input resize-y py-3" /></Field>
+        <Field label="Catégorie principale"><input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Roman, Business, Spiritualité…" className="form-input" /></Field>
+        <Field label="Description" full><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={6} className="form-input resize-y py-3" /></Field>
         <Field label="Prix USD"><input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="form-input" /></Field>
         <Field label="Langue"><input value={language} onChange={(e) => setLanguage(e.target.value)} className="form-input" /></Field>
         <Field label="ISBN"><input value={isbn} onChange={(e) => setIsbn(e.target.value)} className="form-input" /></Field>
@@ -282,9 +286,9 @@ export function PublishLabForm({
       <fieldset disabled={busy || disabled} className="rounded-[1.75rem] border border-[#e5d9cc] bg-white p-5 sm:p-7">
         <h2 className="text-lg font-bold text-[#173d2c]">Fichiers numériques</h2>
         <div className="mt-5 grid gap-5 md:grid-cols-3">
-          <FileField label={isEdit ? "Remplacer PDF / EPUB" : "PDF / EPUB *"} accept=".pdf,.epub" onChange={setEbookFile} />
+          <FileField label={isEdit ? "Remplacer le manuscrit" : "Manuscrit"} accept=".pdf,.epub,.mobi,.azw3" onChange={setEbookFile} />
           <FileField label="Couverture (optionnel)" accept="image/jpeg,image/png,image/webp" onChange={setCoverFile} />
-          <FileField label="Extrait (optionnel)" accept=".pdf,.epub" onChange={setSampleFile} />
+          <FileField label="Extrait sécurisé (PDF recommandé)" accept=".pdf,.epub" onChange={setSampleFile} />
         </div>
         {isEdit && initial.ebookPath ? <p className="mt-3 text-xs text-emerald-700">Un fichier numérique privé est déjà enregistré. Laissez le champ vide pour le conserver.</p> : null}
       </fieldset>
