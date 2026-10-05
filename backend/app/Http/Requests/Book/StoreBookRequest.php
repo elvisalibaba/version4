@@ -30,7 +30,7 @@ class StoreBookRequest extends FormRequest
             'status' => ['nullable', 'in:draft,published,archived,coming_soon'],
             'editorial_pole' => ['nullable', 'in:general,ecclesial,institutional,entrepreneurial'],
             'work_type' => ['nullable', 'in:book,bible,theology,devotional,sermon,prayer,hymnal,study_guide,academic,manual,essay,novel,biography,magazine,report,other'],
-            'editorial_stage' => ['nullable', 'string', 'max:40'],
+            'editorial_stage' => ['nullable', 'in:'.implode(',', BookEditorialWorkflow::STAGES)],
             'spiritual_metadata' => ['nullable', 'array'],
             'ingestion_metadata' => ['nullable', 'array'],
 
