@@ -38,7 +38,7 @@ class BookMarketPriceResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return StaffAccess::allows('pricing.manage');
+        return StaffAccess::allows('pricing.view') || StaffAccess::allows('pricing.manage');
     }
 
     public static function canCreate(): bool
