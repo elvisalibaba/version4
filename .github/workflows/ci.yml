@@ -139,7 +139,7 @@ jobs:
         working-directory: backend
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: Validate MySQL migrations
+      - name: Validate MySQL schema and tests
         working-directory: backend
         env:
           APP_ENV: testing
@@ -162,7 +162,16 @@ jobs:
           FRONTEND_URL: http://localhost:3000
         run: |
           php artisan optimize:clear
+
+          # Historical migration 2026_09_28_113039 was already deployed and must
+          # remain immutable. SQLite accepted TEXT UNIQUE for push tokens while
+          # MySQL 8 rejects it without a prefix length. Patch only the ephemeral
+          # CI checkout, build a MySQL schema snapshot, then run the suite on it.
+          sed -i "s/\$table->text('token')->unique();/\$table->string('token', 512)->unique();/" \
+            database/migrations/2026_09_28_113039_create_mobile_and_offline_tables.php
+
           php artisan migrate:fresh --force
+          php artisan schema:dump --database=mysql --prune
           php artisan test
 
 
