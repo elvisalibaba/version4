@@ -216,8 +216,8 @@ class AdminBookImportService
                 [
                     'catalog_origin' => 'admin_import',
                     'rights_status' => 'unknown',
-                    'is_reference_profile' => true,
-                    'rights_notes' => 'Auteur créé automatiquement depuis un lot préparé. Droits à vérifier avant publication.',
+                    'is_reference_profile' => false,
+                    'rights_notes' => 'Auteur créé automatiquement depuis un lot préparé. Les droits sont gérés au niveau de chaque livre.',
                     'social_links' => [],
                     'genres' => [],
                     'press_mentions' => [],
