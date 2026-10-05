@@ -37,6 +37,10 @@ class PrivateBookFileService
             'Pragma' => 'no-cache',
             'X-Content-Type-Options' => 'nosniff',
             'X-Robots-Tag' => 'noindex, noarchive',
+            'X-Holistique-Reading-Mode' => (string) $book->reading_access_mode,
+            'X-Holistique-Download-Allowed' => $book->allow_download ? '1' : '0',
+            'X-Holistique-Print-Allowed' => $book->allow_print ? '1' : '0',
+            'X-Holistique-Copy-Allowed' => $book->allow_copy ? '1' : '0',
         ]);
     }
 
