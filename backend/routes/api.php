@@ -118,6 +118,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::post('author/review-cases/{reviewCase}/appeal', [AuthorReviewCaseController::class, 'appeal'])->middleware('throttle:10,1')->name('author.review-cases.appeal');
 
         Route::get('author/finance/summary', [AuthorFinanceController::class, 'summary'])->name('author.finance.summary');
+        Route::get('author/finance/statement', [AuthorFinanceController::class, 'statement'])->name('author.finance.statement');
         Route::get('author/finance/royalties', [AuthorFinanceController::class, 'royalties'])->name('author.finance.royalties');
         Route::get('author/finance/payout-accounts', [AuthorFinanceController::class, 'payoutAccounts'])->name('author.finance.payout-accounts.index');
         Route::post('author/finance/payout-accounts', [AuthorFinanceController::class, 'storePayoutAccount'])->name('author.finance.payout-accounts.store');
