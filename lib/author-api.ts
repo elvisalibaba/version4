@@ -144,6 +144,38 @@ export type AuthorReviewCase = {
   book?: { id: string; title: string } | null;
 };
 
+export type AuthorBookWorkspace = ApiBook & {
+  author_workspace?: {
+    writing_status?: string | null;
+    target_word_count?: number | null;
+    current_word_count?: number | null;
+    next_author_action?: string | null;
+    editorial_deadline?: string | null;
+    author_private_notes?: string | null;
+    editorial_stage?: string | null;
+    bat_status?: string | null;
+    manuscript_versions?: Array<{
+      id: string;
+      version_number: number;
+      file_format?: string | null;
+      file_size?: number | null;
+      status?: string | null;
+      change_summary?: string | null;
+      created_at?: string | null;
+    }>;
+  };
+  reader_rights?: {
+    reading_access_mode?: string | null;
+    can_read_on_platform?: boolean;
+    allow_download?: boolean;
+    allow_print?: boolean;
+    allow_copy?: boolean;
+    reader_watermark_enabled?: boolean;
+    rights_agreement_reference?: string | null;
+    reader_rights_note?: string | null;
+  };
+};
+
 export type AuthorDistributionSettings = {
   book_id: string;
   primary_market: string;
@@ -167,6 +199,12 @@ export async function getAuthorDashboard() {
 
 export async function getAuthorBooks() {
   return (await apiServer<{ data: ApiBook[] }>("author/books")).data ?? [];
+}
+
+export async function getAuthorBook(bookId: string) {
+  return (await apiServer<{ data: AuthorBookWorkspace }>(
+    `author/books/${encodeURIComponent(bookId)}`,
+  )).data;
 }
 
 export async function getAuthorProfile() {
