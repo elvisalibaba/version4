@@ -290,7 +290,7 @@ class AdminBookImportService
         $coverPath = null;
 
         try {
-            $sourceName = $this->validatedZipEntry($sourceName, 'books/', ['pdf', 'epub']);
+            $sourceName = $this->validatedZipEntry($sourceName, 'books/', ['pdf', 'epub', 'mobi', 'azw3']);
             $extension = mb_strtolower(pathinfo($sourceName, PATHINFO_EXTENSION));
             $bookStream = $zip->getStream($sourceName);
 
@@ -648,7 +648,7 @@ class AdminBookImportService
 
         $extension = mb_strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
-        if (! in_array($extension, ['pdf', 'epub'], true)) {
+        if (! in_array($extension, ['pdf', 'epub', 'mobi', 'azw3'], true)) {
             throw new RuntimeException('Les imports multiples acceptent les fichiers PDF, EPUB, MOBI et AZW3.');
         }
 
