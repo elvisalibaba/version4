@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getApiBaseUrl } from "@/lib/api/client";
 import { getServerAuthToken } from "@/lib/api/server";
+import { cookies } from "next/headers";
 
 async function proxyPage(targetUrl: string, token?: string | null, readerToken?: string | null) {
   const headers: HeadersInit = {
@@ -29,7 +30,8 @@ export async function GET(request: Request, context: { params: Promise<{ bookId:
   const apiBase = getApiBaseUrl();
   const url = new URL(request.url);
   const page = Number.parseInt(url.searchParams.get("page") ?? "", 10);
-  const readerToken = url.searchParams.get("readerToken");
+  const cookieStore = await cookies();
+  const readerToken = cookieStore.get(`hb_reader_${bookId}`)?.value ?? null;
 
   if (!Number.isInteger(page) || page < 1) {
     return NextResponse.json({ error: "Numéro de page invalide." }, { status: 422 });
