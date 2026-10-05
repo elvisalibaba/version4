@@ -12,6 +12,8 @@ use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
+    public function __construct(private PromotionPricingService $promotions) {}
+
     /**
      * @param  array{items: array<int, array{book_id: string, format_id?: string|null, book_format: string, quantity?: int}>, currency_code?: string, payment_provider?: string|null, payment_channel?: string|null}  $data
      */
@@ -27,18 +29,22 @@ class OrderService
                     throw ValidationException::withMessages(['items' => 'Le format sélectionné n’est pas disponible.']);
                 }
 
-                $price = (float) ($format?->price ?? $book->price);
+                $basePrice = (float) ($format?->price ?? $book->price);
                 $itemCurrency = $format?->currency_code ?? $book->currency_code;
                 if ($itemCurrency !== $currencyCode) {
                     throw ValidationException::withMessages(['currency_code' => 'Tous les articles doivent utiliser la même devise.']);
                 }
+
+                $pricing = $this->promotions->bestFor($book, $basePrice, $currencyCode);
 
                 return [
                     'book_id' => $book->id,
                     'format_id' => $format?->id,
                     'book_format' => $item['book_format'],
                     'quantity' => $item['quantity'] ?? 1,
-                    'price' => $price,
+                    'original_price' => $pricing['original_price'],
+                    'promotion_campaign_id' => $pricing['promotion']?->id,
+                    'price' => $pricing['price'],
                     'currency_code' => $currencyCode,
                 ];
             });
