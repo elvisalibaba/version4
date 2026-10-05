@@ -17,7 +17,7 @@ class Profile extends Model
     public const UPDATED_AT = null;
 
     protected $fillable = [
-        'id', 'email', 'name', 'avatar_url', 'role', 'first_name', 'last_name', 'phone', 'country', 'city',
+        'id', 'email', 'name', 'avatar_url', 'role', 'staff_role', 'staff_permissions', 'first_name', 'last_name', 'phone', 'country', 'city',
         'preferred_language', 'favorite_categories', 'marketing_opt_in', 'referred_by_affiliate_user_id',
         'referred_by_affiliate_code', 'affiliate_source_type', 'affiliate_source_book_id', 'affiliate_source_plan_id',
     ];
@@ -26,6 +26,7 @@ class Profile extends Model
     {
         return [
             'favorite_categories' => 'array',
+            'staff_permissions' => 'array',
             'marketing_opt_in' => 'boolean',
             'created_at' => 'datetime',
         ];
@@ -34,6 +35,26 @@ class Profile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'id');
+    }
+
+    public function hasStaffPermission(string $permission): bool
+    {
+        if ($this->role !== 'admin') {
+            return false;
+        }
+
+        $role = $this->staff_role ?: 'super_admin';
+        $rolePermissions = (array) config("staff_permissions.roles.{$role}", []);
+        $customPermissions = (array) ($this->staff_permissions ?? []);
+        $permissions = array_values(array_unique([...$rolePermissions, ...$customPermissions]));
+
+        return in_array('*', $permissions, true)
+            || in_array($permission, $permissions, true);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'admin' && ($this->staff_role === null || $this->staff_role === 'super_admin');
     }
 
     public function authorProfile(): HasOne
