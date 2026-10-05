@@ -138,4 +138,54 @@ class AdminBookImportServiceTest extends TestCase
         Storage::disk('public')->assertExists($book->cover_url);
     }
 
+
+    public function test_manifest_without_cover_field_still_pairs_matching_cover_by_filename(): void
+    {
+        if (! class_exists(ZipArchive::class)) {
+            $this->markTestSkipped('PHP ZIP extension is not available.');
+        }
+
+        Storage::fake('books');
+        Storage::fake('public');
+
+        $administrator = Profile::factory()->admin()->create();
+        Storage::disk('books')->makeDirectory('admin-imports/prepared');
+
+        $archivePath = 'admin-imports/prepared/implicit-cover.zip';
+        $absoluteArchivePath = Storage::disk('books')->path($archivePath);
+
+        $zip = new ZipArchive();
+        $this->assertTrue($zip->open($absoluteArchivePath, ZipArchive::CREATE | ZipArchive::OVERWRITE));
+
+        $manifest = [
+            'version' => 1,
+            'books' => [
+                [
+                    'file' => 'books/manuel-spirituel.pdf',
+                    'title' => 'Manuel spirituel',
+                    'authorship_type' => 'anonymous',
+                    'editorial_pole' => 'ecclesial',
+                    'work_type' => 'devotional',
+                ],
+            ],
+        ];
+
+        $zip->addFromString('manifest.json', json_encode($manifest, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        $zip->addFromString('books/manuel-spirituel.pdf', "%PDF-1.4\nManuel spirituel");
+        $zip->addFromString('covers/manuel-spirituel.webp', 'explicit-archive-cover');
+        $zip->close();
+
+        $batch = app(AdminBookImportService::class)
+            ->importPreparedArchive($archivePath, $administrator);
+
+        $this->assertSame(1, $batch->completed_items);
+        $this->assertSame(0, $batch->failed_items);
+
+        $book = Book::query()->where('title', 'Manuel spirituel')->firstOrFail();
+
+        $this->assertSame('import', $book->cover_source);
+        $this->assertNotNull($book->cover_url);
+        Storage::disk('public')->assertExists($book->cover_url);
+    }
+
 }
