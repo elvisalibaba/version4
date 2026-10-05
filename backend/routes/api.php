@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\V1\PasswordController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PublicContentController;
 use App\Http\Controllers\Api\V1\PublicMediaController;
+use App\Http\Controllers\Api\V1\PromotionEventController;
 use App\Http\Controllers\Api\V1\ReadController;
 use App\Http\Controllers\Api\V1\ReaderDashboardController;
 use App\Http\Controllers\Api\V1\ReviewController;
@@ -63,6 +64,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         ->name('media-editions.preview');
     Route::get('home/flash-sale', [PublicContentController::class, 'flashSale'])->name('home.flash-sale');
     Route::get('promotions', [PublicContentController::class, 'promotions'])->name('promotions.index');
+    Route::post('promotions/{campaign}/events', [PromotionEventController::class, 'store'])->middleware('throttle:240,1')->name('promotions.events.store');
     Route::get('mobile', [PublicContentController::class, 'mobile'])->name('mobile.config');
     Route::get('mobile/download', [MobileAppController::class, 'download'])->name('mobile.download');
     Route::get('mobile/bootstrap', [MobileDeviceController::class, 'bootstrap'])->name('mobile.bootstrap');
