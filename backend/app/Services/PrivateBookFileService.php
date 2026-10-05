@@ -15,7 +15,7 @@ class PrivateBookFileService
         return $file->store($book->id, 'books');
     }
 
-    public function stream(Book $book): StreamedResponse
+    public function stream(Book $book, ?string $readerSessionId = null): StreamedResponse
     {
         [$diskName, $path] = $this->resolveReadableFile($book);
         $disk = Storage::disk($diskName);
@@ -41,6 +41,40 @@ class PrivateBookFileService
             'X-Holistique-Download-Allowed' => '0',
             'X-Holistique-Print-Allowed' => $book->allow_print ? '1' : '0',
             'X-Holistique-Copy-Allowed' => $book->allow_copy ? '1' : '0',
+            'X-Holistique-Reader-Session' => $readerSessionId ?? '',
+        ]);
+    }
+
+    public function streamSample(Book $book): StreamedResponse
+    {
+        $path = is_string($book->sample_url) ? ltrim($book->sample_url, '/') : '';
+
+        abort_if($path === '' || str_starts_with($path, 'http://') || str_starts_with($path, 'https://'), 404, 'Aucun aperçu sécurisé disponible.');
+
+        $disk = Storage::disk('books');
+        abort_unless($disk->exists($path), 404, 'Aucun aperçu sécurisé disponible.');
+
+        $stream = $disk->readStream($path);
+        if ($stream === false) {
+            throw new RuntimeException('Impossible d’ouvrir l’aperçu privé du livre.');
+        }
+
+        $mimeType = $disk->mimeType($path) ?: $this->mimeTypeFromPath($path);
+
+        return response()->stream(function () use ($stream): void {
+            fpassthru($stream);
+            fclose($stream);
+        }, 200, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="preview.'.pathinfo($path, PATHINFO_EXTENSION).'"',
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
+            'X-Content-Type-Options' => 'nosniff',
+            'X-Robots-Tag' => 'noindex, noarchive',
+            'X-Holistique-Preview-Only' => '1',
+            'X-Holistique-Download-Allowed' => '0',
+            'X-Holistique-Print-Allowed' => '0',
+            'X-Holistique-Copy-Allowed' => '0',
         ]);
     }
 
