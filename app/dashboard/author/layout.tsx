@@ -17,6 +17,7 @@ export default async function AuthorDashboardLayout({
     { href: "/dashboard/author/add-book", label: "Publier", icon: "plus-circle" },
     { href: "/dashboard/author/sales", label: "Ventes", icon: "receipt" },
     { href: "/dashboard/author/finance", label: "Finances", icon: "wallet-cards" },
+    { href: "/dashboard/author/reviews", label: "Décisions & recours", icon: "shield-alert" },
     { href: "/dashboard/author/distribution", label: "Distribution", icon: "globe-2" },
     { href: "/dashboard/author/profile", label: "Profil auteur", icon: "user-round" },
   ];
