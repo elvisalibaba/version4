@@ -39,10 +39,7 @@ class OrderService
                 }
 
                 $basePrice = (float) ($format?->price ?? $book->price);
-                $itemCurrency = $format?->currency_code ?? $book->currency_code;
-                if ($itemCurrency !== $currencyCode) {
-                    throw ValidationException::withMessages(['currency_code' => 'Tous les articles doivent utiliser la même devise.']);
-                }
+                $itemCurrency = mb_strtoupper((string) ($format?->currency_code ?? $book->currency_code));
 
                 $marketPricing = $this->marketPricing->resolve(
                     $book,
@@ -50,6 +47,12 @@ class OrderService
                     $currencyCode,
                     $marketCountryCode !== '' ? $marketCountryCode : null,
                 );
+
+                if ($marketPricing['market_price'] === null && $itemCurrency !== $currencyCode) {
+                    throw ValidationException::withMessages([
+                        'currency_code' => 'Aucun prix actif n’est défini pour cette devise et ce marché.',
+                    ]);
+                }
 
                 $pricing = $this->promotions->bestFor($book, $marketPricing['price'], $currencyCode);
 
