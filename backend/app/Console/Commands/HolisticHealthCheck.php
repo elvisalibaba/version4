@@ -9,6 +9,7 @@ use App\Models\RightsContract;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\Process\ExecutableFinder;
 use Throwable;
 
 class HolisticHealthCheck extends Command
@@ -19,6 +20,27 @@ class HolisticHealthCheck extends Command
     public function handle(): int
     {
         $checks = [];
+
+        $checks['application'] = [
+            'ok' => filled(config('app.key'))
+                && (! app()->environment('production') || config('app.debug') === false),
+            'environment' => app()->environment(),
+            'debug' => (bool) config('app.debug'),
+            'reader_sessions_required' => (bool) config('reading.require_session', true),
+        ];
+
+        $finder = new ExecutableFinder();
+        $pdftoppm = $finder->find((string) config('books.pdf.pdftoppm_binary', 'pdftoppm'));
+        $pdfinfo = $finder->find((string) config('books.pdf.pdfinfo_binary', 'pdfinfo'));
+
+        $checks['protected_reader'] = [
+            'ok' => config('reading.require_session', true) === true
+                && $pdftoppm !== null
+                && $pdfinfo !== null,
+            'pdftoppm' => $pdftoppm,
+            'pdfinfo' => $pdfinfo,
+            'page_size' => (int) config('books.pdf.reader_page_size', 1800),
+        ];
 
         try {
             DB::select('select 1');
