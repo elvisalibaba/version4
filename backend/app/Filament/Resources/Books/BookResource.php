@@ -9,8 +9,12 @@ use App\Models\AcademicTaxonomy;
 use App\Models\AuthorProfile;
 use App\Models\Book;
 use App\Models\Category;
+use App\Services\AdminBookPublicationService;
 use BackedEnum;
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -18,6 +22,7 @@ use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -27,6 +32,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 
 class BookResource extends Resource
 {
@@ -301,6 +307,45 @@ class BookResource extends Resource
             ])
             ->recordActions([
                 EditAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    BulkAction::make('validateAndPublish')
+                        ->label('Valider et publier la sélection')
+                        ->icon('heroicon-o-check-badge')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalHeading('Valider et publier les livres sélectionnés')
+                        ->modalDescription('Les livres sélectionnés passeront en Publié, Approuvé et Droits validés. Confirmez uniquement si vous disposez des droits de diffusion nécessaires.')
+                        ->schema([
+                            Checkbox::make('rights_confirmed')
+                                ->label('Je confirme disposer des droits nécessaires pour publier les livres sélectionnés.')
+                                ->accepted()
+                                ->required(),
+                        ])
+                        ->action(function (Collection $records, array $data, AdminBookPublicationService $publisher): void {
+                            $administrator = auth()->user()?->profile;
+                            abort_unless($administrator?->role === 'admin', 403);
+
+                            $result = $publisher->publish(
+                                books: $records,
+                                administrator: $administrator,
+                                rightsConfirmed: (bool) ($data['rights_confirmed'] ?? false),
+                            );
+
+                            $notification = Notification::make()
+                                ->title("Publication terminée : {$result['published']} livre(s)")
+                                ->body(
+                                    $result['failed'] > 0
+                                        ? "{$result['failed']} livre(s) n’ont pas pu être publiés. Vérifiez leurs droits ou contrats."
+                                        : 'Les livres sélectionnés ont été validés et publiés.'
+                                );
+
+                            $result['failed'] > 0
+                                ? $notification->warning()->send()
+                                : $notification->success()->send();
+                        }),
+                ]),
             ]);
     }
 

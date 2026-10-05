@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Books\Pages;
 use App\Filament\Resources\Books\BookResource;
 use App\Models\AuthorProfile;
 use App\Services\AdminBookImportService;
+use App\Services\AdminBookPublicationService;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Checkbox;
@@ -23,6 +24,40 @@ class ListBooks extends ListRecords
     {
         return [
             CreateAction::make()->label('Ajouter un livre'),
+            Action::make('publishImportedBooks')
+                ->label('Valider et publier les imports')
+                ->icon('heroicon-o-check-badge')
+                ->color('warning')
+                ->requiresConfirmation()
+                ->modalHeading('Valider et publier tous les livres importés')
+                ->modalDescription('Cette action passe les livres importés en Publié, Approuvé et Droits validés. Confirmez uniquement si la plateforme dispose réellement des droits de diffusion nécessaires.')
+                ->schema([
+                    Checkbox::make('rights_confirmed')
+                        ->label('Je confirme disposer des droits nécessaires pour publier ces livres.')
+                        ->accepted()
+                        ->required(),
+                ])
+                ->action(function (array $data, AdminBookPublicationService $publisher): void {
+                    $administrator = auth()->user()?->profile;
+                    abort_unless($administrator?->role === 'admin', 403);
+
+                    $result = $publisher->publishAllImported(
+                        administrator: $administrator,
+                        rightsConfirmed: (bool) ($data['rights_confirmed'] ?? false),
+                    );
+
+                    $notification = Notification::make()
+                        ->title("Publication terminée : {$result['published']} livre(s)")
+                        ->body(
+                            $result['failed'] > 0
+                                ? "{$result['failed']} livre(s) n’ont pas pu être publiés. Vérifiez notamment les contrats de droits des auteurs de référence."
+                                : 'Les livres importés ont été validés et publiés.'
+                        );
+
+                    $result['failed'] > 0
+                        ? $notification->warning()->send()
+                        : $notification->success()->send();
+                }),
             Action::make('preparedBulkImport')
                 ->label('Importer un lot préparé (jusqu’à 50)')
                 ->icon('heroicon-o-archive-box-arrow-down')
