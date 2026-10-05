@@ -314,6 +314,13 @@ class AdminBookImportService
 
             $coverEntry = trim((string) ($entry['cover'] ?? ''));
 
+            if ($coverEntry === '') {
+                $coverEntry = (string) ($this->matchingCoverInArchive(
+                    $zip,
+                    pathinfo($sourceName, PATHINFO_FILENAME),
+                ) ?? '');
+            }
+
             if ($coverEntry !== '') {
                 $coverEntry = $this->validatedZipEntry(
                     $coverEntry,

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AuthorRoyaltyAccounts;
 
+use App\Support\StaffAccess;
 use App\Filament\Resources\AuthorRoyaltyAccounts\Pages\ListAuthorRoyaltyAccounts;
 use App\Models\AuthorRoyaltyAccount;
 use BackedEnum;
@@ -28,6 +29,11 @@ class AuthorRoyaltyAccountResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return 'Finance auteurs';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('finance.manage');
     }
 
     public static function canCreate(): bool

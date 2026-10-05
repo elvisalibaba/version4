@@ -11,3 +11,12 @@ Artisan::command('inspire', function () {
 Schedule::command('royalties:release-payable')
     ->dailyAt('02:00')
     ->withoutOverlapping();
+
+
+Schedule::command('rights:expire-contracts')
+    ->dailyAt('01:30')
+    ->withoutOverlapping();
+
+Schedule::command('reader-sessions:cleanup')
+    ->hourly()
+    ->withoutOverlapping();

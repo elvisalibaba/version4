@@ -209,7 +209,8 @@ export function normalizeCheckoutCustomer(input: unknown): ValidatedCheckoutCust
   };
 }
 
-export function validateCheckoutCustomer(customer: ValidatedCheckoutCustomer, _channels: CinetPayChannel) {
+export function validateCheckoutCustomer(customer: ValidatedCheckoutCustomer, channels: CinetPayChannel) {
+  void channels;
   const fullName = `${customer.firstName} ${customer.lastName}`.trim();
 
   if (!fullName) {

@@ -7,12 +7,13 @@ use App\Models\Book;
 use App\Models\Library;
 use App\Models\Subscription;
 use App\Services\BookAccessService;
+use App\Services\ProtectedReaderSessionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class BookAccessController extends Controller
 {
-    public function show(Request $request, Book $book, BookAccessService $access): JsonResponse
+    public function show(Request $request, Book $book, BookAccessService $access, ProtectedReaderSessionService $readerSessions): JsonResponse
     {
         $profile = $request->user()->profile;
         abort_unless($profile !== null, 403);
@@ -40,6 +41,12 @@ class BookAccessController extends Controller
             && ($libraryEntry?->expires_at === null || $libraryEntry->expires_at->isFuture());
 
         $hasSubscriptionAccess = $activeSubscription !== null;
+
+        $readerSession = null;
+        if ($hasAccess && $book->can_read_on_platform && $book->reading_access_mode !== 'preview_only') {
+            $readerSession = $readerSessions->issue($profile, $book, $request);
+        }
+
         $isSubscriptionEntitlementExpired = $libraryEntry?->access_type === 'subscription'
             && $libraryEntry?->subscription !== null
             && ! (
@@ -49,7 +56,10 @@ class BookAccessController extends Controller
 
         return response()->json([
             'data' => [
-                'hasAccess' => $hasAccess,
+                'hasAccess' => $hasAccess && $book->can_read_on_platform,
+                'readerPermissions' => array_merge($book->readerPermissions(), ['can_download' => false]),
+                'rightsAgreementReference' => $book->rights_agreement_reference,
+                'readerSession' => $readerSession,
                 'hasPurchaseAccess' => $hasPurchaseAccess,
                 'hasSubscriptionAccess' => $hasSubscriptionAccess,
                 'hasLibraryEntry' => $libraryEntry !== null,

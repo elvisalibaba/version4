@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PaymentAttempts;
 
+use App\Support\StaffAccess;
 use App\Filament\Resources\PaymentAttempts\Pages\ListPaymentAttempts;
 use App\Filament\Resources\PaymentAttempts\Pages\ViewPaymentAttempt;
 use App\Models\PaymentAttempt;
@@ -32,6 +33,11 @@ class PaymentAttemptResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return 'Commerce';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('finance.manage');
     }
 
     public static function canCreate(): bool

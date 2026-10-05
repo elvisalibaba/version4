@@ -18,6 +18,8 @@ class PaymentController extends Controller
             'order_id' => ['nullable', 'required_without:book_id', 'uuid', 'exists:orders,id'],
             'book_format' => ['nullable', Rule::in(['holistique_store', 'ebook', 'paperback', 'pocket', 'hardcover'])],
             'channel' => ['nullable', Rule::in(['ALL', 'MOBILE_MONEY', 'CREDIT_CARD'])],
+            'currency_code' => ['nullable', 'string', 'size:3'],
+            'market_country_code' => ['nullable', 'string', 'size:2'],
             'idempotency_key' => ['nullable', 'string', 'max:255'],
             'customer' => ['required', 'array'],
             'customer.firstName' => ['nullable', 'required_without:customer.lastName', 'string', 'max:120'],

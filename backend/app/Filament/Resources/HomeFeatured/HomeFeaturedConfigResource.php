@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\HomeFeatured;
 
+use App\Support\StaffAccess;
 use App\Filament\Resources\HomeFeatured\Pages\CreateHomeFeaturedConfig;
 use App\Filament\Resources\HomeFeatured\Pages\EditHomeFeaturedConfig;
 use App\Filament\Resources\HomeFeatured\Pages\ListHomeFeaturedConfigs;
@@ -35,6 +36,11 @@ class HomeFeaturedConfigResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return 'Contenu';
+    }
+
+    public static function canViewAny(): bool
+    {
+        return StaffAccess::allows('marketing.manage');
     }
 
     public static function canCreate(): bool

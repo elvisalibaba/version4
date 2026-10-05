@@ -4,10 +4,12 @@ use App\Http\Controllers\Api\V1\AuthorController;
 use App\Http\Controllers\Api\V1\AuthorDistributionController;
 use App\Http\Controllers\Api\V1\AuthorFinanceController;
 use App\Http\Controllers\Api\V1\AuthorWorkspaceController;
+use App\Http\Controllers\Api\V1\AuthorReviewCaseController;
 use App\Http\Controllers\Api\V1\AdController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BookAccessController;
 use App\Http\Controllers\Api\V1\BookController;
+use App\Http\Controllers\Api\V1\BookPricingController;
 use App\Http\Controllers\Api\V1\EditorialTrainingController;
 use App\Http\Controllers\Api\V1\EducationCatalogController;
 use App\Http\Controllers\Api\V1\EngagementController;
@@ -22,6 +24,8 @@ use App\Http\Controllers\Api\V1\PasswordController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PublicContentController;
 use App\Http\Controllers\Api\V1\PublicMediaController;
+use App\Http\Controllers\Api\V1\PromotionEventController;
+use App\Http\Controllers\Api\V1\ProtectedBookPageController;
 use App\Http\Controllers\Api\V1\ReadController;
 use App\Http\Controllers\Api\V1\ReaderDashboardController;
 use App\Http\Controllers\Api\V1\ReviewController;
@@ -46,6 +50,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     });
 
     Route::apiResource('books', BookController::class)->only(['index', 'show']);
+    Route::get('books/{book}/pricing', [BookPricingController::class, 'show'])->name('books.pricing');
     Route::get('education/catalog', [EducationCatalogController::class, 'index'])->name('education.catalog');
     Route::get('authors', [AuthorController::class, 'index'])->name('authors.index');
     Route::get('authors/{author}', [AuthorController::class, 'show'])->name('authors.show');
@@ -62,6 +67,8 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         ->middleware(['signed', 'throttle:240,1'])
         ->name('media-editions.preview');
     Route::get('home/flash-sale', [PublicContentController::class, 'flashSale'])->name('home.flash-sale');
+    Route::get('promotions', [PublicContentController::class, 'promotions'])->name('promotions.index');
+    Route::post('promotions/{campaign}/events', [PromotionEventController::class, 'store'])->middleware('throttle:240,1')->name('promotions.events.store');
     Route::get('mobile', [PublicContentController::class, 'mobile'])->name('mobile.config');
     Route::get('mobile/download', [MobileAppController::class, 'download'])->name('mobile.download');
     Route::get('mobile/bootstrap', [MobileDeviceController::class, 'bootstrap'])->name('mobile.bootstrap');
@@ -72,6 +79,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::post('books/{book}/engagement', [EngagementController::class, 'store'])->middleware('throttle:120,1')->name('books.engagement.store');
     Route::get('books/{book}/reviews', [ReviewController::class, 'index'])->middleware('throttle:120,1')->name('books.reviews.index');
     Route::get('books/{book}/read-free', [ReadController::class, 'free'])->middleware('throttle:120,1')->name('books.read-free');
+    Route::get('books/{book}/preview/pages/{page}', [ProtectedBookPageController::class, 'preview'])->whereNumber('page')->middleware('throttle:120,1')->name('books.preview.page');
 
     Route::middleware(['auth:sanctum', 'verified'])->group(function (): void {
         Route::get('auth/me', [AuthController::class, 'me'])->name('auth.me');
@@ -93,6 +101,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::post('payments/easypay/orders/{order}/reconcile', [PaymentController::class, 'reconcile'])->middleware('throttle:30,1')->name('payments.easypay.reconcile');
         Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
         Route::get('read/{book}', ReadController::class)->name('read');
+        Route::get('read/{book}/pages/{page}', [ProtectedBookPageController::class, 'authenticated'])->whereNumber('page')->middleware('throttle:240,1')->name('read.page');
         Route::get('media-editions/{mediaEdition}/access', [MediaAccessController::class, 'access'])->name('media-editions.access');
 
         Route::post('mobile/trial/claim', [MobileAppController::class, 'claimTrial'])->name('mobile.trial.claim');
@@ -106,11 +115,16 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
 
         Route::get('author/dashboard', [AuthorWorkspaceController::class, 'dashboard'])->name('author.dashboard');
         Route::get('author/books', [AuthorWorkspaceController::class, 'books'])->name('author.books');
+        Route::get('author/books/{book}', [AuthorWorkspaceController::class, 'book'])->name('author.books.show');
         Route::get('author/profile', [AuthorWorkspaceController::class, 'profileShow'])->name('author.profile.show');
         Route::post('author/profile', [AuthorWorkspaceController::class, 'profileUpdate'])->name('author.profile.update');
         Route::get('author/sales', [AuthorWorkspaceController::class, 'sales'])->name('author.sales');
+        Route::get('author/review-cases', [AuthorReviewCaseController::class, 'index'])->name('author.review-cases.index');
+        Route::get('author/review-cases/{reviewCase}', [AuthorReviewCaseController::class, 'show'])->name('author.review-cases.show');
+        Route::post('author/review-cases/{reviewCase}/appeal', [AuthorReviewCaseController::class, 'appeal'])->middleware('throttle:10,1')->name('author.review-cases.appeal');
 
         Route::get('author/finance/summary', [AuthorFinanceController::class, 'summary'])->name('author.finance.summary');
+        Route::get('author/finance/statement', [AuthorFinanceController::class, 'statement'])->name('author.finance.statement');
         Route::get('author/finance/royalties', [AuthorFinanceController::class, 'royalties'])->name('author.finance.royalties');
         Route::get('author/finance/payout-accounts', [AuthorFinanceController::class, 'payoutAccounts'])->name('author.finance.payout-accounts.index');
         Route::post('author/finance/payout-accounts', [AuthorFinanceController::class, 'storePayoutAccount'])->name('author.finance.payout-accounts.store');

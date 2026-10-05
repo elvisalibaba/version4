@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Book;
 
 use App\Models\Book;
+use App\Support\BookEditorialWorkflow;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBookRequest extends FormRequest
@@ -30,9 +31,25 @@ class StoreBookRequest extends FormRequest
             'status' => ['nullable', 'in:draft,published,archived,coming_soon'],
             'editorial_pole' => ['nullable', 'in:general,ecclesial,institutional,entrepreneurial'],
             'work_type' => ['nullable', 'in:book,bible,theology,devotional,sermon,prayer,hymnal,study_guide,academic,manual,essay,novel,biography,magazine,report,other'],
-            'editorial_stage' => ['nullable', 'string', 'max:40'],
+            'editorial_stage' => ['nullable', 'in:'.implode(',', BookEditorialWorkflow::STAGES)],
             'spiritual_metadata' => ['nullable', 'array'],
             'ingestion_metadata' => ['nullable', 'array'],
+
+            'reading_access_mode' => ['nullable', 'in:standard,platform_read_only,licensed_read_only,preview_only'],
+            'can_read_on_platform' => ['nullable', 'boolean'],
+            'allow_download' => ['nullable', 'boolean'],
+            'allow_print' => ['nullable', 'boolean'],
+            'allow_copy' => ['nullable', 'boolean'],
+            'reader_watermark_enabled' => ['nullable', 'boolean'],
+            'rights_agreement_reference' => ['nullable', 'string', 'max:255'],
+            'reader_rights_note' => ['nullable', 'string'],
+
+            'writing_status' => ['nullable', 'in:idea,outline,writing,self_review,submitted,editor_review,changes_requested,ready_for_layout,completed'],
+            'target_word_count' => ['nullable', 'integer', 'min:1'],
+            'current_word_count' => ['nullable', 'integer', 'min:0'],
+            'next_author_action' => ['nullable', 'string'],
+            'editorial_deadline' => ['nullable', 'date'],
+            'author_private_notes' => ['nullable', 'string'],
 
             'language' => ['nullable', 'string', 'max:10'],
             'isbn' => ['nullable', 'string', 'max:50'],
