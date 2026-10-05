@@ -87,6 +87,10 @@ class AuthorRoyaltyService
                 'metadata' => [
                     'book_format' => $item->book_format,
                     'quantity' => $item->quantity,
+                    'unit_price' => (float) $item->price,
+                    'original_unit_price' => $item->original_price !== null ? (float) $item->original_price : (float) $item->price,
+                    'promotion_campaign_id' => $item->promotion_campaign_id,
+                    'discount_amount' => round(max(0, ((float) ($item->original_price ?? $item->price) - (float) $item->price) * $quantity), 2),
                     'payment_provider' => $order->payment_provider,
                     'payment_reference' => $order->payment_transaction_id,
                 ],
