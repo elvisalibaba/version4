@@ -45,7 +45,10 @@ return new class extends Migration
             $table->timestamp('occurred_at')->useCurrent()->index();
             $table->timestamps();
 
-            $table->index(['promotion_campaign_id', 'event_type', 'occurred_at']);
+            $table->index(
+                ['promotion_campaign_id', 'event_type', 'occurred_at'],
+                'promotion_events_campaign_type_time_idx',
+            );
         });
     }
 
