@@ -6,7 +6,8 @@ import { CookieConsentBanner } from "@/components/layout/cookie-consent-banner";
 import { PwaInstallPrompt } from "@/components/layout/pwa-install-prompt";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
-import "./globals.css";
+// Fichier renommé (ex-globals.css) : force Vercel à recompiler Tailwind au lieu de réutiliser un cache périmé.
+import "./theme.css";
 import "./cinema-theme.css";
 import "./brand.css";
 import { getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
