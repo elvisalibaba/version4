@@ -48,9 +48,9 @@ function Field({
 }) {
   return (
     <label className="grid gap-2">
-      <span className="text-xs font-bold text-[#51483f]">{label}</span>
+      <span className="text-xs font-bold text-slate-700">{label}</span>
       {children}
-      {hint ? <span className="text-xs leading-5 text-[#8b7f74]">{hint}</span> : null}
+      {hint ? <span className="text-xs leading-5 text-slate-500">{hint}</span> : null}
     </label>
   );
 }
@@ -137,12 +137,12 @@ export function CinetPayButtons({
   const currencyMismatch = !["USD", "CDF"].includes(effectiveCurrencyCode);
 
   return (
-    <div className="space-y-6 rounded-[1.6rem] bg-[#f8f4ed] p-4 sm:p-6">
+    <div className="space-y-6 rounded-xl bg-slate-100 p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#c34d35]">Commande sécurisée</p>
-          <p className="mt-2 font-display text-xl font-extrabold text-[#1d1a17]">{bookTitle}</p>
-          <p className="mt-1 text-sm leading-6 text-[#756a61]">Votre livre sera ajouté à votre bibliothèque dès la confirmation du paiement.</p>
+          <p className="text-xs font-extrabold text-brand-600">Commande sécurisée</p>
+          <p className="mt-2 font-display text-xl font-extrabold text-slate-900">{bookTitle}</p>
+          <p className="mt-1 text-sm leading-6 text-slate-600">Votre livre sera ajouté à votre bibliothèque dès la confirmation du paiement.</p>
         </div>
         <span className="catalog-badge">
           {new Intl.NumberFormat("en-US", {
@@ -154,7 +154,7 @@ export function CinetPayButtons({
 
       {formatOptions.length > 0 ? (
         <div className="space-y-2">
-          <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#8a5444]">Choisir le format</p>
+          <p className="text-xs font-extrabold text-brand-700">Choisir le format</p>
           <div className="flex flex-wrap gap-2">
             {formatOptions.map((option) => {
               const isActive = option.format === selectedFormat;
@@ -163,8 +163,8 @@ export function CinetPayButtons({
                   key={option.format}
                   type="button"
                   onClick={() => setSelectedFormat(option.format)}
-                  className={`rounded-xl border px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition ${
-                    isActive ? "border-[#173f38] bg-[#173f38] text-white" : "border-[#ded2c6] bg-white text-[#5f554d] hover:border-[#e85d3f]"
+                  className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                    isActive ? "border-night-900 bg-night-900 text-white" : "border-slate-300 bg-white text-slate-600 hover:border-brand-600"
                   }`}
                 >
                   {option.label || getBookFormatLabel(option.format)} -{" "}
@@ -180,7 +180,7 @@ export function CinetPayButtons({
       ) : null}
 
       {currencyMismatch ? (
-        <div className="rounded-[1.25rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
           EasyPay accepte les paiements en USD ou CDF. La devise de ce livre n’est pas compatible.
         </div>
       ) : null}
@@ -220,7 +220,7 @@ export function CinetPayButtons({
           type="button"
           onClick={() => launchCheckout("CREDIT_CARD")}
           disabled={Boolean(busyChannel) || currencyMismatch}
-          className="rounded-full bg-[#e85d3f] px-5 py-3 text-sm font-extrabold text-white transition hover:bg-[#cf4d33] disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full bg-brand-600 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busyChannel === "CREDIT_CARD" ? "Redirection..." : "Payer par carte"}
         </button>
@@ -228,7 +228,7 @@ export function CinetPayButtons({
           type="button"
           onClick={() => launchCheckout("MOBILE_MONEY")}
           disabled={Boolean(busyChannel) || currencyMismatch}
-          className="rounded-full bg-[#173f38] px-5 py-3 text-sm font-extrabold text-white transition hover:bg-[#0f312b] disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full bg-night-900 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-night-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busyChannel === "MOBILE_MONEY" ? "Redirection..." : "Payer par mobile money"}
         </button>
@@ -236,25 +236,25 @@ export function CinetPayButtons({
           type="button"
           onClick={() => launchCheckout("ALL")}
           disabled={Boolean(busyChannel) || currencyMismatch}
-          className="rounded-full border border-[#d6c8ba] bg-white px-5 py-3 text-sm font-extrabold text-[#403830] transition hover:border-[#e85d3f] disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-extrabold text-slate-800 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busyChannel === "ALL" ? "Redirection..." : "Choisir sur le guichet"}
         </button>
       </div>
 
       {!isAuthenticated ? (
-        <div className="rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+        <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
           Connectez-vous pour effectuer l’achat.
           {" "}
-          <Link href={loginHref} className="font-semibold text-violet-700 hover:text-violet-800">
+          <Link href={loginHref} className="font-semibold text-brand-700 hover:text-brand-800">
             Ouvrir la connexion
           </Link>
         </div>
       ) : null}
 
-      <div className="rounded-[1.25rem] border border-[#ded2c6] bg-white px-4 py-3 text-sm leading-6 text-[#756a61]">Carte bancaire et mobile money sont proposés selon votre pays et votre opérateur.</div>
+      <div className="rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-600">Carte bancaire et mobile money sont proposés selon votre pays et votre opérateur.</div>
 
-      {error ? <div className="rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
+      {error ? <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
     </div>
   );
 }

@@ -147,7 +147,7 @@ class MobileDeviceController extends Controller
         $data = $request->validate([
             'device_uuid' => ['required', 'string', 'max:191'],
             'provider' => ['required', Rule::in(['fcm', 'apns'])],
-            'token' => ['required', 'string', 'max:4096'],
+            'token' => ['required', 'string', 'max:512'],
         ]);
 
         $profile = $request->user()->profile;

@@ -33,6 +33,7 @@ export type AuthorSale = {
 };
 
 export type AuthorRoyaltyAccount = {
+  id: string;
   user_id: string;
   currency_code: string;
   pending_balance: number | string;
@@ -43,13 +44,20 @@ export type AuthorRoyaltyAccount = {
   status: "active" | "review" | "suspended";
 };
 
+type RoyaltyTotals = {
+  pending: number;
+  payable: number;
+  lifetime: number;
+};
+
 export type AuthorFinanceSummary = {
+  /** Portefeuille principal (devise par défaut). */
   account: AuthorRoyaltyAccount | null;
-  royalties: {
-    pending: number;
-    payable: number;
-    lifetime: number;
-  };
+  /** Un portefeuille par devise de vente (USD, CDF…). */
+  accounts?: AuthorRoyaltyAccount[];
+  /** Totaux dans la devise du portefeuille principal. */
+  royalties: RoyaltyTotals;
+  royalties_by_currency?: Record<string, RoyaltyTotals>;
 };
 
 export type AuthorRoyaltyTransaction = {

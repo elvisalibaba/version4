@@ -43,8 +43,8 @@ function StarPicker({
             className={
               "h-7 w-7 " +
               (star <= value
-                ? "fill-[#e8ac42] text-[#e8ac42]"
-                : "text-[#cfc4b8]")
+                ? "fill-amber-400 text-brand-600"
+                : "text-slate-400")
             }
           />
         </button>
@@ -223,12 +223,12 @@ export function BookReviews({
 
   return (
     <section
-      className="mt-12 border-t border-[#ded2c6] pt-10"
+      className="mt-12 border-t border-slate-300 pt-10"
       id="avis"
     >
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#c34d35]">
+          <p className="text-xs font-extrabold text-brand-600">
             Avis des lecteurs
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -236,15 +236,15 @@ export function BookReviews({
               Ce qu’en pensent les lecteurs
             </h2>
             {average !== null ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#f4ead8] px-3 py-1.5 text-sm font-extrabold text-[#6f5427]">
-                <Star className="h-4 w-4 fill-[#e8ac42] text-[#e8ac42]" />
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1.5 text-sm font-extrabold text-amber-800">
+                <Star className="h-4 w-4 fill-amber-400 text-brand-600" />
                 {average.toFixed(1)}/5 · {total} avis
               </span>
             ) : null}
           </div>
         </div>
 
-        <label className="flex items-center gap-2 text-sm font-semibold text-[#6f665e]">
+        <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
           Trier
           <select
             value={sort}
@@ -252,7 +252,7 @@ export function BookReviews({
               setSort(event.target.value as ReviewSort);
               setPage(1);
             }}
-            className="min-h-10 rounded-xl border border-[#ddd1c6] bg-white px-3 text-[#403a34]"
+            className="min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-slate-800"
           >
             <option value="recent">Plus récents</option>
             <option value="helpful">Plus utiles</option>
@@ -263,7 +263,7 @@ export function BookReviews({
       <div className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
         <div className="space-y-4">
           {loading ? (
-            <div className="flex min-h-32 items-center justify-center rounded-[1.5rem] border border-[#e5d9cd] bg-white text-sm text-[#756a61]">
+            <div className="flex min-h-32 items-center justify-center rounded-xl border border-slate-300 bg-white text-sm text-slate-600">
               <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
               Chargement des avis…
             </div>
@@ -272,12 +272,12 @@ export function BookReviews({
               <ReviewCard key={review.id} review={review} />
             ))
           ) : (
-            <div className="rounded-[1.5rem] border border-dashed border-[#d8c9bb] bg-[#fffaf4] p-7 text-center">
-              <Star className="mx-auto h-7 w-7 text-[#d7a94d]" />
+            <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-7 text-center">
+              <Star className="mx-auto h-7 w-7 text-brand-600" />
               <h3 className="mt-3 font-display text-xl font-extrabold">
                 Aucun avis pour le moment
               </h3>
-              <p className="mt-2 text-sm leading-6 text-[#756a61]">
+              <p className="mt-2 text-sm leading-6 text-slate-600">
                 Soyez le premier lecteur à partager une note sur ce livre.
               </p>
             </div>
@@ -289,12 +289,12 @@ export function BookReviews({
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((value) => Math.max(1, value - 1))}
-                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#ddd1c6] bg-white px-4 text-sm font-bold disabled:opacity-40"
+                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-slate-300 bg-white px-4 text-sm font-bold disabled:opacity-40"
               >
                 <ChevronLeft className="h-4 w-4" />
                 Précédent
               </button>
-              <span className="text-xs font-semibold text-[#756a61]">
+              <span className="text-xs font-semibold text-slate-600">
                 Page {page} / {lastPage}
               </span>
               <button
@@ -303,7 +303,7 @@ export function BookReviews({
                 onClick={() =>
                   setPage((value) => Math.min(lastPage, value + 1))
                 }
-                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#ddd1c6] bg-white px-4 text-sm font-bold disabled:opacity-40"
+                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-slate-300 bg-white px-4 text-sm font-bold disabled:opacity-40"
               >
                 Suivant
                 <ChevronRight className="h-4 w-4" />
@@ -312,22 +312,22 @@ export function BookReviews({
           ) : null}
         </div>
 
-        <aside className="rounded-[1.6rem] border border-[#ded2c6] bg-[#fffdf9] p-5 lg:sticky lg:top-28">
+        <aside className="rounded-xl border border-slate-300 bg-white p-5 lg:sticky lg:top-28">
           {isAuthenticated && !canReview && !currentReview ? (
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#c34d35]">
+              <p className="text-xs font-extrabold text-brand-600">
                 Votre livre
               </p>
               <h3 className="mt-2 font-display text-xl font-extrabold">
                 Vous êtes l’auteur de ce livre
               </h3>
-              <p className="mt-3 text-sm leading-6 text-[#756a61]">
+              <p className="mt-3 text-sm leading-6 text-slate-600">
                 Pour garder des avis fiables, les auteurs ne peuvent pas noter leurs propres livres.
               </p>
             </div>
           ) : isAuthenticated ? (
             <form onSubmit={submit}>
-              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#c34d35]">
+              <p className="text-xs font-extrabold text-brand-600">
                 {currentReview ? "Votre avis" : "Donner votre avis"}
               </p>
               <h3 className="mt-2 font-display text-xl font-extrabold">
@@ -350,16 +350,16 @@ export function BookReviews({
                 maxLength={5000}
                 rows={5}
                 placeholder="Votre commentaire est optionnel…"
-                className="mt-4 w-full resize-y rounded-2xl border border-[#ddd1c6] bg-white px-4 py-3 text-sm leading-6 outline-none focus:border-[#173f38] focus:ring-4 focus:ring-[#173f38]/10"
+                className="mt-4 w-full resize-y rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm leading-6 outline-none focus:border-night-900 focus:ring-4 focus:ring-night-900/10"
               />
-              <p className="mt-1 text-right text-[0.68rem] text-[#8d8279]">
+              <p className="mt-1 text-right text-[0.68rem] text-slate-500">
                 {text.length}/5000
               </p>
 
               {error ? (
                 <p
                   role="alert"
-                  className="mt-3 rounded-xl bg-[#fff0eb] px-3 py-2 text-sm text-[#8f3f2e]"
+                  className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-sm text-brand-700"
                 >
                   {error}
                 </p>
@@ -368,7 +368,7 @@ export function BookReviews({
               <button
                 type="submit"
                 disabled={submitting || deleting}
-                className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#173f38] px-5 text-sm font-extrabold text-white disabled:opacity-50"
+                className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-night-900 px-5 text-sm font-extrabold text-white disabled:opacity-50"
               >
                 {submitting ? (
                   <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -389,7 +389,7 @@ export function BookReviews({
                   type="button"
                   onClick={() => void removeReview()}
                   disabled={submitting || deleting}
-                  className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full text-sm font-bold text-[#a14936] disabled:opacity-50"
+                  className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full text-sm font-bold text-brand-600 disabled:opacity-50"
                 >
                   {deleting ? (
                     <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -402,13 +402,13 @@ export function BookReviews({
             </form>
           ) : (
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#c34d35]">
+              <p className="text-xs font-extrabold text-brand-600">
                 Votre avis
               </p>
               <h3 className="mt-2 font-display text-xl font-extrabold">
                 Partagez votre expérience
               </h3>
-              <p className="mt-3 text-sm leading-6 text-[#756a61]">
+              <p className="mt-3 text-sm leading-6 text-slate-600">
                 Connectez-vous pour noter ce livre et publier un commentaire.
               </p>
               <Link
@@ -416,7 +416,7 @@ export function BookReviews({
                   "/login?next=" +
                   encodeURIComponent("/book/" + bookId + "#avis")
                 }
-                className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[#173f38] px-5 text-sm font-extrabold text-white"
+                className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-night-900 px-5 text-sm font-extrabold text-white"
               >
                 Se connecter
               </Link>
@@ -428,7 +428,7 @@ export function BookReviews({
       {error && !isAuthenticated ? (
         <p
           role="alert"
-          className="mt-4 rounded-xl bg-[#fff0eb] px-3 py-2 text-sm text-[#8f3f2e]"
+          className="mt-4 rounded-xl bg-slate-50 px-3 py-2 text-sm text-brand-700"
         >
           {error}
         </p>
@@ -439,21 +439,21 @@ export function BookReviews({
 
 function ReviewCard({ review }: { review: BookReview }) {
   return (
-    <article className="rounded-[1.5rem] border border-[#e2d7cb] bg-white p-5 shadow-[0_10px_30px_rgba(50,39,29,.05)]">
+    <article className="rounded-xl border border-slate-300 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-extrabold text-[#27221d]">
+            <p className="font-extrabold text-slate-900">
               {review.author.name}
             </p>
             {review.verified_purchase ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#e9f3ee] px-2.5 py-1 text-[0.65rem] font-extrabold text-[#176052]">
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[0.65rem] font-extrabold text-emerald-700">
                 <BadgeCheck className="h-3.5 w-3.5" />
                 Achat vérifié
               </span>
             ) : null}
             {review.is_mine ? (
-              <span className="rounded-full bg-[#f3ece3] px-2.5 py-1 text-[0.65rem] font-bold text-[#766759]">
+              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[0.65rem] font-bold text-slate-600">
                 Votre avis
               </span>
             ) : null}
@@ -469,8 +469,8 @@ function ReviewCard({ review }: { review: BookReview }) {
                 className={
                   "h-4 w-4 " +
                   (star <= review.rating
-                    ? "fill-[#e8ac42] text-[#e8ac42]"
-                    : "text-[#d8cec3]")
+                    ? "fill-amber-400 text-brand-600"
+                    : "text-slate-300")
                 }
               />
             ))}
@@ -478,7 +478,7 @@ function ReviewCard({ review }: { review: BookReview }) {
         </div>
 
         <time
-          className="text-xs font-semibold text-[#8a7f75]"
+          className="text-xs font-semibold text-slate-500"
           dateTime={review.created_at}
         >
           {new Intl.DateTimeFormat("fr-FR", {
@@ -490,17 +490,17 @@ function ReviewCard({ review }: { review: BookReview }) {
       </div>
 
       {review.text ? (
-        <p className="mt-4 whitespace-pre-line text-sm leading-7 text-[#5f554d]">
+        <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600">
           {review.text}
         </p>
       ) : (
-        <p className="mt-4 text-sm italic text-[#94877c]">
+        <p className="mt-4 text-sm italic text-slate-500">
           Note sans commentaire.
         </p>
       )}
 
       {review.helpful_count > 0 ? (
-        <p className="mt-3 text-xs font-semibold text-[#81756b]">
+        <p className="mt-3 text-xs font-semibold text-slate-500">
           {review.helpful_count} lecteur
           {review.helpful_count > 1 ? "s" : ""} ont trouvé cet avis utile.
         </p>

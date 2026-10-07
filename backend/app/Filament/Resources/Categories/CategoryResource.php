@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Categories;
 
+use App\Filament\Concerns\RequiresStaffPermission;
 use App\Filament\Resources\Categories\Pages\CreateCategory;
 use App\Filament\Resources\Categories\Pages\EditCategory;
 use App\Filament\Resources\Categories\Pages\ListCategories;
@@ -24,22 +25,38 @@ use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
 {
+    use RequiresStaffPermission;
+
+    protected static string $staffManagePermission = 'catalog.manage';
+
+    protected static ?string $staffViewPermission = 'catalog.view';
+
     protected static ?string $model = Category::class;
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
+
     protected static ?string $navigationLabel = 'Catégories';
+
     protected static ?string $modelLabel = 'catégorie';
+
     protected static ?string $pluralModelLabel = 'catégories';
+
     protected static ?string $recordTitleAttribute = 'name';
+
     protected static ?int $navigationSort = 2;
-    public static function getNavigationGroup(): ?string { return 'Catalogue'; }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Catalogue';
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([Section::make('Taxonomie éditoriale')->columns(2)->schema([
-            TextInput::make('name')->label('Nom')->required()->maxLength(255)->live(onBlur:true)
-                ->afterStateUpdated(fn(Set $set,?string $state)=>$set('slug',Str::slug((string)$state))),
+            TextInput::make('name')->label('Nom')->required()->maxLength(255)->live(onBlur: true)
+                ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug((string) $state))),
             TextInput::make('slug')->required()->maxLength(255),
-            Select::make('parent_id')->relationship('parent','name')->label('Catégorie parente')->searchable()->preload(),
+            Select::make('parent_id')->relationship('parent', 'name')->label('Catégorie parente')->searchable()->preload(),
             TextInput::make('sort_order')->label('Ordre')->numeric()->default(0),
             TagsInput::make('content_types')->label('Médias compatibles')->placeholder('ebook, audiobook, video')->columnSpanFull(),
             Toggle::make('is_active')->label('Active')->default(true),
@@ -65,6 +82,6 @@ class CategoryResource extends Resource
 
     public static function getPages(): array
     {
-        return ['index'=>ListCategories::route('/'),'create'=>CreateCategory::route('/create'),'edit'=>EditCategory::route('/{record}/edit')];
+        return ['index' => ListCategories::route('/'), 'create' => CreateCategory::route('/create'), 'edit' => EditCategory::route('/{record}/edit')];
     }
 }

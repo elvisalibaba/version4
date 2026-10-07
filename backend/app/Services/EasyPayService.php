@@ -9,11 +9,10 @@ use App\Models\Order;
 use App\Models\PaymentAttempt;
 use App\Models\Profile;
 use App\Notifications\PaymentReceiptNotification;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Throwable;
@@ -299,7 +298,8 @@ class EasyPayService
         try {
             $user->notify(new PaymentReceiptNotification($order->fresh(['items.book'])));
         } catch (Throwable $error) {
-            // Release the claim so a later reconciliation can retry delivery.
+            // Release the claim so a later reconciliation can retry. The mail itself
+            // is queued (cron worker), so only enqueueing errors land here.
             Order::query()
                 ->whereKey($order->id)
                 ->update(['payment_receipt_sent_at' => null]);

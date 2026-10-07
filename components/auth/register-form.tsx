@@ -20,9 +20,9 @@ import type { AffiliateSourceType, UserRole } from "@/types/api";
 type RoleOption = Exclude<UserRole, "admin">;
 
 const inputClassName =
-  "h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 text-base text-[#171717] outline-none transition placeholder:text-[#a79b90] focus:border-[#ff7a5c]/60 focus:ring-4 focus:ring-[#ff7a5c]/10 sm:text-sm";
+  "h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-600/60 focus:ring-4 focus:ring-brand-600/10 sm:text-sm";
 const textareaClassName =
-  "w-full rounded-2xl border border-[#eadfd4] bg-white px-4 py-3 text-base text-[#171717] outline-none transition placeholder:text-[#a79b90] focus:border-[#ff7a5c]/60 focus:ring-4 focus:ring-[#ff7a5c]/10 sm:text-sm";
+  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-600/60 focus:ring-4 focus:ring-brand-600/10 sm:text-sm";
 
 function toggleSelection(values: string[], value: string) {
   return values.includes(value) ? values.filter((entry) => entry !== value) : [...values, value];
@@ -36,8 +36,8 @@ function Field({ id, label, hint, children }: { id: string; label: string; hint?
   return (
     <label className="grid gap-2" htmlFor={id}>
       <span className="flex items-center justify-between gap-3">
-        <span className="text-[0.7rem] font-bold uppercase tracking-[0.17em] text-[#6f665e]">{label}</span>
-        {hint ? <span className="text-xs text-[#988b80]">{hint}</span> : null}
+        <span className="text-[0.7rem] font-bold text-slate-600">{label}</span>
+        {hint ? <span className="text-xs text-slate-500">{hint}</span> : null}
       </span>
       {children}
     </label>
@@ -59,17 +59,17 @@ function RoleChoice({ active, icon: Icon, title, description, onClick }: {
       onClick={onClick}
       className={`min-w-0 rounded-2xl border p-3 text-left transition sm:p-4 ${
         active
-          ? "border-[#ff7a5c]/60 bg-[#fff1eb] shadow-[0_10px_25px_rgba(192,95,67,0.09)]"
-          : "border-[#eadfd4] bg-white hover:border-[#d8c8ba]"
+          ? "border-brand-600/60 bg-slate-50 shadow-sm"
+          : "border-slate-200 bg-white hover:border-slate-300"
       }`}
     >
       <span className="flex items-center gap-2.5">
-        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${active ? "bg-[#171717] text-white" : "bg-[#f6eee7] text-[#8b5d4d]"}`}>
+        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${active ? "bg-night-900 text-white" : "bg-slate-100 text-slate-600"}`}>
           <Icon aria-hidden="true" className="h-4 w-4" />
         </span>
         <span className="min-w-0">
-          <span className="block text-sm font-bold text-[#171717]">{title}</span>
-          <span className="mt-0.5 block text-[0.7rem] leading-4 text-[#746a62]">{description}</span>
+          <span className="block text-sm font-bold text-slate-900">{title}</span>
+          <span className="mt-0.5 block text-[0.7rem] leading-4 text-slate-600">{description}</span>
         </span>
       </span>
     </button>
@@ -101,7 +101,7 @@ function PasswordField({ id, label, value, onChange, visible, onToggle, autoComp
         <button
           type="button"
           onClick={onToggle}
-          className="absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl text-[#71675f] transition hover:bg-[#f6eee7] hover:text-[#171717]"
+          className="absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
           aria-label={visible ? `Masquer ${label.toLowerCase()}` : `Afficher ${label.toLowerCase()}`}
           aria-pressed={visible}
         >
@@ -258,33 +258,32 @@ export function RegisterForm({
     <form
       onSubmit={onSubmit}
       aria-busy={loading}
-      className="relative mx-auto w-full max-w-xl overflow-hidden rounded-[24px] border border-[#eadfd4] bg-[#fdfaf6] p-4 shadow-[0_20px_60px_rgba(23,23,23,0.08)] sm:rounded-[36px] sm:p-9 lg:p-10"
+      className="relative mx-auto w-full max-w-xl overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-md sm:rounded-xl sm:p-9 lg:p-10"
     >
-      <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#ff7a5c]/10 blur-3xl" />
 
       <div className="relative">
         <header className="space-y-3">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#f0dfd3] bg-white px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.22em] text-[#9a583f]">
+          <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-brand-600">
             <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />
             Compte personnel
           </span>
           <div className="space-y-2">
-            <h1 className="text-[1.9rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[#171717] sm:text-[2.6rem]">
+            <h1 className="text-[1.9rem] font-semibold leading-[1.08] tracking-[-0.04em] text-slate-900 sm:text-[2.6rem]">
               Créer mon compte
             </h1>
-            <p className="text-sm leading-6 text-[#6f665e]">Quelques informations suffisent pour commencer.</p>
+            <p className="text-sm leading-6 text-slate-600">Quelques informations suffisent pour commencer.</p>
           </div>
         </header>
 
         {affiliateCode ? (
-          <p className="mt-5 rounded-2xl border border-[#eadfd4] bg-white px-4 py-3 text-sm leading-6 text-[#5d554d]">
-            Code partenaire appliqué : <strong className="text-[#171717]">{affiliateCode}</strong>
+          <p className="mt-5 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-600">
+            Code partenaire appliqué : <strong className="text-slate-900">{affiliateCode}</strong>
           </p>
         ) : null}
 
         <div className="mt-6 grid gap-5">
           <fieldset className="grid gap-2">
-            <legend className="text-[0.7rem] font-bold uppercase tracking-[0.17em] text-[#6f665e]">Je souhaite</legend>
+            <legend className="text-[0.7rem] font-bold text-slate-600">Je souhaite</legend>
             <div role="radiogroup" aria-label="Type de compte" className="grid grid-cols-2 gap-2.5">
               <RoleChoice active={role === "reader"} icon={BookOpen} title="Lire" description="Compte lecteur" onClick={() => setRole("reader")} />
               <RoleChoice active={role === "author"} icon={PenTool} title="Publier" description="Espace auteur" onClick={() => setRole("author")} />
@@ -307,28 +306,28 @@ export function RegisterForm({
           <PasswordField id="register-password" label="Mot de passe" value={password} onChange={setPassword} visible={passwordVisible} onToggle={() => setPasswordVisible((visible) => !visible)} autoComplete="new-password" />
           <PasswordField id="register-password-confirmation" label="Confirmer le mot de passe" value={passwordConfirmation} onChange={setPasswordConfirmation} visible={confirmationVisible} onToggle={() => setConfirmationVisible((visible) => !visible)} autoComplete="new-password" />
 
-          <p className="flex items-start gap-2 text-xs leading-5 text-[#7d7268]">
-            <Check aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#b5533d]" />
+          <p className="flex items-start gap-2 text-xs leading-5 text-slate-600">
+            <Check aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-600" />
             Utilisez au moins 8 caractères. Les deux saisies doivent être identiques.
           </p>
 
           {role === "author" ? (
-            <div className="grid gap-4 rounded-[22px] border border-[#eadfd4] bg-white/65 p-4">
+            <div className="grid gap-4 rounded-xl border border-slate-200 bg-white/65 p-4">
               <div>
-                <h2 className="text-base font-bold text-[#171717]">Profil auteur</h2>
-                <p className="mt-1 text-xs leading-5 text-[#756b62]">Votre nom public suffit pour ouvrir le studio.</p>
+                <h2 className="text-base font-bold text-slate-900">Profil auteur</h2>
+                <p className="mt-1 text-xs leading-5 text-slate-600">Votre nom public suffit pour ouvrir le studio.</p>
               </div>
 
               <Field id="author-display-name" label="Nom public auteur">
                 <input id="author-display-name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} className={inputClassName} placeholder="Nom de plume" required />
               </Field>
 
-              <details className="group rounded-2xl border border-[#eadfd4] bg-white">
-                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-[#302b27] marker:hidden">
+              <details className="group rounded-2xl border border-slate-200 bg-white">
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-slate-800 marker:hidden">
                   Ajouter les détails du profil
                   <ChevronDown aria-hidden="true" className="h-4 w-4 transition-transform group-open:rotate-180" />
                 </summary>
-                <div className="grid gap-4 border-t border-[#eadfd4] p-4">
+                <div className="grid gap-4 border-t border-slate-200 p-4">
                   <Field id="author-headline" label="Positionnement" hint="Facultatif">
                     <input id="author-headline" value={professionalHeadline} onChange={(event) => setProfessionalHeadline(event.target.value)} className={inputClassName} placeholder="Ex. Fiction africaine contemporaine" />
                   </Field>
@@ -337,7 +336,7 @@ export function RegisterForm({
                   </Field>
 
                   <div className="grid gap-2">
-                    <p className="text-[0.7rem] font-bold uppercase tracking-[0.17em] text-[#6f665e]">Genres</p>
+                    <p className="text-[0.7rem] font-bold text-slate-600">Genres</p>
                     <div className="flex flex-wrap gap-2">
                       {BOOK_CATEGORIES.map((category) => {
                         const active = authorGenres.includes(category);
@@ -347,7 +346,7 @@ export function RegisterForm({
                             type="button"
                             aria-pressed={active}
                             onClick={() => setAuthorGenres((previous) => toggleSelection(previous, category))}
-                            className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${active ? "border-[#171717] bg-[#171717] text-white" : "border-[#eadfd4] bg-white text-[#5d554d] hover:border-[#cbb9aa]"}`}
+                            className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${active ? "border-night-900 bg-night-900 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-slate-400"}`}
                           >
                             {category}
                           </button>
@@ -382,7 +381,7 @@ export function RegisterForm({
         </div>
 
         {error ? (
-          <p role="alert" aria-live="assertive" className="mt-5 rounded-2xl border border-[#f2b9aa] bg-[#fff0eb] px-4 py-3 text-sm leading-6 text-[#8f3f2e]">
+          <p role="alert" aria-live="assertive" className="mt-5 rounded-2xl border border-brand-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-brand-700">
             {error}
           </p>
         ) : null}
@@ -390,17 +389,17 @@ export function RegisterForm({
         <button
           type="submit"
           disabled={loading}
-          className="group mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#171717] px-6 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(23,23,23,0.18)] transition hover:bg-[#332c27] disabled:cursor-not-allowed disabled:opacity-60"
+          className="group mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-night-900 px-6 text-sm font-semibold text-white shadow-md transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Création du compte…" : role === "author" ? "Créer mon espace auteur" : "Créer mon compte lecteur"}
           {!loading ? <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-1" /> : null}
         </button>
 
-        <p className="mt-4 text-center text-xs leading-5 text-[#7d7268]">
+        <p className="mt-4 text-center text-xs leading-5 text-slate-600">
           En créant votre compte, vous acceptez nos{" "}
-          <Link href="/conditions" className="font-semibold text-[#8f4b38] underline underline-offset-3">conditions d’utilisation</Link>{" "}
+          <Link href="/conditions" className="font-semibold text-brand-700 underline underline-offset-3">conditions d’utilisation</Link>{" "}
           et notre{" "}
-          <Link href="/confidentialite" className="font-semibold text-[#8f4b38] underline underline-offset-3">politique de confidentialité</Link>.
+          <Link href="/confidentialite" className="font-semibold text-brand-700 underline underline-offset-3">politique de confidentialité</Link>.
         </p>
       </div>
     </form>

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\EditorialTrainingRequests;
 
+use App\Filament\Concerns\RequiresStaffPermission;
 use App\Filament\Resources\EditorialTrainingRequests\Pages\ListEditorialTrainingRequests;
 use App\Filament\Resources\EditorialTrainingRequests\Pages\ViewEditorialTrainingRequest;
 use App\Models\EditorialTrainingRequest;
@@ -18,9 +19,15 @@ use Filament\Tables\Table;
 
 class EditorialTrainingRequestResource extends Resource
 {
+    use RequiresStaffPermission;
+
+    protected static string $staffManagePermission = 'editorial.review';
+
+    protected static ?string $staffViewPermission = 'support.manage';
+
     protected static ?string $model = EditorialTrainingRequest::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-academic-cap';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
 
     protected static ?string $navigationLabel = 'Demandes de formation';
 

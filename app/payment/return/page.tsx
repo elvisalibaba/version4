@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { CheckCircle2, XCircle } from "lucide-react";
+import { PaymentReturnEffects } from "@/components/cart/payment-return-effects";
+import { getBookFormatLabel } from "@/lib/book-formats";
 import { redirect } from "next/navigation";
 import { ApiError } from "@/lib/api/client";
 import { apiServer } from "@/lib/api/server";
@@ -17,13 +20,13 @@ function getStatusCopy(status: OrderPaymentStatus) {
       return {
         title: "Paiement confirmé",
         description: "Votre commande est payée. Les achats numériques sont disponibles dans votre bibliothèque.",
-        accent: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        accent: "bg-emerald-50 text-emerald-800 border-emerald-200",
       };
     case "failed":
       return {
         title: "Paiement échoué",
         description: "La transaction a été refusée ou n’a pas abouti. Vous pouvez relancer un paiement.",
-        accent: "bg-rose-50 text-rose-700 border-rose-200",
+        accent: "bg-brand-50 text-brand-800 border-brand-100",
       };
     case "refunded":
       return {
@@ -34,7 +37,7 @@ function getStatusCopy(status: OrderPaymentStatus) {
     default:
       return {
         title: "Vérification du paiement",
-        description: "Nous vérifions la transaction auprès d’EasyPay. Le statut affiché vient du backend Laravel.",
+        description: "Nous vérifions votre paiement auprès d’EasyPay. Cette page se met à jour automatiquement.",
         accent: "bg-slate-100 text-slate-700 border-slate-200",
       };
   }
@@ -79,65 +82,76 @@ export default async function PaymentReturnPage({ searchParams }: { searchParams
   }
 
   const statusCopy = getStatusCopy(order.payment_status);
+  const money = (amount: number | string, currency: string) =>
+    new Intl.NumberFormat("fr-FR", { style: "currency", currency }).format(Number(amount));
 
   return (
-    <section className="page-hero-shell space-y-8 py-12">
-      <div className="surface-panel space-y-6 p-8">
-        <div className={`rounded-[1.6rem] border px-5 py-4 ${statusCopy.accent}`}>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em]">Retour paiement EasyPay</p>
-          <h1 className="mt-2 text-3xl font-semibold">{statusCopy.title}</h1>
-          <p className="mt-3 max-w-3xl text-sm leading-7">{statusCopy.description}</p>
-        </div>
+    <div className="hb-fullbleed bg-slate-50">
+      <PaymentReturnEffects orderId={order.id} status={order.payment_status} />
+      <section className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+        <div className="hb-fade-up rounded-lg border border-slate-200 bg-white">
+          <div className={`flex items-start gap-4 border-b px-6 py-6 ${statusCopy.accent}`}>
+            <StatusIcon status={order.payment_status} />
+            <div>
+              <h1 className="text-2xl font-bold">{statusCopy.title}</h1>
+              <p className="mt-1.5 text-sm leading-6">{statusCopy.description}</p>
+            </div>
+          </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-[1.4rem] border border-violet-100 bg-violet-50/50 p-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Commande</p>
-            <p className="mt-2 break-all text-sm font-semibold text-slate-950">{order.id}</p>
-          </div>
-          <div className="rounded-[1.4rem] border border-violet-100 bg-violet-50/50 p-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Statut</p>
-            <p className="mt-2 text-sm font-semibold text-slate-950">{order.payment_status}</p>
-          </div>
-          <div className="rounded-[1.4rem] border border-violet-100 bg-violet-50/50 p-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Montant</p>
-            <p className="mt-2 text-sm font-semibold text-slate-950">
-              {new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: order.currency_code,
-              }).format(Number(order.total_price))}
-            </p>
-          </div>
-        </div>
+          <dl className="grid gap-4 border-b border-slate-200 px-6 py-5 text-sm sm:grid-cols-3">
+            <div>
+              <dt className="text-slate-500">Commande</dt>
+              <dd className="mt-1 font-mono text-xs font-semibold text-slate-900">{order.id.slice(0, 8).toUpperCase()}</dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">Statut</dt>
+              <dd className="mt-1 font-semibold text-slate-900">{STATUS_LABELS[order.payment_status] ?? order.payment_status}</dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">Montant</dt>
+              <dd className="mt-1 font-semibold text-slate-900">{money(order.total_price, order.currency_code)}</dd>
+            </div>
+          </dl>
 
-        <div className="rounded-[1.6rem] border border-slate-200 bg-white p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Livres de la commande</p>
-          <div className="mt-4 space-y-3">
+          <ul className="divide-y divide-slate-200 px-6">
             {(order.items ?? []).map((item) => (
-              <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-[1.2rem] border border-slate-100 px-4 py-3">
-                <div>
-                  <p className="text-sm font-medium text-slate-900">{item.title ?? "Livre HolistiqueBooks"}</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.14em] text-slate-400">{item.book_format}</p>
+              <li key={item.id} className="flex items-center justify-between gap-3 py-3.5 text-sm">
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-slate-900">{item.title ?? "Livre Holistique Books"}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {getBookFormatLabel(item.book_format)}
+                    {item.quantity && item.quantity > 1 ? ` · Qté ${item.quantity}` : ""}
+                  </p>
                 </div>
-                <p className="text-sm text-slate-500">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: item.currency_code,
-                  }).format(Number(item.price))}
-                </p>
-              </div>
+                <p className="shrink-0 font-semibold text-slate-900">{money(item.price, item.currency_code)}</p>
+              </li>
             ))}
+          </ul>
+
+          <div className="flex flex-col gap-2 border-t border-slate-200 px-6 py-5 sm:flex-row">
+            {order.payment_status === "failed" ? (
+              <Link href="/cart" className="cta-primary inline-flex min-h-11 items-center justify-center px-5 text-sm">Revenir au panier</Link>
+            ) : (
+              <Link href="/dashboard/reader/library" className="cta-primary inline-flex min-h-11 items-center justify-center px-5 text-sm">Ouvrir ma bibliothèque</Link>
+            )}
+            <Link href="/dashboard/reader/purchases" className="cta-secondary inline-flex min-h-11 items-center justify-center px-5 text-sm">Voir mes achats</Link>
+            <Link href="/books" className="inline-flex min-h-11 items-center justify-center px-3 text-sm font-medium text-slate-700 hover:text-brand-700 sm:ml-auto">Continuer mes achats</Link>
           </div>
         </div>
-
-        <div className="flex flex-wrap gap-3">
-          <Link href="/dashboard/reader/purchases" className="cta-primary px-5 py-3 text-sm">
-            Voir mes achats
-          </Link>
-          <Link href="/dashboard/reader/library" className="cta-secondary px-5 py-3 text-sm">
-            Ouvrir ma bibliothèque
-          </Link>
-        </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  paid: "Payée",
+  pending: "En cours de vérification",
+  failed: "Échouée",
+  refunded: "Remboursée",
+};
+
+function StatusIcon({ status }: { status: OrderPaymentStatus }) {
+  if (status === "paid") return <CheckCircle2 className="hb-check-pop h-9 w-9 shrink-0" aria-hidden="true" />;
+  if (status === "failed") return <XCircle className="h-9 w-9 shrink-0" aria-hidden="true" />;
+  return <span className="hb-spinner mt-1 h-7 w-7 shrink-0 border-[3px]" aria-hidden="true" />;
 }

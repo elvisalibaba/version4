@@ -22,7 +22,7 @@ export default async function ReaderDashboardLayout({
 
   return (
     <DashboardShell
-      areaLabel="Reader workspace"
+      areaLabel="Votre espace"
       headline="Bibliothèque, médias, achats et abonnements"
       description="Reprenez vos lectures, retrouvez les éditions audio/vidéo, vérifiez vos achats et gérez Premium."
       userName={profile?.name ?? profile?.email ?? "Reader"}

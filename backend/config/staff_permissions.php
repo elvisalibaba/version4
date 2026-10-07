@@ -31,6 +31,7 @@ return [
     ],
 
     'permissions' => [
+        'platform.manage' => 'Gérer la configuration technique (application mobile, versions)',
         'catalog.view' => 'Voir le catalogue',
         'catalog.manage' => 'Gérer le catalogue',
         'catalog.publish' => 'Publier des livres',

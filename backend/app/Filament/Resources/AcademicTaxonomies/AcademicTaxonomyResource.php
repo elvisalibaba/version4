@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AcademicTaxonomies;
 
+use App\Filament\Concerns\RequiresStaffPermission;
 use App\Filament\Resources\AcademicTaxonomies\Pages\CreateAcademicTaxonomy;
 use App\Filament\Resources\AcademicTaxonomies\Pages\EditAcademicTaxonomy;
 use App\Filament\Resources\AcademicTaxonomies\Pages\ListAcademicTaxonomies;
@@ -24,12 +25,24 @@ use Illuminate\Support\Str;
 
 class AcademicTaxonomyResource extends Resource
 {
+    use RequiresStaffPermission;
+
+    protected static string $staffManagePermission = 'catalog.manage';
+
+    protected static ?string $staffViewPermission = 'catalog.view';
+
     protected static ?string $model = AcademicTaxonomy::class;
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
+
     protected static ?string $navigationLabel = 'Référentiel scolaire & universitaire';
+
     protected static ?string $modelLabel = 'classification académique';
+
     protected static ?string $pluralModelLabel = 'référentiel académique';
+
     protected static ?string $recordTitleAttribute = 'name';
+
     protected static ?int $navigationSort = 1;
 
     public static function getNavigationGroup(): ?string

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MobileAppVersions;
 
+use App\Filament\Concerns\RequiresStaffPermission;
 use App\Filament\Resources\MobileAppVersions\Pages\CreateMobileAppVersion;
 use App\Filament\Resources\MobileAppVersions\Pages\EditMobileAppVersion;
 use App\Filament\Resources\MobileAppVersions\Pages\ListMobileAppVersions;
@@ -24,9 +25,15 @@ use Filament\Tables\Table;
 
 class MobileAppVersionResource extends Resource
 {
+    use RequiresStaffPermission;
+
+    protected static string $staffManagePermission = 'platform.manage';
+
+    protected static ?string $staffViewPermission = null;
+
     protected static ?string $model = MobileAppVersion::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-arrow-down-tray';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrow-down-tray';
 
     protected static ?string $navigationLabel = 'Versions mobile';
 

@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
+use Database\Factories\AuthorProfileFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class AuthorProfile extends Model
 {
-    /** @use HasFactory<\Database\Factories\AuthorProfileFactory> */
+    /** @use HasFactory<AuthorProfileFactory> */
     use HasFactory, HasUuids;
 
     public $incrementing = false;
@@ -58,9 +58,9 @@ class AuthorProfile extends Model
             ->withPivot(['author_role', 'display_order']);
     }
 
-    public function royaltyAccount(): HasOne
+    public function royaltyAccounts(): HasMany
     {
-        return $this->hasOne(AuthorRoyaltyAccount::class, 'user_id', 'id');
+        return $this->hasMany(AuthorRoyaltyAccount::class, 'user_id', 'id');
     }
 
     public function hasPlatformAccount(): bool

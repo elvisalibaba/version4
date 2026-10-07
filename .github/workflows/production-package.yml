@@ -58,7 +58,14 @@ jobs:
           rm -rf release-private/.agents
           rm -rf release-private/.claude
           rm -f release-private/.env
-          rm -f release-private/deploy-cpanel.sh
+          rm -f release-private/.phpunit.result.cache
+          rm -f release-private/bootstrap/cache/*.php
+          rm -rf release-private/storage/app/deploy release-private/storage/app/backups
+
+          # Le cron cPanel (cpanel-cron.sh) déploie automatiquement dès que ce
+          # fichier change : il suffit d'extraire le ZIP dans le Gestionnaire de fichiers.
+          echo "${{ github.sha }}-${{ github.run_number }}" > release-private/RELEASE
+          chmod 755 release-private/cpanel-cron.sh
           rm -rf release-private/storage/logs/*
           mkdir -p release-private/storage/logs
           mkdir -p release-private/storage/framework/cache/data

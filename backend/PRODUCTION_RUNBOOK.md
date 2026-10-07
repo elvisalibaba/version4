@@ -1,152 +1,164 @@
-# Holistique Books — Runbook de mise en production
+# Holistique Books — Mise en production sur cPanel (sans SSH)
 
-Ce document accompagne le backend Laravel/Filament et doit être exécuté avant toute promotion vers `production`.
+L'hébergement n'offre ni SSH ni terminal. **Tout passe par le Gestionnaire de
+fichiers et une seule tâche cron** (`cpanel-cron.sh`), qui joue le rôle du terminal :
+déploiement, migrations, sauvegarde, file d'attente des e-mails et tâches planifiées.
 
-## 1. Pré-requis serveur
+## 0. Structure sur le serveur
 
-- PHP 8.3+ avec : `intl`, `mbstring`, `pdo_mysql`, `fileinfo`, `zip`, `openssl`.
-- MySQL/MariaDB compatible avec les migrations du projet.
-- `pdfinfo` et `pdftoppm` (Poppler) requis pour le nombre de pages, les couvertures et le lecteur PDF protégé page par page.
-- HTTPS obligatoire.
-- Répertoire Laravel privé hors `public_html`.
-- `storage/app/private/books` ne doit jamais être exposé directement par le serveur web.
-
-Vérifier :
-
-```bash
-php -v
-php -m
-pdfinfo -v
-pdftoppm -v
-php artisan holistic:health --json
+```
+/home/UTILISATEUR/
+├── holistic-api/                 ← application Laravel (ZIP « private »), hors web
+│   ├── cpanel-cron.sh
+│   ├── RELEASE                   ← identifiant de version (déclenche le déploiement)
+│   ├── .env                      ← à créer une fois
+│   └── storage/app/deploy/       ← STATUS.txt, make-admin.txt, DEPLOY
+└── public_html/api.aba.cd/       ← ZIP « public » (index.php pointe vers ../../holistic-api)
 ```
 
-## 2. Variables critiques
+`storage/` ne doit jamais être sous `public_html`.
 
-En production :
+## 1. Fabriquer les ZIP
+
+GitHub → Actions → **Production package** → *Run workflow* (ou push sur `production`).
+Téléchargez l'artefact : il contient
+`holisticbooks-api-production-…zip` (privé), `holisticbooks-api-public-…zip` (public)
+et leurs `.sha256`. Les dépendances (`vendor/`) et les assets Filament sont déjà inclus.
+
+## 2. Premier déploiement (base neuve)
+
+1. **cPanel > Bases de données MySQL** : créez la base et l'utilisateur, avec tous les privilèges.
+2. **Sélectionner une version de PHP** : PHP 8.3 ou 8.4, extensions `intl`, `mbstring`,
+   `pdo_mysql`, `fileinfo`, `zip`, `openssl`, `gd`, `curl`. Activez aussi `imagick`
+   pour le lecteur PDF lorsque l’hébergeur ne fournit pas `pdftoppm`.
+3. **Gestionnaire de fichiers** :
+   - extrayez le ZIP privé dans `/home/UTILISATEUR/holistic-api` ;
+   - extrayez le ZIP public dans `public_html/api.aba.cd` ;
+   - dans `holistic-api`, copiez `.env.production.example` en `.env` et remplissez :
+     `DB_*`, `MAIL_*`, `EASYPAY_*`, `SUPPORT_EMAIL`, `FRONTEND_PROXY_SECRET`
+     (≥ 40 caractères aléatoires, **même valeur** dans le `.env` du front Next.js).
+     Laissez `APP_KEY=` vide : il sera généré automatiquement.
+4. **cPanel > Tâches Cron** : ajoutez **une seule** ligne, toutes les minutes :
+
+   ```
+   * * * * * /bin/bash /home/UTILISATEUR/holistic-api/cpanel-cron.sh >/dev/null 2>&1
+   ```
+
+5. Attendez 1 à 2 minutes, puis ouvrez `holistic-api/storage/app/deploy/STATUS.txt`.
+   Il doit afficher `Résultat : OK`. Sinon, lisez `storage/logs/deploy.log`.
+
+Le premier passage génère `APP_KEY`, lance les migrations, charge le référentiel
+éducatif RDC, met en cache la configuration et vérifie la santé de l'application.
+
+Si `deploy.log` indique *aucun PHP 8.3+ CLI trouvé*, précisez le binaire dans la ligne cron :
+
+```
+* * * * * PHP_BIN=/usr/local/bin/ea-php83 /bin/bash /home/UTILISATEUR/holistic-api/cpanel-cron.sh >/dev/null 2>&1
+```
+
+## 3. Créer le premier administrateur
+
+Dans `holistic-api/storage/app/deploy/`, créez le fichier `make-admin.txt` :
+
+```
+votre.email@exemple.com
+UnMotDePasseLongEtUnique
+Votre Nom
+```
+
+À la minute suivante, le cron crée un **super administrateur** dont l'e-mail est déjà
+vérifié, puis **supprime le fichier**. Connectez-vous sur `https://api.aba.cd/admin`.
+Les autres membres du staff se créent ensuite depuis le Control Center
+(Utilisateurs → rôle *admin* + fonction interne). Seul un super administrateur peut
+attribuer un rôle ou une fonction interne.
+
+## 4. Mises à jour suivantes
+
+1. Lancez le workflow **Production package** et téléchargez les ZIP.
+2. Extrayez le ZIP privé **par-dessus** `holistic-api` (le `.env` et `storage/` sont conservés),
+   puis le ZIP public dans `public_html/api.aba.cd`.
+3. Le fichier `RELEASE` a changé : le cron déploie automatiquement à la minute suivante.
+   Il met le site en maintenance, sauvegarde la base (`storage/app/backups/`), migre,
+   reconstruit les caches puis remet le site en ligne.
+4. Vérifiez `STATUS.txt`.
+
+**En cas d'échec de migration**, le site est remis en ligne, la version est notée dans
+`failed-release` et elle n'est **pas** retentée en boucle. Après correction, créez un fichier
+vide `storage/app/deploy/DEPLOY` pour relancer. Pour restaurer, importez la sauvegarde
+`storage/app/backups/*.sql.gz` via **phpMyAdmin > Importer**.
+
+Toute évolution du schéma passe par une **nouvelle** migration. Ne modifiez jamais
+une migration déjà exécutée en production.
+
+## 5. Ce que fait le cron chaque minute
+
+- `schedule:run` :
+  - envoi des e-mails en file d'attente (bienvenue, reçus de paiement) ;
+  - royalties devenues payables (02:00) ;
+  - expiration des contrats de droits (01:30) ;
+  - nettoyage des sessions de lecture (toutes les heures) ;
+  - purge des jetons expirés (chaque jour).
+- Déploiement, si `RELEASE` a changé ou si `DEPLOY` existe.
+- Création d'administrateur, si `make-admin.txt` existe.
+
+## 6. Variables critiques
 
 ```dotenv
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://api.aba.cd
 FRONTEND_URL=https://holistique-books.com
-
-READER_REQUIRE_SESSION=true
-READER_SESSION_TTL_MINUTES=10
-READER_MAX_ACTIVE_SESSIONS_PER_BOOK=5
-BOOK_READER_PAGE_SIZE=1800
-
+FRONTEND_PROXY_SECRET=…            # identique côté Next.js
+SANCTUM_EXPIRATION_MINUTES=43200   # 30 jours, comme le cookie du front
 QUEUE_CONNECTION=database
 SESSION_DRIVER=database
 CACHE_STORE=database
+EASYPAY_MODE=v1                    # sandbox tant que les tests ne sont pas validés
+BOOK_PDF_MAX_CONCURRENT_RENDERS=3
+BOOK_PDF_IMAGICK_ENABLED=true      # repli sans pdftoppm
 ```
 
-Ne jamais versionner `APP_KEY`, les identifiants DB, EasyPay, SMTP ou stockage objet.
+Côté **front Next.js** : `API_URL=https://api.aba.cd` et `FRONTEND_PROXY_SECRET=` (même
+valeur, jamais préfixée par `NEXT_PUBLIC_`). Sans cette clé, l'API voit l'IP du
+serveur Next pour tous les visiteurs, et les limites de débit (mot de passe oublié,
+renvoi de code, aperçu PDF) sont partagées par tout le monde.
 
-## 3. Déploiement
+## 7. Lecteur protégé
 
-Avant migration :
+- Le lecteur utilise `pdftoppm` (Poppler) s’il est disponible, sinon l’extension PHP
+  `imagick` avec la prise en charge du format PDF. Sur cPanel, activez `imagick` depuis
+  **Select PHP Version > Extensions** : aucune commande d’installation n’est nécessaire.
+- `STATUS.txt` / `holistic:health` indique le moteur retenu. Si ni Poppler ni Imagick/PDF
+  ne sont disponibles, demandez leur activation à l’hébergeur ; ne réactivez jamais le
+  téléchargement du PDF complet comme contournement.
+- Les PDF restent sur le disque privé. Les lecteurs reçoivent des images page par page,
+  via une session courte liée au compte.
 
-1. Sauvegarde MySQL complète vers un emplacement hors serveur.
-2. Sauvegarde ou snapshot du stockage privé des livres.
-3. Vérifier le hash du package de production.
-4. Activer le mode maintenance si le changement de schéma est important.
+## 8. Finance auteurs
 
-Puis :
+- Le **taux de royalties** se fixe uniquement dans *Control Center → Finance auteurs →
+  Taux de royalties* (permission `finance.manage`). Les auteurs le voient en lecture seule.
+- Un portefeuille par devise : une vente en CDF crédite le portefeuille CDF, une vente
+  en USD le portefeuille USD. Un retrait débite le portefeuille de la devise du compte
+  de versement.
 
-```bash
-php artisan optimize:clear
-php artisan migrate --force
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan holistic:health --json
-```
+## 9. Révisions de livres publiés
 
-Ne jamais modifier une migration déjà exécutée. Toute évolution du schéma passe par une nouvelle migration réversible.
+Le nouveau manuscrit d'un livre publié, déposé par l'auteur, est archivé
+(`pending_review`) et le livre passe en *soumis*. La version en ligne ne change pas.
+Dans *Catalogue*, l'action **Appliquer la révision** (permission `catalog.publish`) la met en ligne.
 
-## 4. Cron cPanel
+## 10. Sauvegardes
 
-Configurer une seule entrée toutes les minutes vers le scheduler Laravel :
+Les sauvegardes de `storage/app/backups` restent sur le même serveur : **ce n'est pas
+une sauvegarde suffisante**. Activez aussi les sauvegardes cPanel vers un stockage
+externe, téléchargez régulièrement un `.sql.gz` et testez une restauration chaque mois.
 
-```cron
-* * * * * cd /CHEMIN/holistic-api && /CHEMIN/PHP artisan schedule:run >> /dev/null 2>&1
-```
+## 11. Contrôles fonctionnels après mise en ligne
 
-Le chemin PHP dépend du compte cPanel. Le scheduler prend notamment en charge :
-
-- libération des royalties devenues payables ;
-- expiration des contrats de droits ;
-- nettoyage des sessions lecteur.
-
-## 5. Lecteur protégé
-
-Politique de production :
-
-- aucun `Book` téléchargeable ;
-- aucun `BookFormat` téléchargeable ;
-- aucun abonnement avec téléchargement ;
-- PDF source uniquement sur disque privé ;
-- les clients web/mobile consomment des pages rendues, jamais le PDF complet ;
-- sessions lecteur courtes, liées au compte et au contexte appareil ;
-- endpoint historique de fichier complet désactivé ;
-- aperçu public basé exclusivement sur `sample_url`.
-
-Si `pdftoppm` n’est pas disponible, le lecteur PDF protégé doit être considéré indisponible. Ne jamais réactiver le flux PDF complet comme contournement.
-
-## 6. Paiements
-
-Avant activation EasyPay réelle :
-
-- passer `EASYPAY_MODE` au mode de production prévu par le marchand ;
-- vérifier IPN/callback ;
-- tester succès, échec, annulation, callback dupliqué et réconciliation manuelle ;
-- vérifier qu’une même clé d’idempotence ne crée jamais deux commandes ;
-- vérifier qu’une commande payée n’accumule qu’une seule royalty par article.
-
-## 7. Backups
-
-Une sauvegarde sur le même hébergement n’est pas une sauvegarde acceptable.
-
-Minimum recommandé :
-
-- MySQL quotidien, rétention 30 jours ;
-- stockage livres/covers/contrats vers un stockage externe versionné ;
-- test mensuel de restauration ;
-- chiffrement des archives et contrôle d’accès ;
-- journal du dernier backup réussi et alerte si > 24 h.
-
-## 8. Rollback
-
-Avant déploiement conserver :
-
-- archive applicative précédente ;
-- version DB/snapshot ;
-- liste des migrations appliquées ;
-- version du frontend correspondante.
-
-En cas d’échec :
-
-1. mettre en maintenance ;
-2. restaurer l’application précédente ;
-3. ne lancer `migrate:rollback` que pour des migrations explicitement validées comme réversibles ;
-4. restaurer le snapshot DB si nécessaire ;
-5. exécuter `holistic:health` ;
-6. rouvrir le trafic seulement après validation lecture, login, commande et paiement.
-
-## 9. Contrôles fonctionnels de sortie
-
-Tester au minimum :
-
-- création brouillon livre avec titre seul ;
-- import massif avec cover appariée ;
-- livre anonyme/texte sacré sans auteur ;
-- validation éditoriale + BAT ;
-- auteur incapable de modifier ses droits contractuels ;
-- lecteur incapable de récupérer le PDF complet ;
-- page PDF protégée accessible seulement avec session valide ;
-- prix marché + promotion identiques entre fiche, panier et paiement ;
-- paiement EasyPay idempotent ;
-- royalty créée une seule fois ;
-- recours auteur visible et audité ;
-- permissions staff séparées Finance / Marketing / Juridique / Éditorial.
+- inscription → code e-mail → connexion ;
+- mot de passe oublié depuis deux appareils différents (pas de blocage croisé) ;
+- achat EasyPay en sandbox : succès, échec, callback dupliqué ;
+- lecture protégée page par page ; l'aperçu invité est limité à `sample_pages` ;
+- un auteur ne peut ni changer son taux, ni remplacer le fichier d'un livre publié ;
+- un membre *support* ne peut pas modifier le catalogue ni les rôles.

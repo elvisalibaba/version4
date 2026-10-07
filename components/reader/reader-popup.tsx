@@ -99,25 +99,25 @@ const HIGHLIGHT_COLOR_OPTIONS: Array<{
     value: "yellow",
     label: "Jaune",
     buttonClassName: "border-amber-200 bg-amber-50 text-amber-800",
-    annotationStyles: { fill: "#facc15", "fill-opacity": "0.28" },
+    annotationStyles: { fill: "#c8102e", "fill-opacity": "0.28" },
   },
   {
     value: "blue",
     label: "Bleu",
     buttonClassName: "border-sky-200 bg-sky-50 text-sky-800",
-    annotationStyles: { fill: "#38bdf8", "fill-opacity": "0.22" },
+    annotationStyles: { fill: "#2c4a73", "fill-opacity": "0.22" },
   },
   {
     value: "pink",
     label: "Rose",
     buttonClassName: "border-rose-200 bg-rose-50 text-rose-800",
-    annotationStyles: { fill: "#fb7185", "fill-opacity": "0.2" },
+    annotationStyles: { fill: "#c8102e", "fill-opacity": "0.2" },
   },
   {
     value: "green",
     label: "Vert",
     buttonClassName: "border-emerald-200 bg-emerald-50 text-emerald-800",
-    annotationStyles: { fill: "#34d399", "fill-opacity": "0.22" },
+    annotationStyles: { fill: "#047857", "fill-opacity": "0.22" },
   },
 ];
 
@@ -489,21 +489,21 @@ export function ReaderPopup({
       rendition.themes.register("light", {
         body: {
           background: "#ffffff",
-          color: "#0f172a",
+          color: "#0b1f3a",
           "font-family": "'Iowan Old Style', Georgia, serif",
         },
       });
       rendition.themes.register("sepia", {
         body: {
-          background: "#f8f1e3",
-          color: "#4b3b2a",
+          background: "#fffbeb",
+          color: "#1e293b",
           "font-family": "'Iowan Old Style', Georgia, serif",
         },
       });
       rendition.themes.register("dark", {
         body: {
-          background: "#111827",
-          color: "#e5e7eb",
+          background: "#0b1f3a",
+          color: "#f2f5fa",
           "font-family": "'Iowan Old Style', Georgia, serif",
         },
       });
@@ -760,21 +760,21 @@ export function ReaderPopup({
   }
 
   return (
-    <div className="reader-modal fixed inset-0 z-[120] flex items-center justify-center bg-[#0c1713]/85 p-0 backdrop-blur-md sm:p-3">
+    <div className="reader-modal fixed inset-0 z-[120] flex items-center justify-center bg-night-950/85 p-0 backdrop-blur-md sm:p-3">
       <div
         ref={containerRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={dialogTitleId}
         tabIndex={-1}
-        className="reader-window flex h-[100dvh] w-full max-w-[100rem] flex-col overflow-hidden rounded-none border-0 border-black/10 bg-[#e9e7e2] shadow-[0_35px_100px_rgba(0,0,0,.45)] outline-none sm:h-[97vh] sm:rounded-[1.4rem] sm:border"
+        className="reader-window flex h-[100dvh] w-full max-w-[100rem] flex-col overflow-hidden rounded-none border-0 border-black/10 bg-slate-200 shadow-[0_35px_100px_rgba(11,31,58,.45)] outline-none sm:h-[97vh] sm:rounded-[1.4rem] sm:border"
       >
         <h2 id={dialogTitleId} className="sr-only">Lecteur Holistique Books</h2>
-        <div className="reader-toolbar reader-mobile-toolbar grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-[#ddd8d0] bg-white px-3 py-2 text-[#173d2c] sm:flex sm:flex-wrap sm:justify-between sm:gap-3 sm:px-5 sm:py-3">
+        <div className="reader-toolbar reader-mobile-toolbar grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-slate-300 bg-white px-3 py-2 text-night-900 sm:flex sm:flex-wrap sm:justify-between sm:gap-3 sm:px-5 sm:py-3">
           <div className="min-w-0">
-            <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.18em] text-[#b66b20] sm:text-xs sm:tracking-[0.2em]">Holistique Reader</p>
+            <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.18em] text-amber-800 sm:text-xs sm:tracking-[0.2em]">Holistique Reader</p>
             <h3 className="mt-0.5 hidden font-serif text-lg font-semibold sm:block">Lecture immersive</h3>
-            <p className="mt-0.5 truncate text-[0.68rem] text-[#766f66] sm:text-xs">
+            <p className="mt-0.5 truncate text-[0.68rem] text-slate-600 sm:text-xs">
               {isPdf ? pdfPageLabel : `Progression ${epubProgress}%${epubTotalPages > 0 ? ` • Page ${epubCurrentPage}/${epubTotalPages}` : ""}`}
             </p>
           </div>
@@ -782,10 +782,10 @@ export function ReaderPopup({
           <div className="flex shrink-0 items-center gap-1.5 sm:flex-wrap sm:gap-2">
             {isEpub ? (
               <>
-                <button type="button" onClick={goPrevious} className="grid h-10 w-10 place-items-center rounded-xl border border-[#ddd8d0] bg-[#f7f5f1]" aria-label="Page précédente">
+                <button type="button" onClick={goPrevious} className="grid h-10 w-10 place-items-center rounded-xl border border-slate-300 bg-slate-50" aria-label="Page précédente">
                   <ChevronLeft className="h-5 w-5" />
                 </button>
-                <button type="button" onClick={goNext} className="grid h-10 w-10 place-items-center rounded-xl border border-[#ddd8d0] bg-[#f7f5f1]" aria-label="Page suivante">
+                <button type="button" onClick={goNext} className="grid h-10 w-10 place-items-center rounded-xl border border-slate-300 bg-slate-50" aria-label="Page suivante">
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </>
@@ -793,13 +793,13 @@ export function ReaderPopup({
 
             {isPdf ? (
               <>
-                <button type="button" onClick={goPrevious} className="grid h-10 w-10 place-items-center rounded-xl border border-[#ddd8d0] bg-[#f7f5f1]" aria-label="Page précédente">
+                <button type="button" onClick={goPrevious} className="grid h-10 w-10 place-items-center rounded-xl border border-slate-300 bg-slate-50" aria-label="Page précédente">
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
                   type="button"
                   onClick={goNext}
-                  className="grid h-10 w-10 place-items-center rounded-xl border border-[#ddd8d0] bg-[#f7f5f1]"
+                  className="grid h-10 w-10 place-items-center rounded-xl border border-slate-300 bg-slate-50"
                   aria-label="Page suivante"
                 >
                   <ChevronRight className="h-5 w-5" />
@@ -807,7 +807,7 @@ export function ReaderPopup({
               </>
             ) : null}
 
-            <button type="button" onClick={openFullScreen} className="hidden h-10 items-center gap-2 rounded-xl border border-[#ddd8d0] bg-[#f7f5f1] px-3 text-xs font-bold sm:inline-flex">
+            <button type="button" onClick={openFullScreen} className="hidden h-10 items-center gap-2 rounded-xl border border-slate-300 bg-slate-50 px-3 text-xs font-bold sm:inline-flex">
               <Maximize2 aria-hidden="true" className="h-4 w-4" />
               Plein écran
             </button>
@@ -815,12 +815,12 @@ export function ReaderPopup({
               ref={toolsButtonRef}
               type="button"
               onClick={() => setMobileToolsOpen(true)}
-              className="grid h-10 w-10 place-items-center rounded-xl border border-[#ddd8d0] bg-[#f7f5f1] text-[#173d2c] xl:hidden"
+              className="grid h-10 w-10 place-items-center rounded-xl border border-slate-300 bg-slate-50 text-night-900 xl:hidden"
               aria-label="Ouvrir les outils de lecture"
             >
               <Settings2 aria-hidden="true" className="h-4 w-4" />
             </button>
-            <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl bg-[#173d2c] text-white sm:inline-flex sm:w-auto sm:px-4 sm:text-sm sm:font-bold" aria-label="Fermer le lecteur">
+            <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl bg-night-900 text-white sm:inline-flex sm:w-auto sm:px-4 sm:text-sm sm:font-bold" aria-label="Fermer le lecteur">
               <X aria-hidden="true" className="h-4 w-4 sm:hidden" />
               <span className="hidden sm:inline">Fermer</span>
             </button>
@@ -835,14 +835,14 @@ export function ReaderPopup({
           ) : null}
 
           {!error && !fileUrl ? (
-            <div role="status" aria-live="polite" className="flex h-full items-center justify-center rounded-[1.75rem] border border-white/10 bg-[#173d2c] text-sm text-white/70">
+            <div role="status" aria-live="polite" className="flex h-full items-center justify-center rounded-[1.75rem] border border-white/10 bg-night-900 text-sm text-white/70">
               Préparation de votre livre…
             </div>
           ) : null}
 
           {!error && fileUrl ? (
             <div className="relative grid h-full min-h-0 gap-3 xl:grid-cols-[minmax(0,1fr)_340px]">
-              <div className="relative min-h-0 overflow-hidden rounded-none border-0 border-black/10 bg-[#d5d2cc] p-1 sm:rounded-[1rem] sm:border sm:p-3">
+              <div className="relative min-h-0 overflow-hidden rounded-none border-0 border-black/10 bg-slate-300 p-1 sm:rounded-[1rem] sm:border sm:p-3">
                 {fileType === "pdf" ? (
                   <PdfReaderSurface
                     fileUrl={fileUrl}
@@ -859,18 +859,18 @@ export function ReaderPopup({
                     onError={setError}
                   />
                 ) : (
-                  <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-none bg-[#f5efe6] p-1 shadow-[0_20px_40px_rgba(15,23,42,0.22)] sm:rounded-[1.5rem] sm:p-2">
+                  <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-none bg-slate-100 p-1 shadow-[0_20px_40px_rgba(11,31,58,0.22)] sm:rounded-[1.5rem] sm:p-2">
                     <div ref={mountRef} className="h-full min-h-0 w-full overflow-hidden rounded-lg bg-white sm:rounded-[1.1rem]" onContextMenu={(event) => event.preventDefault()} />
                   </div>
                 )}
-                <button type="button" onClick={goPrevious} aria-label="Revenir à la page précédente" className="absolute left-3 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-black/10 bg-white/90 text-[#173d2c] shadow-lg transition hover:scale-105 lg:grid"><ChevronLeft className="h-6 w-6" /></button>
-                <button type="button" onClick={goNext} aria-label="Passer à la page suivante" className="absolute right-3 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-black/10 bg-white/90 text-[#173d2c] shadow-lg transition hover:scale-105 lg:grid"><ChevronRight className="h-6 w-6" /></button>
+                <button type="button" onClick={goPrevious} aria-label="Revenir à la page précédente" className="absolute left-3 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-black/10 bg-white/90 text-night-900 shadow-lg transition hover:scale-105 lg:grid"><ChevronLeft className="h-6 w-6" /></button>
+                <button type="button" onClick={goNext} aria-label="Passer à la page suivante" className="absolute right-3 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-black/10 bg-white/90 text-night-900 shadow-lg transition hover:scale-105 lg:grid"><ChevronRight className="h-6 w-6" /></button>
               </div>
 
-              <aside ref={toolsPanelRef} tabIndex={-1} className={`${mobileToolsOpen ? "absolute inset-0 z-20 block" : "hidden"} reader-mobile-tools min-h-0 overflow-auto rounded-none border border-white/10 bg-[#173d2c] p-3 text-white outline-none sm:rounded-[1.75rem] sm:p-4 xl:static xl:block`}>
+              <aside ref={toolsPanelRef} tabIndex={-1} className={`${mobileToolsOpen ? "absolute inset-0 z-20 block" : "hidden"} reader-mobile-tools min-h-0 overflow-auto rounded-none border border-white/10 bg-night-900 p-3 text-white outline-none sm:rounded-[1.75rem] sm:p-4 xl:static xl:block`}>
                 <div className="mb-3 flex items-center justify-between xl:hidden">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#f7c78f]">Réglages</p>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-300">Réglages</p>
                     <p className="mt-1 text-xs text-white/55">Lecture, navigation et notes</p>
                   </div>
                   <button
@@ -883,7 +883,7 @@ export function ReaderPopup({
                   </button>
                 </div>
                 <section className="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f2c66f]">Confort de lecture</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-300">Confort de lecture</p>
 
                   {isEpub ? (
                     <div className="mt-4 space-y-4">
@@ -951,7 +951,7 @@ export function ReaderPopup({
                                   }
                                   void renditionRef.current?.display(item.href);
                                 }}
-                                className="block w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm text-white/80 transition hover:border-[#f7c78f]/40 hover:bg-white/10"
+                                className="block w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm text-white/80 transition hover:border-brand-200/40 hover:bg-white/10"
                                 style={{ paddingLeft: `${item.depth * 14 + 12}px` }}
                               >
                                 {item.label}
@@ -1033,7 +1033,7 @@ export function ReaderPopup({
                 <section className="mt-4 rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f2c66f]">Carnet de lecture</p>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-300">Carnet de lecture</p>
                       <p className="mt-2 text-sm text-white/70">
                         {isEpub
                           ? "Selectionnez un passage dans l EPUB ou ajoutez une note sur la page courante."
@@ -1046,14 +1046,14 @@ export function ReaderPopup({
                   </div>
 
                   {isGuestReader ? (
-                    <div className="mt-4 rounded-[1.15rem] border border-[#f7c78f]/25 bg-[#f7c78f]/10 p-4">
+                    <div className="mt-4 rounded-[1.15rem] border border-brand-200/25 bg-brand-100/10 p-4">
                       <p className="text-sm font-semibold text-white">Aperçu gratuit jusqu’à 10 pages.</p>
                       <p className="mt-2 text-sm leading-6 text-white/65">
                         Vous pouvez découvrir les 10 premières pages sans compte. Créez un compte lecteur pour continuer gratuitement au-delà de l’aperçu et conserver votre progression.
                       </p>
                       <Link
                         href={`/register?role=reader&next=${encodeURIComponent(`/book/${bookId}?read=1`)}`}
-                        className="mt-4 inline-flex min-h-11 items-center justify-center rounded-full bg-[#f7c78f] px-4 text-sm font-semibold text-[#111827]"
+                        className="mt-4 inline-flex min-h-11 items-center justify-center rounded-full bg-brand-100 px-4 text-sm font-semibold text-slate-900"
                       >
                         Créer un compte lecteur
                       </Link>
@@ -1061,7 +1061,7 @@ export function ReaderPopup({
                   ) : (
                     <>
                   {selectedQuote ? (
-                    <div className="mt-4 rounded-[1.1rem] border border-[#f7c78f]/30 bg-[#f7c78f]/10 px-4 py-3 text-sm leading-6 text-white/80">
+                    <div className="mt-4 rounded-[1.1rem] border border-brand-200/30 bg-brand-100/10 px-4 py-3 text-sm leading-6 text-white/80">
                       {selectedQuote}
                     </div>
                   ) : null}
@@ -1074,7 +1074,7 @@ export function ReaderPopup({
                           key={option.value}
                           type="button"
                           onClick={() => setHighlightColor(option.value)}
-                          className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${option.buttonClassName} ${active ? "ring-2 ring-offset-2 ring-offset-[#0f172a] ring-white/30" : ""}`}
+                          className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${option.buttonClassName} ${active ? "ring-2 ring-offset-2 ring-offset-[#0b1f3a] ring-white/30" : ""}`}
                         >
                           {option.label}
                         </button>
@@ -1089,7 +1089,7 @@ export function ReaderPopup({
                       value={highlightNote}
                       onChange={(event) => setHighlightNote(event.target.value)}
                       placeholder={isPdf ? "Exemple: passage cle a revoir sur cette page." : "Exemple: idee importante, commentaire, priere ou point a memoriser."}
-                      className="rounded-2xl border border-white/10 bg-[#0b1220] px-4 py-3 text-sm text-white placeholder:text-white/35"
+                      className="rounded-2xl border border-white/10 bg-night-900 px-4 py-3 text-sm text-white placeholder:text-white/35"
                     />
                   </label>
 
@@ -1097,7 +1097,7 @@ export function ReaderPopup({
                     type="button"
                     onClick={saveHighlight}
                     disabled={savingHighlight}
-                    className="mt-4 inline-flex h-11 items-center justify-center rounded-full bg-[#f7c78f] px-4 text-sm font-semibold text-[#111827] transition hover:bg-[#f3b96f] disabled:cursor-not-allowed disabled:opacity-70"
+                    className="mt-4 inline-flex h-11 items-center justify-center rounded-full bg-brand-100 px-4 text-sm font-semibold text-slate-900 transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     {savingHighlight ? "Enregistrement..." : `Enregistrer page ${Math.max(1, currentReaderPage || 1)}`}
                   </button>
@@ -1108,7 +1108,7 @@ export function ReaderPopup({
                         const option = getHighlightColorOption(highlight.color);
 
                         return (
-                          <article key={highlight.id} className="rounded-[1.1rem] border border-white/10 bg-[#0b1220] p-3">
+                          <article key={highlight.id} className="rounded-[1.1rem] border border-white/10 bg-night-900 p-3">
                             <div className="flex items-start justify-between gap-3">
                               <div>
                                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/50">
@@ -1147,25 +1147,25 @@ export function ReaderPopup({
             </div>
           ) : null}
         </div>
-        {fileUrl ? <div className="relative h-1.5 shrink-0 bg-[#d5d2cc]" aria-label={`Progression ${readerProgress}%`}><div className="h-full bg-[#e8ac42] transition-[width] duration-300" style={{ width: `${Math.max(0, Math.min(100, readerProgress))}%` }} /></div> : null}
+        {fileUrl ? <div className="relative h-1.5 shrink-0 bg-slate-300" aria-label={`Progression ${readerProgress}%`}><div className="h-full bg-brand-600 transition-[width] duration-300" style={{ width: `${Math.max(0, Math.min(100, readerProgress))}%` }} /></div> : null}
       </div>
       {previewGateOpen ? (
         <div className="fixed inset-0 z-[100] grid place-items-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-[2rem] bg-white p-7 text-[#1d1a17] shadow-2xl">
-            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#c34d35]">Aperçu terminé</p>
+          <div className="w-full max-w-md rounded-[2rem] bg-white p-7 text-slate-900 shadow-2xl">
+            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-brand-600">Aperçu terminé</p>
             <h3 className="mt-3 font-display text-2xl font-extrabold">Vous avez lu les 10 pages gratuites.</h3>
-            <p className="mt-3 text-sm leading-7 text-[#665c53]">
+            <p className="mt-3 text-sm leading-7 text-slate-600">
               Créez un compte lecteur gratuit pour continuer le livre complet, synchroniser votre progression et retrouver vos lectures sur mobile.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <Link href={`/register?role=reader&next=${encodeURIComponent(`/book/${bookId}?read=1`)}`} className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#173f38] px-4 text-sm font-extrabold text-white">
+              <Link href={`/register?role=reader&next=${encodeURIComponent(`/book/${bookId}?read=1`)}`} className="inline-flex min-h-11 items-center justify-center rounded-full bg-night-900 px-4 text-sm font-extrabold text-white">
                 Créer un compte
               </Link>
-              <Link href={`/login?next=${encodeURIComponent(`/book/${bookId}?read=1`)}`} className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#d8cabc] px-4 text-sm font-extrabold">
+              <Link href={`/login?next=${encodeURIComponent(`/book/${bookId}?read=1`)}`} className="inline-flex min-h-11 items-center justify-center rounded-full border border-slate-300 px-4 text-sm font-extrabold">
                 Se connecter
               </Link>
             </div>
-            <button type="button" onClick={() => setPreviewGateOpen(false)} className="mt-4 w-full text-sm font-semibold text-[#7a6655]">
+            <button type="button" onClick={() => setPreviewGateOpen(false)} className="mt-4 w-full text-sm font-semibold text-slate-600">
               Revenir aux 10 premières pages
             </button>
           </div>

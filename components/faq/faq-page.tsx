@@ -247,7 +247,7 @@ function JourneyList({
 }) {
   return (
     <div className="space-y-4">
-      <div className="inline-flex rounded-full bg-[#fff3e0] px-3 py-1 text-xs font-semibold text-[#b4690e]">
+      <div className="inline-flex rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
         {badge}
       </div>
 
@@ -280,7 +280,7 @@ function JourneyList({
 
                 <Link
                   href={step.href}
-                  className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-[#ff9900] hover:underline"
+                  className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline"
                 >
                   {step.linkLabel}
                   <ArrowRight className="h-4 w-4" />
@@ -296,12 +296,12 @@ function JourneyList({
 
 export function FaqPage() {
   return (
-    <div className="min-h-screen bg-[#f3f3f3]">
+    <div className="min-h-screen bg-slate-100">
       <div className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="grid gap-6 lg:grid-cols-[1.4fr_0.8fr] lg:items-start">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#cc7a00]">
+              <p className="text-xs font-semibold text-brand-700">
                 Centre d’aide
               </p>
               <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -316,20 +316,20 @@ export function FaqPage() {
               <div className="mt-5 flex flex-wrap gap-3">
                 <Link
                   href="/register"
-                  className="inline-flex items-center rounded-md bg-[#ff9900] px-4 py-2 text-sm font-medium text-white hover:bg-[#e68900] focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
+                  className="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2"
                 >
                   Créer un compte
                 </Link>
                 <Link
                   href="/books"
-                  className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff9900] focus:ring-offset-2"
+                  className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2"
                 >
                   Explorer les livres
                 </Link>
               </div>
             </div>
 
-            <div className="rounded-xl border border-gray-200 bg-[#fafafa] p-4 sm:p-5">
+            <div className="rounded-xl border border-gray-200 bg-slate-50 p-4 sm:p-5">
               <p className="text-sm font-semibold text-gray-900">
                 Accès rapides
               </p>
@@ -339,7 +339,7 @@ export function FaqPage() {
                   <Link
                     key={link.label}
                     href={link.href}
-                    className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 transition hover:border-[#ff9900] hover:text-[#ff9900]"
+                    className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 transition hover:border-brand-600 hover:text-brand-600"
                   >
                     <span>{link.label}</span>
                     <ArrowRight className="h-4 w-4" />
@@ -348,7 +348,7 @@ export function FaqPage() {
               </div>
 
               <div className="mt-4 rounded-md border border-gray-200 bg-white px-4 py-3">
-                <p className="text-xs uppercase tracking-wide text-gray-500">
+                <p className="text-xs text-gray-500">
                   Version
                 </p>
                 <p className="mt-1 text-sm font-semibold text-gray-900">
@@ -368,9 +368,9 @@ export function FaqPage() {
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Link
               href="/register"
-              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-[#ff9900]"
+              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-brand-600"
             >
-              <UserRoundPlus className="h-5 w-5 text-[#ff9900]" />
+              <UserRoundPlus className="h-5 w-5 text-brand-600" />
               <p className="mt-3 text-sm font-semibold text-gray-900">
                 Créer un compte
               </p>
@@ -381,9 +381,9 @@ export function FaqPage() {
 
             <Link
               href="/books"
-              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-[#ff9900]"
+              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-brand-600"
             >
-              <BookOpenText className="h-5 w-5 text-[#ff9900]" />
+              <BookOpenText className="h-5 w-5 text-brand-600" />
               <p className="mt-3 text-sm font-semibold text-gray-900">
                 Voir les livres
               </p>
@@ -394,9 +394,9 @@ export function FaqPage() {
 
             <Link
               href="/dashboard/reader"
-              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-[#ff9900]"
+              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-brand-600"
             >
-              <LibraryBig className="h-5 w-5 text-[#ff9900]" />
+              <LibraryBig className="h-5 w-5 text-brand-600" />
               <p className="mt-3 text-sm font-semibold text-gray-900">
                 Ma bibliothèque
               </p>
@@ -407,9 +407,9 @@ export function FaqPage() {
 
             <Link
               href="/dashboard/author"
-              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-[#ff9900]"
+              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-brand-600"
             >
-              <Sparkles className="h-5 w-5 text-[#ff9900]" />
+              <Sparkles className="h-5 w-5 text-brand-600" />
               <p className="mt-3 text-sm font-semibold text-gray-900">
                 Studio auteur
               </p>
@@ -449,12 +449,12 @@ export function FaqPage() {
               <div
                 key={category.id}
                 id={category.id}
-                className="rounded-lg border border-gray-200 bg-[#fcfcfc]"
+                className="rounded-lg border border-gray-200 bg-white"
               >
                 <div className="border-b border-gray-200 px-4 py-4">
                   <div className="flex items-center gap-2">
-                    <CircleHelp className="h-4 w-4 text-[#ff9900]" />
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[#cc7a00]">
+                    <CircleHelp className="h-4 w-4 text-brand-600" />
+                    <p className="text-xs font-semibold text-brand-700">
                       FAQ
                     </p>
                   </div>
@@ -470,7 +470,7 @@ export function FaqPage() {
                 <div className="divide-y divide-gray-200">
                   {category.items.map((item) => (
                     <details key={item.question} className="group px-4 py-4">
-                      <summary className="cursor-pointer list-none pr-6 text-sm font-medium text-gray-900 hover:text-[#ff9900]">
+                      <summary className="cursor-pointer list-none pr-6 text-sm font-medium text-gray-900 hover:text-brand-600">
                         {item.question}
                       </summary>
                       <p className="mt-3 text-sm leading-6 text-gray-600">
@@ -498,7 +498,7 @@ export function FaqPage() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/books"
-                className="inline-flex items-center rounded-md bg-[#ff9900] px-4 py-2 text-sm font-medium text-white hover:bg-[#e68900]"
+                className="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
               >
                 Explorer les livres
               </Link>

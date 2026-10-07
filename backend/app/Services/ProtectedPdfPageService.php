@@ -3,15 +3,17 @@
 namespace App\Services;
 
 use App\Models\Book;
+use Illuminate\Contracts\Cache\Lock;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
-use Symfony\Component\Process\ExecutableFinder;
-use Symfony\Component\Process\Process;
 use Throwable;
 
 class ProtectedPdfPageService
 {
+    public function __construct(private PdfPageImageRenderer $renderer) {}
+
     /**
      * @return array{disk:string,path:string,mime:string}
      */
@@ -63,32 +65,71 @@ class ProtectedPdfPageService
             return ['disk' => 'local', 'path' => $cachePath, 'mime' => 'image/jpeg'];
         }
 
-        $binary = (new ExecutableFinder)->find((string) config('books.pdf.pdftoppm_binary', 'pdftoppm'));
-        abort_if($binary === null, 503, 'Le moteur de rendu PDF sécurisé n’est pas disponible sur ce serveur.');
+        abort_unless(
+            $this->renderer->isAvailable(),
+            503,
+            'Le moteur de rendu PDF sécurisé n’est pas disponible sur ce serveur (pdftoppm ou Imagick requis).',
+        );
 
+        // Chaque rendu occupe un worker PHP jusqu'à 30 s : on borne le nombre
+        // de rendus simultanés pour qu'un afflux (ou un abus) sur l'aperçu
+        // public ne sature pas le serveur.
+        $slot = $this->acquireRenderSlot();
+        abort_if($slot === null, 503, 'Le lecteur est très sollicité, réessayez dans quelques secondes.', ['Retry-After' => '5']);
+
+        try {
+            // Une requête concurrente a pu rendre la même page pendant l'attente.
+            if (Storage::disk('local')->exists($cachePath)) {
+                return ['disk' => 'local', 'path' => $cachePath, 'mime' => 'image/jpeg'];
+            }
+
+            return $this->renderToCache($sourceDisk, $sourcePath, $page, $cachePath);
+        } finally {
+            $slot->release();
+        }
+    }
+
+    private function acquireRenderSlot(): ?Lock
+    {
+        $slots = max(1, (int) config('books.pdf.max_concurrent_renders', 3));
+        $ttl = (int) config('books.pdf.process_timeout', 30) + 15;
+        $deadline = microtime(true) + 3;
+
+        do {
+            for ($slot = 0; $slot < $slots; $slot++) {
+                $lock = Cache::lock('reader-pdf-render-slot:'.$slot, $ttl);
+
+                if ($lock->get()) {
+                    return $lock;
+                }
+            }
+
+            usleep(250_000);
+        } while (microtime(true) < $deadline);
+
+        return null;
+    }
+
+    /**
+     * @return array{disk:string,path:string,mime:string}
+     */
+    private function renderToCache(string $sourceDisk, string $sourcePath, int $page, string $cachePath): array
+    {
         [$absolutePath, $temporarySource] = $this->materialize($sourceDisk, $sourcePath);
         $temporaryDirectory = sys_get_temp_dir().'/holistic-reader-'.bin2hex(random_bytes(8));
         File::ensureDirectoryExists($temporaryDirectory, 0700);
         $outputPrefix = $temporaryDirectory.'/page';
 
         try {
-            $process = new Process([
-                $binary,
-                '-f', (string) $page,
-                '-l', (string) $page,
-                '-singlefile',
-                '-jpeg',
-                '-jpegopt', 'quality=86',
-                '-scale-to', (string) config('books.pdf.reader_page_size', 1800),
-                $absolutePath,
-                $outputPrefix,
-            ]);
-            $process->setTimeout((float) config('books.pdf.process_timeout', 30));
-            $process->run();
-
             $generated = $outputPrefix.'.jpg';
+            $this->renderer->render(
+                $absolutePath,
+                $page,
+                $generated,
+                (int) config('books.pdf.reader_page_size', 1800),
+            );
 
-            if (! $process->isSuccessful() || ! File::isFile($generated)) {
+            if (! File::isFile($generated)) {
                 throw new RuntimeException('Impossible de rendre cette page PDF.');
             }
 

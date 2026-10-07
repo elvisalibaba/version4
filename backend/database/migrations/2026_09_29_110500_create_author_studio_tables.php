@@ -26,9 +26,13 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // Un portefeuille par auteur ET par devise : une vente en CDF crédite
+        // le portefeuille CDF, une vente en USD le portefeuille USD.
         Schema::create('author_royalty_accounts', function (Blueprint $table) {
-            $table->foreignUuid('user_id')->primary()->constrained('profiles')->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('user_id')->constrained('profiles')->cascadeOnDelete();
             $table->string('currency_code', 3)->default('USD');
+            $table->unique(['user_id', 'currency_code']);
             $table->decimal('pending_balance', 14, 2)->default(0);
             $table->decimal('available_balance', 14, 2)->default(0);
             $table->decimal('lifetime_earnings', 14, 2)->default(0);

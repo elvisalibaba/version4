@@ -46,8 +46,8 @@ export default async function DonationReturnPage({ searchParams }: { searchParam
     return (
       <section className="page-hero-shell space-y-8 py-12">
         <div className="surface-panel space-y-6 p-8">
-          <div className="rounded-[1.6rem] border border-rose-200 bg-rose-50 px-5 py-4 text-rose-700">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em]">Retour EasyPay</p>
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-5 py-4 text-rose-700">
+            <p className="text-xs font-semibold">Retour EasyPay</p>
             <h1 className="mt-2 text-3xl font-semibold">Transaction introuvable</h1>
             <p className="mt-3 max-w-3xl text-sm leading-7">Aucun identifiant de transaction n a ete recu dans l URL de retour.</p>
           </div>
@@ -82,8 +82,8 @@ export default async function DonationReturnPage({ searchParams }: { searchParam
     return (
       <section className="page-hero-shell space-y-8 py-12">
         <div className="surface-panel space-y-6 p-8">
-          <div className="rounded-[1.6rem] border border-rose-200 bg-rose-50 px-5 py-4 text-rose-700">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em]">Retour EasyPay</p>
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-5 py-4 text-rose-700">
+            <p className="text-xs font-semibold">Retour EasyPay</p>
             <h1 className="mt-2 text-3xl font-semibold">Verification indisponible</h1>
             <p className="mt-3 max-w-3xl text-sm leading-7">{verificationError ?? "Verification du don impossible."}</p>
           </div>
@@ -105,23 +105,23 @@ export default async function DonationReturnPage({ searchParams }: { searchParam
   return (
     <section className="page-hero-shell space-y-8 py-12">
       <div className="surface-panel space-y-6 p-8">
-        <div className={`rounded-[1.6rem] border px-5 py-4 ${statusCopy.accent}`}>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em]">EasyPay donation return</p>
+        <div className={`rounded-xl border px-5 py-4 ${statusCopy.accent}`}>
+          <p className="text-xs font-semibold">EasyPay donation return</p>
           <h1 className="mt-2 text-3xl font-semibold">{statusCopy.title}</h1>
           <p className="mt-3 max-w-3xl text-sm leading-7">{statusCopy.description}</p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-[1.4rem] border border-violet-100 bg-violet-50/50 p-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Transaction</p>
+          <div className="rounded-xl border border-violet-100 bg-violet-50/50 p-5">
+            <p className="text-xs text-slate-400">Transaction</p>
             <p className="mt-2 break-all text-sm font-semibold text-slate-950">{verification.transactionId}</p>
           </div>
-          <div className="rounded-[1.4rem] border border-violet-100 bg-violet-50/50 p-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Statut</p>
+          <div className="rounded-xl border border-violet-100 bg-violet-50/50 p-5">
+            <p className="text-xs text-slate-400">Statut</p>
             <p className="mt-2 text-sm font-semibold text-slate-950">{verification.status}</p>
           </div>
-          <div className="rounded-[1.4rem] border border-violet-100 bg-violet-50/50 p-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Montant</p>
+          <div className="rounded-xl border border-violet-100 bg-violet-50/50 p-5">
+            <p className="text-xs text-slate-400">Montant</p>
             <p className="mt-2 text-sm font-semibold text-slate-950">
               {verification.amount !== null && verification.currency
                 ? new Intl.NumberFormat("en-US", {
@@ -133,7 +133,7 @@ export default async function DonationReturnPage({ searchParams }: { searchParam
           </div>
         </div>
 
-        <div className="rounded-[1.4rem] border border-slate-200 bg-white p-5 text-sm text-slate-600">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600">
           <p>
             Statut fournisseur: <span className="font-semibold text-slate-900">{verification.providerStatus}</span>
             {" "}

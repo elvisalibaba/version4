@@ -48,10 +48,8 @@ class ProtectedReaderSessionService
             return null;
         }
 
-        $token = trim((string) (
-            $request->header('X-Holistique-Reader-Token')
-            ?: $request->query('reader_token', '')
-        ));
+        // En-tête uniquement : un jeton en query string finirait dans les logs d'accès.
+        $token = trim((string) $request->header('X-Holistique-Reader-Token', ''));
 
         abort_if($token === '', 401, 'Session de lecture sécurisée requise.');
 

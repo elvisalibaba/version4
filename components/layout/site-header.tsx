@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Menu, Search, ShoppingBag, UserRound } from "lucide-react";
+import { Heart, PenLine, Search, UserRound } from "lucide-react";
+import { CartIndicator } from "@/components/cart/cart-indicator";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { getCurrentUserProfile } from "@/lib/auth";
 
@@ -9,20 +10,41 @@ function isDynamicError(error: unknown) {
 }
 
 const links = [
-  { label: "Librairie", href: "/books" },
-  { label: "Élèves & Étudiants", href: "/education" },
+  { label: "Tous les livres", href: "/books" },
   { label: "Lire gratuitement", href: "/books?access=free" },
+  { label: "Élèves & étudiants", href: "/education" },
   { label: "Auteurs", href: "/authors" },
   { label: "Magazine", href: "/blog" },
   { label: "Services éditoriaux", href: "/services" },
+  { label: "Aide", href: "/faq" },
 ];
 
+function SearchForm({ className = "" }: { className?: string }) {
+  return (
+    <form action="/books" role="search" className={className}>
+      <label htmlFor="site-search" className="sr-only">Rechercher un livre ou un auteur</label>
+      <div className="flex h-11 overflow-hidden rounded-md bg-white ring-2 ring-transparent transition focus-within:ring-brand-600">
+        <input
+          id="site-search"
+          name="q"
+          type="search"
+          placeholder="Titre, auteur ou thème"
+          className="min-w-0 flex-1 bg-transparent px-4 text-[0.95rem] text-slate-900 outline-none placeholder:text-slate-500"
+        />
+        <button type="submit" aria-label="Lancer la recherche" className="grid w-12 shrink-0 place-items-center bg-brand-600 text-white transition hover:bg-brand-700">
+          <Search className="h-5 w-5" />
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export async function SiteHeader() {
-  let user: { id: string; avatarUrl: string | null } | null = null;
+  let user: { id: string; name: string | null; avatarUrl: string | null } | null = null;
   let role: string | null = null;
   try {
     const profile = await getCurrentUserProfile();
-    user = profile ? { id: profile.id, avatarUrl: profile.avatar_url } : null;
+    user = profile ? { id: profile.id, name: profile.first_name ?? profile.name ?? null, avatarUrl: profile.avatar_url } : null;
     role = profile?.role ?? null;
   } catch (error) {
     if (isDynamicError(error)) throw error;
@@ -31,34 +53,66 @@ export async function SiteHeader() {
 
   const accountHref = role === "admin" ? "/admin" : role === "author" ? "/dashboard/author" : user ? "/dashboard/reader" : "/login";
   const favoritesHref = role === "reader" ? "/dashboard/reader/favorites" : user ? "/books" : "/login?next=%2Fdashboard%2Freader%2Ffavorites";
+  const publishHref = role === "author" ? "/dashboard/author/add-book" : "/register?role=author";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#d9cebd] bg-[#fffaf2]/95 text-[#17231d] shadow-[0_4px_25px_rgba(40,31,23,.06)] backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-3 sm:px-6 lg:h-[72px] lg:px-8">
-        <Link href="/home" className="flex shrink-0 items-center gap-2.5" aria-label="Accueil Holistique Books">
-          <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-[#173d2c] p-1.5"><Image src="/logo.svg" alt="" width={32} height={32} className="h-full w-full object-contain" priority /></span>
-          <span className="hidden sm:block"><strong className="block font-serif text-lg leading-none">Holistique Books</strong><span className="mt-1 block text-[.55rem] font-bold uppercase tracking-[.2em] text-[#b85135]">Maison éditoriale africaine</span></span>
-        </Link>
-        <nav aria-label="Navigation principale" className="ml-5 hidden items-center gap-1 xl:flex">
-          {links.map((link) => <Link key={link.href} href={link.href} className="rounded-full px-3 py-2 text-sm font-semibold transition hover:bg-[#efe6d8] hover:text-[#b85135]">{link.label}</Link>)}
-        </nav>
-        <form action="/books" className="ml-auto hidden min-w-0 max-w-[250px] flex-1 lg:block">
-          <div className="relative"><Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d756a]" /><input name="q" type="search" aria-label="Rechercher" placeholder="Titre, auteur…" className="h-11 w-full rounded-full border border-[#d9cebd] bg-white pl-10 pr-4 text-sm outline-none transition focus:border-[#173d2c] focus:ring-2 focus:ring-[#173d2c]/10" /></div>
-        </form>
-        <div className="ml-auto flex shrink-0 items-center gap-1 lg:ml-1">
-          <Link href="/books" className="grid h-11 w-11 place-items-center rounded-full transition hover:bg-[#efe6d8] lg:hidden" aria-label="Rechercher"><Search className="h-5 w-5" /></Link>
-          <Link href={favoritesHref} className="hidden h-11 w-11 place-items-center rounded-full transition hover:bg-[#efe6d8] sm:grid" aria-label="Favoris"><Heart className="h-5 w-5" /></Link>
-          <Link href="/cart" className="grid h-11 w-11 place-items-center rounded-full transition hover:bg-[#efe6d8]" aria-label="Panier"><ShoppingBag className="h-5 w-5" /></Link>
-          <Link href={accountHref} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#173d2c] px-2.5 text-sm font-bold text-white transition hover:bg-[#23573f] sm:px-3.5">
-            {user?.avatarUrl ? (
-              <Image src={user.avatarUrl} alt="Photo de profil" width={28} height={28} className="h-7 w-7 rounded-full object-cover ring-1 ring-white/30" />
-            ) : (
-              <UserRound className="h-4 w-4" />
-            )}
-            <span className="hidden sm:inline">{user ? "Mon espace" : "Connexion"}</span>
+    <header className="sticky top-0 z-50 shadow-sm">
+      <a href="#contenu" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-60 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-night-900">
+        Aller au contenu
+      </a>
+
+      <div className="bg-night-900 text-white">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:gap-6 sm:px-6 lg:px-8">
+          <Link href="/home" className="flex shrink-0 items-center gap-2.5 rounded-md py-1 pr-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Accueil Holistique Books">
+            <Image src="/logo.svg" alt="" width={44} height={44} className="h-11 w-11 brightness-0 invert" priority />
+            <span className="leading-tight">
+              <span className="block text-[1.05rem] font-bold tracking-tight">Holistique Books</span>
+              <span className="hidden text-[0.7rem] font-medium text-night-200 sm:block">Lire · Publier · Transmettre</span>
+            </span>
           </Link>
-          {user ? <LogoutButton label="Sortir" className="hidden h-11 items-center rounded-full border border-[#d9cebd] px-3 text-xs font-bold transition hover:bg-[#efe6d8] xl:inline-flex" /> : null}
-          <details className="relative xl:hidden"><summary className="grid h-11 w-11 cursor-pointer list-none place-items-center rounded-full hover:bg-[#efe6d8] [&::-webkit-details-marker]:hidden" aria-label="Ouvrir le menu"><Menu className="h-5 w-5" /></summary><nav className="absolute right-0 top-13 w-64 rounded-2xl border border-[#d9cebd] bg-[#fffaf2] p-2 shadow-2xl">{links.map((link) => <Link key={link.href} href={link.href} className="block rounded-xl px-4 py-3 text-sm font-bold hover:bg-[#efe6d8]">{link.label}</Link>)}{user ? <div className="border-t border-[#d9cebd] pt-2"><LogoutButton label="Déconnexion" className="flex h-11 w-full items-center rounded-xl px-4 text-sm font-bold hover:bg-[#efe6d8]" /></div> : null}</nav></details>
+
+          <SearchForm className="hidden flex-1 md:block" />
+
+          <nav aria-label="Compte" className="ml-auto flex shrink-0 items-center gap-1 md:ml-0">
+            <Link href={accountHref} className="flex items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+              {user?.avatarUrl ? (
+                <Image src={user.avatarUrl} alt="" width={28} height={28} className="h-7 w-7 rounded-full object-cover" />
+              ) : (
+                <UserRound className="h-6 w-6" />
+              )}
+              <span className="hidden leading-tight lg:block">
+                <span className="block text-xs text-night-200">{user ? `Bonjour${user.name ? `, ${user.name}` : ""}` : "Bonjour, identifiez-vous"}</span>
+                <span className="block text-sm font-semibold">{user ? "Mon espace" : "Compte et bibliothèque"}</span>
+              </span>
+            </Link>
+            <Link href={favoritesHref} className="hidden h-11 w-11 place-items-center rounded-md transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white sm:grid" aria-label="Mes favoris">
+              <Heart className="h-5 w-5" />
+            </Link>
+            <CartIndicator />
+          </nav>
+        </div>
+
+        <div className="px-4 pb-3 md:hidden">
+          <SearchForm />
+        </div>
+      </div>
+
+      <div className="bg-night-800 text-white">
+        <div className="mx-auto flex h-11 max-w-7xl items-center gap-2 px-4 sm:px-6 lg:px-8">
+          <nav aria-label="Navigation principale" className="-mx-1 flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {links.map((link) => (
+              <Link key={link.href} href={link.href} className="shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium text-white/90 transition hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          {user ? (
+            <LogoutButton label="Déconnexion" className="hidden shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-white/80 transition hover:bg-white/10 hover:text-white lg:inline-flex" />
+          ) : null}
+          <Link href={publishHref} className="hidden shrink-0 items-center gap-2 rounded-md bg-brand-600 px-3.5 py-1.5 text-sm font-semibold text-white transition hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-white sm:inline-flex">
+            <PenLine className="h-4 w-4" />
+            Publier votre livre
+          </Link>
         </div>
       </div>
     </header>

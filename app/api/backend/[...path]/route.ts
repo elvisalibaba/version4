@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME } from "@/lib/api/session";
+import { proxyForwardHeaders } from "@/lib/api/forwarded";
 
 const API_URL = (
   process.env.API_URL ??
@@ -18,11 +19,9 @@ async function proxyRequest(request: NextRequest, context: { params: Promise<{ p
   if (contentType) headers.set("Content-Type", contentType);
   headers.set("Accept", request.headers.get("accept") ?? "application/json");
   const userAgent = request.headers.get("user-agent");
-  const forwardedFor = request.headers.get("x-forwarded-for");
-  const realIp = request.headers.get("x-real-ip");
   if (userAgent) headers.set("User-Agent", userAgent);
-  if (forwardedFor) headers.set("X-Forwarded-For", forwardedFor);
-  if (realIp) headers.set("X-Real-IP", realIp);
+  // IP réelle du visiteur, reconnue par Laravel grâce à la clé partagée.
+  for (const [name, value] of Object.entries(proxyForwardHeaders(request))) headers.set(name, value);
 
   const token = (await cookies()).get(AUTH_COOKIE_NAME)?.value;
   if (token) headers.set("Authorization", `Bearer ${token}`);

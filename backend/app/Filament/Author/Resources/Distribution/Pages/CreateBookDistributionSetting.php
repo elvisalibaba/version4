@@ -14,6 +14,9 @@ class CreateBookDistributionSetting extends CreateRecord
         $data['territories'] = $data['territories'] ?? [];
         $data['sales_channels'] = $data['sales_channels'] ?? ['web_store', 'mobile_app'];
 
+        // Le taux contractuel est fixé par l'équipe finance (Control Center).
+        unset($data['royalty_rate']);
+
         return $data;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\ProfileFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Profile extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProfileFactory> */
+    /** @use HasFactory<ProfileFactory> */
     use HasFactory, HasUuids;
 
     public const UPDATED_AT = null;
@@ -97,9 +98,9 @@ class Profile extends Model
         return $this->hasOne(AffiliateWallet::class, 'user_id');
     }
 
-    public function royaltyAccount(): HasOne
+    public function royaltyAccounts(): HasMany
     {
-        return $this->hasOne(AuthorRoyaltyAccount::class, 'user_id');
+        return $this->hasMany(AuthorRoyaltyAccount::class, 'user_id');
     }
 
     public function royaltyTransactions(): HasMany

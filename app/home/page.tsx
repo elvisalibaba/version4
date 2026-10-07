@@ -5,21 +5,22 @@ import {
   ArrowRight,
   BookOpen,
   ChevronRight,
-  Eye,
-  Globe2,
-  Headphones,
-  PenTool,
-  Search,
-  School,
-  Sparkles,
-  Star,
   GraduationCap,
+  PenLine,
+  School,
+  ShieldCheck,
+  Smartphone,
+  Upload,
+  UserPlus,
+  Wallet,
 } from "lucide-react";
 import { AdSlot } from "@/components/ads/ad-slot";
+import { BookCard } from "@/components/books/book-card";
 import { AllAuthorsSection } from "@/components/home/all-authors-section";
 import { getPublicAuthors } from "@/lib/authors";
 import { getPublishedBooks } from "@/lib/books";
 import { getPublicCategories } from "@/lib/categories";
+import { COMPANY, INTERVENTION_POLES, PUBLISHING_PACKS } from "@/lib/holistique";
 import { SITE_DESCRIPTION } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -30,20 +31,6 @@ export const metadata: Metadata = {
 
 type HomeBook = Awaited<ReturnType<typeof getPublishedBooks>>[number];
 
-
-
-function formatPrice(book: HomeBook) {
-  return book.display_price_label ?? (book.price <= 0 ? "Gratuit" : `${book.price.toFixed(2)} ${book.currency_code}`);
-}
-
-function bookHref(book: HomeBook) {
-  return book.is_free ? `/book/${book.id}?read=1` : `/book/${book.id}`;
-}
-
-function formatAudienceCount(value: number | null | undefined) {
-  return new Intl.NumberFormat("fr-FR", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value ?? 0));
-}
-
 function rankByAudience(a: HomeBook, b: HomeBook) {
   const aReads = Number(a.purchases_count ?? 0);
   const bReads = Number(b.purchases_count ?? 0);
@@ -52,226 +39,280 @@ function rankByAudience(a: HomeBook, b: HomeBook) {
   return bReads - aReads || bViews - aViews || new Date(b.published_at ?? b.created_at ?? 0).getTime() - new Date(a.published_at ?? a.created_at ?? 0).getTime();
 }
 
-function BookTile({ book, priority = false }: { book: HomeBook; priority?: boolean }) {
-  return (
-    <article className="group min-w-0">
-      <Link href={bookHref(book)} className="relative block overflow-hidden rounded-[1.15rem] bg-[#e9e1d7] shadow-[0_16px_35px_rgba(34,28,22,0.12)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_24px_45px_rgba(34,28,22,0.18)]">
-        <div className="aspect-[0.69]">
-          {book.cover_signed_url ? (
-            <Image
-              src={book.cover_signed_url}
-              alt={book.cover_alt_text || `Couverture de ${book.title}`}
-              width={420}
-              height={610}
-              priority={priority}
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
-            />
-          ) : (
-            <div className="grid h-full place-items-center bg-[linear-gradient(145deg,#efe3d4,#d8c5af)] p-5 text-center font-display text-sm font-bold text-[#5b4d40]">{book.title}</div>
-          )}
-        </div>
-        <span className={`absolute left-2.5 top-2.5 rounded-full px-2.5 py-1 text-[0.62rem] font-extrabold uppercase tracking-[0.08em] shadow-sm ${book.is_free ? "bg-[#f4b942] text-[#282014]" : "bg-white/92 text-[#2d2925] backdrop-blur"}`}>
-          {book.is_free ? "Lecture gratuite" : "Nouveauté"}
-        </span>
-      </Link>
-      <div className="pt-3">
-        <h3 className="line-clamp-2 text-sm font-extrabold leading-5 text-[#1d1a17] sm:text-[0.95rem]">
-          <Link href={bookHref(book)} className="transition hover:text-[#c34d35]">{book.title}</Link>
-        </h3>
-        <p className="mt-1 line-clamp-1 text-xs text-[#766b61]">{book.author_name || "Auteur Holistique"}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.68rem] font-semibold text-[#83776c]">
-          <span className="inline-flex items-center gap-1"><Eye className="h-3.5 w-3.5" />{formatAudienceCount(book.views_count)} vues</span>
-          <span className="inline-flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" />{formatAudienceCount(book.purchases_count)} lectures</span>
-        </div>
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <p className={`text-sm font-extrabold ${book.is_free ? "text-[#176052]" : "text-[#1d1a17]"}`}>{formatPrice(book)}</p>
-          {book.rating_avg ? (
-            <span className="inline-flex items-center gap-1 text-[0.68rem] font-bold text-[#7d7166]"><Star className="h-3 w-3 fill-[#e7a52d] text-[#e7a52d]" />{Number(book.rating_avg).toFixed(1)}</span>
-          ) : null}
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function Shelf({ title, eyebrow, description, books, href }: { title: string; eyebrow: string; description: string; books: HomeBook[]; href: string }) {
+function Shelf({ title, description, books, href }: { title: string; description?: string; books: HomeBook[]; href: string }) {
   if (books.length === 0) return null;
 
   return (
-    <section>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <section aria-label={title} className="hb-reveal border-b border-slate-200 py-10 last:border-b-0">
+      <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.2em] text-[#c34d35]">{eyebrow}</p>
-          <h2 className="mt-2 font-display text-2xl font-extrabold tracking-[-0.04em] text-[#1d1a17] sm:text-4xl">{title}</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#766b61]">{description}</p>
+          <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{title}</h2>
+          {description ? <p className="mt-1 max-w-2xl text-sm text-slate-600">{description}</p> : null}
         </div>
-        <Link href={href} className="inline-flex min-h-11 items-center gap-2 self-start rounded-full border border-[#d9ccbf] bg-white px-4 text-sm font-bold text-[#403830] transition hover:border-[#e85d3f] hover:text-[#b9432d] sm:self-auto">
-          Voir toute la sélection <ArrowRight className="h-4 w-4" />
+        <Link href={href} className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-night-700 hover:text-brand-700 hover:underline">
+          Voir tout <ChevronRight className="h-4 w-4" />
         </Link>
       </div>
-      <div className="mt-7 grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-5 xl:grid-cols-6">
-        {books.slice(0, 12).map((book, index) => <BookTile key={book.id} book={book} priority={index < 2} />)}
+      <div className="-mx-4 mt-5 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-5 sm:overflow-visible sm:px-0 md:grid-cols-4 lg:grid-cols-6 [&::-webkit-scrollbar]:hidden">
+        {books.slice(0, 12).map((book, index) => (
+          <div key={book.id} className="w-[42vw] max-w-45 shrink-0 snap-start sm:w-auto sm:max-w-none">
+            <BookCard book={book} priority={index < 2} />
+          </div>
+        ))}
       </div>
     </section>
   );
 }
 
+const promises = [
+  { icon: BookOpen, title: "Lecture immédiate", text: "Lisez en ligne dès l’achat, sur téléphone ou ordinateur." },
+  { icon: Wallet, title: "Mobile Money et carte", text: "Paiement sécurisé en USD ou en CDF via EasyPay." },
+  { icon: ShieldCheck, title: "Œuvres protégées", text: "Lecture sécurisée qui respecte les droits des auteurs." },
+  { icon: Smartphone, title: "Partout avec vous", text: "Votre bibliothèque synchronisée sur le web et l’application." },
+];
+
+const publishingSteps = [
+  { icon: UserPlus, title: "Créez votre compte auteur", text: "Gratuit, en quelques minutes." },
+  { icon: Upload, title: "Déposez votre manuscrit", text: "PDF ou EPUB, avec couverture et description." },
+  { icon: Wallet, title: "Vendez et suivez vos revenus", text: "Royalties en USD ou CDF, versées par Mobile Money ou virement." },
+];
+
 export default async function HomePage() {
   const [books, authors, categoryRows] = await Promise.all([getPublishedBooks(), getPublicAuthors(), getPublicCategories()]);
-  const categoryColors = ["bg-[#e85d3f]","bg-[#174c42]","bg-[#3f3a78]","bg-[#dc9b2d]","bg-[#a43b57]","bg-[#1d6480]","bg-[#6a4c93]","bg-[#2a9d8f]"];
-  const categories = categoryRows.slice(0, 12).map((category, index) => ({
-    label: category.name,
-    value: category.name,
-    color: categoryColors[index % categoryColors.length],
-  }));
+
+  const categories = categoryRows.slice(0, 14);
   const popularBooks = [...books].sort(rankByAudience);
   // The catalogue is already ordered by newest publication first.
   const freeBooks = books.filter((book) => book.is_free);
   const paidBooks = books.filter((book) => !book.is_free);
-  const heroBooks = (freeBooks.length > 0 ? freeBooks : popularBooks).slice(0, 3);
-  const leadBook = heroBooks[0] ?? null;
+  const withCovers = popularBooks.filter((book) => book.cover_signed_url);
+  const heroBooks = (withCovers.length >= 3 ? withCovers : popularBooks).slice(0, 3);
 
   return (
-    <div className="hb-home-page bg-[#f8f4ed] text-[#1d1a17]">
-      <section className="relative overflow-hidden bg-[#123f37] text-white">
-        <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(30deg,transparent_48%,rgba(255,255,255,.14)_49%,rgba(255,255,255,.14)_51%,transparent_52%),linear-gradient(150deg,transparent_48%,rgba(255,255,255,.08)_49%,rgba(255,255,255,.08)_51%,transparent_52%)] [background-size:64px_112px]" />
-        <div className="absolute -right-28 -top-28 h-80 w-80 rounded-full bg-[#e85d3f]/40 blur-3xl" />
-        <div className="relative mx-auto grid min-h-[520px] max-w-7xl gap-12 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:py-20">
+    <div className="hb-home-page bg-white text-slate-900">
+      {/* Bandeau principal */}
+      <section className="bg-night-900 text-white">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:px-8 lg:py-20">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[#f8ce78] backdrop-blur">
-              <Globe2 className="h-3.5 w-3.5" /> La librairie africaine nouvelle génération
-            </div>
-            <h1 className="mt-6 font-display text-[2.7rem] font-extrabold leading-[0.98] tracking-[-0.06em] sm:text-6xl lg:text-[4.5rem]">
-              Des voix d’ici.<br /><span className="text-[#f4b942]">Des histoires</span> pour le monde.
+            <p className="text-sm font-semibold text-brand-300">Librairie numérique et maison d’édition</p>
+            <h1 className="mt-3 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-[3.4rem]">
+              Des voix d’ici, des histoires pour le monde.
             </h1>
-            <p className="mt-6 max-w-xl text-base leading-7 text-white/72 sm:text-lg sm:leading-8">Découvrez gratuitement de nouvelles plumes, explorez les imaginaires du continent et soutenez une édition africaine ambitieuse.</p>
-            <form action="/books" className="mt-8 flex max-w-xl items-center rounded-2xl bg-white p-1.5 shadow-[0_22px_55px_rgba(0,0,0,.2)]">
-              <Search aria-hidden="true" className="ml-3 h-5 w-5 shrink-0 text-[#85796d]" />
-              <input type="search" name="q" placeholder="Titre, auteur, thème…" className="h-12 min-w-0 flex-1 bg-transparent px-3 text-base text-[#1d1a17] outline-none placeholder:text-[#9a8e82]" />
-              <button type="submit" className="h-12 shrink-0 rounded-xl bg-[#e85d3f] px-4 text-sm font-extrabold text-white transition hover:bg-[#d44e34] sm:px-6">Rechercher</button>
-            </form>
-            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-white/62">
-              <span className="inline-flex items-center gap-2"><BookOpen className="h-4 w-4 text-[#f4b942]" /> Lecture web immédiate</span>
-              <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-[#f4b942]" /> Nouvelles voix</span>
-              <span className="inline-flex items-center gap-2"><Headphones className="h-4 w-4 text-[#f4b942]" /> Multi-formats</span>
+            <p className="mt-5 max-w-xl text-base leading-7 text-night-100 sm:text-lg">
+              Découvrez les auteurs du continent, lisez en ligne en toute simplicité et publiez vos propres livres avec un accompagnement professionnel.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href="/books" className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-brand-600 px-6 text-[0.95rem] font-semibold text-white transition hover:bg-brand-700">
+                Explorer le catalogue <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link href="/register?role=author" className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-white/40 px-6 text-[0.95rem] font-semibold text-white transition hover:bg-white/10">
+                <PenLine className="h-4 w-4" /> Publier votre livre
+              </Link>
             </div>
+            {freeBooks.length > 0 ? (
+              <p className="mt-5 text-sm text-night-200">
+                <Link href="/books?access=free" className="font-medium text-white underline-offset-4 hover:underline">Lire gratuitement</Link>
+                {" "}— {freeBooks.length} titre{freeBooks.length > 1 ? "s" : ""} disponible{freeBooks.length > 1 ? "s" : ""} sans paiement.
+              </p>
+            ) : null}
           </div>
 
-          <div className="relative hidden min-h-[390px] lg:block">
-            <div className="absolute inset-x-10 bottom-3 h-20 rounded-[50%] bg-black/30 blur-2xl" />
-            {heroBooks.map((book, index) => {
-              const positions = ["left-[26%] top-0 z-30 rotate-[-2deg]", "left-[2%] top-16 z-10 rotate-[-10deg]", "right-[2%] top-14 z-20 rotate-[9deg]"];
-              return (
-                <Link key={book.id} href={bookHref(book)} className={`absolute block w-[210px] overflow-hidden rounded-xl bg-[#e8ddcf] shadow-[0_30px_65px_rgba(0,0,0,.38)] transition duration-300 hover:z-40 hover:-translate-y-3 hover:rotate-0 ${positions[index]}`}>
-                  <div className="aspect-[0.69]">
-                    {book.cover_signed_url ? <Image src={book.cover_signed_url} alt={book.title} width={420} height={610} priority className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center p-5 text-center font-bold text-[#4f4439]">{book.title}</div>}
-                  </div>
+          {heroBooks.length > 0 ? (
+            <div className="hidden grid-cols-3 items-end gap-4 lg:grid">
+              {heroBooks.map((book, index) => (
+                <Link
+                  key={book.id}
+                  href={`/book/${book.id}`}
+                  className={`block overflow-hidden rounded-md border border-white/10 bg-night-800 shadow-md transition hover:-translate-y-1 ${index === 1 ? "lg:-translate-y-6 lg:hover:-translate-y-7" : ""}`}
+                >
+                  {book.cover_signed_url ? (
+                    <Image src={book.cover_signed_url} alt={`Couverture de ${book.title}`} width={300} height={450} priority className="aspect-2/3 h-full w-full object-cover" />
+                  ) : (
+                    <span className="flex aspect-2/3 flex-col justify-end gap-2 p-4">
+                      <span className="h-0.5 w-8 bg-brand-600" aria-hidden="true" />
+                      <span className="line-clamp-4 text-base font-bold leading-snug text-white">{book.title}</span>
+                      <span className="line-clamp-1 text-xs text-night-200">{book.author_name}</span>
+                    </span>
+                  )}
                 </Link>
-              );
-            })}
-            {leadBook?.is_free ? <p className="absolute bottom-0 right-6 z-40 rounded-full bg-[#f4b942] px-4 py-2 text-xs font-extrabold text-[#2c271f]">À lire gratuitement</p> : null}
-          </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       </section>
 
-      <nav aria-label="Explorer par catégorie" className="border-b border-[#dfd3c7] bg-[#fffdf9]">
-        <div className="mx-auto flex max-w-7xl gap-3 overflow-x-auto px-4 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6 lg:px-8">
-          {categories.map((category) => (
-            <Link key={category.value} href={`/books?category=${encodeURIComponent(category.value)}`} className="group inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-[#e4d9ce] bg-white px-4 text-sm font-bold text-[#403830] transition hover:-translate-y-0.5 hover:border-[#c9b7a6] hover:shadow-sm">
-              <span className={`h-2.5 w-2.5 rounded-full ${category.color}`} />{category.label}<ChevronRight className="h-3.5 w-3.5 text-[#aa9d91] transition group-hover:translate-x-0.5" />
-            </Link>
+      {/* Engagements */}
+      <section aria-label="Nos engagements" className="border-b border-slate-200 bg-slate-50">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
+          {promises.map(({ icon: Icon, title, text }) => (
+            <div key={title} className="flex gap-3">
+              <Icon aria-hidden="true" className="mt-0.5 h-6 w-6 shrink-0 text-night-700" />
+              <div>
+                <p className="text-sm font-semibold text-slate-900">{title}</p>
+                <p className="mt-0.5 text-sm text-slate-600">{text}</p>
+              </div>
+            </div>
           ))}
         </div>
-      </nav>
+      </section>
 
-      <main className="mx-auto max-w-7xl space-y-20 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
-        <AdSlot placementCode="web.home.feed" />
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Catégories */}
+        {categories.length > 0 ? (
+          <nav aria-label="Parcourir par catégorie" className="border-b border-slate-200 py-8">
+            <h2 className="text-lg font-bold text-slate-900">Parcourir par catégorie</h2>
+            <ul className="mt-4 flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <li key={category.name}>
+                  <Link
+                    href={`/books?category=${encodeURIComponent(category.name)}`}
+                    className="inline-flex h-9 items-center rounded-full border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-night-700 hover:text-night-900"
+                  >
+                    {category.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ) : null}
+
+        <div className="pt-8">
+          <AdSlot placementCode="web.home.feed" />
+        </div>
+
         <Shelf
-          eyebrow="Les vedettes du moment"
-          title="Les livres qui captivent les lecteurs."
-          description="Un classement vivant, fondé sur les lectures puis sur les consultations de chaque livre."
+          title="Les plus lus du moment"
+          description="Classement fondé sur les lectures, puis sur les consultations."
           books={popularBooks}
           href="/books"
         />
 
         <Shelf
-          eyebrow="Nouveautés gratuites"
-          title="De nouveaux livres à lire gratuitement."
-          description="Découvrez les derniers livres gratuits publiés sur Holistique Books. Les nouvelles parutions apparaissent ici dès leur publication, sans paiement nécessaire."
+          title="À lire gratuitement"
+          description="Les dernières parutions accessibles sans paiement."
           books={freeBooks}
           href="/books?access=free"
         />
 
-        <section className="overflow-hidden rounded-[2rem] border border-[#d9ccbf] bg-[#fffdf9]">
-          <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="bg-[#173d2c] p-7 text-white sm:p-10">
-              <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#f4b942]">Éducation RDC</p>
-              <h2 className="mt-3 font-display text-3xl font-extrabold leading-tight tracking-[-0.045em] sm:text-4xl">
-                Une bibliothèque pensée aussi pour apprendre.
-              </h2>
-              <p className="mt-4 text-sm leading-7 text-white/75">
-                Retrouvez les ouvrages scolaires et universitaires par classe, section, option, cycle LMD, domaine et filière.
-              </p>
-              <Link href="/education" className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-5 text-sm font-extrabold text-[#173d2c]">
-                Explorer l’espace Éducation <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-            <div className="grid gap-4 p-6 sm:grid-cols-2 sm:p-8">
-              <Link href="/education?audience=school" className="group rounded-3xl border border-[#e1d6ca] bg-[#f8f4ed] p-6 transition hover:-translate-y-1 hover:shadow-lg">
-                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#e85d3f] text-white">
-                  <School className="h-6 w-6" />
-                </span>
-                <h3 className="mt-5 text-xl font-extrabold text-[#1d1a17]">Élèves</h3>
-                <p className="mt-2 text-sm leading-6 text-[#766b61]">
-                  Primaire, CTEB, Humanités générales, techniques et professionnelles.
-                </p>
-                <span className="mt-5 inline-flex items-center gap-1 text-sm font-extrabold text-[#b9432d]">
-                  Choisir mon niveau <ChevronRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                </span>
-              </Link>
-              <Link href="/education?audience=university" className="group rounded-3xl border border-[#e1d6ca] bg-[#f8f4ed] p-6 transition hover:-translate-y-1 hover:shadow-lg">
-                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#173d2c] text-white">
-                  <GraduationCap className="h-6 w-6" />
-                </span>
-                <h3 className="mt-5 text-xl font-extrabold text-[#1d1a17]">Étudiants</h3>
-                <p className="mt-2 text-sm leading-6 text-[#766b61]">
-                  Licence, Master, Doctorat, domaines LMD, filières et mentions RegESU.
-                </p>
-                <span className="mt-5 inline-flex items-center gap-1 text-sm font-extrabold text-[#176052]">
-                  Explorer les domaines <ChevronRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                </span>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="relative overflow-hidden rounded-[2rem] bg-[#e85d3f] px-6 py-9 text-white sm:px-10 sm:py-12">
-          <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full border-[38px] border-white/10" />
-          <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+        {/* Éducation */}
+        <section aria-labelledby="home-education" className="hb-reveal border-b border-slate-200 py-10">
+          <div className="grid gap-6 lg:grid-cols-[1fr_2fr] lg:items-center">
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#ffd98b]">Écrire depuis l’Afrique</p>
-              <h2 className="mt-3 max-w-3xl font-display text-3xl font-extrabold leading-tight tracking-[-0.045em] sm:text-5xl">Votre histoire mérite de rencontrer ses lecteurs.</h2>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-white/82 sm:text-base">De l’idée au livre publié, notre pôle d’ingénierie éditoriale vous accompagne avec méthode et ambition.</p>
+              <h2 id="home-education" className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Espace Éducation RDC</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Ouvrages scolaires et universitaires classés par niveau, section, option, cycle LMD et filière.
+              </p>
+              <Link href="/education" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-night-700 hover:text-brand-700 hover:underline">
+                Explorer l’espace Éducation <ChevronRight className="h-4 w-4" />
+              </Link>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-              <Link href="/formation-editoriale" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-extrabold text-[#a83b27]">Présenter mon manuscrit <PenTool className="h-4 w-4" /></Link>
-              <Link href="/services" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/35 px-6 text-sm font-extrabold text-white hover:bg-white/10">Découvrir nos services</Link>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {[
+                { href: "/education?audience=school", icon: School, title: "Élèves", text: "Primaire, CTEB, Humanités générales, techniques et professionnelles." },
+                { href: "/education?audience=university", icon: GraduationCap, title: "Étudiants", text: "Licence, Master, Doctorat : domaines LMD, filières et mentions." },
+              ].map(({ href, icon: Icon, title, text }) => (
+                <Link key={href} href={href} className="group flex gap-4 rounded-lg border border-slate-200 bg-white p-5 transition hover:border-night-300 hover:shadow-sm">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-night-50 text-night-800">
+                    <Icon aria-hidden="true" className="h-5 w-5" />
+                  </span>
+                  <span>
+                    <span className="flex items-center gap-1 font-semibold text-slate-900 group-hover:text-brand-700">
+                      {title} <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                    </span>
+                    <span className="mt-1 block text-sm text-slate-600">{text}</span>
+                  </span>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
-
-        <AllAuthorsSection authors={authors} />
 
         {paidBooks.length > 0 ? (
           <Shelf
-            eyebrow="Nouvelles parutions"
-            title="À découvrir cette semaine."
-            description="Essais, récits, spiritualité, business et développement personnel : les derniers titres de notre catalogue."
+            title="Nouvelles parutions"
+            description="Essais, récits, spiritualité, business et développement personnel."
             books={paidBooks}
             href="/books?access=purchase"
           />
         ) : null}
-      </main>
+
+        <div className="py-10">
+          <AllAuthorsSection authors={authors} />
+        </div>
+      </div>
+
+      {/* Les trois pôles d'intervention */}
+      <section aria-labelledby="home-poles" className="hb-reveal border-t border-slate-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-sm font-semibold text-brand-700">{COMPANY.slogan}</p>
+              <h2 id="home-poles" className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Trois pôles, une même mission : transformer par l’écriture.</h2>
+            </div>
+            <Link href="/qui-sommes-nous" className="inline-flex items-center gap-1 text-sm font-semibold text-night-700 hover:text-brand-700 hover:underline">
+              Découvrir Holistique Books <ChevronRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {INTERVENTION_POLES.map((pole, index) => (
+              <Link
+                key={pole.slug}
+                href={`/qui-sommes-nous#${pole.slug}`}
+                className="group relative flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-night-200 hover:shadow-lg"
+              >
+                <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-brand-600 transition-transform duration-300 group-hover:scale-x-100" />
+                <span className="text-sm font-bold tabular-nums text-brand-600">0{index + 1}</span>
+                <h3 className="mt-3 text-xl font-bold text-slate-900">Pôle {pole.name.toLowerCase()}</h3>
+                <p className="mt-1 text-sm font-semibold text-night-700">{pole.tagline}</p>
+                <p className="mt-3 flex-1 text-sm leading-6 text-slate-600">{pole.description}</p>
+                <p className="mt-5 border-t border-slate-100 pt-4 text-xs text-slate-500">{pole.audience}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Publier (esprit KDP) */}
+      <section aria-labelledby="home-publish" className="hb-reveal border-t border-slate-200 bg-slate-50">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_1.3fr] lg:items-center lg:px-8">
+          <div>
+            <p className="text-sm font-semibold text-brand-700">Auteurs</p>
+            <h2 id="home-publish" className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+              Publiez votre livre et touchez vos lecteurs.
+            </h2>
+            <p className="mt-3 text-base leading-7 text-slate-600">
+              Holistique Books met votre livre en vente en RDC et dans le monde. Vous gardez la main sur votre œuvre, nous gérons la diffusion et les paiements.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Link href="/register?role=author" className="inline-flex h-11 items-center justify-center rounded-md bg-brand-600 px-5 text-sm font-semibold text-white transition hover:bg-brand-700">
+                Commencer gratuitement
+              </Link>
+              <Link href="/services" className="inline-flex h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-900 transition hover:border-slate-400">
+                Services éditoriaux
+              </Link>
+            </div>
+            <p className="mt-5 text-sm text-slate-600">
+              Besoin d’un accompagnement complet ?{" "}
+              <Link href="/services#packs" className="font-semibold text-brand-700 hover:underline">
+                Packs d’édition dès {PUBLISHING_PACKS[0].price}
+              </Link>
+              , impression incluse.
+            </p>
+          </div>
+          <ol className="grid gap-4 sm:grid-cols-3">
+            {publishingSteps.map(({ icon: Icon, title, text }, index) => (
+              <li key={title} className="rounded-lg border border-slate-200 bg-white p-5">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-night-900 text-sm font-bold text-white">{index + 1}</span>
+                  <Icon aria-hidden="true" className="h-5 w-5 text-night-700" />
+                </div>
+                <p className="mt-4 font-semibold text-slate-900">{title}</p>
+                <p className="mt-1 text-sm text-slate-600">{text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
     </div>
   );
 }

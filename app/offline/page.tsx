@@ -8,16 +8,16 @@ export const metadata = {
 
 export default function OfflinePage() {
   return (
-    <div className="min-h-[100dvh] bg-[#f8fafc] px-4 py-10 text-slate-950">
+    <div className="min-h-[100dvh] bg-night-50 px-4 py-10 text-slate-950">
       <section className="mx-auto grid min-h-[72dvh] w-full max-w-3xl place-items-center">
-        <div className="w-full rounded-[1.8rem] border border-slate-200 bg-white p-6 shadow-[0_22px_54px_rgba(15,23,42,0.12)] sm:p-8">
+        <div className="w-full rounded-xl border border-slate-200 bg-white p-6 shadow-md sm:p-8">
           <div className="flex flex-col gap-6">
-            <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#17130f] text-white">
+            <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-night-950 text-white">
               <WifiOff className="h-6 w-6" />
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#b1674b]">Mode hors ligne</p>
+              <p className="text-xs font-bold text-brand-600">Mode hors ligne</p>
               <h1 className="max-w-xl font-[var(--font-display)] text-3xl font-semibold leading-tight tracking-[-0.03em] text-slate-950 sm:text-4xl">
                 Holistique reste ouvert, meme sans reseau.
               </h1>
@@ -29,7 +29,7 @@ export default function OfflinePage() {
             <div className="grid gap-3 sm:grid-cols-3">
               <a
                 href=""
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#17130f] px-4 text-sm font-bold text-white"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-night-950 px-4 text-sm font-bold text-white"
               >
                 <RotateCw className="h-4 w-4" />
                 Reessayer

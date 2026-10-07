@@ -39,7 +39,8 @@ class BookController extends Controller
                 'formats' => fn ($query) => $query->where('is_published', true),
             ])
             ->when(request()->string('search')->isNotEmpty(), function ($query): void {
-                $search = request()->string('search')->toString();
+                // Échappe % et _ : saisis par l'utilisateur, ils deviendraient des jokers SQL.
+                $search = addcslashes(mb_substr(request()->string('search')->trim()->toString(), 0, 120), '%_\\');
                 $query->where(fn ($query) => $query
                     ->where('title', 'like', "%{$search}%")
                     ->orWhere('subtitle', 'like', "%{$search}%")
@@ -63,6 +64,7 @@ class BookController extends Controller
 
                 if (! $taxonomy) {
                     $query->whereRaw('1 = 0');
+
                     return;
                 }
 
@@ -282,9 +284,18 @@ class BookController extends Controller
         $data = Arr::except($validated, ['file', 'cover', 'sample']);
         $profile = $request->user()->profile;
         $previousStage = $book->editorial_stage;
+        // Un livre en ligne ne change de contenu qu'après validation éditoriale.
+        $isLiveForAuthor = $profile->role !== 'admin' && $book->status === 'published';
 
         if ($profile->role !== 'admin') {
+            abort_if(
+                $isLiveForAuthor && ($request->hasFile('cover') || $request->hasFile('sample')),
+                422,
+                'Ce livre est publié : contactez l’équipe éditoriale pour changer la couverture ou l’extrait.',
+            );
+
             unset(
+                $data['editorial_stage'],
                 $data['author_id'],
                 $data['authorship_type'],
                 $data['author_credit'],
@@ -301,7 +312,9 @@ class BookController extends Controller
                 ?? $profile->name
                 ?? $request->user()->name;
 
-            if (($data['status'] ?? null) === 'published') {
+            if (($data['status'] ?? null) === 'published' && $isLiveForAuthor) {
+                unset($data['status']);
+            } elseif (($data['status'] ?? null) === 'published') {
                 $data['status'] = 'draft';
                 $data['review_status'] = 'submitted';
                 $data['submitted_at'] = now();
@@ -334,7 +347,28 @@ class BookController extends Controller
             $taxonomy->sync($book, $book->categories ?? []);
         }
 
-        if ($request->hasFile('file')) {
+        if ($request->hasFile('file') && $isLiveForAuthor) {
+            // La révision est archivée et soumise ; le fichier lu par les
+            // lecteurs reste celui qui a été validé.
+            $uploaded = $request->file('file');
+            $path = $files->store($uploaded, $book);
+
+            $this->archiveManuscriptVersion(
+                $book,
+                $profile->id,
+                $path,
+                $request->string('file_format')->toString()
+                    ?: mb_strtolower($uploaded->getClientOriginalExtension() ?: $uploaded->extension()),
+                $uploaded->getSize(),
+                'Révision proposée par l’auteur sur un livre publié, en attente de validation.',
+                'pending_review',
+            );
+
+            $book->forceFill([
+                'review_status' => 'submitted',
+                'submitted_at' => now(),
+            ])->saveQuietly();
+        } elseif ($request->hasFile('file')) {
             $uploaded = $request->file('file');
             $path = $files->store($uploaded, $book);
             $format = $request->string('file_format')->toString()
@@ -430,6 +464,7 @@ class BookController extends Controller
         string $format,
         int $size,
         string $summary,
+        string $status = 'author_draft',
     ): void {
         $nextVersion = ((int) $book->manuscriptVersions()->max('version_number')) + 1;
 
@@ -439,7 +474,7 @@ class BookController extends Controller
             'file_path' => $path,
             'file_format' => $format,
             'file_size' => $size,
-            'status' => 'author_draft',
+            'status' => $status,
             'change_summary' => $summary,
         ]);
 

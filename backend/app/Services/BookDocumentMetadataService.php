@@ -13,6 +13,8 @@ use Throwable;
 
 class BookDocumentMetadataService
 {
+    public function __construct(private PdfPageImageRenderer $renderer) {}
+
     public function enrich(Book $book): Book
     {
         $path = $book->file_url;
@@ -163,7 +165,8 @@ class BookDocumentMetadataService
             }
         }
 
-        return $this->countUncompressedPdfPages($absolutePath);
+        return $this->renderer->pageCountWithImagick($absolutePath)
+            ?? $this->countUncompressedPdfPages($absolutePath);
     }
 
     private function hasUsableCover(Book $book): bool
@@ -187,8 +190,7 @@ class BookDocumentMetadataService
         File::ensureDirectoryExists($temporaryDirectory, 0700);
 
         try {
-            $generatedPath = $this->generateWithPoppler($absolutePath, $temporaryDirectory)
-                ?? $this->generateWithImagick($absolutePath, $temporaryDirectory)
+            $generatedPath = $this->generateWithConfiguredRenderer($absolutePath, $temporaryDirectory)
                 ?? $this->generateWithQuickLook($absolutePath, $temporaryDirectory);
 
             if ($generatedPath === null || ! File::isFile($generatedPath)) {
@@ -216,50 +218,22 @@ class BookDocumentMetadataService
         }
     }
 
-    private function generateWithPoppler(string $absolutePath, string $temporaryDirectory): ?string
+    private function generateWithConfiguredRenderer(string $absolutePath, string $temporaryDirectory): ?string
     {
-        $binary = $this->findExecutable(config('books.pdf.pdftoppm_binary'));
-
-        if ($binary === null) {
+        if (! $this->renderer->isAvailable()) {
             return null;
         }
 
-        $outputPrefix = $temporaryDirectory.'/cover';
-        $process = new Process([
-            $binary,
-            '-f', '1',
-            '-l', '1',
-            '-singlefile',
-            '-jpeg',
-            '-scale-to', (string) config('books.pdf.cover_size', 1600),
-            $absolutePath,
-            $outputPrefix,
-        ]);
-        $process->setTimeout((float) config('books.pdf.process_timeout', 30));
-        $process->run();
-
-        $outputPath = $outputPrefix.'.jpg';
-
-        return $process->isSuccessful() && File::isFile($outputPath) ? $outputPath : null;
-    }
-
-    private function generateWithImagick(string $absolutePath, string $temporaryDirectory): ?string
-    {
-        if (! class_exists(\Imagick::class)) {
-            return null;
-        }
+        $outputPath = $temporaryDirectory.'/cover.jpg';
 
         try {
-            $image = new \Imagick();
-            $image->setResolution(144, 144);
-            $image->readImage($absolutePath.'[0]');
-            $image->setImageFormat('jpeg');
-            $image->setImageCompressionQuality(88);
-            $image->thumbnailImage((int) config('books.pdf.cover_size', 1600), 0);
-            $outputPath = $temporaryDirectory.'/cover-imagick.jpg';
-            $image->writeImage($outputPath);
-            $image->clear();
-            $image->destroy();
+            $this->renderer->render(
+                $absolutePath,
+                1,
+                $outputPath,
+                (int) config('books.pdf.cover_size', 1600),
+                88,
+            );
 
             return File::isFile($outputPath) ? $outputPath : null;
         } catch (Throwable) {
@@ -429,6 +403,7 @@ class BookDocumentMetadataService
 
                 if (mb_strlen($buffer, '8bit') <= 64) {
                     $carry = $buffer;
+
                     continue;
                 }
 

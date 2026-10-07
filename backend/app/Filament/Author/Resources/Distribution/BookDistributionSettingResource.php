@@ -24,7 +24,7 @@ class BookDistributionSettingResource extends Resource
 {
     protected static ?string $model = BookDistributionSetting::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-globe-alt';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-globe-alt';
 
     protected static ?string $navigationLabel = 'Distribution';
 
@@ -95,12 +95,14 @@ class BookDistributionSettingResource extends Resource
                         ->required(),
                     TextInput::make('royalty_rate')
                         ->label('Taux auteur')
+                        // Fixé par l'équipe finance selon le contrat : lecture seule pour l'auteur.
+                        ->disabled()
                         ->numeric()
                         ->step(0.01)
                         ->minValue(0)
                         ->maxValue(1)
                         ->placeholder('0.70')
-                        ->helperText('Exemple : 0,70 = 70 %. Laissez vide pour utiliser le taux plateforme.'),
+                        ->helperText('Taux contractuel fixé par l’équipe finance. Vide = taux plateforme.'),
                 ]),
 
             Section::make('Canaux de distribution')

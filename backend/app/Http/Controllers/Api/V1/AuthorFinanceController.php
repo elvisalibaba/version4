@@ -16,16 +16,35 @@ class AuthorFinanceController extends Controller
     public function summary(Request $request): JsonResponse
     {
         $profile = $this->authorProfile($request);
-        $account = AuthorRoyaltyAccount::query()->find($profile->id);
+        $accounts = AuthorRoyaltyAccount::query()
+            ->where('user_id', $profile->id)
+            ->orderBy('currency_code')
+            ->get();
+        $account = AuthorRoyaltyAccount::primaryFor($profile->id);
+        $currency = $account?->currency_code ?? mb_strtoupper((string) config('publishing.default_currency', 'USD'));
+
+        // On n'additionne jamais des montants de devises différentes.
+        $totals = AuthorRoyaltyTransaction::query()
+            ->where('user_id', $profile->id)
+            ->selectRaw("currency_code,
+                COALESCE(SUM(CASE WHEN status = 'pending' THEN net_royalty ELSE 0 END), 0) as pending,
+                COALESCE(SUM(CASE WHEN status = 'payable' THEN net_royalty ELSE 0 END), 0) as payable,
+                COALESCE(SUM(CASE WHEN status IN ('pending', 'payable', 'paid') THEN net_royalty ELSE 0 END), 0) as lifetime")
+            ->groupBy('currency_code')
+            ->get()
+            ->mapWithKeys(fn ($row): array => [$row->currency_code => [
+                'pending' => (float) $row->pending,
+                'payable' => (float) $row->payable,
+                'lifetime' => (float) $row->lifetime,
+            ]]);
 
         return response()->json([
             'data' => [
+                // Portefeuille principal (compatibilité avec les clients existants).
                 'account' => $account,
-                'royalties' => [
-                    'pending' => (float) AuthorRoyaltyTransaction::query()->where('user_id', $profile->id)->where('status', 'pending')->sum('net_royalty'),
-                    'payable' => (float) AuthorRoyaltyTransaction::query()->where('user_id', $profile->id)->where('status', 'payable')->sum('net_royalty'),
-                    'lifetime' => (float) AuthorRoyaltyTransaction::query()->where('user_id', $profile->id)->whereIn('status', ['pending', 'payable', 'paid'])->sum('net_royalty'),
-                ],
+                'accounts' => $accounts,
+                'royalties' => $totals->get($currency, ['pending' => 0.0, 'payable' => 0.0, 'lifetime' => 0.0]),
+                'royalties_by_currency' => $totals,
             ],
         ]);
     }

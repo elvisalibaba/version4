@@ -258,7 +258,7 @@ export function EditorialTrainingForm({
               className="w-full px-4 py-3.5 text-slate-900"
             />
           </Field>
-          <label className="flex items-start gap-3 rounded-[1.35rem] border border-[#ece3d7] bg-[#fcfaf7] px-4 py-4 text-sm leading-6 text-slate-700">
+          <label className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-700">
             <input
               type="checkbox"
               name="consent_to_contact"
@@ -275,7 +275,7 @@ export function EditorialTrainingForm({
 
       {state.message ? (
         <div
-          className={`rounded-[1.4rem] border px-4 py-4 text-sm ${
+          className={`rounded-xl border px-4 py-4 text-sm ${
             state.status === "success"
               ? "border-emerald-200 bg-emerald-50 text-emerald-800"
               : "border-red-200 bg-red-50 text-red-700"
@@ -285,7 +285,7 @@ export function EditorialTrainingForm({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-[#ece3d7] bg-white/90 px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white/90 px-5 py-4">
         <p className="max-w-2xl text-sm leading-6 text-slate-500">
           Votre demande est enregistree dans l espace admin et peut etre
           exportee en CSV pour le suivi editorial.

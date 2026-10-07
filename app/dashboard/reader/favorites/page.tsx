@@ -14,7 +14,7 @@ export default async function ReaderFavoritesPage() {
 
   return (
     <section className="space-y-6">
-      <DashboardTopbar kicker="Favoris" title={`Vos livres à suivre, ${profile.name ?? profile.email}`} description="Votre sélection personnelle est maintenant synchronisée via l’API Laravel." actions={<Link href="/books" className="cta-primary px-5 py-3 text-sm">Explorer</Link>} />
+      <DashboardTopbar kicker="Favoris" title={`Vos livres à suivre, ${profile.name ?? profile.email}`} description="Votre sélection personnelle, synchronisée sur tous vos appareils." actions={<Link href="/books" className="cta-primary px-5 py-3 text-sm">Explorer</Link>} />
       <div className="metric-grid">
         <StatCard icon={Heart} label="Favoris" value={books.length} description="Titres sauvegardés" tone="rose" />
         <StatCard icon={Sparkles} label="Catégories" value={categories.size} description="Univers suivis" tone="violet" />
@@ -24,11 +24,11 @@ export default async function ReaderFavoritesPage() {
         {books.length ? (
           <div className="grid gap-4 md:grid-cols-2">
             {books.map((book) => (
-              <article key={book.id} className="rounded-[1.6rem] border border-[#ece3d7] bg-white p-5">
+              <article key={book.id} className="rounded-[1.6rem] border border-slate-200 bg-white p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h2 className="text-lg font-semibold">{book.title}</h2>
-                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#6f665e]">{book.description ?? "Livre sauvegardé."}</p>
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{book.description ?? "Livre sauvegardé."}</p>
                   </div>
                   <FavoriteBookButton bookId={book.id} initialIsFavorite compact />
                 </div>

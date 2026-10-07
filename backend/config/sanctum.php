@@ -50,7 +50,8 @@ return [
     |
     */
 
-    'expiration' => null,
+    // Aligné sur le cookie hb_session du front (30 jours).
+    'expiration' => (int) env('SANCTUM_EXPIRATION_MINUTES', 60 * 24 * 30) ?: null,
 
     /*
     |--------------------------------------------------------------------------

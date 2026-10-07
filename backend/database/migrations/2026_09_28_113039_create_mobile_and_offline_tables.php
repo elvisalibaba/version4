@@ -147,7 +147,8 @@ return new class extends Migration
             $table->foreignUuid('user_id')->constrained('profiles')->cascadeOnDelete();
             $table->foreignUuid('device_id')->constrained('user_devices')->cascadeOnDelete();
             $table->enum('provider', ['fcm', 'apns'])->default('fcm');
-            $table->text('token')->unique();
+            // VARCHAR indexable : MySQL 8 refuse un index UNIQUE sur une colonne TEXT.
+            $table->string('token', 512)->unique();
             $table->boolean('is_active')->default(true);
             $table->timestamp('last_seen_at')->useCurrent();
             $table->timestamp('revoked_at')->nullable();

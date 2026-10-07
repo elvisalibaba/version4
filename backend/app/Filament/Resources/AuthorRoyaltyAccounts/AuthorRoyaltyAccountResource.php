@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\AuthorRoyaltyAccounts;
 
-use App\Support\StaffAccess;
 use App\Filament\Resources\AuthorRoyaltyAccounts\Pages\ListAuthorRoyaltyAccounts;
 use App\Models\AuthorRoyaltyAccount;
+use App\Support\StaffAccess;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -16,7 +16,7 @@ class AuthorRoyaltyAccountResource extends Resource
 {
     protected static ?string $model = AuthorRoyaltyAccount::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-chart-pie';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-chart-pie';
 
     protected static ?string $navigationLabel = 'Portefeuilles royalties';
 
@@ -51,6 +51,7 @@ class AuthorRoyaltyAccountResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('profile.email')->label('Auteur')->searchable(),
+                TextColumn::make('currency_code')->label('Devise')->badge(),
                 TextColumn::make('pending_balance')->label('En attente')->money(fn (AuthorRoyaltyAccount $record): string => $record->currency_code),
                 TextColumn::make('available_balance')->label('Disponible')->money(fn (AuthorRoyaltyAccount $record): string => $record->currency_code)->weight('bold'),
                 TextColumn::make('lifetime_earnings')->label('Gains cumulés')->money(fn (AuthorRoyaltyAccount $record): string => $record->currency_code),

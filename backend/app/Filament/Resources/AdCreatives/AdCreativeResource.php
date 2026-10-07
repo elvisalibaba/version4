@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\AdCreatives;
 
-use App\Filament\Resources\AdCreatives\Pages\ListAdCreatives;
+use App\Filament\Concerns\RequiresStaffPermission;
 use App\Filament\Resources\AdCreatives\Pages\CreateAdCreative;
 use App\Filament\Resources\AdCreatives\Pages\EditAdCreative;
+use App\Filament\Resources\AdCreatives\Pages\ListAdCreatives;
 use App\Models\AdCreative;
 use BackedEnum;
 use Filament\Actions\EditAction;
@@ -22,20 +23,35 @@ use Filament\Tables\Table;
 
 class AdCreativeResource extends Resource
 {
+    use RequiresStaffPermission;
+
+    protected static string $staffManagePermission = 'marketing.manage';
+
+    protected static ?string $staffViewPermission = 'analytics.view';
+
     protected static ?string $model = AdCreative::class;
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-photo';
+
     protected static ?string $navigationLabel = 'Créations';
+
     protected static ?string $modelLabel = 'création publicitaire';
+
     protected static ?string $pluralModelLabel = 'créations publicitaires';
+
     protected static ?int $navigationSort = 3;
-    public static function getNavigationGroup(): ?string { return 'Publicité'; }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Publicité';
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([Section::make('Création')->columns(2)->schema([
-            Select::make('campaign_id')->relationship('campaign','name')->label('Campagne')->searchable()->preload()->required(),
+            Select::make('campaign_id')->relationship('campaign', 'name')->label('Campagne')->searchable()->preload()->required(),
             TextInput::make('title')->label('Nom interne')->required(),
-            Select::make('creative_type')->label('Format')->options(['banner'=>'Bannière','image'=>'Image','video'=>'Vidéo','native'=>'Native'])->default('banner')->required(),
+            Select::make('creative_type')->label('Format')->options(['banner' => 'Bannière', 'image' => 'Image', 'video' => 'Vidéo', 'native' => 'Native'])->default('banner')->required(),
             Toggle::make('is_active')->label('Active')->default(true),
             TextInput::make('headline')->label('Titre affiché')->columnSpanFull(),
             Textarea::make('body')->label('Texte')->rows(4)->columnSpanFull(),
@@ -43,7 +59,7 @@ class AdCreativeResource extends Resource
                 ->label('Visuel / vidéo')
                 ->disk('public')
                 ->directory('advertising')
-                ->acceptedFileTypes(['image/jpeg','image/png','image/webp','video/mp4','video/webm'])
+                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm'])
                 ->maxSize(51200)
                 ->helperText('Image ou courte vidéo publicitaire.')
                 ->columnSpanFull(),
@@ -66,6 +82,6 @@ class AdCreativeResource extends Resource
 
     public static function getPages(): array
     {
-        return ['index'=>ListAdCreatives::route('/'),'create'=>CreateAdCreative::route('/create'),'edit'=>EditAdCreative::route('/{record}/edit')];
+        return ['index' => ListAdCreatives::route('/'), 'create' => CreateAdCreative::route('/create'), 'edit' => EditAdCreative::route('/{record}/edit')];
     }
 }

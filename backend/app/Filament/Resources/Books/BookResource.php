@@ -6,12 +6,14 @@ use App\Filament\Resources\Books\Pages\CreateBook;
 use App\Filament\Resources\Books\Pages\EditBook;
 use App\Filament\Resources\Books\Pages\ListBooks;
 use App\Models\AcademicTaxonomy;
-use App\Support\StaffAccess;
 use App\Models\AuthorProfile;
 use App\Models\Book;
 use App\Models\Category;
 use App\Services\AdminBookPublicationService;
+use App\Services\BookDocumentMetadataService;
+use App\Support\StaffAccess;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
@@ -39,7 +41,7 @@ class BookResource extends Resource
 {
     protected static ?string $model = Book::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-book-open';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-book-open';
 
     protected static ?string $navigationLabel = 'Livres';
 
@@ -739,6 +741,15 @@ class BookResource extends Resource
             ])
             ->recordActions([
                 EditAction::make(),
+                Action::make('applyPendingRevision')
+                    ->label('Appliquer la révision')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalDescription('Le manuscrit proposé par l’auteur remplacera la version lue sur la plateforme.')
+                    ->visible(fn (Book $record): bool => StaffAccess::allows('catalog.publish')
+                        && $record->manuscriptVersions()->where('status', 'pending_review')->exists())
+                    ->action(fn (Book $record) => static::applyPendingRevision($record)),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -788,5 +799,43 @@ class BookResource extends Resource
             'create' => CreateBook::route('/create'),
             'edit' => EditBook::route('/{record}/edit'),
         ];
+    }
+
+    /**
+     * Met en ligne la dernière révision soumise par l'auteur d'un livre publié.
+     */
+    public static function applyPendingRevision(Book $record): void
+    {
+        $version = $record->manuscriptVersions()
+            ->where('status', 'pending_review')
+            ->latest('version_number')
+            ->first();
+
+        if ($version === null) {
+            return;
+        }
+
+        $record->forceFill([
+            'file_url' => $version->file_path,
+            'file_format' => $version->file_format,
+            'file_size' => $version->file_size,
+            'review_status' => 'approved',
+        ])->save();
+
+        $record->formats()->where('format', 'holistique_store')->update(['file_url' => $version->file_path]);
+        $version->update(['status' => 'approved']);
+        $record->manuscriptVersions()->where('status', 'pending_review')->update(['status' => 'superseded']);
+
+        app(BookDocumentMetadataService::class)->enrich($record->fresh());
+
+        $record->editorialEvents()->create([
+            'actor_id' => auth()->user()?->profile?->id,
+            'event_type' => 'manuscript_revision_applied',
+            'to_stage' => $record->editorial_stage,
+            'notes' => 'Version '.$version->version_number.' validée et mise en ligne.',
+            'payload' => ['version_number' => $version->version_number],
+        ]);
+
+        Notification::make()->title('Révision mise en ligne')->success()->send();
     }
 }

@@ -97,19 +97,18 @@ class AuthorRoyaltyService
                 ],
             ]);
 
+            // Un portefeuille par devise : la royalty est toujours créditée,
+            // quelle que soit la devise de la vente.
             $account = AuthorRoyaltyAccount::query()->firstOrCreate(
-                ['user_id' => $item->book->author_id],
+                ['user_id' => $item->book->author_id, 'currency_code' => mb_strtoupper((string) $item->currency_code)],
                 [
-                    'currency_code' => $item->currency_code,
                     'minimum_payout' => (float) config('publishing.minimum_payout', 10),
                     'status' => 'active',
                 ],
             );
 
-            if ($account->currency_code === $item->currency_code) {
-                $account->increment('pending_balance', $netRoyalty);
-                $account->increment('lifetime_earnings', $netRoyalty);
-            }
+            $account->increment('pending_balance', $netRoyalty);
+            $account->increment('lifetime_earnings', $netRoyalty);
 
             return $transaction;
         });
@@ -134,11 +133,11 @@ class AuthorRoyaltyService
                         }
 
                         $account = AuthorRoyaltyAccount::query()
-                            ->where('user_id', $locked->user_id)
+                            ->forCurrency($locked->user_id, $locked->currency_code)
                             ->lockForUpdate()
                             ->first();
 
-                        if (! $account || $account->currency_code !== $locked->currency_code) {
+                        if (! $account) {
                             return;
                         }
 
@@ -159,14 +158,21 @@ class AuthorRoyaltyService
     public function requestPayout(string $userId, AuthorPayoutAccount $payoutAccount, float $amount): AuthorPayout
     {
         return DB::transaction(function () use ($userId, $payoutAccount, $amount): AuthorPayout {
-            $account = AuthorRoyaltyAccount::query()
-                ->where('user_id', $userId)
-                ->lockForUpdate()
-                ->firstOrFail();
-
             if ($payoutAccount->user_id !== $userId || ! $payoutAccount->is_verified) {
                 throw ValidationException::withMessages([
                     'payout_account_id' => 'Le compte de versement doit être vérifié et appartenir à cet auteur.',
+                ]);
+            }
+
+            // On débite le portefeuille de la devise du compte de versement.
+            $account = AuthorRoyaltyAccount::query()
+                ->forCurrency($userId, $payoutAccount->currency_code)
+                ->lockForUpdate()
+                ->first();
+
+            if ($account === null) {
+                throw ValidationException::withMessages([
+                    'payout_account_id' => 'Aucun solde de royalties dans la devise de ce compte de versement.',
                 ]);
             }
 
@@ -181,12 +187,6 @@ class AuthorRoyaltyService
             if ($amount > (float) $account->available_balance) {
                 throw ValidationException::withMessages([
                     'amount' => 'Le solde disponible est insuffisant.',
-                ]);
-            }
-
-            if ($payoutAccount->currency_code !== $account->currency_code) {
-                throw ValidationException::withMessages([
-                    'payout_account_id' => 'La devise du compte de versement ne correspond pas à celle du portefeuille.',
                 ]);
             }
 
@@ -244,7 +244,7 @@ class AuthorRoyaltyService
             ]);
 
             $account = AuthorRoyaltyAccount::query()
-                ->where('user_id', $locked->user_id)
+                ->forCurrency($locked->user_id, $locked->currency_code)
                 ->lockForUpdate()
                 ->first();
 
@@ -277,7 +277,7 @@ class AuthorRoyaltyService
             }
 
             $account = AuthorRoyaltyAccount::query()
-                ->where('user_id', $locked->user_id)
+                ->forCurrency($locked->user_id, $locked->currency_code)
                 ->lockForUpdate()
                 ->first();
 

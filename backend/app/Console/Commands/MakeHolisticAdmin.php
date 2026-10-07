@@ -10,7 +10,8 @@ use Illuminate\Support\Str;
 
 class MakeHolisticAdmin extends Command
 {
-    protected $signature = 'holistic:make-admin {email} {--name=} {--password=}';
+    protected $signature = 'holistic:make-admin {email?} {--name=} {--password=}
+        {--from-file= : Fichier (email, mot de passe, nom sur 3 lignes) supprimé après lecture — usage cPanel sans SSH}';
 
     protected $description = 'Créer ou promouvoir un utilisateur HolisticBooks comme administrateur du back-office.';
 
@@ -18,6 +19,23 @@ class MakeHolisticAdmin extends Command
     {
         $email = mb_strtolower(trim((string) $this->argument('email')));
         $name = trim((string) ($this->option('name') ?: ''));
+        $filePassword = null;
+
+        if ($path = $this->option('from-file')) {
+            if (! is_file($path)) {
+                $this->error('Fichier introuvable : '.$path);
+
+                return self::FAILURE;
+            }
+
+            $lines = array_map('trim', preg_split('/\r\n|\r|\n/', (string) file_get_contents($path)));
+            // Le fichier contient un mot de passe en clair : il ne doit pas survivre.
+            @unlink($path);
+
+            $email = mb_strtolower($lines[0] ?? '');
+            $filePassword = $lines[1] ?? '';
+            $name = $lines[2] ?? $name;
+        }
 
         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->error('Adresse e-mail invalide.');
@@ -29,7 +47,7 @@ class MakeHolisticAdmin extends Command
 
         if ($user === null) {
             $name = $name !== '' ? $name : (string) $this->ask('Nom complet', Str::before($email, '@'));
-            $password = (string) ($this->option('password') ?: $this->secret('Mot de passe'));
+            $password = (string) ($filePassword ?? $this->option('password') ?: $this->secret('Mot de passe'));
 
             if (mb_strlen($password) < 8) {
                 $this->error('Le mot de passe doit contenir au moins 8 caractères.');
@@ -44,11 +62,15 @@ class MakeHolisticAdmin extends Command
                     'password' => $password,
                 ]);
 
+                // Le Control Center exige une adresse vérifiée (User::canAccessPanel).
+                $user->forceFill(['email_verified_at' => now()])->save();
+
                 Profile::query()->create([
                     'id' => $user->id,
                     'email' => $email,
                     'name' => $name,
                     'role' => 'admin',
+                    'staff_role' => 'super_admin',
                     'preferred_language' => 'fr',
                     'favorite_categories' => [],
                     'marketing_opt_in' => false,
@@ -67,12 +89,17 @@ class MakeHolisticAdmin extends Command
                 $user->update(['name' => $name]);
             }
 
+            if ($user->email_verified_at === null) {
+                $user->forceFill(['email_verified_at' => now()])->save();
+            }
+
             Profile::query()->updateOrCreate(
                 ['id' => $user->id],
                 [
                     'email' => $user->email,
                     'name' => $name !== '' ? $name : $user->name,
                     'role' => 'admin',
+                    'staff_role' => 'super_admin',
                     'preferred_language' => 'fr',
                     'favorite_categories' => [],
                     'marketing_opt_in' => false,

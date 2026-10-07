@@ -20,7 +20,7 @@ export default async function ReaderDashboardPage() {
       <DashboardTopbar
         kicker="Espace lecteur"
         title={`Bonjour ${profile.name ?? profile.email}`}
-        description="Votre bibliothèque, vos favoris, commandes et abonnements sont désormais servis par l’API HolisticBooks."
+        description="Retrouvez vos lectures en cours, vos favoris, vos achats et vos abonnements."
         actions={<Link href="/books" className="cta-primary px-5 py-3 text-sm">Explorer les livres</Link>}
       />
 
@@ -47,18 +47,18 @@ export default async function ReaderDashboardPage() {
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {data.library.slice(0, 6).map((entry) => (
-              <Link key={entry.id} href={`/book/${entry.book.id}?read=1`} className="rounded-2xl border border-[#ece3d7] bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-md">
-                <p className="text-xs font-semibold uppercase tracking-[.15em] text-[#a85b3f]">{entry.access_type}</p>
-                <h3 className="mt-2 font-semibold text-[#171717]">{entry.book.title}</h3>
-                <p className="mt-2 line-clamp-2 text-sm text-[#6f665e]">{entry.book.description ?? "Prêt à reprendre."}</p>
+              <Link key={entry.id} href={`/book/${entry.book.id}?read=1`} className="rounded-2xl border border-slate-200 bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-md">
+                <p className="text-xs font-semibold text-brand-600">{entry.access_type}</p>
+                <h3 className="mt-2 font-semibold text-slate-900">{entry.book.title}</h3>
+                <p className="mt-2 line-clamp-2 text-sm text-slate-600">{entry.book.description ?? "Prêt à reprendre."}</p>
                 {entry.reading_progress ? (
                   <div className="mt-4">
-                    <div className="flex items-center justify-between text-[0.68rem] font-semibold text-[#766e64]">
+                    <div className="flex items-center justify-between text-[0.68rem] font-semibold text-slate-600">
                       <span>Progression</span>
                       <span>{Math.round(Number(entry.reading_progress.progress_percent ?? 0))}%</span>
                     </div>
-                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#eee6dc]">
-                      <div className="h-full rounded-full bg-[#173d2c]" style={{ width: `${Math.max(0, Math.min(100, Number(entry.reading_progress.progress_percent ?? 0)))}%` }} />
+                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-200">
+                      <div className="h-full rounded-full bg-night-900" style={{ width: `${Math.max(0, Math.min(100, Number(entry.reading_progress.progress_percent ?? 0)))}%` }} />
                     </div>
                   </div>
                 ) : null}
@@ -71,22 +71,22 @@ export default async function ReaderDashboardPage() {
           <p className="section-kicker">Transactions récentes</p>
           <div className="mt-4 space-y-3">
             {data.orders.slice(0, 5).map((order) => (
-              <div key={order.id} className="rounded-2xl border border-[#ece3d7] p-4">
+              <div key={order.id} className="rounded-2xl border border-slate-200 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm font-semibold">#{order.id.slice(0, 8).toUpperCase()}</span>
                   <span className="catalog-badge">{order.payment_status}</span>
                 </div>
-                <p className="mt-2 text-sm text-[#6f665e]">{money(order.total_price, order.currency_code)}</p>
+                <p className="mt-2 text-sm text-slate-600">{money(order.total_price, order.currency_code)}</p>
               </div>
             ))}
           </div>
-          <Link href="/dashboard/reader/purchases" className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#a85b3f]">
+          <Link href="/dashboard/reader/purchases" className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-brand-600">
             Voir toutes les transactions <Receipt className="h-4 w-4" />
           </Link>
         </aside>
       </div>
 
-      <Link href="/dashboard/reader/library" className="inline-flex items-center gap-2 text-sm font-bold text-[#173d2c]">
+      <Link href="/dashboard/reader/library" className="inline-flex items-center gap-2 text-sm font-bold text-night-900">
         <BookOpen className="h-4 w-4" /> Ouvrir ma bibliothèque
       </Link>
     </section>

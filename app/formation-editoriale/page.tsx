@@ -28,7 +28,7 @@ function InfoCard({
   return (
     <article className="form-panel">
       <div className="flex items-start gap-4">
-        <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fff1db] text-[#b96e12]">
+        <span className="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-night-50 text-night-800">
           <Icon className="h-5 w-5" />
         </span>
         <div className="space-y-2">
@@ -62,9 +62,9 @@ export default async function EditorialTrainingPage() {
           title="Inscrivez-vous a notre parcours de formation editoriale."
           description="Partagez votre profil, le stade de votre projet et vos objectifs. L equipe admin recoit automatiquement votre demande pour suivi et export CSV."
           aside={
-            <div className="rounded-[1.8rem] border border-[#ece3d7] bg-[radial-gradient(circle_at_top_right,rgba(255,189,105,0.22),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,244,237,0.96))] p-5 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-md">
               <div className="space-y-4">
-                <span className="inline-flex items-center gap-2 rounded-full bg-[#111827] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white">
+                <span className="inline-flex items-center gap-2 rounded-full bg-night-900 px-3 py-1 text-xs font-semibold text-white">
                   <GraduationCap className="h-3.5 w-3.5" />
                   Parcours accompagne
                 </span>
@@ -78,13 +78,13 @@ export default async function EditorialTrainingPage() {
                   </p>
                 </div>
                 <div className="grid gap-3 text-sm text-slate-600">
-                  <div className="rounded-[1.2rem] border border-white/60 bg-white/85 px-4 py-3">
+                  <div className="rounded-lg border border-white/60 bg-white/85 px-4 py-3">
                     Positionnement editorial et clarte du projet.
                   </div>
-                  <div className="rounded-[1.2rem] border border-white/60 bg-white/85 px-4 py-3">
+                  <div className="rounded-lg border border-white/60 bg-white/85 px-4 py-3">
                     Structuration du manuscrit ou du catalogue.
                   </div>
-                  <div className="rounded-[1.2rem] border border-white/60 bg-white/85 px-4 py-3">
+                  <div className="rounded-lg border border-white/60 bg-white/85 px-4 py-3">
                     Suivi centralise pour l equipe admin et operationnelle.
                   </div>
                 </div>

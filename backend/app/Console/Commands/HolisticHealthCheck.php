@@ -6,18 +6,19 @@ use App\Models\Book;
 use App\Models\Order;
 use App\Models\PaymentAttempt;
 use App\Models\RightsContract;
+use App\Services\PdfPageImageRenderer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\Process\ExecutableFinder;
 use Throwable;
 
 class HolisticHealthCheck extends Command
 {
     protected $signature = 'holistic:health {--json : Sortie JSON}';
+
     protected $description = 'Vérifie les dépendances critiques du backend Holistique Books.';
 
-    public function handle(): int
+    public function handle(PdfPageImageRenderer $pdfRenderer): int
     {
         $checks = [];
 
@@ -29,16 +30,14 @@ class HolisticHealthCheck extends Command
             'reader_sessions_required' => (bool) config('reading.require_session', true),
         ];
 
-        $finder = new ExecutableFinder();
-        $pdftoppm = $finder->find((string) config('books.pdf.pdftoppm_binary', 'pdftoppm'));
-        $pdfinfo = $finder->find((string) config('books.pdf.pdfinfo_binary', 'pdfinfo'));
+        $rendererStatus = $pdfRenderer->status();
 
         $checks['protected_reader'] = [
             'ok' => config('reading.require_session', true) === true
-                && $pdftoppm !== null
-                && $pdfinfo !== null,
-            'pdftoppm' => $pdftoppm,
-            'pdfinfo' => $pdfinfo,
+                && $rendererStatus['available'],
+            'renderer' => $rendererStatus['preferred_driver'],
+            'pdftoppm' => $rendererStatus['pdftoppm'],
+            'imagick' => $rendererStatus['imagick'],
             'page_size' => (int) config('books.pdf.reader_page_size', 1800),
         ];
 

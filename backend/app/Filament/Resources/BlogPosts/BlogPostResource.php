@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BlogPosts;
 
+use App\Filament\Concerns\RequiresStaffPermission;
 use App\Filament\Resources\BlogPosts\Pages\CreateBlogPost;
 use App\Filament\Resources\BlogPosts\Pages\EditBlogPost;
 use App\Filament\Resources\BlogPosts\Pages\ListBlogPosts;
@@ -24,9 +25,15 @@ use Illuminate\Support\Str;
 
 class BlogPostResource extends Resource
 {
+    use RequiresStaffPermission;
+
+    protected static string $staffManagePermission = 'marketing.manage';
+
+    protected static ?string $staffViewPermission = null;
+
     protected static ?string $model = BlogPost::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-newspaper';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-newspaper';
 
     protected static ?string $navigationLabel = 'Blog';
 

@@ -89,11 +89,8 @@ class AuthController extends Controller
             'message' => 'Compte créé. Vérifiez votre adresse email pour continuer.',
             'verification_required' => true,
             'email' => $user->email,
-            // Transitional token for clients deployed before the OTP screen existed.
-            // Protected API routes remain blocked by the verified middleware until
-            // the address has actually been confirmed.
+            // Aucun token avant confirmation : il est délivré par verify-email.
             'data' => new UserResource($user),
-            'token' => $user->createToken('email-verification')->plainTextToken,
         ], 201);
     }
 
@@ -138,7 +135,7 @@ class AuthController extends Controller
         $user->load('profile.authorProfile');
 
         try {
-            $user->notify(new WelcomeNotification());
+            $user->notify(new WelcomeNotification);
         } catch (Throwable $error) {
             Log::warning('Impossible d’envoyer le mail de bienvenue.', [
                 'user_id' => $user->id,
@@ -159,7 +156,7 @@ class AuthController extends Controller
 
         try {
             $user->loadMissing('profile.authorProfile');
-            $user->notify(new WelcomeNotification());
+            $user->notify(new WelcomeNotification);
         } catch (Throwable $error) {
             Log::warning('Impossible d’envoyer le mail de bienvenue après validation par lien.', [
                 'user_id' => $user->id,

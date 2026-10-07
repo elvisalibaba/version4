@@ -18,7 +18,7 @@ export function SubscriptionPlanSelector({
 }: SubscriptionPlanSelectorProps) {
   if (plans.length === 0) {
     return (
-      <div className="rounded-[1.5rem] border border-dashed border-violet-200 bg-violet-50/60 px-4 py-4 text-sm text-slate-600">
+      <div className="rounded-xl border border-dashed border-violet-200 bg-violet-50/60 px-4 py-4 text-sm text-slate-600">
         Aucun pack d’abonnement actif n’est disponible pour le moment.
       </div>
     );
@@ -52,7 +52,7 @@ export function SubscriptionPlanSelector({
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold">{plan.name}</p>
-                <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">{plan.slug}</p>
+                <p className="mt-1 text-xs text-slate-500">{plan.slug}</p>
               </div>
               <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${selected ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"}`}>
                 {selected ? "Sélectionné" : formatMoney(Number(plan.monthly_price), plan.currency_code)}

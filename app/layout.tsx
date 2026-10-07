@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Sora } from "next/font/google";
+import { Inter } from "next/font/google";
 import Script from "next/script";
 import { ChromeFrame } from "@/components/layout/chrome-frame";
 import { CookieConsentBanner } from "@/components/layout/cookie-consent-banner";
@@ -8,10 +8,12 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import "./globals.css";
 import "./cinema-theme.css";
+import "./brand.css";
 import { getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
-const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-body" });
-const sora = Sora({ subsets: ["latin"], variable: "--font-display" });
+// Une seule famille, sobre et très lisible (esprit KDP) pour le texte et les titres.
+const inter = Inter({ subsets: ["latin"], variable: "--font-body", display: "swap" });
+const interDisplay = Inter({ subsets: ["latin"], variable: "--font-display", display: "swap" });
 const DEV_SERVICE_WORKER_RESET_SCRIPT = `
 (() => {
   if (!("serviceWorker" in navigator)) return;
@@ -72,7 +74,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#17130f",
+  themeColor: "#0b1f3a",
 };
 
 export default function RootLayout({
@@ -82,7 +84,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" data-scroll-behavior="smooth">
-      <body className={`${plusJakartaSans.variable} ${sora.variable} premium-body antialiased`}>
+      <body className={`${inter.variable} ${interDisplay.variable} premium-body bg-white text-slate-900 antialiased`}>
         {process.env.NODE_ENV !== "production" ? (
           <Script id="dev-service-worker-reset" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: DEV_SERVICE_WORKER_RESET_SCRIPT }} />
         ) : null}

@@ -13,19 +13,19 @@ export default async function AddBookPage() {
 
   return (
     <section className="space-y-6">
-      <header className="rounded-[28px] bg-[#173d2c] p-6 text-white sm:p-8">
+      <header className="rounded-xl bg-night-900 p-6 text-white sm:p-8">
         <Link href="/dashboard/author/books" className="inline-flex items-center gap-2 text-sm font-bold text-white/70 hover:text-white">
           <ArrowLeft className="h-4 w-4" />
           Mes livres
         </Link>
-        <p className="mt-7 text-xs font-bold uppercase tracking-[.2em] text-[#f2c66f]">Nouvelle publication</p>
-        <h1 className="mt-3 font-serif text-3xl sm:text-4xl">Ajouter jusqu’à trois livres</h1>
+        <p className="mt-7 text-xs font-bold text-brand-300">Nouvelle publication</p>
+        <h1 className="mt-3 font-bold text-3xl sm:text-4xl">Ajouter jusqu’à trois livres</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-white/65">
           Créez un brouillon avec le titre seulement, puis enrichissez-le progressivement. PDF, EPUB, MOBI et AZW3 peuvent être déposés au stockage privé ; le PDF reste le format de lecture protégée recommandé.
         </p>
       </header>
 
-      <div className="rounded-[28px] border border-[#ded3c2] bg-white p-4 sm:p-6">
+      <div className="rounded-xl border border-slate-300 bg-white p-4 sm:p-6">
         <AuthorBookImportForm
           subscriptionPlans={subscriptionPlans}
           initialValues={{

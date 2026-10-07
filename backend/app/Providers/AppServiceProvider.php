@@ -2,17 +2,18 @@
 
 namespace App\Providers;
 
-use App\Models\User;
 use App\Models\AuthorPayout;
 use App\Models\AuthorPayoutAccount;
 use App\Models\Book;
+use App\Models\BookDistributionSetting;
 use App\Models\BookMarketPrice;
-use App\Models\Profile;
 use App\Models\Order;
+use App\Models\Profile;
 use App\Models\PromotionCampaign;
 use App\Models\PublishingReviewCase;
 use App\Models\RightsContract;
 use App\Models\SubscriptionPlan;
+use App\Models\User;
 use App\Observers\CriticalModelAuditObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -35,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
             RightsContract::class,
             PromotionCampaign::class,
             BookMarketPrice::class,
+            BookDistributionSetting::class,
             PublishingReviewCase::class,
             AuthorPayout::class,
             AuthorPayoutAccount::class,
@@ -50,7 +52,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         ResetPassword::createUrlUsing(function (User $user, string $token): string {
-            $frontend = rtrim((string) config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000')), '/');
+            $frontend = (string) config('holistic.frontend_url');
 
             return $frontend.'/reset-password?token='.urlencode($token).'&email='.urlencode($user->email);
         });

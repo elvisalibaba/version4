@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { getApiBaseUrl } from "@/lib/api/client";
 import { getServerAuthToken } from "@/lib/api/server";
 import { cookies } from "next/headers";
+import { proxyForwardHeaders } from "@/lib/api/forwarded";
 
-async function proxyPage(targetUrl: string, token?: string | null, readerToken?: string | null) {
-  const headers: HeadersInit = {
+async function proxyPage(request: Request, targetUrl: string, token?: string | null, readerToken?: string | null) {
+  const headers: Record<string, string> = {
     Accept: "image/jpeg",
     "X-Holistique-Reader": "web",
+    ...proxyForwardHeaders(request),
   };
 
   if (token) {
@@ -41,7 +43,7 @@ export async function GET(request: Request, context: { params: Promise<{ bookId:
     ? `${apiBase}/api/v1/read/${encodedBookId}/pages/${page}`
     : `${apiBase}/api/v1/books/${encodedBookId}/preview/pages/${page}`;
 
-  const response = await proxyPage(target, token, readerToken);
+  const response = await proxyPage(request, target, token, readerToken);
 
   if (!response.ok) {
     const payload = await response.json().catch(() => ({

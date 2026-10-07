@@ -109,8 +109,8 @@ export function AdSlot({
   }
 
   const content = (
-    <article className={`group relative overflow-hidden rounded-[28px] border border-[#e4d8cb] bg-white shadow-[0_18px_48px_rgba(35,28,22,.07)] ${className}`}>
-      <span className="absolute right-3 top-3 z-10 rounded-full bg-black/60 px-2.5 py-1 text-[0.58rem] font-bold uppercase tracking-[0.16em] text-white backdrop-blur">
+    <article className={`group relative overflow-hidden rounded-xl border border-slate-300 bg-white shadow-md ${className}`}>
+      <span className="absolute right-3 top-3 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs font-bold text-white">
         Sponsorisé
       </span>
       <div className="grid md:grid-cols-[minmax(0,0.9fr)_minmax(280px,1.1fr)] md:items-stretch">
@@ -123,13 +123,13 @@ export function AdSlot({
             <img src={ad.creative.asset_url} alt={ad.creative.alt_text ?? ad.creative.headline ?? "Publicité"} className="h-full min-h-44 w-full object-cover" />
           )
         ) : (
-          <div className="min-h-44 bg-[linear-gradient(135deg,#173d2c,#245941)]" />
+          <div className="min-h-44 bg-night-900" />
         )}
         <div className="flex flex-col justify-center p-5 sm:p-7">
-          <p className="text-[0.65rem] font-extrabold uppercase tracking-[0.18em] text-[#a94b34]">{ad.campaign.advertiser}</p>
-          {ad.creative.headline ? <h3 className="mt-2 font-display text-2xl font-extrabold tracking-[-0.035em] text-[#1d1a17]">{ad.creative.headline}</h3> : null}
-          {ad.creative.body ? <p className="mt-2 text-sm leading-6 text-[#766b61]">{ad.creative.body}</p> : null}
-          {ad.creative.cta_label ? <span className="mt-4 inline-flex items-center gap-2 text-sm font-extrabold text-[#173d2c]">{ad.creative.cta_label}<ExternalLink className="h-4 w-4" /></span> : null}
+          <p className="text-xs font-extrabold text-brand-600">{ad.campaign.advertiser}</p>
+          {ad.creative.headline ? <h3 className="mt-2 font-display text-2xl font-extrabold tracking-[-0.035em] text-slate-900">{ad.creative.headline}</h3> : null}
+          {ad.creative.body ? <p className="mt-2 text-sm leading-6 text-slate-600">{ad.creative.body}</p> : null}
+          {ad.creative.cta_label ? <span className="mt-4 inline-flex items-center gap-2 text-sm font-extrabold text-night-900">{ad.creative.cta_label}<ExternalLink className="h-4 w-4" /></span> : null}
         </div>
       </div>
     </article>

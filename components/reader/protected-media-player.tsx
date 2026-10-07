@@ -91,13 +91,13 @@ export function ProtectedMediaPlayer({
   }
 
   return (
-    <div className="rounded-[24px] border border-[#e7ddd1] bg-[#fffdf9] p-4">
+    <div className="rounded-[24px] border border-slate-200 bg-white p-4">
       {!started ? (
         <button
           type="button"
           onClick={() => void loadAccess()}
           disabled={loading}
-          className="flex w-full items-center justify-between gap-4 rounded-[20px] bg-[#173d2c] p-4 text-left text-white transition hover:bg-[#204f3a] disabled:opacity-60"
+          className="flex w-full items-center justify-between gap-4 rounded-[20px] bg-night-900 p-4 text-left text-white transition hover:bg-night-800 disabled:opacity-60"
         >
           <span className="flex items-center gap-3">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/10">
@@ -113,10 +113,10 @@ export function ProtectedMediaPlayer({
       ) : null}
 
       {error ? (
-        <div className="rounded-[20px] border border-[#efc3b8] bg-[#fff0eb] p-4 text-sm text-[#8c3f2e]">
+        <div className="rounded-[20px] border border-brand-200 bg-slate-50 p-4 text-sm text-brand-700">
           <div className="flex items-center gap-2 font-bold"><LockKeyhole className="h-4 w-4" /> Lecture indisponible</div>
           <p className="mt-2">{error}</p>
-          <button type="button" onClick={() => void loadAccess()} className="mt-3 inline-flex items-center gap-2 font-bold text-[#173d2c]">
+          <button type="button" onClick={() => void loadAccess()} className="mt-3 inline-flex items-center gap-2 font-bold text-night-900">
             <RefreshCw className="h-4 w-4" /> Réessayer
           </button>
         </div>
@@ -125,7 +125,7 @@ export function ProtectedMediaPlayer({
       {access?.playback_url ? (
         <div className="space-y-4">
           <div>
-            <p className="text-sm font-bold text-[#17231d]">{access.title || title}</p>
+            <p className="text-sm font-bold text-night-900">{access.title || title}</p>
           </div>
           {isAudio ? (
             <audio
@@ -146,26 +146,26 @@ export function ProtectedMediaPlayer({
             />
           )}
 
-          <div className="flex flex-wrap items-center gap-2 text-xs text-[#766e64]">
-            <span className="rounded-full bg-[#f1ebe3] px-2.5 py-1">{access.language?.toUpperCase() || "FR"}</span>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+            <span className="rounded-full bg-slate-100 px-2.5 py-1">{access.language?.toUpperCase() || "FR"}</span>
             {access.narrator ? <span>Narration : {access.narrator}</span> : null}
             {access.presenter ? <span>Présentation : {access.presenter}</span> : null}
           </div>
 
           {chapterSummary.length ? (
-            <div className="border-t border-[#e8dfd4] pt-4">
-              <p className="text-[0.68rem] font-extrabold uppercase tracking-[.16em] text-[#a94b34]">Chapitres</p>
+            <div className="border-t border-slate-200 pt-4">
+              <p className="text-[0.68rem] font-extrabold uppercase tracking-[.16em] text-brand-600">Chapitres</p>
               <div className="mt-3 grid gap-2">
                 {chapterSummary.map((chapter) => (
                   <button
                     key={chapter.id}
                     type="button"
                     onClick={() => seekTo(chapter.starts_at_second)}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-[#ebe2d8] bg-white px-3 py-2 text-left text-sm transition hover:border-[#cdbba7]"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm transition hover:border-slate-400"
                   >
-                    <span><strong className="mr-2 text-[#173d2c]">{chapter.position}.</strong>{chapter.title}</span>
+                    <span><strong className="mr-2 text-night-900">{chapter.position}.</strong>{chapter.title}</span>
                     {chapter.starts_at_second !== null ? (
-                      <span className="shrink-0 text-xs text-[#8b8177]">{Math.floor(chapter.starts_at_second / 60)}:{String(chapter.starts_at_second % 60).padStart(2, "0")}</span>
+                      <span className="shrink-0 text-xs text-slate-500">{Math.floor(chapter.starts_at_second / 60)}:{String(chapter.starts_at_second % 60).padStart(2, "0")}</span>
                     ) : null}
                   </button>
                 ))}

@@ -3,7 +3,10 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Home, Library, Search, ShoppingCart, UserCircle2 } from "lucide-react";
+import Image from "next/image";
+import { Home, Library, Search, ShoppingCart, UserCircle2 } from "lucide-react";
+import { CartFeedback } from "@/components/cart/cart-feedback";
+import { CartCountBadge } from "@/components/cart/cart-indicator";
 
 type ChromeFrameProps = {
   header: ReactNode;
@@ -31,10 +34,10 @@ export function ChromeFrame({ header, footer, children }: ChromeFrameProps) {
 
   if (pathname.startsWith("/dashboard")) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(255,153,0,0.10),transparent_24%),radial-gradient(circle_at_top_right,rgba(20,110,180,0.08),transparent_24%),linear-gradient(180deg,#fbfaf7_0%,#f4efe6_100%)]">
+      <div className="min-h-screen bg-slate-50">
         <a
           href="#dashboard-content"
-          className="fixed left-3 top-3 z-[200] -translate-y-24 rounded-xl bg-[#171717] px-4 py-3 text-sm font-bold text-white transition focus:translate-y-0"
+          className="fixed left-3 top-3 z-[200] -translate-y-24 rounded-md bg-night-900 px-4 py-3 text-sm font-bold text-white transition focus:translate-y-0"
         >
           Aller au contenu
         </a>
@@ -47,24 +50,19 @@ export function ChromeFrame({ header, footer, children }: ChromeFrameProps) {
 
   if (isAuthRoute) {
     return (
-      <div className="min-h-screen bg-[#f5f0e7]">
-        <header className="sticky top-0 z-50 border-b border-[#d9cebd] bg-[#fffaf2]/95 backdrop-blur-xl">
-          <div className="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-3 px-3 sm:min-h-16 sm:px-6">
-            <Link href="/home" className="flex min-w-0 items-center gap-2.5" aria-label="Accueil Holistique Books">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#173d2c] text-[#f2c66f]">
-                <BookOpen aria-hidden="true" className="h-5 w-5" />
-              </span>
-              <span className="min-w-0">
-                <span className="block truncate font-serif text-base font-bold tracking-[-0.02em] text-[#17231d] sm:text-lg">Holistique Books</span>
-                <span className="block text-[0.55rem] font-bold uppercase tracking-[0.18em] text-[#a94b34]">Maison éditoriale africaine</span>
-              </span>
+      <div className="min-h-screen bg-slate-50">
+        <header className="bg-night-900 text-white">
+          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+            <Link href="/home" className="flex min-w-0 items-center gap-2.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Accueil Holistique Books">
+              <Image src="/logo.svg" alt="" width={44} height={44} className="h-11 w-11 brightness-0 invert" priority />
+              <span className="truncate text-[1.05rem] font-bold tracking-tight">Holistique Books</span>
             </Link>
-            <Link href="/library" className="inline-flex min-h-11 items-center rounded-full px-3 text-xs font-bold text-[#173d2c] transition hover:bg-[#efe6d8] sm:px-4 sm:text-sm">
+            <Link href="/books?access=free" className="inline-flex min-h-10 items-center rounded-md px-3 text-sm font-medium text-white/90 transition hover:bg-white/10 hover:text-white">
               Lire sans compte
             </Link>
           </div>
         </header>
-        <main className="site-main min-h-[calc(100dvh-4rem)] pb-8">{children}</main>
+        <main id="contenu" className="site-main min-h-[calc(100dvh-4rem)] pb-8">{children}</main>
       </div>
     );
   }
@@ -72,8 +70,9 @@ export function ChromeFrame({ header, footer, children }: ChromeFrameProps) {
   return (
     <div className="hb-browser-shell">
       {header}
-      <main className="site-main hb-mobile-main min-h-[60vh]">{children}</main>
+      <main id="contenu" className="site-main hb-mobile-main min-h-[60vh]">{children}</main>
       {footer}
+      <CartFeedback />
       <div className="lg:hidden">
         <AppBottomNavigation pathname={pathname} />
       </div>
@@ -95,7 +94,10 @@ function AppBottomNavigation({ pathname }: { pathname: string }) {
             className={active ? "hb-app-nav-item is-active" : "hb-app-nav-item"}
             aria-current={active ? "page" : undefined}
           >
-            <Icon aria-hidden="true" className="h-5 w-5" />
+            <span className="relative">
+              <Icon aria-hidden="true" className="h-5 w-5" />
+              {item.href === "/cart" ? <CartCountBadge className="absolute -right-2.5 -top-1.5" /> : null}
+            </span>
             <span>{item.label}</span>
           </Link>
         );

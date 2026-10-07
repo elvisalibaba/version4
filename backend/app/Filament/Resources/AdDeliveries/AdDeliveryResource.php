@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\AdDeliveries;
 
-use App\Filament\Resources\AdDeliveries\Pages\ListAdDeliverys;
+use App\Filament\Concerns\RequiresStaffPermission;
 use App\Filament\Resources\AdDeliveries\Pages\CreateAdDelivery;
 use App\Filament\Resources\AdDeliveries\Pages\EditAdDelivery;
+use App\Filament\Resources\AdDeliveries\Pages\ListAdDeliverys;
 use App\Models\AdAssignment;
 use BackedEnum;
 use Filament\Actions\EditAction;
@@ -19,21 +20,36 @@ use Filament\Tables\Table;
 
 class AdDeliveryResource extends Resource
 {
+    use RequiresStaffPermission;
+
+    protected static string $staffManagePermission = 'marketing.manage';
+
+    protected static ?string $staffViewPermission = 'analytics.view';
+
     protected static ?string $model = AdAssignment::class;
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrow-path-rounded-square';
+
     protected static ?string $navigationLabel = 'Diffusion';
+
     protected static ?string $modelLabel = 'diffusion publicitaire';
+
     protected static ?string $pluralModelLabel = 'diffusion publicitaire';
+
     protected static ?int $navigationSort = 4;
-    public static function getNavigationGroup(): ?string { return 'Publicité'; }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Publicité';
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([Section::make('Diffusion')->columns(2)->schema([
-            Select::make('campaign_id')->relationship('campaign','name')->label('Campagne')->searchable()->preload()->required(),
-            Select::make('creative_id')->relationship('creative','title')->label('Création')->searchable()->preload()->required(),
-            Select::make('placement_id')->relationship('placement','name')->label('Emplacement')->searchable()->preload()->required(),
-            Select::make('status')->options(['active'=>'Active','paused'=>'Pause','completed'=>'Terminée'])->default('active')->required(),
+            Select::make('campaign_id')->relationship('campaign', 'name')->label('Campagne')->searchable()->preload()->required(),
+            Select::make('creative_id')->relationship('creative', 'title')->label('Création')->searchable()->preload()->required(),
+            Select::make('placement_id')->relationship('placement', 'name')->label('Emplacement')->searchable()->preload()->required(),
+            Select::make('status')->options(['active' => 'Active', 'paused' => 'Pause', 'completed' => 'Terminée'])->default('active')->required(),
             TextInput::make('weight')->label('Priorité / poids')->numeric()->default(100)->minValue(1),
             DateTimePicker::make('starts_at')->label('Début'),
             DateTimePicker::make('ends_at')->label('Fin'),
@@ -54,6 +70,6 @@ class AdDeliveryResource extends Resource
 
     public static function getPages(): array
     {
-        return ['index'=>ListAdDeliverys::route('/'),'create'=>CreateAdDelivery::route('/create'),'edit'=>EditAdDelivery::route('/{record}/edit')];
+        return ['index' => ListAdDeliverys::route('/'), 'create' => CreateAdDelivery::route('/create'), 'edit' => EditAdDelivery::route('/{record}/edit')];
     }
 }

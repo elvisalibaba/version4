@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\PublishingImprints;
 
-use App\Filament\Resources\PublishingImprints\Pages\ListPublishingImprints;
+use App\Filament\Concerns\RequiresStaffPermission;
 use App\Filament\Resources\PublishingImprints\Pages\CreatePublishingImprint;
 use App\Filament\Resources\PublishingImprints\Pages\EditPublishingImprint;
+use App\Filament\Resources\PublishingImprints\Pages\ListPublishingImprints;
 use App\Models\PublishingImprint;
 use BackedEnum;
 use Filament\Actions\EditAction;
@@ -24,19 +25,34 @@ use Illuminate\Support\Str;
 
 class PublishingImprintResource extends Resource
 {
+    use RequiresStaffPermission;
+
+    protected static string $staffManagePermission = 'authors.manage';
+
+    protected static ?string $staffViewPermission = 'catalog.view';
+
     protected static ?string $model = PublishingImprint::class;
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-bookmark-square';
+
     protected static ?string $navigationLabel = 'Labels éditoriaux';
+
     protected static ?string $modelLabel = 'label';
+
     protected static ?string $pluralModelLabel = 'labels';
+
     protected static ?int $navigationSort = 2;
-    public static function getNavigationGroup(): ?string { return 'Maison d’édition'; }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Maison d’édition';
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([Section::make('Label / Imprint')->columns(2)->schema([
-            Select::make('publishing_house_id')->relationship('publishingHouse','name')->label('Maison')->searchable()->preload()->required(),
-            TextInput::make('name')->required()->live(onBlur:true)->afterStateUpdated(fn($set,?string $state)=>$set('slug',Str::slug((string)$state))),
+            Select::make('publishing_house_id')->relationship('publishingHouse', 'name')->label('Maison')->searchable()->preload()->required(),
+            TextInput::make('name')->required()->live(onBlur: true)->afterStateUpdated(fn ($set, ?string $state) => $set('slug', Str::slug((string) $state))),
             TextInput::make('slug')->required(),
             Toggle::make('is_active')->label('Actif')->default(true),
             Textarea::make('description')->columnSpanFull(),
@@ -66,6 +82,6 @@ class PublishingImprintResource extends Resource
 
     public static function getPages(): array
     {
-        return ['index'=>ListPublishingImprints::route('/'),'create'=>CreatePublishingImprint::route('/create'),'edit'=>EditPublishingImprint::route('/{record}/edit')];
+        return ['index' => ListPublishingImprints::route('/'), 'create' => CreatePublishingImprint::route('/create'), 'edit' => EditPublishingImprint::route('/{record}/edit')];
     }
 }

@@ -35,7 +35,7 @@ function LogoutButtonInner({ className, compact, label }: LogoutButtonProps) {
 }
 
 export function LogoutButton({
-  className = "group inline-flex h-11 items-center justify-center gap-2.5 rounded-full border border-[#e5ddd2] bg-white px-5 text-sm font-semibold text-[#26221d] shadow-sm transition-all duration-300 hover:border-[#c9bfb2] hover:bg-[#faf8f4] hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-sm",
+  className = "group inline-flex h-11 items-center justify-center gap-2.5 rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-900 shadow-sm transition-all duration-300 hover:border-slate-400 hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-sm",
   compact = false,
   label,
 }: LogoutButtonProps) {

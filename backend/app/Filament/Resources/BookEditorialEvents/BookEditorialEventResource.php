@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BookEditorialEvents;
 
+use App\Filament\Concerns\RequiresStaffPermission;
 use App\Filament\Resources\BookEditorialEvents\Pages\ListBookEditorialEvents;
 use App\Models\BookEditorialEvent;
 use BackedEnum;
@@ -13,9 +14,15 @@ use Filament\Tables\Table;
 
 class BookEditorialEventResource extends Resource
 {
+    use RequiresStaffPermission;
+
+    protected static string $staffManagePermission = 'editorial.review';
+
+    protected static ?string $staffViewPermission = 'audit.view';
+
     protected static ?string $model = BookEditorialEvent::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-clock';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clock';
 
     protected static ?string $navigationLabel = 'Historique éditorial';
 

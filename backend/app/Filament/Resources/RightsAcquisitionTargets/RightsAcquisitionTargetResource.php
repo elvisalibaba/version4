@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\RightsAcquisitionTargets;
 
+use App\Filament\Concerns\RequiresStaffPermission;
 use App\Filament\Resources\RightsAcquisitionTargets\Pages\CreateRightsAcquisitionTarget;
 use App\Filament\Resources\RightsAcquisitionTargets\Pages\EditRightsAcquisitionTarget;
 use App\Filament\Resources\RightsAcquisitionTargets\Pages\ListRightsAcquisitionTargets;
@@ -22,26 +23,41 @@ use Filament\Tables\Table;
 
 class RightsAcquisitionTargetResource extends Resource
 {
+    use RequiresStaffPermission;
+
+    protected static string $staffManagePermission = 'rights.manage';
+
+    protected static ?string $staffViewPermission = 'rights.view';
+
     protected static ?string $model = RightsAcquisitionTarget::class;
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-magnifying-glass-circle';
+
     protected static ?string $navigationLabel = 'Acquisitions de droits';
+
     protected static ?string $modelLabel = 'cible de droits';
+
     protected static ?string $pluralModelLabel = 'acquisitions de droits';
+
     protected static ?int $navigationSort = 3;
-    public static function getNavigationGroup(): ?string { return 'Maison d’édition'; }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Maison d’édition';
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([Section::make('Prospection de droits')->description('Suivi interne avant création d’un titre publiable dans le catalogue.')->columns(2)->schema([
-            Select::make('author_profile_id')->relationship('authorProfile','display_name')->label('Auteur / ayant droit')->searchable()->preload(),
+            Select::make('author_profile_id')->relationship('authorProfile', 'display_name')->label('Auteur / ayant droit')->searchable()->preload(),
             TextInput::make('title')->label('Titre ciblé')->required(),
             TextInput::make('original_publisher')->label('Éditeur actuel / original'),
             TextInput::make('isbn')->label('ISBN'),
             Select::make('status')->options([
-                'prospect'=>'Prospect','contacted'=>'Contacté','negotiating'=>'Négociation',
-                'contracted'=>'Contracté','rejected'=>'Refusé','on_hold'=>'En attente',
+                'prospect' => 'Prospect', 'contacted' => 'Contacté', 'negotiating' => 'Négociation',
+                'contracted' => 'Contracté', 'rejected' => 'Refusé', 'on_hold' => 'En attente',
             ])->default('prospect')->required(),
-            Select::make('priority')->label('Priorité')->options([1=>'Très haute',2=>'Haute',3=>'Normale',4=>'Basse',5=>'Veille'])->default(3)->required(),
+            Select::make('priority')->label('Priorité')->options([1 => 'Très haute', 2 => 'Haute', 3 => 'Normale', 4 => 'Basse', 5 => 'Veille'])->default(3)->required(),
             TagsInput::make('territories')->label('Territoires visés'),
             TagsInput::make('languages')->label('Langues visées'),
             TagsInput::make('desired_media')->label('Formats visés')->placeholder('ebook, print, audiobook, video'),
@@ -66,8 +82,8 @@ class RightsAcquisitionTargetResource extends Resource
             TextColumn::make('next_action_at')->label('Prochaine action')->dateTime('d/m/Y H:i')->sortable(),
         ])->filters([
             SelectFilter::make('status')->options([
-                'prospect'=>'Prospect','contacted'=>'Contacté','negotiating'=>'Négociation',
-                'contracted'=>'Contracté','rejected'=>'Refusé','on_hold'=>'En attente',
+                'prospect' => 'Prospect', 'contacted' => 'Contacté', 'negotiating' => 'Négociation',
+                'contracted' => 'Contracté', 'rejected' => 'Refusé', 'on_hold' => 'En attente',
             ]),
         ])->recordActions([EditAction::make()]);
     }
@@ -75,9 +91,9 @@ class RightsAcquisitionTargetResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'=>ListRightsAcquisitionTargets::route('/'),
-            'create'=>CreateRightsAcquisitionTarget::route('/create'),
-            'edit'=>EditRightsAcquisitionTarget::route('/{record}/edit'),
+            'index' => ListRightsAcquisitionTargets::route('/'),
+            'create' => CreateRightsAcquisitionTarget::route('/create'),
+            'edit' => EditRightsAcquisitionTarget::route('/{record}/edit'),
         ];
     }
 }

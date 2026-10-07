@@ -26,7 +26,7 @@ class ProfileResource extends Resource
 {
     protected static ?string $model = Profile::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-users';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-users';
 
     protected static ?string $navigationLabel = 'Utilisateurs';
 
@@ -50,7 +50,22 @@ class ProfileResource extends Resource
 
     public static function canEdit($record): bool
     {
-        return StaffAccess::allows('users.manage');
+        if (! StaffAccess::allows('users.manage')) {
+            return false;
+        }
+
+        // Seul un super administrateur peut modifier un compte du staff.
+        return $record->role !== 'admin' || static::currentUserIsSuperAdmin();
+    }
+
+    /**
+     * Rôle, fonction interne et permissions ne sont modifiables que par un
+     * super administrateur : sinon un détenteur de `users.manage` pourrait
+     * s'attribuer (ou attribuer à un complice) tous les droits.
+     */
+    public static function currentUserIsSuperAdmin(): bool
+    {
+        return (bool) auth()->user()?->profile?->isSuperAdmin();
     }
 
     public static function form(Schema $schema): Schema
@@ -67,6 +82,7 @@ class ProfileResource extends Resource
                             'author' => 'Auteur',
                             'admin' => 'Administrateur',
                         ])
+                        ->disabled(fn (): bool => ! static::currentUserIsSuperAdmin())
                         ->required(),
                     Select::make('staff_role')
                         ->label('Fonction interne')
@@ -82,6 +98,9 @@ class ProfileResource extends Resource
                             'analyst' => 'Data / analyste',
                         ])
                         ->visible(fn (Get $get): bool => $get('role') === 'admin')
+                        // Une fonction vide équivaut à super_admin : on impose un choix explicite.
+                        ->required(fn (Get $get): bool => $get('role') === 'admin')
+                        ->disabled(fn (): bool => ! static::currentUserIsSuperAdmin())
                         ->helperText('Détermine les accès métier au Control Center.'),
 
                     Select::make('staff_permissions')
@@ -90,6 +109,7 @@ class ProfileResource extends Resource
                         ->searchable()
                         ->options(fn (): array => config('staff_permissions.permissions', []))
                         ->visible(fn (Get $get): bool => $get('role') === 'admin')
+                        ->disabled(fn (): bool => ! static::currentUserIsSuperAdmin())
                         ->helperText('Ajouts ponctuels au rôle interne. Le Super Admin possède tout.')
                         ->columnSpanFull(),
                     TextInput::make('name')->label('Nom affiché')->maxLength(255),

@@ -23,10 +23,10 @@ type CinetPayDonateFormProps = {
 };
 
 const inputClassName =
-  "h-11 w-full rounded-lg border border-[#a6a6a6] bg-white px-3 text-sm text-[#0f1111] outline-none transition placeholder:text-[#6b7280] focus:border-[#e77600] focus:ring-2 focus:ring-[#fbd8a5]";
+  "h-11 w-full rounded-lg border border-slate-400 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-600 focus:ring-2 focus:ring-brand-200";
 
 const textareaClassName =
-  "w-full rounded-lg border border-[#a6a6a6] bg-white px-3 py-2.5 text-sm text-[#0f1111] outline-none transition placeholder:text-[#6b7280] focus:border-[#e77600] focus:ring-2 focus:ring-[#fbd8a5]";
+  "w-full rounded-lg border border-slate-400 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-600 focus:ring-2 focus:ring-brand-200";
 
 function Field({
   label,
@@ -39,9 +39,9 @@ function Field({
 }) {
   return (
     <label className="grid gap-1.5">
-      <span className="text-sm font-medium text-[#0f1111]">{label}</span>
+      <span className="text-sm font-medium text-slate-900">{label}</span>
       {children}
-      {hint ? <span className="text-xs leading-5 text-[#565959]">{hint}</span> : null}
+      {hint ? <span className="text-xs leading-5 text-slate-600">{hint}</span> : null}
     </label>
   );
 }
@@ -56,10 +56,10 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-[#d5d9d9] bg-white p-4">
+    <section className="rounded-xl border border-slate-300 bg-white p-4">
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold text-[#0f1111]">{title}</h2>
-        {hint ? <p className="text-sm leading-6 text-[#565959]">{hint}</p> : null}
+        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+        {hint ? <p className="text-sm leading-6 text-slate-600">{hint}</p> : null}
       </div>
       <div className="mt-4 grid gap-4">{children}</div>
     </section>
@@ -159,15 +159,15 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
   }
 
   return (
-    <form className="rounded-2xl border border-[#d5d9d9] bg-white p-5 shadow-sm sm:p-6" onSubmit={(event) => event.preventDefault()}>
+    <form className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-6" onSubmit={(event) => event.preventDefault()}>
       <div className="space-y-3">
-        <span className="inline-flex items-center gap-2 rounded-full bg-[#232f3e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">
+        <span className="inline-flex items-center gap-2 rounded-full bg-night-900 px-3 py-1 text-xs font-semibold text-white">
           <HeartHandshake className="h-3.5 w-3.5" />
           Don EasyPay
         </span>
         <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#0f1111]">Faire un don</h1>
-          <p className="text-sm leading-6 text-[#565959]">
+          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-slate-900">Faire un don</h1>
+          <p className="text-sm leading-6 text-slate-600">
             Soutenez Holistique Books avec un formulaire plus simple, puis choisissez votre canal de paiement.
           </p>
         </div>
@@ -175,9 +175,9 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
 
       <div className="mt-6 space-y-4">
         <SectionCard title="Montant du don" hint="Choisissez un montant rapide ou entrez votre propre montant.">
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-[#f3a847] bg-[#fff8e8] px-4 py-3">
-            <span className="text-sm font-medium text-[#5c3b00]">Montant actuel</span>
-            <span className="text-lg font-semibold text-[#0f1111]">{formatUsd(parsedAmount ?? 0)}</span>
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-brand-600 bg-brand-50 px-4 py-3">
+            <span className="text-sm font-medium text-brand-700">Montant actuel</span>
+            <span className="text-lg font-semibold text-slate-900">{formatUsd(parsedAmount ?? 0)}</span>
           </div>
 
           <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
@@ -191,8 +191,8 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
                   onClick={() => setAmountInput(String(value))}
                   className={`rounded-full border px-4 py-2.5 text-sm font-semibold transition ${
                     active
-                      ? "border-[#232f3e] bg-[#232f3e] text-white"
-                      : "border-[#d5d9d9] bg-white text-[#0f1111] hover:border-[#c7cccc] hover:bg-[#f7fafa]"
+                      ? "border-night-900 bg-night-900 text-white"
+                      : "border-slate-300 bg-white text-slate-900 hover:border-slate-300 hover:bg-night-50"
                   }`}
                 >
                   {formatUsd(value)}
@@ -242,13 +242,13 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
           </div>
         </SectionCard>
 
-        <details className="rounded-xl border border-[#d5d9d9] bg-white">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-sm font-semibold text-[#0f1111] marker:hidden">
+        <details className="rounded-xl border border-slate-300 bg-white">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-sm font-semibold text-slate-900 marker:hidden">
             Ajouter les informations de facturation
-            <ChevronDown className="h-4 w-4 text-[#565959]" />
+            <ChevronDown className="h-4 w-4 text-slate-600" />
           </summary>
-          <div className="grid gap-4 border-t border-[#d5d9d9] px-4 py-4">
-            <div className="rounded-lg border border-[#f3a847] bg-[#fff8e8] px-4 py-3 text-sm leading-6 text-[#5c3b00]">
+          <div className="grid gap-4 border-t border-slate-300 px-4 py-4">
+            <div className="rounded-lg border border-brand-600 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
               Ces informations sont facultatives pour l’initialisation EasyPay actuelle, mais peuvent être utiles pour votre suivi client.
             </div>
 
@@ -286,7 +286,7 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
       </div>
 
       {error ? (
-        <p className="mt-4 rounded-lg border border-[#d13212] bg-[#fff2f2] px-4 py-3 text-sm text-[#b12704]">{error}</p>
+        <p className="mt-4 rounded-lg border border-brand-600 bg-brand-50 px-4 py-3 text-sm text-brand-700">{error}</p>
       ) : null}
 
       <div className="mt-5 grid gap-3 md:grid-cols-3">
@@ -294,7 +294,7 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
           type="button"
           onClick={() => launchDonation("CREDIT_CARD")}
           disabled={Boolean(busyChannel)}
-          className="inline-flex h-11 items-center justify-center rounded-full border border-[#fcd200] bg-[#ffd814] px-4 text-sm font-semibold text-[#0f1111] transition hover:bg-[#f7ca00] disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-11 items-center justify-center rounded-full border border-brand-600 bg-brand-600 px-4 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busyChannel === "CREDIT_CARD" ? "Redirection..." : "Don par carte"}
         </button>
@@ -302,7 +302,7 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
           type="button"
           onClick={() => launchDonation("MOBILE_MONEY")}
           disabled={Boolean(busyChannel)}
-          className="inline-flex h-11 items-center justify-center rounded-full border border-[#d5d9d9] bg-white px-4 text-sm font-semibold text-[#0f1111] transition hover:bg-[#f7fafa] disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-11 items-center justify-center rounded-full border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 transition hover:bg-night-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busyChannel === "MOBILE_MONEY" ? "Redirection..." : "Don mobile money"}
         </button>
@@ -310,13 +310,13 @@ export function CinetPayDonateForm({ defaultCustomer, suggestedAmounts = [5, 10,
           type="button"
           onClick={() => launchDonation("ALL")}
           disabled={Boolean(busyChannel)}
-          className="inline-flex h-11 items-center justify-center rounded-full border border-[#d5d9d9] bg-white px-4 text-sm font-semibold text-[#0f1111] transition hover:bg-[#f7fafa] disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-11 items-center justify-center rounded-full border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 transition hover:bg-night-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busyChannel === "ALL" ? "Redirection..." : "Choisir sur EasyPay"}
         </button>
       </div>
 
-      <div className="mt-4 rounded-lg border border-[#d5d9d9] bg-[#f7fafa] px-4 py-3 text-sm leading-6 text-[#565959]">
+      <div className="mt-4 rounded-lg border border-slate-300 bg-night-50 px-4 py-3 text-sm leading-6 text-slate-600">
         EasyPay affiche les moyens disponibles selon votre pays et votre opérateur.
       </div>
     </form>

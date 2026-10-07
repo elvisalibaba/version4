@@ -1,0 +1,360 @@
+/* =============================================================================
+   Charte Holistique Books — rouge, bleu nuit, blanc.
+   Chargée en dernier : neutralise les effets décoratifs des anciennes feuilles
+   (grilles, halos, verre dépoli) au profit d'une interface sobre et lisible.
+   ========================================================================== */
+
+body {
+  background: #ffffff;
+  color: #0f172a;
+  font-family: var(--font-body), system-ui, sans-serif;
+  line-height: 1.55;
+}
+
+.premium-body::before {
+  content: none;
+  display: none;
+}
+
+:focus-visible {
+  outline: 2px solid #c8102e;
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #fce4e8;
+  color: #0b1f3a;
+}
+
+/* La page d'accueil gère ses propres bandeaux pleine largeur. */
+.site-main:has(> .hb-home-page),
+.site-main:has(> .hb-fullbleed) {
+  max-width: none;
+  padding: 0;
+}
+
+.site-main > .hb-home-page {
+  margin: 0;
+}
+
+/* Barre d'onglets mobile : pleine largeur, sans flou, onglet actif en rouge. */
+.hb-app-bottom-nav {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  max-width: none;
+  gap: 0;
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+  border-radius: 0;
+  background: #ffffff;
+  padding: 0.25rem 0.25rem max(0.25rem, env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 12px rgba(11, 31, 58, 0.06);
+  backdrop-filter: none;
+}
+
+.hb-app-nav-item {
+  min-height: 3.25rem;
+  border-radius: 0.5rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.hb-app-nav-item.is-active {
+  background: transparent;
+  color: #c8102e;
+  box-shadow: none;
+}
+
+@media (max-width: 1023px) {
+  .hb-app-bottom-nav {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 0.25rem 0.25rem max(0.25rem, env(safe-area-inset-bottom));
+    border-radius: 0;
+  }
+
+  .hb-browser-shell {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* Système de boutons unique (anciennes classes partagées). */
+.cta-primary,
+.hb-button-primary,
+.ios-button-primary {
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
+  background: #c8102e;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: none;
+  transition: background-color 0.15s ease;
+}
+
+.cta-primary:hover,
+.hb-button-primary:hover,
+.ios-button-primary:hover {
+  transform: none;
+  background: #a50d26;
+  box-shadow: none;
+  filter: none;
+}
+
+.cta-secondary,
+.hb-button-ghost,
+.hb-top-button,
+.ios-button-secondary {
+  border-radius: 0.375rem;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.cta-secondary:hover,
+.hb-button-ghost:hover,
+.hb-top-button:hover,
+.ios-button-secondary:hover {
+  transform: none;
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+/* Bannière cookies : carte simple, lien lisible. */
+.hb-cookie-banner {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(11, 31, 58, 0.12);
+  backdrop-filter: none;
+}
+
+.hb-cookie-banner-title {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.hb-cookie-banner-text {
+  color: #475569;
+}
+
+.hb-cookie-banner-link {
+  color: #1e3a64;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 1023px) {
+  /* Au-dessus de la barre d'onglets mobile. */
+  .hb-cookie-banner {
+    bottom: calc(4.25rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* =============================================================================
+   Micro-animations — sobres, rapides, désactivées si l'utilisateur
+   demande moins de mouvement (prefers-reduced-motion).
+   ========================================================================== */
+
+@keyframes hb-bump {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.45); }
+  55% { transform: scale(0.88); }
+  80% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes hb-pop {
+  0% { transform: scale(0.4) rotate(-20deg); opacity: 0; }
+  60% { transform: scale(1.2) rotate(0deg); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes hb-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes hb-tick {
+  0% { transform: translateY(-35%); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
+
+@keyframes hb-shake {
+  0%, 100% { transform: none; }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+@keyframes hb-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes hb-shine {
+  from { transform: translateX(-120%) skewX(-20deg); }
+  to { transform: translateX(220%) skewX(-20deg); }
+}
+
+/* Pastille du panier */
+.hb-cart-badge.is-bumping {
+  animation: hb-bump 0.6s cubic-bezier(0.3, 0, 0.3, 1);
+}
+
+/* Couverture qui vole vers le panier */
+.hb-cart-ghost {
+  position: fixed;
+  z-index: 120;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  background: #0b1f3a;
+  box-shadow: 0 18px 40px rgba(11, 31, 58, 0.35);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.hb-cart-ghost img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Bouton « Ajouter au panier » : reflet au survol, vert à la confirmation */
+.hb-add-to-cart::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transform: translateX(-120%) skewX(-20deg);
+  pointer-events: none;
+}
+
+.hb-add-to-cart:hover::after {
+  animation: hb-shine 0.7s ease;
+}
+
+.hb-add-to-cart:active {
+  transform: scale(0.98);
+}
+
+.hb-add-to-cart.is-added,
+.hb-add-to-cart.is-added:hover {
+  background: #047857;
+}
+
+.hb-check-pop {
+  animation: hb-pop 0.45s cubic-bezier(0.3, 0, 0.3, 1.4) both;
+}
+
+/* Panneau de confirmation d'ajout */
+.hb-cart-sheet {
+  position: fixed;
+  z-index: 110;
+  right: 1rem;
+  top: 7.75rem;
+  width: min(22rem, calc(100vw - 2rem));
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  box-shadow: 0 24px 48px rgba(11, 31, 58, 0.18);
+  opacity: 0;
+  transform: translateY(-12px) scale(0.98);
+  transform-origin: top right;
+  visibility: hidden;
+  transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0.28s;
+}
+
+.hb-cart-sheet.is-open {
+  opacity: 1;
+  transform: none;
+  visibility: visible;
+  transition: opacity 0.22s ease, transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s;
+}
+
+@media (max-width: 1023px) {
+  /* Sur mobile : feuille qui monte au-dessus de la barre d'onglets. */
+  .hb-cart-sheet {
+    top: auto;
+    right: 0.5rem;
+    left: 0.5rem;
+    bottom: calc(4.5rem + env(safe-area-inset-bottom));
+    width: auto;
+    transform: translateY(24px);
+    transform-origin: bottom center;
+  }
+}
+
+/* Lignes du panier */
+.hb-cart-line {
+  transition: opacity 0.26s ease, transform 0.26s ease;
+}
+
+.hb-cart-line.is-removing {
+  opacity: 0;
+  transform: translateX(32px);
+}
+
+.hb-qty-tick,
+.hb-total-tick {
+  display: inline-grid;
+  animation: hb-tick 0.25s ease-out;
+}
+
+.hb-fade-up {
+  animation: hb-fade-up 0.4s ease-out both;
+}
+
+.hb-shake {
+  animation: hb-shake 0.4s ease;
+}
+
+.hb-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 999px;
+  animation: hb-spin 0.7s linear infinite;
+}
+
+/* Cartes livres : la couverture se soulève légèrement au survol */
+.hb-card-cover {
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+}
+
+@media (hover: hover) {
+  .group:hover .hb-card-cover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px rgba(11, 31, 58, 0.16);
+  }
+}
+
+/* Apparition des sections au défilement (sans JavaScript, navigateurs récents) */
+@supports (animation-timeline: view()) {
+  .hb-reveal {
+    animation: hb-fade-up linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 35%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .hb-reveal {
+    animation: none !important;
+  }
+}

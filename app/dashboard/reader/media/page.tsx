@@ -28,14 +28,14 @@ export default async function ReaderMediaPage() {
         {media.length ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {media.map(({ entry, edition }) => (
-              <article key={edition.id} className="rounded-[24px] border border-[#ece3d7] bg-white p-5">
-                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#f4eee5] text-[#173d2c]">
+              <article key={edition.id} className="rounded-[24px] border border-slate-200 bg-white p-5">
+                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100 text-night-900">
                   {edition.media_type === "audiobook" ? <Headphones className="h-5 w-5" /> : <Clapperboard className="h-5 w-5" />}
                 </span>
-                <p className="mt-4 text-[0.66rem] font-bold uppercase tracking-[.16em] text-[#a94b34]">{edition.media_type === "audiobook" ? "Livre audio" : "Vidéo"}</p>
-                <h2 className="mt-2 text-lg font-semibold text-[#17231d]">{edition.title || entry.book.title}</h2>
-                <p className="mt-1 text-sm text-[#766e64]">{entry.book.author_display_name || "Holistique Books"}</p>
-                {edition.duration_seconds ? <p className="mt-2 text-xs text-[#887f74]">Durée : {Math.max(1, Math.round(edition.duration_seconds / 60))} min</p> : null}
+                <p className="mt-4 text-[0.66rem] font-bold text-brand-600">{edition.media_type === "audiobook" ? "Livre audio" : "Vidéo"}</p>
+                <h2 className="mt-2 text-lg font-semibold text-night-900">{edition.title || entry.book.title}</h2>
+                <p className="mt-1 text-sm text-slate-600">{entry.book.author_display_name || "Holistique Books"}</p>
+                {edition.duration_seconds ? <p className="mt-2 text-xs text-slate-500">Durée : {Math.max(1, Math.round(edition.duration_seconds / 60))} min</p> : null}
                 <div className="mt-5">
                   <ProtectedMediaPlayer
                     editionId={edition.id}
@@ -43,7 +43,7 @@ export default async function ReaderMediaPage() {
                     title={edition.title || entry.book.title}
                   />
                 </div>
-                <Link href={`/book/${entry.book.id}`} className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[#173d2c]">
+                <Link href={`/book/${entry.book.id}`} className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-night-900">
                   <BookOpen className="h-4 w-4" /> Fiche de l’œuvre
                 </Link>
               </article>

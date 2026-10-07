@@ -15,7 +15,7 @@ export default async function ReaderLibraryPage() {
 
   return (
     <section className="space-y-6">
-      <DashboardTopbar kicker="Espace lecteur" title="Ma bibliothèque" description="Tous vos accès actifs, servis par Laravel." actions={<Link href="/books" className="cta-primary px-5 py-3 text-sm"><Compass className="h-4 w-4" /> Explorer</Link>} />
+      <DashboardTopbar kicker="Espace lecteur" title="Ma bibliothèque" description="Tous les livres auxquels vous avez accès." actions={<Link href="/books" className="cta-primary px-5 py-3 text-sm"><Compass className="h-4 w-4" /> Explorer</Link>} />
       <div className="metric-grid">
         <StatCard icon={LibraryBig} label="Tous mes livres" value={items.length} description="Titres actifs" tone="violet" />
         <StatCard icon={BookOpen} label="Achats" value={purchases} description="Accès permanents" tone="sky" />
@@ -27,31 +27,31 @@ export default async function ReaderLibraryPage() {
         {items.length ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {items.map((entry) => (
-              <article key={entry.id} className="overflow-hidden rounded-[1.6rem] border border-[#ece3d7] bg-white">
+              <article key={entry.id} className="overflow-hidden rounded-[1.6rem] border border-slate-200 bg-white">
                 {entry.book.cover_url ? <img src={entry.book.cover_url} alt={entry.book.cover_alt_text ?? entry.book.title} className="aspect-[1.55] w-full object-cover" /> : null}
                 <div className="p-5">
                   <div className="flex items-center justify-between gap-3">
                     <span className="catalog-badge">{entry.access_type}</span>
-                    <span className="text-xs text-[#766e64]">{entry.status}</span>
+                    <span className="text-xs text-slate-600">{entry.status}</span>
                   </div>
-                  <h2 className="mt-3 text-lg font-semibold text-[#171717]">{entry.book.title}</h2>
+                  <h2 className="mt-3 text-lg font-semibold text-slate-900">{entry.book.title}</h2>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {entry.book.media_editions?.some((edition) => edition.media_type === "audiobook" && edition.status === "published") ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-[#e9f2ee] px-2.5 py-1 text-[0.65rem] font-bold text-[#173d2c]"><Headphones className="h-3 w-3" /> Audio</span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[0.65rem] font-bold text-night-900"><Headphones className="h-3 w-3" /> Audio</span>
                     ) : null}
                     {entry.book.media_editions?.some((edition) => edition.media_type === "video" && edition.status === "published") ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-[#f8e9e5] px-2.5 py-1 text-[0.65rem] font-bold text-[#9a4936]"><Clapperboard className="h-3 w-3" /> Vidéo</span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-brand-100 px-2.5 py-1 text-[0.65rem] font-bold text-brand-700"><Clapperboard className="h-3 w-3" /> Vidéo</span>
                     ) : null}
                   </div>
-                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#6f665e]">{entry.book.description ?? "Livre disponible dans votre bibliothèque."}</p>
+                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{entry.book.description ?? "Livre disponible dans votre bibliothèque."}</p>
                   {entry.reading_progress ? (
                     <div className="mt-4">
-                      <div className="flex items-center justify-between text-[0.68rem] font-semibold text-[#766e64]">
+                      <div className="flex items-center justify-between text-[0.68rem] font-semibold text-slate-600">
                         <span>Lecture</span>
                         <span>{Math.round(Number(entry.reading_progress.progress_percent ?? 0))}%</span>
                       </div>
-                      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#eee6dc]">
-                        <div className="h-full rounded-full bg-[#173d2c]" style={{ width: `${Math.max(0, Math.min(100, Number(entry.reading_progress.progress_percent ?? 0)))}%` }} />
+                      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-200">
+                        <div className="h-full rounded-full bg-night-900" style={{ width: `${Math.max(0, Math.min(100, Number(entry.reading_progress.progress_percent ?? 0)))}%` }} />
                       </div>
                     </div>
                   ) : null}

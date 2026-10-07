@@ -12,7 +12,6 @@ function value(formData: FormData, key: string) {
 export async function updateBookDistributionAction(bookId: string, formData: FormData) {
   await requireRole(["author"]);
 
-  const royaltyPercent = Number(value(formData, "royalty_rate") || 70);
   const territories = value(formData, "territories")
     .split(",")
     .map((item) => item.trim().toUpperCase())
@@ -32,7 +31,6 @@ export async function updateBookDistributionAction(bookId: string, formData: For
         territories,
         sales_channels: salesChannels,
         local_currency: value(formData, "local_currency").toUpperCase() || "USD",
-        royalty_rate: Math.min(100, Math.max(0, royaltyPercent)) / 100,
         preorder_enabled: formData.get("preorder_enabled") === "on",
         launch_date: value(formData, "launch_date") || null,
         print_on_demand_enabled: formData.get("print_on_demand_enabled") === "on",

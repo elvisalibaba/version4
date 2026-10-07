@@ -67,7 +67,7 @@ export function PdfReaderSurface({
 
   return (
     <div
-      className="relative flex h-full min-h-0 w-full items-start justify-center overflow-auto rounded-none bg-[#2b211b] p-1.5 sm:rounded-[1.35rem] sm:p-4"
+      className="relative flex h-full min-h-0 w-full items-start justify-center overflow-auto rounded-none bg-night-900 p-1.5 sm:rounded-[1.35rem] sm:p-4"
       onContextMenu={(event) => event.preventDefault()}
     >
       {loadingPages.length > 0 ? (
@@ -82,7 +82,7 @@ export function PdfReaderSurface({
         {visiblePages.map((pageNumber) => (
           <figure
             key={pageNumber}
-            className="relative overflow-hidden rounded-xl border border-[#d8c7b2] bg-[#f8f1e7] p-1.5 shadow-[0_24px_60px_rgba(15,23,42,0.38)] sm:rounded-[1.5rem] sm:p-4"
+            className="relative overflow-hidden rounded-xl border border-slate-400 bg-slate-100 p-1.5 shadow-[0_24px_60px_rgba(11,31,58,0.38)] sm:rounded-[1.5rem] sm:p-4"
           >
             <div className="relative flex justify-center overflow-auto">
               {/* Le navigateur ne reçoit que le rendu JPEG de cette page, jamais le PDF source complet. */}
@@ -93,7 +93,7 @@ export function PdfReaderSurface({
                 draggable={false}
                 onLoad={() => markLoaded(pageNumber)}
                 onError={() => markError(pageNumber)}
-                className="select-none rounded-[0.85rem] shadow-[0_12px_30px_rgba(15,23,42,0.16)]"
+                className="select-none rounded-[0.85rem] shadow-[0_12px_30px_rgba(11,31,58,0.16)]"
                 style={{
                   width: `${Math.max(80, Math.min(220, scale * 100))}%`,
                   maxWidth: "none",
@@ -106,14 +106,14 @@ export function PdfReaderSurface({
                   className="pointer-events-none absolute inset-0 grid select-none place-items-center overflow-hidden"
                   aria-hidden="true"
                 >
-                  <div className="-rotate-[28deg] whitespace-nowrap text-center text-lg font-black uppercase tracking-[0.28em] text-[#1f2937]/[0.10] sm:text-2xl">
+                  <div className="-rotate-[28deg] whitespace-nowrap text-center text-lg font-black uppercase tracking-[0.28em] text-slate-900/[0.10] sm:text-2xl">
                     {watermarkText}
                   </div>
                 </div>
               ) : null}
             </div>
 
-            <figcaption className="mt-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#7a6655]">
+            <figcaption className="mt-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
               Page {pageNumber}
             </figcaption>
           </figure>

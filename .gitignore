@@ -19,6 +19,18 @@
 
 # production
 /build
+/backend.zip
+/production-packages/
+
+# Flutter generated files
+/mobile/.dart_tool/
+/mobile/.flutter-plugins-dependencies
+/mobile/.idea/
+/mobile/build/
+/mobile/*.iml
+/mobile/android/
+/mobile/ios/
+/mobile/holistiquestores/
 
 # misc
 .DS_Store

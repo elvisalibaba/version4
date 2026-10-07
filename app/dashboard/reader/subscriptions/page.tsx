@@ -15,24 +15,24 @@ export default async function ReaderSubscriptionsPage() {
 
   return (
     <section className="space-y-6">
-      <DashboardTopbar kicker="Premium" title="Mes abonnements" description="Vos abonnements et les formules disponibles sont servis par le backend Laravel." actions={<Link href="/dashboard/reader/library" className="cta-secondary px-5 py-3 text-sm"><Library className="h-4 w-4" /> Bibliothèque</Link>} />
+      <DashboardTopbar kicker="Premium" title="Mes abonnements" description="Vos abonnements en cours et les formules disponibles." actions={<Link href="/dashboard/reader/library" className="cta-secondary px-5 py-3 text-sm"><Library className="h-4 w-4" /> Bibliothèque</Link>} />
       <section className="surface-panel p-6">
-        <div className="section-header"><div><p className="section-kicker">Actifs et historiques</p><h2 className="section-title text-2xl">Mes formules</h2></div><Crown className="h-6 w-6 text-[#a85b3f]" /></div>
+        <div className="section-header"><div><p className="section-kicker">Actifs et historiques</p><h2 className="section-title text-2xl">Mes formules</h2></div><Crown className="h-6 w-6 text-brand-600" /></div>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           {subscriptions.length ? subscriptions.map((subscription) => (
-            <article key={subscription.id} className="rounded-[1.5rem] border border-[#ece3d7] bg-white p-5">
+            <article key={subscription.id} className="rounded-[1.5rem] border border-slate-200 bg-white p-5">
               <span className="catalog-badge">{subscription.status}</span>
               <h3 className="mt-3 text-lg font-semibold">{subscription.plan?.name ?? "Abonnement"}</h3>
-              <p className="mt-2 text-sm text-[#6f665e]">Début : {new Date(subscription.started_at).toLocaleDateString("fr-FR")}</p>
-              <p className="text-sm text-[#6f665e]">Expiration : {subscription.expires_at ? new Date(subscription.expires_at).toLocaleDateString("fr-FR") : "Sans date définie"}</p>
+              <p className="mt-2 text-sm text-slate-600">Début : {new Date(subscription.started_at).toLocaleDateString("fr-FR")}</p>
+              <p className="text-sm text-slate-600">Expiration : {subscription.expires_at ? new Date(subscription.expires_at).toLocaleDateString("fr-FR") : "Sans date définie"}</p>
             </article>
           )) : <EmptyState title="Aucun abonnement" description="Vous n’avez pas encore de formule Premium active." />}
         </div>
       </section>
       <section className="surface-panel p-6">
-        <div className="section-header"><div><p className="section-kicker">Catalogue Premium</p><h2 className="section-title text-2xl">Plans disponibles</h2></div><Sparkles className="h-6 w-6 text-[#a85b3f]" /></div>
+        <div className="section-header"><div><p className="section-kicker">Catalogue Premium</p><h2 className="section-title text-2xl">Plans disponibles</h2></div><Sparkles className="h-6 w-6 text-brand-600" /></div>
         <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {plans.map((plan) => <article key={plan.id} className="rounded-[1.5rem] border border-[#ece3d7] bg-white p-5"><h3 className="text-lg font-semibold">{plan.name}</h3><p className="mt-2 text-2xl font-bold">{money(plan.monthly_price, plan.currency_code)}</p><p className="mt-2 text-sm text-[#6f665e]">{plan.description ?? "Accès Premium HolisticBooks."}</p></article>)}
+          {plans.map((plan) => <article key={plan.id} className="rounded-[1.5rem] border border-slate-200 bg-white p-5"><h3 className="text-lg font-semibold">{plan.name}</h3><p className="mt-2 text-2xl font-bold">{money(plan.monthly_price, plan.currency_code)}</p><p className="mt-2 text-sm text-slate-600">{plan.description ?? "Accès Premium HolisticBooks."}</p></article>)}
         </div>
       </section>
     </section>

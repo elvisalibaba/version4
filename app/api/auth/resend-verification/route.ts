@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { apiClient, ApiError } from "@/lib/api/client";
+import { proxyForwardHeaders } from "@/lib/api/forwarded";
 
 export async function POST(request: Request) {
   try {
@@ -7,6 +8,7 @@ export async function POST(request: Request) {
     const result = await apiClient<{ message: string }>("auth/resend-verification", {
       method: "POST",
       body,
+      headers: proxyForwardHeaders(request),
     });
     return NextResponse.json(result);
   } catch (error) {

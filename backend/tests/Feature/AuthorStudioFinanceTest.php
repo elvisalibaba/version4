@@ -73,7 +73,7 @@ class AuthorStudioFinanceTest extends TestCase
             'status' => 'pending',
         ]);
 
-        $account = AuthorRoyaltyAccount::query()->findOrFail($authorUser->id);
+        $account = AuthorRoyaltyAccount::query()->forCurrency($authorUser->id, 'USD')->firstOrFail();
 
         $this->assertEquals(7.00, (float) $account->pending_balance);
         $this->assertEquals(7.00, (float) $account->lifetime_earnings);
@@ -116,7 +116,7 @@ class AuthorStudioFinanceTest extends TestCase
 
         $this->assertSame(1, $released);
 
-        $account = AuthorRoyaltyAccount::query()->findOrFail($authorUser->id);
+        $account = AuthorRoyaltyAccount::query()->forCurrency($authorUser->id, 'USD')->firstOrFail();
 
         $this->assertEquals(0.00, (float) $account->pending_balance);
         $this->assertEquals(14.00, (float) $account->available_balance);
@@ -162,8 +162,63 @@ class AuthorStudioFinanceTest extends TestCase
         $this->assertSame('requested', $payout->status);
         $this->assertEquals(20.00, (float) $payout->amount);
 
-        $account = AuthorRoyaltyAccount::query()->findOrFail($authorUser->id);
+        $account = AuthorRoyaltyAccount::query()->forCurrency($authorUser->id, 'USD')->firstOrFail();
         $this->assertEquals(30.00, (float) $account->available_balance);
+    }
+
+    public function test_sales_in_another_currency_credit_a_dedicated_wallet_and_become_payable(): void
+    {
+        [$authorUser] = $this->author();
+        $book = Book::factory()->create(['author_id' => $authorUser->id]);
+
+        $buyer = User::factory()->create();
+        Profile::factory()->create(['id' => $buyer->id, 'email' => $buyer->email, 'role' => 'reader']);
+
+        foreach ([['USD', 10, 'MULTI-USD'], ['CDF', 20000, 'MULTI-CDF']] as [$currency, $price, $reference]) {
+            $order = Order::query()->create([
+                'user_id' => $buyer->id,
+                'total_price' => $price,
+                'currency_code' => $currency,
+                'payment_status' => 'paid',
+                'payment_provider' => 'easypay',
+                'payment_transaction_id' => $reference,
+                'payment_metadata' => [],
+            ]);
+            $order->items()->create([
+                'book_id' => $book->id,
+                'book_format' => 'ebook',
+                'quantity' => 1,
+                'price' => $price,
+                'currency_code' => $currency,
+            ]);
+
+            app(AuthorRoyaltyService::class)->accrueOrder($order);
+        }
+
+        $this->assertEquals(7.00, (float) AuthorRoyaltyAccount::query()->forCurrency($authorUser->id, 'USD')->firstOrFail()->pending_balance);
+        $this->assertEquals(14000.00, (float) AuthorRoyaltyAccount::query()->forCurrency($authorUser->id, 'CDF')->firstOrFail()->pending_balance);
+
+        AuthorRoyaltyTransaction::query()->update(['payable_at' => now()->subMinute()]);
+
+        $this->assertSame(2, app(AuthorRoyaltyService::class)->releasePayable());
+        $this->assertEquals(14000.00, (float) AuthorRoyaltyAccount::query()->forCurrency($authorUser->id, 'CDF')->firstOrFail()->available_balance);
+    }
+
+    public function test_author_cannot_set_own_royalty_rate(): void
+    {
+        [$authorUser] = $this->author();
+        $book = Book::factory()->create(['author_id' => $authorUser->id]);
+
+        $this->actingAs($authorUser, 'sanctum')
+            ->putJson("/api/v1/author/books/{$book->id}/distribution", [
+                'primary_market' => 'CD',
+                'territory_mode' => 'worldwide',
+                'local_currency' => 'USD',
+                'royalty_rate' => 1,
+            ])
+            ->assertOk();
+
+        $this->assertNull($book->fresh()->distributionSetting->royalty_rate);
     }
 
     /**

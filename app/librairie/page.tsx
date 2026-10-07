@@ -36,7 +36,7 @@ export default async function LibrairiePage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="ios-surface rounded-[2rem] p-6 sm:p-8">
+        <div className="ios-surface rounded-xl p-6 sm:p-8">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 text-rose-600">
               <BookOpen className="h-5 w-5" />
@@ -52,7 +52,7 @@ export default async function LibrairiePage() {
           </div>
         </div>
 
-        <div className="ios-surface rounded-[2rem] p-6 sm:p-8">
+        <div className="ios-surface rounded-xl p-6 sm:p-8">
           <h2 className="text-lg font-semibold text-slate-900">Selections</h2>
           <div className="mt-5 grid grid-cols-2 gap-3">
             {selections.map((item) => {

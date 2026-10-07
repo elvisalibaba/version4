@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MobileAppConfigs;
 
+use App\Filament\Concerns\RequiresStaffPermission;
 use App\Filament\Resources\MobileAppConfigs\Pages\CreateMobileAppConfig;
 use App\Filament\Resources\MobileAppConfigs\Pages\EditMobileAppConfig;
 use App\Filament\Resources\MobileAppConfigs\Pages\ListMobileAppConfigs;
@@ -21,9 +22,15 @@ use Filament\Tables\Table;
 
 class MobileAppConfigResource extends Resource
 {
+    use RequiresStaffPermission;
+
+    protected static string $staffManagePermission = 'platform.manage';
+
+    protected static ?string $staffViewPermission = null;
+
     protected static ?string $model = MobileAppConfig::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-device-phone-mobile';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-device-phone-mobile';
 
     protected static ?string $navigationLabel = 'Application mobile';
 
@@ -42,7 +49,8 @@ class MobileAppConfigResource extends Resource
 
     public static function canCreate(): bool
     {
-        return ! MobileAppConfig::query()->whereKey('global')->exists();
+        return static::staffCanManage()
+            && ! MobileAppConfig::query()->whereKey('global')->exists();
     }
 
     public static function form(Schema $schema): Schema

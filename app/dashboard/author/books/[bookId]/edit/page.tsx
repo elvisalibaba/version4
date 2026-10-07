@@ -26,7 +26,7 @@ export default async function EditAuthorBookPage({ params }: PageProps) {
       <DashboardTopbar
         kicker="Publication"
         title={`Modifier « ${book.title} »`}
-        description="Mettez à jour les métadonnées, le fichier numérique et les options commerciales depuis l’API Laravel."
+        description="Mettez à jour les informations, le fichier et les options de vente de votre livre."
         actions={
           <Link href="/dashboard/author/books" className="cta-secondary px-5 py-3 text-sm">
             <ArrowLeft className="h-4 w-4" /> Mes livres
@@ -34,7 +34,7 @@ export default async function EditAuthorBookPage({ params }: PageProps) {
         }
       />
 
-      <div className="rounded-[28px] border border-[#ded3c2] bg-white p-4 sm:p-6">
+      <div className="rounded-xl border border-slate-300 bg-white p-4 sm:p-6">
         <PublishLabForm
           subscriptionPlans={subscriptionPlans}
           initialValues={{
@@ -77,10 +77,10 @@ export default async function EditAuthorBookPage({ params }: PageProps) {
         />
       </div>
 
-      <section className="rounded-[28px] border border-[#e5ddd1] bg-[#fffaf2] p-5 sm:p-6">
-        <p className="text-xs font-bold uppercase tracking-[.17em] text-[#a85b3f]">Droits de lecture appliqués par Holistique Books</p>
-        <h2 className="mt-2 font-serif text-2xl text-[#17231d]">Licence et protection du titre</h2>
-        <p className="mt-2 text-sm leading-6 text-[#766e64]">Ces paramètres proviennent du contrat éditorial et ne sont pas modifiables depuis le Studio Auteur.</p>
+      <section className="rounded-xl border border-slate-300 bg-slate-50 p-5 sm:p-6">
+        <p className="text-xs font-bold text-brand-600">Droits de lecture appliqués par Holistique Books</p>
+        <h2 className="mt-2 font-bold text-2xl text-night-900">Licence et protection du titre</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Ces paramètres proviennent du contrat éditorial et ne sont pas modifiables depuis le Studio Auteur.</p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             ["Lecture plateforme", book.reader_rights?.can_read_on_platform ? "Autorisée" : "Bloquée"],
@@ -88,14 +88,14 @@ export default async function EditAuthorBookPage({ params }: PageProps) {
             ["Impression", book.reader_rights?.allow_print ? "Autorisée" : "Interdite"],
             ["Copie", book.reader_rights?.allow_copy ? "Autorisée" : "Interdite"],
           ].map(([label, value]) => (
-            <div key={label} className="rounded-[18px] border border-[#eadfd1] bg-white p-4">
-              <p className="text-[0.65rem] font-bold uppercase tracking-[0.12em] text-[#8b8177]">{label}</p>
-              <p className="mt-2 font-semibold text-[#17231d]">{value}</p>
+            <div key={label} className="rounded-lg border border-slate-200 bg-white p-4">
+              <p className="text-xs font-bold text-slate-500">{label}</p>
+              <p className="mt-2 font-semibold text-night-900">{value}</p>
             </div>
           ))}
         </div>
         {book.reader_rights?.rights_agreement_reference ? (
-          <p className="mt-4 text-sm text-[#5f574f]">Référence accord : <strong>{book.reader_rights.rights_agreement_reference}</strong></p>
+          <p className="mt-4 text-sm text-slate-600">Référence accord : <strong>{book.reader_rights.rights_agreement_reference}</strong></p>
         ) : null}
       </section>
     </section>

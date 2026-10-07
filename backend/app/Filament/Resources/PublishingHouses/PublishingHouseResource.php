@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\PublishingHouses;
 
-use App\Filament\Resources\PublishingHouses\Pages\ListPublishingHouses;
+use App\Filament\Concerns\RequiresStaffPermission;
 use App\Filament\Resources\PublishingHouses\Pages\CreatePublishingHouse;
 use App\Filament\Resources\PublishingHouses\Pages\EditPublishingHouse;
+use App\Filament\Resources\PublishingHouses\Pages\ListPublishingHouses;
 use App\Models\PublishingHouse;
 use BackedEnum;
 use Filament\Actions\EditAction;
@@ -22,14 +23,28 @@ use Illuminate\Support\Str;
 
 class PublishingHouseResource extends Resource
 {
+    use RequiresStaffPermission;
+
+    protected static string $staffManagePermission = 'authors.manage';
+
+    protected static ?string $staffViewPermission = 'catalog.view';
+
     protected static ?string $model = PublishingHouse::class;
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-office-2';
+
     protected static ?string $navigationLabel = 'Maison d’édition';
+
     protected static ?string $modelLabel = 'maison d’édition';
+
     protected static ?string $pluralModelLabel = 'maisons d’édition';
+
     protected static ?int $navigationSort = 1;
 
-    public static function getNavigationGroup(): ?string { return 'Maison d’édition'; }
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Maison d’édition';
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -39,7 +54,7 @@ class PublishingHouseResource extends Resource
                     ->afterStateUpdated(fn ($set, ?string $state) => $set('slug', Str::slug((string) $state))),
                 TextInput::make('legal_name')->label('Raison sociale'),
                 TextInput::make('slug')->required(),
-                Select::make('status')->options(['active'=>'Active','inactive'=>'Inactive','suspended'=>'Suspendue'])->default('active')->required(),
+                Select::make('status')->options(['active' => 'Active', 'inactive' => 'Inactive', 'suspended' => 'Suspendue'])->default('active')->required(),
                 TextInput::make('email')->email(),
                 TextInput::make('phone')->label('Téléphone'),
                 TextInput::make('website')->url()->columnSpanFull(),
@@ -77,6 +92,6 @@ class PublishingHouseResource extends Resource
 
     public static function getPages(): array
     {
-        return ['index'=>ListPublishingHouses::route('/'),'create'=>CreatePublishingHouse::route('/create'),'edit'=>EditPublishingHouse::route('/{record}/edit')];
+        return ['index' => ListPublishingHouses::route('/'), 'create' => CreatePublishingHouse::route('/create'), 'edit' => EditPublishingHouse::route('/{record}/edit')];
     }
 }

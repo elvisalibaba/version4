@@ -22,10 +22,10 @@ function money(value: number | string | null | undefined, currency = "USD") {
 }
 
 const paymentStatus: Record<string, { label: string; className: string }> = {
-  paid: { label: "Payé", className: "bg-[#e8f6ed] text-[#267046]" },
-  pending: { label: "En attente", className: "bg-[#fff2da] text-[#936317]" },
+  paid: { label: "Payé", className: "bg-emerald-50 text-emerald-700" },
+  pending: { label: "En attente", className: "bg-amber-50 text-amber-800" },
   failed: { label: "Échec", className: "bg-red-50 text-red-700" },
-  refunded: { label: "Remboursé", className: "bg-[#eeeaf8] text-[#65518c]" },
+  refunded: { label: "Remboursé", className: "bg-night-50 text-night-700" },
 };
 
 export default async function AuthorSalesPage() {
@@ -44,16 +44,16 @@ export default async function AuthorSalesPage() {
 
   return (
     <section className="space-y-6">
-      <header className="overflow-hidden rounded-[32px] bg-[radial-gradient(circle_at_top_right,rgba(232,172,66,0.26),transparent_35%),linear-gradient(135deg,#102a20,#173d2c)] p-6 text-white shadow-[0_28px_70px_rgba(23,61,44,0.16)] sm:p-8">
+      <header className="overflow-hidden rounded-xl bg-night-900 p-6 text-white shadow-md sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[#f2c66f]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-brand-300">
               <Receipt className="h-3.5 w-3.5" />
               Activité commerciale
             </div>
-            <h1 className="mt-4 font-serif text-3xl tracking-[-0.03em] sm:text-4xl">Ventes & commandes</h1>
+            <h1 className="mt-4 font-bold text-3xl tracking-[-0.03em] sm:text-4xl">Ventes & commandes</h1>
             <p className="mt-2 max-w-xl text-sm leading-6 text-white/65">
-              Chaque ligne provient des commandes Laravel enregistrées dans MySQL, avec le statut réel du paiement.
+              Chaque vente de vos livres, avec le statut réel du paiement.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -61,7 +61,7 @@ export default async function AuthorSalesPage() {
               <WalletCards className="h-4 w-4" />
               Finances
             </Link>
-            <Link href="/dashboard/author/add-book" className="inline-flex h-11 items-center gap-2 rounded-full bg-[#e8ac42] px-4 text-sm font-bold text-[#173d2c]">
+            <Link href="/dashboard/author/add-book" className="inline-flex h-11 items-center gap-2 rounded-full bg-brand-600 px-4 text-sm font-bold text-white">
               <Plus className="h-4 w-4" />
               Publier
             </Link>
@@ -79,23 +79,23 @@ export default async function AuthorSalesPage() {
         ].map((item) => {
           const Icon = item.icon;
           return (
-            <article key={item.label} className="rounded-[22px] border border-[#ded3c2] bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.04)]">
-              <Icon className="h-5 w-5 text-[#b85135]" />
-              <p className="mt-4 truncate text-2xl font-bold tracking-[-0.04em] text-[#17231d]">{item.value}</p>
-              <p className="mt-1 text-xs font-semibold text-[#766e64]">{item.label}</p>
-              <p className="mt-1 truncate text-[0.68rem] text-[#92887c]">{item.detail}</p>
+            <article key={item.label} className="rounded-xl border border-slate-300 bg-white p-5 shadow-md">
+              <Icon className="h-5 w-5 text-brand-600" />
+              <p className="mt-4 truncate text-2xl font-bold tracking-[-0.04em] text-night-900">{item.value}</p>
+              <p className="mt-1 text-xs font-semibold text-slate-600">{item.label}</p>
+              <p className="mt-1 truncate text-[0.68rem] text-slate-500">{item.detail}</p>
             </article>
           );
         })}
       </div>
 
-      <section className="overflow-hidden rounded-[28px] border border-[#ded3c2] bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-[#eee5d9] bg-[#fffaf3] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+      <section className="overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm">
+        <div className="flex flex-col gap-3 border-b border-slate-200 bg-slate-50 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div>
-            <h2 className="font-serif text-2xl text-[#17231d]">Historique des ventes</h2>
-            <p className="mt-1 text-sm text-[#766e64]">{sales.length} ligne(s) de commande chargée(s).</p>
+            <h2 className="font-bold text-2xl text-night-900">Historique des ventes</h2>
+            <p className="mt-1 text-sm text-slate-600">{sales.length} ligne(s) de commande chargée(s).</p>
           </div>
-          <Link href="/dashboard/author/books" className="inline-flex items-center gap-2 text-sm font-bold text-[#a94b34]">
+          <Link href="/dashboard/author/books" className="inline-flex items-center gap-2 text-sm font-bold text-brand-600">
             <ArrowLeft className="h-4 w-4" />
             Mes livres
           </Link>
@@ -105,7 +105,7 @@ export default async function AuthorSalesPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-left text-sm">
               <thead>
-                <tr className="border-b border-[#eee5d9] text-[0.68rem] uppercase tracking-[0.12em] text-[#8b8177]">
+                <tr className="border-b border-slate-200 text-xs text-slate-500">
                   <th className="px-6 py-3 font-bold">Livre</th>
                   <th className="px-4 py-3 font-bold">Format</th>
                   <th className="px-4 py-3 font-bold">Qté</th>
@@ -117,20 +117,20 @@ export default async function AuthorSalesPage() {
               <tbody>
                 {sales.map((sale, index) => {
                   const status = String(sale.payment_status ?? "pending");
-                  const statusMeta = paymentStatus[status] ?? { label: status, className: "bg-[#f2eee8] text-[#665f56]" };
+                  const statusMeta = paymentStatus[status] ?? { label: status, className: "bg-slate-100 text-slate-600" };
                   const quantity = Math.max(1, Number(sale.quantity ?? 1));
                   const total = Number(sale.price ?? 0) * quantity;
                   return (
-                    <tr key={String(sale.id ?? sale.order_id ?? index)} className="border-b border-[#f0e9df] last:border-0">
+                    <tr key={String(sale.id ?? sale.order_id ?? index)} className="border-b border-slate-200 last:border-0">
                       <td className="px-6 py-4">
-                        <p className="font-semibold text-[#17231d]">{sale.title ?? "Livre"}</p>
-                        <p className="mt-1 text-xs text-[#8b8177]">Commande {sale.order_id ? String(sale.order_id).slice(0, 8) : "—"}</p>
+                        <p className="font-semibold text-night-900">{sale.title ?? "Livre"}</p>
+                        <p className="mt-1 text-xs text-slate-500">Commande {sale.order_id ? String(sale.order_id).slice(0, 8) : "—"}</p>
                       </td>
-                      <td className="px-4 py-4 text-[#645d55]">{String(sale.book_format ?? "ebook").toUpperCase()}</td>
-                      <td className="px-4 py-4 text-[#645d55]">{quantity}</td>
-                      <td className="px-4 py-4 font-bold text-[#17231d]">{money(total, String(sale.currency_code ?? currency))}</td>
+                      <td className="px-4 py-4 text-slate-600">{String(sale.book_format ?? "ebook").toUpperCase()}</td>
+                      <td className="px-4 py-4 text-slate-600">{quantity}</td>
+                      <td className="px-4 py-4 font-bold text-night-900">{money(total, String(sale.currency_code ?? currency))}</td>
                       <td className="px-4 py-4"><span className={`rounded-full px-2.5 py-1 text-[0.65rem] font-bold ${statusMeta.className}`}>{statusMeta.label}</span></td>
-                      <td className="px-6 py-4 text-right text-xs text-[#887f74]">{sale.created_at ? new Date(sale.created_at).toLocaleDateString("fr-FR") : "—"}</td>
+                      <td className="px-6 py-4 text-right text-xs text-slate-500">{sale.created_at ? new Date(sale.created_at).toLocaleDateString("fr-FR") : "—"}</td>
                     </tr>
                   );
                 })}

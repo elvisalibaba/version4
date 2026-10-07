@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PublishingHouseMembers;
 
+use App\Filament\Concerns\RequiresStaffPermission;
 use App\Filament\Resources\PublishingHouseMembers\Pages\CreatePublishingHouseMember;
 use App\Filament\Resources\PublishingHouseMembers\Pages\EditPublishingHouseMember;
 use App\Filament\Resources\PublishingHouseMembers\Pages\ListPublishingHouseMembers;
@@ -21,22 +22,37 @@ use Filament\Tables\Table;
 
 class PublishingHouseMemberResource extends Resource
 {
+    use RequiresStaffPermission;
+
+    protected static string $staffManagePermission = 'authors.manage';
+
+    protected static ?string $staffViewPermission = 'catalog.view';
+
     protected static ?string $model = PublishingHouseMember::class;
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-group';
+
     protected static ?string $navigationLabel = 'Équipe éditoriale';
+
     protected static ?string $modelLabel = 'membre';
+
     protected static ?string $pluralModelLabel = 'équipe éditoriale';
+
     protected static ?int $navigationSort = 4;
-    public static function getNavigationGroup(): ?string { return 'Maison d’édition'; }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Maison d’édition';
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([Section::make('Membre de la maison')->columns(2)->schema([
-            Select::make('publishing_house_id')->relationship('publishingHouse','name')->label('Maison')->searchable()->preload()->required(),
-            Select::make('profile_id')->relationship('profile','email')->label('Compte')->searchable()->preload()->required(),
+            Select::make('publishing_house_id')->relationship('publishingHouse', 'name')->label('Maison')->searchable()->preload()->required(),
+            Select::make('profile_id')->relationship('profile', 'email')->label('Compte')->searchable()->preload()->required(),
             Select::make('role')->options([
-                'owner'=>'Direction','admin'=>'Administration','editor'=>'Éditorial','rights'=>'Droits',
-                'marketing'=>'Marketing','finance'=>'Finance','analyst'=>'Analyste',
+                'owner' => 'Direction', 'admin' => 'Administration', 'editor' => 'Éditorial', 'rights' => 'Droits',
+                'marketing' => 'Marketing', 'finance' => 'Finance', 'analyst' => 'Analyste',
             ])->default('editor')->required(),
             TextInput::make('title')->label('Fonction'),
             Toggle::make('is_active')->label('Actif')->default(true),
@@ -59,9 +75,9 @@ class PublishingHouseMemberResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'=>ListPublishingHouseMembers::route('/'),
-            'create'=>CreatePublishingHouseMember::route('/create'),
-            'edit'=>EditPublishingHouseMember::route('/{record}/edit'),
+            'index' => ListPublishingHouseMembers::route('/'),
+            'create' => CreatePublishingHouseMember::route('/create'),
+            'edit' => EditPublishingHouseMember::route('/{record}/edit'),
         ];
     }
 }

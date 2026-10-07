@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Order;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StoreOrderRequest extends FormRequest
 {
@@ -31,6 +32,26 @@ class StoreOrderRequest extends FormRequest
             'market_country_code' => ['nullable', 'string', 'size:2'],
             'payment_provider' => ['nullable', 'string', 'max:100'],
             'payment_channel' => ['nullable', 'string', 'max:100'],
+        ];
+    }
+
+    /**
+     * Un même livre dans un même format ne peut figurer qu'une fois
+     * (contrainte UNIQUE order_id/book_id/book_format) : on renvoie une
+     * erreur 422 lisible au lieu d'une erreur SQL.
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                $keys = collect($this->input('items', []))
+                    ->filter(fn ($item): bool => is_array($item))
+                    ->map(fn (array $item): string => ($item['book_id'] ?? '').'|'.($item['book_format'] ?? ''));
+
+                if ($keys->count() !== $keys->unique()->count()) {
+                    $validator->errors()->add('items', 'Un même livre ne peut apparaître qu’une fois par format : ajustez plutôt la quantité.');
+                }
+            },
         ];
     }
 }

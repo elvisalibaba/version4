@@ -31,7 +31,7 @@ class BookResource extends Resource
 {
     protected static ?string $model = Book::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-book-open';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-book-open';
 
     protected static ?string $navigationLabel = 'Mes livres';
 
@@ -130,7 +130,10 @@ class BookResource extends Resource
                         ->image()
                         ->imageEditor()
                         ->maxSize(10240)
-                        ->helperText('Facultative : la première page du PDF sera utilisée automatiquement.'),
+                        ->disabled(fn (?Book $record): bool => $record?->status === 'published')
+                        ->helperText(fn (?Book $record): string => $record?->status === 'published'
+                            ? 'Livre publié : contactez l’équipe éditoriale pour changer la couverture.'
+                            : 'Facultative : la première page du PDF sera utilisée automatiquement.'),
                     FileUpload::make('file_url')
                         ->label('Manuscrit PDF / EPUB')
                         ->disk('books')
@@ -142,7 +145,9 @@ class BookResource extends Resource
                             'application/octet-stream',
                         ])
                         ->maxSize(460800)
-                        ->helperText('Le manuscrit peut être ajouté maintenant ou plus tard. Maximum 450 Mo.'),
+                        ->helperText(fn (?Book $record): string => $record?->status === 'published'
+                            ? 'Livre publié : un nouveau fichier est envoyé en relecture, la version en ligne reste inchangée jusqu’à validation.'
+                            : 'Le manuscrit peut être ajouté maintenant ou plus tard. Maximum 450 Mo.'),
                 ]),
 
             Section::make('Atelier d’écriture')

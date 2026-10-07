@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\AdPlacements;
 
-use App\Filament\Resources\AdPlacements\Pages\ListAdPlacements;
+use App\Filament\Concerns\RequiresStaffPermission;
 use App\Filament\Resources\AdPlacements\Pages\CreateAdPlacement;
 use App\Filament\Resources\AdPlacements\Pages\EditAdPlacement;
+use App\Filament\Resources\AdPlacements\Pages\ListAdPlacements;
 use App\Models\AdPlacement;
 use BackedEnum;
 use Filament\Actions\EditAction;
@@ -21,20 +22,35 @@ use Filament\Tables\Table;
 
 class AdPlacementResource extends Resource
 {
+    use RequiresStaffPermission;
+
+    protected static string $staffManagePermission = 'marketing.manage';
+
+    protected static ?string $staffViewPermission = 'analytics.view';
+
     protected static ?string $model = AdPlacement::class;
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
     protected static ?string $navigationLabel = 'Emplacements';
+
     protected static ?string $modelLabel = 'emplacement publicitaire';
+
     protected static ?string $pluralModelLabel = 'emplacements publicitaires';
+
     protected static ?int $navigationSort = 2;
-    public static function getNavigationGroup(): ?string { return 'Publicité'; }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Publicité';
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([Section::make('Emplacement')->columns(2)->schema([
-            TextInput::make('code')->label('Code API')->required()->unique(ignoreRecord:true),
+            TextInput::make('code')->label('Code API')->required()->unique(ignoreRecord: true),
             TextInput::make('name')->required(),
-            Select::make('channel')->options(['web'=>'Web','mobile'=>'Mobile','both'=>'Web + Mobile'])->default('web')->required(),
+            Select::make('channel')->options(['web' => 'Web', 'mobile' => 'Mobile', 'both' => 'Web + Mobile'])->default('web')->required(),
             TextInput::make('surface')->label('Surface')->required(),
             TextInput::make('position')->label('Position'),
             TagsInput::make('allowed_creative_types')->label('Formats autorisés'),
@@ -58,6 +74,6 @@ class AdPlacementResource extends Resource
 
     public static function getPages(): array
     {
-        return ['index'=>ListAdPlacements::route('/'),'create'=>CreateAdPlacement::route('/create'),'edit'=>EditAdPlacement::route('/{record}/edit')];
+        return ['index' => ListAdPlacements::route('/'), 'create' => CreateAdPlacement::route('/create'), 'edit' => EditAdPlacement::route('/{record}/edit')];
     }
 }

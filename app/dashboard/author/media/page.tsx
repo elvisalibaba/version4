@@ -24,17 +24,17 @@ export default async function AuthorMediaPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <article className="rounded-[28px] border border-[#d8e5dd] bg-[#eef7f2] p-6">
-          <Headphones className="h-6 w-6 text-[#173d2c]" />
-          <p className="mt-5 text-3xl font-bold text-[#173d2c]">{audio.length}</p>
-          <h2 className="mt-1 font-semibold text-[#17231d]">Éditions audio</h2>
-          <p className="mt-2 text-sm leading-6 text-[#627168]">Narration, durée, chapitres et extraits audio centralisés par œuvre.</p>
+        <article className="rounded-xl border border-emerald-50 bg-emerald-50 p-6">
+          <Headphones className="h-6 w-6 text-night-900" />
+          <p className="mt-5 text-3xl font-bold text-night-900">{audio.length}</p>
+          <h2 className="mt-1 font-semibold text-night-900">Éditions audio</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Narration, durée, chapitres et extraits audio centralisés par œuvre.</p>
         </article>
-        <article className="rounded-[28px] border border-[#eadbd7] bg-[#fff3ef] p-6">
-          <Clapperboard className="h-6 w-6 text-[#a94b34]" />
-          <p className="mt-5 text-3xl font-bold text-[#a94b34]">{video.length}</p>
-          <h2 className="mt-1 font-semibold text-[#17231d]">Éditions vidéo</h2>
-          <p className="mt-2 text-sm leading-6 text-[#766e64]">Interviews, masterclass, adaptations et contenus enrichis associés aux titres.</p>
+        <article className="rounded-xl border border-brand-100 bg-brand-50 p-6">
+          <Clapperboard className="h-6 w-6 text-brand-600" />
+          <p className="mt-5 text-3xl font-bold text-brand-600">{video.length}</p>
+          <h2 className="mt-1 font-semibold text-night-900">Éditions vidéo</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Interviews, masterclass, adaptations et contenus enrichis associés aux titres.</p>
         </article>
       </div>
 
@@ -42,17 +42,17 @@ export default async function AuthorMediaPage() {
         {editions.length ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {editions.map(({ book, edition }) => (
-              <article key={edition.id} className="rounded-[24px] border border-[#ece3d7] bg-white p-5">
+              <article key={edition.id} className="rounded-xl border border-slate-200 bg-white p-5">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#f5efe6] text-[#a94b34]">
+                  <span className="grid h-10 w-10 place-items-center rounded-2xl bg-slate-100 text-brand-600">
                     {edition.media_type === "audiobook" ? <Radio className="h-5 w-5" /> : <Video className="h-5 w-5" />}
                   </span>
                   <span className="catalog-badge">{edition.status}</span>
                 </div>
-                <p className="mt-4 text-xs font-bold uppercase tracking-[.16em] text-[#8a7d72]">{edition.media_type}</p>
-                <h2 className="mt-2 text-lg font-semibold text-[#17231d]">{edition.title || book.title}</h2>
-                <p className="mt-2 text-sm text-[#766e64]">{book.title}</p>
-                {edition.narrator ? <p className="mt-2 text-xs text-[#887f74]">Narration : {edition.narrator}</p> : null}
+                <p className="mt-4 text-xs font-bold text-slate-500">{edition.media_type}</p>
+                <h2 className="mt-2 text-lg font-semibold text-night-900">{edition.title || book.title}</h2>
+                <p className="mt-2 text-sm text-slate-600">{book.title}</p>
+                {edition.narrator ? <p className="mt-2 text-xs text-slate-500">Narration : {edition.narrator}</p> : null}
               </article>
             ))}
           </div>

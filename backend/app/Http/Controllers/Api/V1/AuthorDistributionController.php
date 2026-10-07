@@ -42,6 +42,12 @@ class AuthorDistributionController extends Controller
             'distribution_notes' => ['nullable', 'string', 'max:5000'],
         ]);
 
+        // Le taux de royalties est une condition contractuelle : seul le staff
+        // finance peut le fixer. Un auteur qui l'envoie est simplement ignoré.
+        if (! $request->user()->profile->hasStaffPermission('finance.manage')) {
+            unset($data['royalty_rate']);
+        }
+
         $data['territories'] = $data['territories'] ?? [];
         $data['sales_channels'] = $data['sales_channels'] ?? ['web_store', 'mobile_app'];
 
