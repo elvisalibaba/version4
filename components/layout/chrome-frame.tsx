@@ -3,8 +3,8 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Image from "next/image";
 import { Home, Library, Search, ShoppingCart, UserCircle2 } from "lucide-react";
+import { WordmarkLink } from "@/components/brand/ribbon";
 import { CartFeedback } from "@/components/cart/cart-feedback";
 import { CartCountBadge } from "@/components/cart/cart-indicator";
 
@@ -34,7 +34,7 @@ export function ChromeFrame({ header, footer, children }: ChromeFrameProps) {
 
   if (pathname.startsWith("/dashboard")) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-paper">
         <a
           href="#dashboard-content"
           className="fixed left-3 top-3 z-[200] -translate-y-24 rounded-md bg-night-900 px-4 py-3 text-sm font-bold text-white transition focus:translate-y-0"
@@ -50,14 +50,11 @@ export function ChromeFrame({ header, footer, children }: ChromeFrameProps) {
 
   if (isAuthRoute) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <header className="bg-night-900 text-white">
+      <div className="min-h-screen bg-paper">
+        <header className="border-b border-rule bg-paper">
           <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
-            <Link href="/home" className="flex min-w-0 items-center gap-2.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Accueil Holistique Books">
-              <Image src="/logo.svg" alt="" width={44} height={44} className="h-11 w-11 brightness-0 invert" priority />
-              <span className="truncate text-[1.05rem] font-bold tracking-tight">Holistique Books</span>
-            </Link>
-            <Link href="/books?access=free" className="inline-flex min-h-10 items-center rounded-md px-3 text-sm font-medium text-white/90 transition hover:bg-white/10 hover:text-white">
+            <WordmarkLink size="sm" />
+            <Link href="/books?access=free" className="hb-link text-sm font-medium text-night-800">
               Lire sans compte
             </Link>
           </div>

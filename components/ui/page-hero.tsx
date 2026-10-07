@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PageHeader } from "@/components/ui/page-header";
 
 type PageHeroProps = {
   kicker: string;
@@ -9,20 +10,11 @@ type PageHeroProps = {
   className?: string;
 };
 
+/** Ancienne API conservée : délègue à l'en-tête commun de l'identité. */
 export function PageHero({ kicker, title, description, actions, aside, className = "" }: PageHeroProps) {
   return (
-    <section className={`page-hero-shell ${className}`.trim()}>
-      <div className="page-hero-grid">
-        <div className="space-y-4">
-          <span className="premium-badge">{kicker}</span>
-          <div className="space-y-3">
-            <h1 className="section-title text-3xl tracking-tight sm:text-4xl lg:text-[3.2rem]">{title}</h1>
-            {description ? <p className="section-description max-w-3xl">{description}</p> : null}
-          </div>
-          {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
-        </div>
-        {aside ? <div className="page-hero-aside">{aside}</div> : null}
-      </div>
-    </section>
+    <div className={`hb-bleed ${className}`.trim()}>
+      <PageHeader kicker={kicker} title={title} intro={description} actions={actions} aside={aside} />
+    </div>
   );
 }

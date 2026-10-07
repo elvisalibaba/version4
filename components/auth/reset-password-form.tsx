@@ -36,7 +36,7 @@ function SecurePasswordInput({
           type={visible ? "text" : "password"}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-11 pr-12 text-base text-slate-900 outline-none transition focus:border-brand-600/60 focus:ring-4 focus:ring-brand-600/10 sm:text-sm"
+          className="h-12 w-full rounded-md border border-rule bg-white px-11 pr-12 text-base text-slate-900 outline-none transition focus:border-brand-600/60 focus:ring-4 focus:ring-brand-600/10 sm:text-sm"
           autoComplete="new-password"
           minLength={8}
           required
@@ -44,7 +44,7 @@ function SecurePasswordInput({
         <button
           type="button"
           onClick={onToggle}
-          className="absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+          className="absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-slate-600 transition hover:bg-paper-deep hover:text-slate-900"
           aria-label={visible ? `Masquer ${label.toLowerCase()}` : `Afficher ${label.toLowerCase()}`}
           aria-pressed={visible}
         >
@@ -98,7 +98,7 @@ export function ResetPasswordForm({ nextPath, token, email }: ResetPasswordFormP
         const firstValidationError = payload?.errors
           ? Object.values(payload.errors).flat().find((value) => typeof value === "string")
           : null;
-        setError((firstValidationError as string | null) ?? payload?.message ?? "Le lien est invalide ou a expiré.");
+        setError((firstValidationError as string | null) ?? payload?.message ?? "Le lien est invalide ou à expiré.");
         return;
       }
 
@@ -115,10 +115,10 @@ export function ResetPasswordForm({ nextPath, token, email }: ResetPasswordFormP
   }
 
   return (
-    <form onSubmit={onSubmit} aria-busy={loading} className="relative mx-auto w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-md sm:rounded-xl sm:p-9 lg:p-10">
+    <form onSubmit={onSubmit} aria-busy={loading} className="relative mx-auto w-full overflow-hidden rounded-md border border-rule bg-paper p-4 sm:rounded-md sm:p-9 lg:p-10">
       <div className="relative grid gap-5 sm:gap-7">
         <header className="space-y-3">
-          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-brand-600">
+          <span className="inline-flex w-fit items-center gap-2 rounded-sm border border-rule bg-white px-3 py-1.5 text-xs font-bold text-brand-600">
             <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />
             Nouveau mot de passe
           </span>
@@ -137,9 +137,9 @@ export function ResetPasswordForm({ nextPath, token, email }: ResetPasswordFormP
           </p>
         </div>
 
-        {error ? <p role="alert" className="rounded-2xl border border-brand-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-brand-700">{error}</p> : null}
+        {error ? <p role="alert" className="rounded-md border border-brand-200 bg-paper px-4 py-3 text-sm leading-6 text-brand-700">{error}</p> : null}
 
-        <button type="submit" disabled={loading} className="inline-flex h-12 w-full items-center justify-center rounded-full bg-night-900 px-6 text-sm font-semibold text-white shadow-md transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60">
+        <button type="submit" disabled={loading} className="inline-flex h-12 w-full items-center justify-center rounded-sm bg-night-900 px-6 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60">
           {loading ? "Mise à jour…" : "Enregistrer le mot de passe"}
         </button>
       </div>

@@ -117,7 +117,7 @@ export function validateEasyPayCurrency(value: unknown): EasyPayCurrency {
   const currency = (cleanString(value) ?? "USD").toUpperCase();
 
   if (currency !== "USD" && currency !== "CDF") {
-    throw new Error("EasyPay accepte uniquement les devises USD et CDF.");
+    throw new Error("Le paiement en ligne accepte uniquement les dollars (USD) et les francs congolais (CDF).");
   }
 
   return currency;
@@ -214,7 +214,7 @@ export function validateCheckoutCustomer(customer: ValidatedCheckoutCustomer, ch
   const fullName = `${customer.firstName} ${customer.lastName}`.trim();
 
   if (!fullName) {
-    throw new Error("Le nom du client est requis pour initialiser un paiement EasyPay.");
+    throw new Error("Indiquez votre prénom et votre nom pour continuer.");
   }
 
   return customer;

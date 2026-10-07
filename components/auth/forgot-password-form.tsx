@@ -45,8 +45,8 @@ export function ForgotPasswordForm({ nextPath }: ForgotPasswordFormProps) {
 
   if (sent) {
     return (
-      <section className="mx-auto w-full max-w-lg rounded-xl border border-slate-200 bg-slate-50 p-5 text-center shadow-md sm:rounded-xl sm:p-10" aria-labelledby="recovery-sent-title">
-        <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-slate-50 text-brand-600">
+      <section className="mx-auto w-full max-w-lg rounded-md border border-rule bg-paper p-5 text-center sm:rounded-md sm:p-10" aria-labelledby="recovery-sent-title">
+        <span className="mx-auto grid h-14 w-14 place-items-center rounded-md bg-paper text-brand-600">
           <MailCheck aria-hidden="true" className="h-6 w-6" />
         </span>
         <h1 id="recovery-sent-title" className="mt-5 text-3xl font-semibold tracking-[-0.04em] text-slate-900">Consultez votre email</h1>
@@ -54,10 +54,10 @@ export function ForgotPasswordForm({ nextPath }: ForgotPasswordFormProps) {
           Si un compte correspond à <strong className="text-slate-900">{email}</strong>, un lien de réinitialisation vient d’être envoyé.
         </p>
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <button type="button" onClick={() => setSent(false)} className="inline-flex h-11 items-center justify-center rounded-full border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 hover:bg-slate-100">
+          <button type="button" onClick={() => setSent(false)} className="inline-flex h-11 items-center justify-center rounded-sm border border-rule-strong bg-white px-4 text-sm font-semibold text-slate-900 hover:bg-paper-deep">
             Modifier l’adresse
           </button>
-          <Link href={withNextPath("/login", safeNextPath)} className="inline-flex h-11 items-center justify-center rounded-full bg-night-900 px-4 text-sm font-semibold text-white hover:bg-slate-800">
+          <Link href={withNextPath("/login", safeNextPath)} className="inline-flex h-11 items-center justify-center rounded-sm bg-night-900 px-4 text-sm font-semibold text-white hover:bg-slate-800">
             Retour à la connexion
           </Link>
         </div>
@@ -66,10 +66,10 @@ export function ForgotPasswordForm({ nextPath }: ForgotPasswordFormProps) {
   }
 
   return (
-    <form onSubmit={onSubmit} aria-busy={loading} className="relative mx-auto w-full max-w-lg overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-md sm:rounded-xl sm:p-9 lg:p-10">
+    <form onSubmit={onSubmit} aria-busy={loading} className="relative mx-auto w-full max-w-lg overflow-hidden rounded-md border border-rule bg-paper p-4 sm:rounded-md sm:p-9 lg:p-10">
       <div className="relative grid gap-5 sm:gap-7">
         <header className="space-y-3">
-          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-brand-600">
+          <span className="inline-flex w-fit items-center gap-2 rounded-sm border border-rule bg-white px-3 py-1.5 text-xs font-bold text-brand-600">
             <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />
             Récupération sécurisée
           </span>
@@ -83,13 +83,13 @@ export function ForgotPasswordForm({ nextPath }: ForgotPasswordFormProps) {
           <span className="text-[0.7rem] font-bold text-slate-600">Adresse email</span>
           <span className="relative">
             <Mail aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-            <input id="recovery-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 pl-11 text-base text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-600/60 focus:ring-4 focus:ring-brand-600/10 sm:text-sm" autoComplete="email" autoCapitalize="none" inputMode="email" placeholder="nom@domaine.com" required />
+            <input id="recovery-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="h-12 w-full rounded-md border border-rule bg-white px-4 pl-11 text-base text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-600/60 focus:ring-4 focus:ring-brand-600/10 sm:text-sm" autoComplete="email" autoCapitalize="none" inputMode="email" placeholder="nom@domaine.com" required />
           </span>
         </label>
 
-        {error ? <p role="alert" className="rounded-2xl border border-brand-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-brand-700">{error}</p> : null}
+        {error ? <p role="alert" className="rounded-md border border-brand-200 bg-paper px-4 py-3 text-sm leading-6 text-brand-700">{error}</p> : null}
 
-        <button type="submit" disabled={loading} className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-night-900 px-6 text-sm font-semibold text-white shadow-md transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60">
+        <button type="submit" disabled={loading} className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-sm bg-night-900 px-6 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60">
           {loading ? "Envoi en cours…" : "Recevoir le lien"}
           {!loading ? <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-1" /> : null}
         </button>

@@ -34,7 +34,7 @@ export default async function EditAuthorBookPage({ params }: PageProps) {
         }
       />
 
-      <div className="rounded-xl border border-slate-300 bg-white p-4 sm:p-6">
+      <div className="rounded-md border border-rule-strong bg-white p-4 sm:p-6">
         <PublishLabForm
           subscriptionPlans={subscriptionPlans}
           initialValues={{
@@ -77,7 +77,7 @@ export default async function EditAuthorBookPage({ params }: PageProps) {
         />
       </div>
 
-      <section className="rounded-xl border border-slate-300 bg-slate-50 p-5 sm:p-6">
+      <section className="rounded-md border border-rule-strong bg-paper p-5 sm:p-6">
         <p className="text-xs font-bold text-brand-600">Droits de lecture appliqués par Holistique Books</p>
         <h2 className="mt-2 font-bold text-2xl text-night-900">Licence et protection du titre</h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">Ces paramètres proviennent du contrat éditorial et ne sont pas modifiables depuis le Studio Auteur.</p>
@@ -88,7 +88,7 @@ export default async function EditAuthorBookPage({ params }: PageProps) {
             ["Impression", book.reader_rights?.allow_print ? "Autorisée" : "Interdite"],
             ["Copie", book.reader_rights?.allow_copy ? "Autorisée" : "Interdite"],
           ].map(([label, value]) => (
-            <div key={label} className="rounded-lg border border-slate-200 bg-white p-4">
+            <div key={label} className="rounded-md border border-rule bg-white p-4">
               <p className="text-xs font-bold text-slate-500">{label}</p>
               <p className="mt-2 font-semibold text-night-900">{value}</p>
             </div>

@@ -29,7 +29,7 @@ export default async function DonatePage() {
   const loginHref = `/login?next=${encodeURIComponent("/don")}`;
 
   return (
-    <section className="bg-slate-100">
+    <section className="bg-paper-deep">
       <div className="mx-auto max-w-5xl px-4 py-8 sm:py-10">
         <div className="mx-auto max-w-[760px] space-y-4">
           <CinetPayDonateForm
@@ -48,9 +48,9 @@ export default async function DonatePage() {
             }
           />
 
-          <div className="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-sm leading-6 text-slate-600 shadow-sm">
+          <div className="rounded-md border border-rule-strong bg-white px-5 py-4 text-sm leading-6 text-slate-600 ">
             {profile ? (
-              <p>Votre session est active. Les champs disponibles sont deja pre-remplis avec votre profil.</p>
+              <p>Votre session est active. Les champs disponibles sont déjà pré-remplis avec votre profil.</p>
             ) : (
               <p>
                 Vous pouvez faire un don sans compte, mais la connexion facilite le pre-remplissage.{" "}

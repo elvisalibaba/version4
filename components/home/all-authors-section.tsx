@@ -26,8 +26,8 @@ function getInitials(name: string) {
 export function AllAuthorsSection({ authors }: AllAuthorsSectionProps) {
   if (authors.length === 0) {
     return (
-      <section className="rounded-xl border border-slate-200 bg-white p-5 sm:p-7">
-        <span className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-50 text-brand-600">
+      <section className="rounded-md border border-rule bg-white p-5 sm:p-7">
+        <span className="grid h-11 w-11 place-items-center rounded-md bg-paper text-brand-600">
           <Sparkles aria-hidden="true" className="h-5 w-5" />
         </span>
         <h2 className="mt-4 text-xl font-bold tracking-[-0.025em] text-slate-900">Les prochaines voix arrivent.</h2>
@@ -36,7 +36,7 @@ export function AllAuthorsSection({ authors }: AllAuthorsSectionProps) {
         </p>
         <Link
           href="/register?role=author"
-          className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-night-900 px-4 py-3 text-sm font-bold text-white"
+          className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-md bg-night-900 px-4 py-3 text-sm font-bold text-white"
         >
           Rejoindre les auteurs
           <ArrowRight aria-hidden="true" className="h-4 w-4" />
@@ -62,7 +62,7 @@ export function AllAuthorsSection({ authors }: AllAuthorsSectionProps) {
         </div>
         <Link
           href="/authors"
-          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-900 transition hover:border-brand-600 hover:text-brand-600 sm:w-auto"
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-rule-strong bg-white px-4 py-3 text-sm font-bold text-slate-900 transition hover:border-brand-600 hover:text-brand-600 sm:w-auto"
         >
           Voir tous les auteurs
           <ArrowRight aria-hidden="true" className="h-4 w-4" />
@@ -82,10 +82,10 @@ export function AllAuthorsSection({ authors }: AllAuthorsSectionProps) {
             <Link
               key={author.id}
               href={`/authors/${author.id}`}
-              className="group flex min-w-[82%] snap-start flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-brand-600/60 hover:shadow-lg sm:min-w-0 sm:p-5"
+              className="group flex min-w-[82%] snap-start flex-col rounded-md border border-rule bg-white p-4 transition duration-300 hover:-translate-y-0.5 hover:border-brand-600/60 hover:shadow-lg sm:min-w-0 sm:p-5"
             >
               <div className="flex items-start gap-3">
-                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-slate-100 text-sm font-bold text-slate-600 ring-1 ring-slate-200">
+                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-md bg-paper-deep text-sm font-bold text-slate-600 ring-1 ring-slate-200">
                   {author.avatar_signed_url ? (
                     <Image
                       src={author.avatar_signed_url}
@@ -113,18 +113,18 @@ export function AllAuthorsSection({ authors }: AllAuthorsSectionProps) {
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2 text-[0.68rem] font-semibold text-slate-600">
-                <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1.5">
+                <span className="inline-flex items-center gap-1 rounded-sm bg-paper px-2.5 py-1.5">
                   <BookOpen aria-hidden="true" className="h-3.5 w-3.5 text-brand-600" />
                   {author.books_count} livre{author.books_count !== 1 ? "s" : ""}
                 </span>
                 {author.average_rating !== null ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-sm bg-paper px-2.5 py-1.5">
                     <Star aria-hidden="true" className="h-3.5 w-3.5 fill-current text-brand-600" />
                     {author.average_rating}/5
                   </span>
                 ) : null}
                 {author.location ? (
-                  <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1.5">
+                  <span className="inline-flex max-w-full items-center gap-1 rounded-sm bg-paper px-2.5 py-1.5">
                     <MapPin aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-brand-600" />
                     <span className="truncate">{author.location}</span>
                   </span>
@@ -139,8 +139,8 @@ export function AllAuthorsSection({ authors }: AllAuthorsSectionProps) {
 
               <div className="mt-auto pt-4">
                 {latestBook ? (
-                  <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-2.5">
-                    <div className="grid h-14 w-10 shrink-0 place-items-center overflow-hidden rounded-lg bg-slate-200 text-center text-[0.55rem] font-bold text-slate-600">
+                  <div className="flex items-center gap-3 rounded-md bg-paper p-2.5">
+                    <div className="grid h-14 w-10 shrink-0 place-items-center overflow-hidden rounded-md bg-paper-deep text-center text-[0.55rem] font-bold text-slate-600">
                       {latestBook.cover_signed_url ? (
                         <Image
                           src={latestBook.cover_signed_url}

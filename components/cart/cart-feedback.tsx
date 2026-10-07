@@ -107,7 +107,7 @@ export function CartFeedback() {
   return (
     <>
       <p className="sr-only" role="status" aria-live="polite">
-        {open && added ? `${added.title} a été ajouté au panier. ${count} article${count > 1 ? "s" : ""} dans le panier.` : ""}
+        {open && added ? `${added.title} à été ajouté au panier. ${count} article${count > 1 ? "s" : ""} dans le panier.` : ""}
       </p>
       <div
         className={`hb-cart-sheet ${open ? "is-open" : ""}`}
@@ -121,19 +121,19 @@ export function CartFeedback() {
           if (open) closeTimer.current = window.setTimeout(() => setOpen(false), AUTO_CLOSE_MS / 2);
         }}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
+        <div className="flex items-start justify-between gap-3 border-b border-rule px-5 py-4">
           <p className="flex items-center gap-2 text-[0.95rem] font-bold text-emerald-700">
             <CheckCircle2 className="hb-check-pop h-5 w-5" aria-hidden="true" />
             Ajouté au panier
           </p>
-          <button type="button" onClick={close} className="-mr-1.5 grid h-8 w-8 place-items-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" aria-label="Fermer">
+          <button type="button" onClick={close} className="-mr-1.5 grid h-8 w-8 place-items-center rounded-md text-slate-500 transition hover:bg-paper-deep hover:text-slate-900" aria-label="Fermer">
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {added ? (
           <div className="flex gap-4 px-5 py-4">
-            <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded border border-slate-200 bg-night-900">
+            <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded border border-rule bg-night-900">
               {added.coverUrl ? <Image src={added.coverUrl} alt="" fill sizes="64px" className="object-cover" /> : null}
             </div>
             <div className="min-w-0">
@@ -145,7 +145,7 @@ export function CartFeedback() {
           </div>
         ) : null}
 
-        <div className="border-t border-slate-200 bg-slate-50 px-5 py-4">
+        <div className="border-t border-rule bg-paper px-5 py-4">
           <p className="flex items-baseline justify-between text-sm text-slate-700">
             <span>Sous-total ({count} article{count > 1 ? "s" : ""})</span>
             <span className="text-right font-bold text-slate-900">

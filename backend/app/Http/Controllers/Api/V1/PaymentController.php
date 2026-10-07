@@ -51,7 +51,7 @@ class PaymentController extends Controller
         $reference = $payments->extractReference($payload);
 
         if (! $reference) {
-            return response()->json(['message' => 'Référence EasyPay manquante.'], 422);
+            return response()->json(['message' => 'Référence de paiement manquante.'], 422);
         }
 
         return response()->json([

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageHeader } from "@/components/ui/page-header";
 import {
   ArrowRight,
   BookMarked,
@@ -56,8 +57,8 @@ function NodeLink({
       href={educationHref(audience, node.slug)}
       className={
         active
-          ? "group flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-night-900 bg-night-900 px-4 py-3 text-sm font-bold text-white shadow-md"
-          : "group flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-800 transition hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-sm"
+          ? "group flex min-h-12 items-center justify-between gap-3 rounded-md border border-night-900 bg-night-900 px-4 py-3 text-sm font-bold text-white "
+          : "group flex min-h-12 items-center justify-between gap-3 rounded-md border border-rule-strong bg-white px-4 py-3 text-sm font-bold text-slate-800 transition hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-sm"
       }
     >
       <span className="min-w-0">
@@ -89,7 +90,7 @@ function TaxonomyGroup({
   if (nodes.length === 0) return null;
 
   return (
-    <section className="rounded-xl border border-slate-300 bg-white p-5 sm:p-6">
+    <section className="rounded-md border border-rule-strong bg-white p-5 sm:p-6">
       <h2 className="font-display text-xl font-extrabold tracking-[-0.03em] text-slate-900 sm:text-2xl">
         {title}
       </h2>
@@ -131,71 +132,60 @@ export default async function EducationPage({ searchParams }: EducationPageProps
   });
 
   return (
-    <div className="hb-fullbleed min-h-screen bg-slate-100 text-slate-900">
-      <section className="relative overflow-hidden bg-night-900 text-white">
-        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
-          <div className="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
-            <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-brand-300">
-                <GraduationCap className="h-4 w-4" />
-                Éducation RDC
-              </div>
-              <h1 className="mt-5 font-display text-4xl font-extrabold leading-none tracking-[-0.05em] sm:text-6xl">
-                L’espace des élèves et étudiants.
-              </h1>
-              <p className="mt-5 max-w-2xl text-sm leading-7 text-white/72 sm:text-base">
-                Manuels scolaires, ouvrages de référence et ressources universitaires organisés par niveau,
-                classe, section, option, cycle LMD, domaine et filière.
-              </p>
+    <div className="hb-fullbleed min-h-screen bg-paper-deep text-slate-900">
+      <PageHeader
+        crumbs={[{ label: "Éducation" }]}
+        kicker="Éducation · République démocratique du Congo"
+        title="L’espace des élèves et des étudiants."
+        intro="Manuels scolaires, ouvrages de référence et ressources universitaires, classés par niveau, classe, section, option, cycle LMD, domaine et filière."
+        aside={catalog.meta.school_nodes + catalog.meta.university_nodes > 0 ? (
+          <dl className="grid grid-cols-2 border-y border-rule-strong">
+            <div className="flex flex-col-reverse py-4 pr-4">
+              <dt className="mt-1 text-sm text-slate-600">niveaux scolaires</dt>
+              <dd className="font-display text-4xl font-semibold text-night-900">{catalog.meta.school_nodes}</dd>
             </div>
-            <div className="grid grid-cols-2 gap-3 text-center">
-              <div className="rounded-2xl border border-white/15 bg-white/10 px-5 py-4">
-                <p className="text-2xl font-extrabold text-brand-300">{catalog.meta.school_nodes}</p>
-                <p className="mt-1 text-xs text-white/65">niveaux scolaires</p>
-              </div>
-              <div className="rounded-2xl border border-white/15 bg-white/10 px-5 py-4">
-                <p className="text-2xl font-extrabold text-brand-300">{catalog.meta.university_nodes}</p>
-                <p className="mt-1 text-xs text-white/65">repères universitaires</p>
-              </div>
+            <div className="flex flex-col-reverse border-l border-rule-strong py-4 pl-4">
+              <dt className="mt-1 text-sm text-slate-600">repères universitaires</dt>
+              <dd className="font-display text-4xl font-semibold text-night-900">{catalog.meta.university_nodes}</dd>
             </div>
-          </div>
-        </div>
-      </section>
+          </dl>
+        ) : undefined}
+      />
 
       <main className="mx-auto max-w-7xl space-y-9 px-4 py-10 sm:px-6 lg:px-8">
         <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          <Link href={educationHref("school", "rdc-primary")} className="rounded-3xl border border-slate-300 bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg">
+          <Link href={educationHref("school", "rdc-primary")} className="rounded-md border border-rule-strong bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg">
             <School className="h-7 w-7 text-brand-600" />
             <h2 className="mt-5 text-lg font-extrabold">Primaire</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">1re à 6e année, matières fondamentales et manuels scolaires.</p>
           </Link>
-          <Link href={educationHref("school", "rdc-cteb")} className="rounded-3xl border border-slate-300 bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg">
+          <Link href={educationHref("school", "rdc-cteb")} className="rounded-md border border-rule-strong bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg">
             <Shapes className="h-7 w-7 text-night-900" />
             <h2 className="mt-5 text-lg font-extrabold">Secondaire / CTEB</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">7e et 8e années de l’Éducation de Base, avant les Humanités.</p>
           </Link>
-          <Link href={educationHref("school", "rdc-humanities")} className="rounded-3xl border border-slate-300 bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg">
+          <Link href={educationHref("school", "rdc-humanities")} className="rounded-md border border-rule-strong bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg">
             <BookOpen className="h-7 w-7 text-night-700" />
             <h2 className="mt-5 text-lg font-extrabold">Humanités</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">Générales, scientifiques, pédagogiques, techniques et professionnelles.</p>
           </Link>
-          <Link href={educationHref("university")} className="rounded-3xl border border-slate-300 bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg">
+          <Link href={educationHref("university")} className="rounded-md border border-rule-strong bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg">
             <Landmark className="h-7 w-7 text-brand-600" />
             <h2 className="mt-5 text-lg font-extrabold">Université</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">Licence, Master, Doctorat et domaines officiels LMD.</p>
           </Link>
-          <Link href={educationHref("university", theology?.slug ?? "ESU_FIELD_10")} className="rounded-3xl border border-brand-600 bg-slate-50 p-5 transition hover:-translate-y-1 hover:shadow-lg">
+          <Link href={educationHref("university", theology?.slug ?? "ESU_FIELD_10")} className="rounded-md border border-brand-600 bg-paper p-5 transition hover:-translate-y-1 hover:shadow-lg">
             <BookMarked className="h-7 w-7 text-brand-700" />
             <h2 className="mt-5 text-lg font-extrabold">Théologie</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">Théologie pastorale, exégèse biblique, théologie systématique, éthique et histoire de l’Église.</p>
           </Link>
         </section>
 
-        <div className="flex gap-2 overflow-x-auto rounded-2xl border border-slate-300 bg-white p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <Link href={educationHref("school")} className={audience === "school" ? "min-h-11 shrink-0 rounded-xl bg-night-900 px-5 py-3 text-sm font-extrabold text-white" : "min-h-11 shrink-0 rounded-xl px-5 py-3 text-sm font-extrabold text-slate-600 hover:bg-slate-100"}>
+        <div className="flex gap-2 overflow-x-auto rounded-md border border-rule-strong bg-white p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <Link href={educationHref("school")} className={audience === "school" ? "min-h-11 shrink-0 rounded-md bg-night-900 px-5 py-3 text-sm font-extrabold text-white" : "min-h-11 shrink-0 rounded-md px-5 py-3 text-sm font-extrabold text-slate-600 hover:bg-paper-deep"}>
             Élèves
           </Link>
-          <Link href={educationHref("university")} className={audience === "university" ? "min-h-11 shrink-0 rounded-xl bg-night-900 px-5 py-3 text-sm font-extrabold text-white" : "min-h-11 shrink-0 rounded-xl px-5 py-3 text-sm font-extrabold text-slate-600 hover:bg-slate-100"}>
+          <Link href={educationHref("university")} className={audience === "university" ? "min-h-11 shrink-0 rounded-md bg-night-900 px-5 py-3 text-sm font-extrabold text-white" : "min-h-11 shrink-0 rounded-md px-5 py-3 text-sm font-extrabold text-slate-600 hover:bg-paper-deep"}>
             Étudiants
           </Link>
         </div>
@@ -215,7 +205,7 @@ export default async function EducationPage({ searchParams }: EducationPageProps
         ) : (
           <div className="space-y-6">
             {theology ? (
-              <section className="overflow-hidden rounded-xl border border-slate-400 bg-slate-50 p-5 sm:p-6">
+              <section className="overflow-hidden rounded-md border border-slate-400 bg-paper p-5 sm:p-6">
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                   <div className="max-w-2xl">
                     <div className="inline-flex items-center gap-2 text-xs font-extrabold text-brand-700">
@@ -229,7 +219,7 @@ export default async function EducationPage({ searchParams }: EducationPageProps
                       Accès direct à la filière officielle Théologie Protestante et à ses mentions Licence/Master publiées dans RegESU.
                     </p>
                   </div>
-                  <Link href={educationHref("university", theology.slug)} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-night-900 px-5 text-sm font-extrabold text-white">
+                  <Link href={educationHref("university", theology.slug)} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-sm bg-night-900 px-5 text-sm font-extrabold text-white">
                     Explorer la théologie <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
@@ -261,7 +251,7 @@ export default async function EducationPage({ searchParams }: EducationPageProps
           />
         ) : null}
 
-        <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-300 sm:p-7">
+        <section className="rounded-md bg-white p-5 ring-1 ring-slate-300 sm:p-7">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-extrabold text-brand-600">
@@ -289,7 +279,7 @@ export default async function EducationPage({ searchParams }: EducationPageProps
               ))}
             </div>
           ) : (
-            <div className="mt-7 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-center">
+            <div className="mt-7 rounded-md border border-dashed border-rule-strong bg-paper px-5 py-10 text-center">
               <GraduationCap className="mx-auto h-9 w-9 text-slate-500" />
               <p className="mt-3 font-bold text-slate-800">Aucun livre classé ici pour le moment.</p>
               <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">

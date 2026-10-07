@@ -20,9 +20,9 @@ import type { AffiliateSourceType, UserRole } from "@/types/api";
 type RoleOption = Exclude<UserRole, "admin">;
 
 const inputClassName =
-  "h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-600/60 focus:ring-4 focus:ring-brand-600/10 sm:text-sm";
+  "h-12 w-full rounded-md border border-rule bg-white px-4 text-base text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-600/60 focus:ring-4 focus:ring-brand-600/10 sm:text-sm";
 const textareaClassName =
-  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-600/60 focus:ring-4 focus:ring-brand-600/10 sm:text-sm";
+  "w-full rounded-md border border-rule bg-white px-4 py-3 text-base text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-brand-600/60 focus:ring-4 focus:ring-brand-600/10 sm:text-sm";
 
 function toggleSelection(values: string[], value: string) {
   return values.includes(value) ? values.filter((entry) => entry !== value) : [...values, value];
@@ -57,14 +57,14 @@ function RoleChoice({ active, icon: Icon, title, description, onClick }: {
       role="radio"
       aria-checked={active}
       onClick={onClick}
-      className={`min-w-0 rounded-2xl border p-3 text-left transition sm:p-4 ${
+      className={`min-w-0 rounded-md border p-3 text-left transition sm:p-4 ${
         active
-          ? "border-brand-600/60 bg-slate-50 shadow-sm"
-          : "border-slate-200 bg-white hover:border-slate-300"
+          ? "border-brand-600/60 bg-paper "
+          : "border-rule bg-white hover:border-rule-strong"
       }`}
     >
       <span className="flex items-center gap-2.5">
-        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${active ? "bg-night-900 text-white" : "bg-slate-100 text-slate-600"}`}>
+        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-md ${active ? "bg-night-900 text-white" : "bg-paper-deep text-slate-600"}`}>
           <Icon aria-hidden="true" className="h-4 w-4" />
         </span>
         <span className="min-w-0">
@@ -101,7 +101,7 @@ function PasswordField({ id, label, value, onChange, visible, onToggle, autoComp
         <button
           type="button"
           onClick={onToggle}
-          className="absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+          className="absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-slate-600 transition hover:bg-paper-deep hover:text-slate-900"
           aria-label={visible ? `Masquer ${label.toLowerCase()}` : `Afficher ${label.toLowerCase()}`}
           aria-pressed={visible}
         >
@@ -258,12 +258,12 @@ export function RegisterForm({
     <form
       onSubmit={onSubmit}
       aria-busy={loading}
-      className="relative mx-auto w-full max-w-xl overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-md sm:rounded-xl sm:p-9 lg:p-10"
+      className="relative mx-auto w-full max-w-xl overflow-hidden rounded-md border border-rule bg-paper p-4 sm:rounded-md sm:p-9 lg:p-10"
     >
 
       <div className="relative">
         <header className="space-y-3">
-          <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-brand-600">
+          <span className="inline-flex items-center gap-2 rounded-sm border border-rule bg-white px-3 py-1.5 text-xs font-bold text-brand-600">
             <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />
             Compte personnel
           </span>
@@ -276,7 +276,7 @@ export function RegisterForm({
         </header>
 
         {affiliateCode ? (
-          <p className="mt-5 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-600">
+          <p className="mt-5 rounded-md border border-rule bg-white px-4 py-3 text-sm leading-6 text-slate-600">
             Code partenaire appliqué : <strong className="text-slate-900">{affiliateCode}</strong>
           </p>
         ) : null}
@@ -312,7 +312,7 @@ export function RegisterForm({
           </p>
 
           {role === "author" ? (
-            <div className="grid gap-4 rounded-xl border border-slate-200 bg-white/65 p-4">
+            <div className="grid gap-4 rounded-md border border-rule bg-white/65 p-4">
               <div>
                 <h2 className="text-base font-bold text-slate-900">Profil auteur</h2>
                 <p className="mt-1 text-xs leading-5 text-slate-600">Votre nom public suffit pour ouvrir le studio.</p>
@@ -322,12 +322,12 @@ export function RegisterForm({
                 <input id="author-display-name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} className={inputClassName} placeholder="Nom de plume" required />
               </Field>
 
-              <details className="group rounded-2xl border border-slate-200 bg-white">
+              <details className="group rounded-md border border-rule bg-white">
                 <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-slate-800 marker:hidden">
                   Ajouter les détails du profil
                   <ChevronDown aria-hidden="true" className="h-4 w-4 transition-transform group-open:rotate-180" />
                 </summary>
-                <div className="grid gap-4 border-t border-slate-200 p-4">
+                <div className="grid gap-4 border-t border-rule p-4">
                   <Field id="author-headline" label="Positionnement" hint="Facultatif">
                     <input id="author-headline" value={professionalHeadline} onChange={(event) => setProfessionalHeadline(event.target.value)} className={inputClassName} placeholder="Ex. Fiction africaine contemporaine" />
                   </Field>
@@ -346,7 +346,7 @@ export function RegisterForm({
                             type="button"
                             aria-pressed={active}
                             onClick={() => setAuthorGenres((previous) => toggleSelection(previous, category))}
-                            className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${active ? "border-night-900 bg-night-900 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-slate-400"}`}
+                            className={`rounded-sm border px-3 py-1.5 text-xs font-semibold transition ${active ? "border-night-900 bg-night-900 text-white" : "border-rule bg-white text-slate-600 hover:border-slate-400"}`}
                           >
                             {category}
                           </button>
@@ -381,7 +381,7 @@ export function RegisterForm({
         </div>
 
         {error ? (
-          <p role="alert" aria-live="assertive" className="mt-5 rounded-2xl border border-brand-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-brand-700">
+          <p role="alert" aria-live="assertive" className="mt-5 rounded-md border border-brand-200 bg-paper px-4 py-3 text-sm leading-6 text-brand-700">
             {error}
           </p>
         ) : null}
@@ -389,7 +389,7 @@ export function RegisterForm({
         <button
           type="submit"
           disabled={loading}
-          className="group mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-night-900 px-6 text-sm font-semibold text-white shadow-md transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="group mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-sm bg-night-900 px-6 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Création du compte…" : role === "author" ? "Créer mon espace auteur" : "Créer mon compte lecteur"}
           {!loading ? <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-1" /> : null}

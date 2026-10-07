@@ -39,7 +39,7 @@ export function LegalPage({ kicker, title, description, lastUpdated, sections }:
         }
         aside={
           <div className="surface-panel-soft p-5">
-            <p className="text-xs font-semibold text-violet-500">Documents legaux</p>
+            <p className="text-xs font-semibold text-night-500">Documents legaux</p>
             <div className="mt-4 grid gap-3">
               {legalLinks.map((link) => (
                 <Link key={link.href} href={link.href} className="cta-secondary px-4 py-3 text-sm">
@@ -47,8 +47,8 @@ export function LegalPage({ kicker, title, description, lastUpdated, sections }:
                 </Link>
               ))}
             </div>
-            <div className="mt-5 rounded-lg bg-white/90 p-4 shadow-sm">
-              <p className="text-xs text-slate-400">Mise a jour</p>
+            <div className="mt-5 rounded-md bg-white/90 p-4 ">
+              <p className="text-xs text-slate-400">Mise à jour</p>
               <p className="mt-2 text-base font-semibold text-slate-950">{lastUpdated}</p>
             </div>
           </div>

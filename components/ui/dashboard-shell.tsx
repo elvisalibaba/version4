@@ -38,8 +38,8 @@ const themeMeta = {
     insightTitle: "Parcours de lecture",
     insightCopy:
       "Retrouvez rapidement vos achats, vos accès Premium et vos titres en cours.",
-    bullets: ["Bibliotheque centralisee", "Achats et Premium reunis", "Raccourcis vers le catalogue"],
-    primaryShortcut: { href: "/dashboard/reader/library", label: "Ma bibliotheque" },
+    bullets: ["Bibliothèque centralisée", "Achats et Premium réunis", "Raccourcis vers le catalogue"],
+    primaryShortcut: { href: "/dashboard/reader/library", label: "Ma bibliothèque" },
     secondaryShortcut: { href: "/dashboard/reader/subscriptions", label: "Mes abonnements" },
   },
   author: {
@@ -84,10 +84,10 @@ export function DashboardShell({
 
   return (
     <div className={`grid gap-3 pb-5 sm:gap-6 sm:pb-8 ${theme === "author" ? "xl:grid-cols-[250px_minmax(0,1fr)]" : "xl:grid-cols-[320px_minmax(0,1fr)]"}`}>
-      <aside className={`min-w-0 self-start rounded-xl border border-slate-300 p-3 sm:rounded-xl sm:p-4 xl:sticky xl:top-24 ${theme === "author" ? "bg-slate-50 shadow-sm" : "bg-white shadow-md"}`}>
+      <aside className={`min-w-0 self-start rounded-md border border-rule-strong p-3 sm:rounded-md sm:p-4 xl:sticky xl:top-24 ${theme === "author" ? "bg-paper " : "bg-white "}`}>
         <div className="flex items-center justify-between gap-3 xl:hidden">
           <Link href="/home" className="flex min-w-0 items-center gap-2.5" aria-label="Retour au site Holistique Books">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-night-900 text-xs font-bold text-white">HB</span>
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-night-900 text-xs font-bold text-white">HB</span>
             <span className="min-w-0">
               <span className="block truncate text-sm font-bold text-slate-900">{userName}</span>
               <span className="block text-xs font-bold text-brand-600">{meta.workspaceLabel}</span>
@@ -96,24 +96,24 @@ export function DashboardShell({
           <LogoutButton
             compact
             label="Se déconnecter"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-slate-300 bg-white text-slate-700 transition hover:border-slate-400 hover:text-slate-900 disabled:opacity-60"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-md border border-rule-strong bg-white text-slate-700 transition hover:border-slate-400 hover:text-slate-900 disabled:opacity-60"
           />
         </div>
 
-        <Link href="/home" className="hidden items-center gap-3 rounded-xl border border-slate-200 bg-white/92 p-3 transition hover:border-slate-400 xl:flex">
-          <span className="grid h-11 w-11 place-items-center rounded-lg bg-night-900 text-sm font-semibold text-white shadow-md">
+        <Link href="/home" className="hidden items-center gap-3 rounded-md border border-rule bg-white/92 p-3 transition hover:border-slate-400 xl:flex">
+          <span className="grid h-11 w-11 place-items-center rounded-md bg-night-900 text-sm font-semibold text-white ">
             HB
           </span>
           <span className="min-w-0">
             <span className="block text-xs font-semibold text-brand-700">Holistique</span>
-            <span className="block truncate text-lg font-semibold tracking-[-0.03em] text-slate-900">Espace personnel</span>
+            <span className="block truncate text-base font-semibold leading-snug text-slate-900">Mon espace</span>
           </span>
         </Link>
 
-        <div className={`mt-4 rounded-lg border border-slate-200 bg-white/92 p-3.5 sm:rounded-xl sm:p-5 ${theme === "author" ? "hidden" : "hidden sm:block"}`}>
+        <div className={`mt-4 rounded-md border border-rule bg-white/92 p-3.5 sm:rounded-md sm:p-5 ${theme === "author" ? "hidden" : "hidden sm:block"}`}>
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-xs font-semibold text-brand-700">{areaLabel}</p>
-            <span className={`rounded-full px-2.5 py-1 text-[0.65rem] font-semibold ${meta.workspaceTone}`}>
+            <span className={`rounded-sm px-2.5 py-1 text-[0.65rem] font-semibold ${meta.workspaceTone}`}>
               {meta.workspaceLabel}
             </span>
           </div>
@@ -121,7 +121,7 @@ export function DashboardShell({
           <p className="mt-2 hidden text-sm leading-7 text-slate-600 sm:block">{description}</p>
         </div>
 
-        <div className={`mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 ${theme === "author" ? "hidden xl:block" : "hidden sm:block"}`}>
+        <div className={`mt-4 rounded-md border border-rule bg-paper p-4 ${theme === "author" ? "hidden xl:block" : "hidden sm:block"}`}>
           <div className="flex items-center gap-3">
             <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-night-900 text-sm font-semibold text-white">
               {initials || "HB"}
@@ -132,7 +132,7 @@ export function DashboardShell({
             </div>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            <span className="inline-flex items-center gap-1 rounded-sm bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
               <ShieldCheck className="h-3.5 w-3.5" />
               Session active
             </span>
@@ -151,10 +151,10 @@ export function DashboardShell({
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-11 shrink-0 items-center gap-2 rounded-lg border px-3.5 py-2.5 text-sm font-medium transition xl:w-full xl:gap-3 xl:rounded-lg xl:px-4 xl:py-3 ${
+                className={`flex min-h-11 shrink-0 items-center gap-2 rounded-md border px-3.5 py-2.5 text-sm font-medium transition xl:w-full xl:gap-3 xl:rounded-md xl:px-4 xl:py-3 ${
                   active
-                    ? "border-night-900 bg-night-900 text-white shadow-md"
-                    : "border-slate-200 bg-white/92 text-slate-700 hover:border-slate-400 hover:bg-white hover:text-slate-900"
+                    ? "border-night-900 bg-night-900 text-white "
+                    : "border-rule bg-white/92 text-slate-700 hover:border-slate-400 hover:bg-white hover:text-slate-900"
                 }`}
               >
                 <DashboardIcon name={item.icon} className="h-4 w-4" />
@@ -164,9 +164,9 @@ export function DashboardShell({
           })}
         </nav>
 
-        <div className={`mt-4 gap-3 rounded-xl border border-slate-200 bg-white/92 p-4 ${theme === "author" ? "hidden" : "hidden xl:grid"}`}>
+        <div className={`mt-4 gap-3 rounded-md border border-rule bg-white/92 p-4 ${theme === "author" ? "hidden" : "hidden xl:grid"}`}>
           <div className="flex items-start gap-3">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-night-50 text-night-800">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-night-50 text-night-800">
               <Sparkles className="h-4 w-4" />
             </span>
             <div>
@@ -176,16 +176,16 @@ export function DashboardShell({
           </div>
           <div className="grid gap-2">
             {meta.bullets.map((bullet) => (
-              <div key={bullet} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              <div key={bullet} className="rounded-md border border-rule bg-paper px-3 py-2 text-sm text-slate-700">
                 {bullet}
               </div>
             ))}
           </div>
         </div>
 
-        <div className={`mt-4 gap-3 rounded-xl border border-slate-200 bg-white/92 p-4 ${theme === "author" ? "hidden" : "hidden xl:grid"}`}>
+        <div className={`mt-4 gap-3 rounded-md border border-rule bg-white/92 p-4 ${theme === "author" ? "hidden" : "hidden xl:grid"}`}>
           <div className="flex items-start gap-3">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-night-50 text-night-600">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-night-50 text-night-600">
               <LayoutPanelTop className="h-4 w-4" />
             </span>
             <div>
@@ -198,62 +198,62 @@ export function DashboardShell({
           <div className="flex flex-wrap gap-2">
             <Link
               href={meta.primaryShortcut.href}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-white"
+              className="inline-flex items-center gap-2 rounded-sm border border-rule-strong bg-paper px-4 py-2 text-xs font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-white"
             >
               <ArrowUpRight className="h-3.5 w-3.5" />
               {meta.primaryShortcut.label}
             </Link>
             <Link
               href={meta.secondaryShortcut.href}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition hover:border-slate-400"
+              className="inline-flex items-center gap-2 rounded-sm border border-rule-strong bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition hover:border-slate-400"
             >
               <Store className="h-3.5 w-3.5" />
               {meta.secondaryShortcut.label}
             </Link>
             <Link
               href="/books"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition hover:border-slate-400"
+              className="inline-flex items-center gap-2 rounded-sm border border-rule-strong bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition hover:border-slate-400"
             >
               <Compass className="h-3.5 w-3.5" />
               Catalogue
             </Link>
             <Link
               href="/home"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition hover:border-slate-400"
+              className="inline-flex items-center gap-2 rounded-sm border border-rule-strong bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition hover:border-slate-400"
             >
               <LayoutPanelTop className="h-3.5 w-3.5" />
               Site public
             </Link>
           </div>
-          <LogoutButton className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-night-900 bg-night-900 px-4 text-sm font-semibold text-white transition hover:bg-night-800 disabled:cursor-not-allowed disabled:opacity-70" />
+          <LogoutButton className="inline-flex h-11 items-center justify-center gap-2 rounded-sm border border-night-900 bg-night-900 px-4 text-sm font-semibold text-white transition hover:bg-night-800 disabled:cursor-not-allowed disabled:opacity-70" />
         </div>
       </aside>
 
       <div className="min-w-0 space-y-4 sm:space-y-6">
-        <section className={`rounded-xl border border-slate-300 bg-white p-3 shadow-sm sm:rounded-xl sm:p-4 ${theme === "author" ? "hidden" : "hidden lg:block"}`}>
+        <section className={`rounded-md border border-rule-strong bg-white p-3 sm:rounded-md sm:p-4 ${theme === "author" ? "hidden" : "hidden lg:block"}`}>
           <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`rounded-full px-3 py-1 text-[0.68rem] font-semibold ${meta.workspaceTone}`}>
+              <span className={`rounded-sm px-3 py-1 text-[0.68rem] font-semibold ${meta.workspaceTone}`}>
                 {meta.workspaceLabel}
               </span>
-              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+              <span className="rounded-sm border border-rule bg-white px-3 py-1 text-xs font-semibold text-slate-600">
                 {userRole}
               </span>
-              <span className="hidden rounded-full border border-emerald-50 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:inline-flex">
+              <span className="hidden rounded-sm border border-emerald-50 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:inline-flex">
                 Compte actif
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
               <Link
                 href={meta.primaryShortcut.href}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-600 px-3 text-xs font-semibold text-white transition hover:bg-brand-700 sm:h-10 sm:min-h-0 sm:rounded-full sm:px-4 sm:text-sm"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-brand-600 px-3 text-xs font-semibold text-white transition hover:bg-brand-700 sm:h-10 sm:min-h-0 sm:rounded-sm sm:px-4 sm:text-sm"
               >
                 <ArrowUpRight className="h-4 w-4" />
                 {meta.primaryShortcut.label}
               </Link>
               <Link
                 href="/home"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-900 transition hover:border-slate-400 sm:h-10 sm:min-h-0 sm:rounded-full sm:px-4 sm:text-sm"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-rule-strong bg-white px-3 text-xs font-semibold text-slate-900 transition hover:border-slate-400 sm:h-10 sm:min-h-0 sm:rounded-sm sm:px-4 sm:text-sm"
               >
                 <Compass className="h-4 w-4" />
                 Voir le site
@@ -267,7 +267,7 @@ export function DashboardShell({
 
       <nav
         aria-label={`Navigation mobile ${userRole.toLowerCase()}`}
-        className="fixed inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-50 flex gap-1 overflow-x-auto rounded-lg border border-slate-300 bg-white/96 p-1.5 shadow-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:hidden"
+        className="fixed inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-50 flex gap-1 overflow-x-auto rounded-md border border-rule-strong bg-white/96 p-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:hidden"
       >
         {navigation.map((item) => {
           const active = isActive(pathname, item);
@@ -277,8 +277,8 @@ export function DashboardShell({
               key={`mobile-${item.href}`}
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className={`flex min-h-14 min-w-[4.5rem] flex-1 flex-col items-center justify-center gap-1 rounded-lg px-2 text-center text-[0.62rem] font-bold leading-tight transition ${
-                active ? "bg-night-900 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              className={`flex min-h-14 min-w-[4.5rem] flex-1 flex-col items-center justify-center gap-1 rounded-md px-2 text-center text-[0.62rem] font-bold leading-tight transition ${
+                active ? "bg-night-900 text-white" : "text-slate-600 hover:bg-paper-deep hover:text-slate-900"
               }`}
             >
               <DashboardIcon name={item.icon} className="h-4 w-4" />

@@ -1,20 +1,31 @@
 /* =============================================================================
-   Charte Holistique Books — rouge, bleu nuit, blanc.
-   Chargée en dernier : neutralise les effets décoratifs des anciennes feuilles
-   (grilles, halos, verre dépoli) au profit d'une interface sobre et lisible.
+   Identité Holistique Books — « maison d'édition ».
+   Papier blanc cassé, encre bleu nuit, ruban rouge. Titres en serif (Newsreader),
+   interface en Inter. Chargée en dernier : harmonise toutes les pages.
    ========================================================================== */
 
 body {
-  background: #ffffff;
+  background: var(--color-paper);
   color: #0f172a;
   font-family: var(--font-body), system-ui, sans-serif;
   line-height: 1.55;
+  font-feature-settings: "kern", "liga";
 }
 
 .premium-body::before {
   content: none;
   display: none;
 }
+
+/* Tous les grands titres en serif, partout (site, espaces lecteur et auteur). */
+h1,
+h2,
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+  letter-spacing: -0.012em;
+}
+
+h1 { font-weight: 600; }
 
 :focus-visible {
   outline: 2px solid #c8102e;
@@ -26,9 +37,10 @@ body {
   color: #0b1f3a;
 }
 
-/* La page d'accueil gère ses propres bandeaux pleine largeur. */
+/* Les pages pleine largeur gèrent leurs propres bandeaux. */
 .site-main:has(> .hb-home-page),
-.site-main:has(> .hb-fullbleed) {
+.site-main:has(> .hb-fullbleed),
+.site-main:has(> .hb-bleed) {
   max-width: none;
   padding: 0;
 }
@@ -37,7 +49,74 @@ body {
   margin: 0;
 }
 
-/* Barre d'onglets mobile : pleine largeur, sans flou, onglet actif en rouge. */
+/* Liens éditoriaux : soulignement rouge qui se dessine. */
+.hb-link {
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+  transition: background-size 0.25s ease, color 0.2s ease;
+}
+
+.hb-link:hover {
+  color: #a50d26;
+  background-size: 100% 1px;
+}
+
+/* Navigation : onglet courant marqué par un filet rouge. */
+.hb-tab {
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.hb-tab::after {
+  content: "";
+  position: absolute;
+  left: 0.625rem;
+  right: 0.625rem;
+  bottom: 0.15rem;
+  height: 2px;
+  background: #c8102e;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+
+.hb-tab:hover,
+.hb-tab[aria-current="page"] {
+  color: #0b1f3a;
+}
+
+.hb-tab:hover::after,
+.hb-tab[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+/* Couverture traitée comme un objet livre : dos, reliure, ombre portée. */
+.hb-book {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px 4px 4px 2px;
+  box-shadow: 0 1px 2px rgba(11, 31, 58, 0.12), 0 8px 18px -8px rgba(11, 31, 58, 0.35);
+}
+
+.hb-book::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 1;
+  width: 7%;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.22), rgba(255, 255, 255, 0.18) 45%, rgba(0, 0, 0, 0.08));
+  pointer-events: none;
+}
+
+.hb-book::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.14), transparent 35%);
+  pointer-events: none;
+}
+
+/* Barre d'onglets mobile */
 .hb-app-bottom-nav {
   right: 0;
   bottom: 0;
@@ -45,17 +124,17 @@ body {
   max-width: none;
   gap: 0;
   border: 0;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-rule);
   border-radius: 0;
-  background: #ffffff;
+  background: var(--color-paper);
   padding: 0.25rem 0.25rem max(0.25rem, env(safe-area-inset-bottom));
-  box-shadow: 0 -4px 12px rgba(11, 31, 58, 0.06);
+  box-shadow: 0 -4px 12px rgba(11, 31, 58, 0.05);
   backdrop-filter: none;
 }
 
 .hb-app-nav-item {
   min-height: 3.25rem;
-  border-radius: 0.5rem;
+  border-radius: 2px;
   color: #475569;
   font-weight: 600;
 }
@@ -80,17 +159,18 @@ body {
   }
 }
 
-/* Système de boutons unique (anciennes classes partagées). */
+/* Boutons : angles nets, comme une couverture. Rouge = action principale. */
 .cta-primary,
 .hb-button-primary,
 .ios-button-primary {
-  border-radius: 0.375rem;
+  border-radius: 2px;
   border: 1px solid transparent;
   background: #c8102e;
   color: #ffffff;
   font-weight: 600;
+  letter-spacing: 0.005em;
   box-shadow: none;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
 .cta-primary:hover,
@@ -102,16 +182,22 @@ body {
   filter: none;
 }
 
+.cta-primary:active,
+.cta-secondary:active {
+  transform: translateY(1px);
+}
+
 .cta-secondary,
 .hb-button-ghost,
 .hb-top-button,
 .ios-button-secondary {
-  border-radius: 0.375rem;
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #0f172a;
+  border-radius: 2px;
+  border: 1px solid #0b1f3a;
+  background: transparent;
+  color: #0b1f3a;
   font-weight: 600;
   box-shadow: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .cta-secondary:hover,
@@ -119,22 +205,54 @@ body {
 .hb-top-button:hover,
 .ios-button-secondary:hover {
   transform: none;
-  border-color: #94a3b8;
-  background: #f8fafc;
+  background: #0b1f3a;
+  color: #ffffff;
 }
 
-/* Bannière cookies : carte simple, lien lisible. */
+/* Champs de formulaire : nets, sur fond blanc (meme sélecteur que l'ancien thème pour le remplacer). */
+.ios-input,
+.hb-input,
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+select,
+textarea {
+  border-radius: 2px;
+  border: 1px solid #d6cfc1;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.ios-input:focus,
+.hb-input:focus,
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+select:focus,
+textarea:focus {
+  border-color: #0b1f3a;
+  outline: 2px solid rgba(200, 16, 46, 0.25);
+  outline-offset: 0;
+}
+
+/* Champ « nu » (recherche du header) : seul le filet inférieur du conteneur est visible. */
+input.hb-bare-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  outline: none;
+  padding: 0;
+}
+
+/* Bannière cookies */
 .hb-cookie-banner {
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 2px;
   background: #ffffff;
   box-shadow: 0 8px 24px rgba(11, 31, 58, 0.12);
   backdrop-filter: none;
 }
 
 .hb-cookie-banner-title {
-  color: #0f172a;
-  font-weight: 700;
+  color: #0b1f3a;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 600;
 }
 
 .hb-cookie-banner-text {
@@ -149,10 +267,21 @@ body {
 }
 
 @media (max-width: 1023px) {
-  /* Au-dessus de la barre d'onglets mobile. */
   .hb-cookie-banner {
     bottom: calc(4.25rem + env(safe-area-inset-bottom));
   }
+}
+
+/* Squelettes de chargement */
+.hb-skeleton {
+  background: linear-gradient(90deg, var(--color-paper-deep) 0%, #ece6da 50%, var(--color-paper-deep) 100%);
+  background-size: 200% 100%;
+  animation: hb-skeleton 1.4s ease-in-out infinite;
+}
+
+@keyframes hb-skeleton {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
 }
 
 /* =============================================================================
@@ -255,11 +384,11 @@ body {
   position: fixed;
   z-index: 110;
   right: 1rem;
-  top: 7.75rem;
+  top: 9.5rem;
   width: min(22rem, calc(100vw - 2rem));
   overflow: hidden;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 2px;
   background: #ffffff;
   box-shadow: 0 24px 48px rgba(11, 31, 58, 0.18);
   opacity: 0;
@@ -357,4 +486,88 @@ body {
   .hb-reveal {
     animation: none !important;
   }
+}
+
+/* =============================================================================
+   Anciennes classes partagées, ramenées à l'identité (meme rendu partout).
+   ========================================================================== */
+.surface-panel,
+.surface-panel-soft,
+.ios-surface,
+.ios-surface-strong,
+.page-hero-shell {
+  border: 1px solid var(--color-rule);
+  border-radius: 4px;
+  background: #ffffff;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.surface-panel-soft {
+  background: var(--color-paper);
+}
+
+.ios-card-hover {
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.ios-card-hover:hover {
+  border-color: var(--color-rule-strong);
+  transform: translateY(-2px);
+  box-shadow: none;
+}
+
+.section-title,
+.ios-title,
+.hb-title {
+  color: #0b1f3a;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+
+.section-description,
+.ios-muted,
+.hb-muted {
+  color: #475569;
+}
+
+.section-kicker,
+.ios-kicker,
+.premium-badge,
+.hb-install-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  padding: 0;
+  color: #1e3a64;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow: none;
+}
+
+.section-kicker::before,
+.ios-kicker::before,
+.premium-badge::before {
+  content: "";
+  width: 0.55rem;
+  height: 0.9rem;
+  flex-shrink: 0;
+  background: #c8102e;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
+}
+
+.catalog-badge,
+.ios-chip {
+  border: 1px solid var(--color-rule-strong);
+  border-radius: 2px;
+  background: #ffffff;
+  color: #0b1f3a;
+  font-weight: 600;
+  box-shadow: none;
 }

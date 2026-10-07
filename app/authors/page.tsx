@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { PageHeader } from "@/components/ui/page-header";
 import {
   ArrowRight,
   BookOpen,
@@ -8,7 +9,6 @@ import {
   SearchX,
   Sparkles,
   Star,
-  Users,
 } from "lucide-react";
 import { getPublicAuthors, type PublicAuthor } from "@/lib/authors";
 
@@ -83,77 +83,37 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
   const totalPublishedBooks = authors.reduce((total, author) => total + author.published_books_count, 0);
 
   return (
-    <div className="hb-fullbleed min-h-screen bg-slate-50">
-      <section className="relative overflow-hidden bg-night-900 text-white">
-        <div className="pointer-events-none absolute inset-0 bg-white" />
-        <div className="relative mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
-          <nav aria-label="Fil d’Ariane" className="flex items-center gap-2 text-xs text-white/55">
-            <Link href="/home" className="min-h-9 content-center rounded-lg pr-1 transition hover:text-white">
-              Accueil
-            </Link>
-            <span aria-hidden="true">/</span>
-            <span className="font-semibold text-white/85">Auteurs</span>
-          </nav>
-
-          <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-end">
-            <div>
-              <p className="text-xs font-bold text-brand-200">Annuaire éditorial</p>
-              <h1 className="mt-2 max-w-3xl text-[2rem] font-bold leading-[1.08] tracking-[-0.045em] sm:text-4xl lg:text-5xl">
-                Des voix à lire, des univers à explorer.
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/68 sm:text-base sm:leading-7">
-                Parcourez les biographies, spécialités et catalogues des auteurs publiés par Holistique Books.
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-white/72">
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-3 py-2">
-                  <Users aria-hidden="true" className="h-4 w-4 text-brand-200" />
-                  {authors.length} auteur{authors.length !== 1 ? "s" : ""}
-                </span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-3 py-2">
-                  <BookOpen aria-hidden="true" className="h-4 w-4 text-brand-200" />
-                  {totalPublishedBooks} livre{totalPublishedBooks !== 1 ? "s" : ""}
-                </span>
-              </div>
+    <div className="hb-fullbleed min-h-screen bg-paper">
+      <PageHeader
+        crumbs={[{ label: "Auteurs" }]}
+        kicker="Annuaire des auteurs"
+        title="Des voix à lire, des univers à explorer."
+        intro={`${authors.length} auteur${authors.length !== 1 ? "s" : ""} et ${totalPublishedBooks} livre${totalPublishedBooks !== 1 ? "s" : ""} publiés par Holistique Books : biographies, spécialités et catalogues.`}
+        aside={
+          <form action="/authors" className="border border-rule-strong bg-white p-2">
+            {categoryQuery ? <input type="hidden" name="category" value={categoryQuery} /> : null}
+            <label htmlFor="author-search" className="sr-only">Rechercher un auteur, une ville ou un univers</label>
+            <div className="flex min-w-0 items-center gap-2">
+              <Search aria-hidden="true" className="ml-2 h-5 w-5 shrink-0 text-slate-500" />
+              <input id="author-search" type="search" name="q" defaultValue={searchQuery} placeholder="Nom, ville ou univers…" className="hb-bare-input h-11 min-w-0 flex-1 text-base text-night-900 placeholder:text-slate-500" />
+              <button type="submit" className="cta-primary grid h-11 w-11 shrink-0 place-items-center sm:w-auto sm:px-5">
+                <Search aria-hidden="true" className="h-4 w-4 sm:hidden" />
+                <span className="sr-only sm:not-sr-only sm:text-sm">Rechercher</span>
+              </button>
             </div>
-
-            <form action="/authors" className="rounded-2xl border border-white/15 bg-white p-2 shadow-md">
-              {categoryQuery ? <input type="hidden" name="category" value={categoryQuery} /> : null}
-              <label htmlFor="author-search" className="sr-only">
-                Rechercher un auteur, une ville ou un univers
-              </label>
-              <div className="flex min-w-0 items-center gap-2">
-                <Search aria-hidden="true" className="ml-2 h-5 w-5 shrink-0 text-slate-500" />
-                <input
-                  id="author-search"
-                  type="search"
-                  name="q"
-                  defaultValue={searchQuery}
-                  placeholder="Nom, ville ou univers…"
-                  className="h-11 min-w-0 flex-1 bg-transparent px-1 text-base text-slate-900 outline-none placeholder:text-slate-500"
-                />
-                <button
-                  type="submit"
-                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-600 text-white transition hover:bg-brand-700 sm:w-auto sm:px-5"
-                >
-                  <Search aria-hidden="true" className="h-4 w-4 sm:hidden" />
-                  <span className="sr-only sm:not-sr-only sm:text-sm sm:font-bold">Rechercher</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </section>
+          </form>
+        }
+      />
 
       <div className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
         {categories.length > 0 ? (
           <nav aria-label="Filtrer les auteurs par univers" className="-mr-3 flex gap-2 overflow-x-auto pb-2 pr-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mr-0 sm:flex-wrap sm:pr-0">
             <Link
               href={buildAuthorsHref({ q: searchQuery || undefined })}
-              className={`inline-flex min-h-10 shrink-0 items-center rounded-full px-4 text-xs font-bold transition ${
+              className={`inline-flex min-h-10 shrink-0 items-center rounded-sm px-4 text-xs font-bold transition ${
                 !categoryQuery
                   ? "bg-night-900 text-white"
-                  : "border border-slate-300 bg-white text-slate-600 hover:border-brand-600"
+                  : "border border-rule-strong bg-white text-slate-600 hover:border-brand-600"
               }`}
             >
               Tous les univers
@@ -167,10 +127,10 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
                     q: searchQuery || undefined,
                     category: isActive ? undefined : authorCategory,
                   })}
-                  className={`inline-flex min-h-10 shrink-0 items-center rounded-full px-4 text-xs font-bold transition ${
+                  className={`inline-flex min-h-10 shrink-0 items-center rounded-sm px-4 text-xs font-bold transition ${
                     isActive
                       ? "bg-brand-600 text-white"
-                      : "border border-slate-300 bg-white text-slate-600 hover:border-brand-600 hover:text-brand-600"
+                      : "border border-rule-strong bg-white text-slate-600 hover:border-brand-600 hover:text-brand-600"
                   }`}
                 >
                   {authorCategory}
@@ -196,10 +156,10 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
             {filteredAuthors.map((author) => (
               <article
                 key={author.id}
-                className="group flex h-full flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-brand-600/60 hover:shadow-lg sm:p-5"
+                className="group flex h-full flex-col rounded-md border border-rule bg-white p-4 transition duration-300 hover:-translate-y-0.5 hover:border-brand-600/60 hover:shadow-lg sm:p-5"
               >
                 <div className="flex items-start gap-3.5">
-                  <div className="grid h-[4.5rem] w-[4.5rem] shrink-0 place-items-center overflow-hidden rounded-2xl bg-slate-100 text-base font-bold text-slate-600 ring-1 ring-slate-200">
+                  <div className="grid h-[4.5rem] w-[4.5rem] shrink-0 place-items-center overflow-hidden rounded-md bg-paper-deep text-base font-bold text-slate-600 ring-1 ring-slate-200">
                     {author.avatar_signed_url ? (
                       <Image
                         src={author.avatar_signed_url}
@@ -242,17 +202,17 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-2 text-[0.68rem] font-semibold text-slate-600">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-sm bg-paper px-2.5 py-1.5">
                     <BookOpen aria-hidden="true" className="h-3.5 w-3.5 text-brand-600" />
                     {author.books_count} livre{author.books_count !== 1 ? "s" : ""}
                   </span>
                   {author.average_rating !== null ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1.5">
+                    <span className="inline-flex items-center gap-1 rounded-sm bg-paper px-2.5 py-1.5">
                       <Star aria-hidden="true" className="h-3.5 w-3.5 fill-current text-brand-600" />
                       {author.average_rating}/5
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1.5">
+                    <span className="inline-flex items-center gap-1 rounded-sm bg-paper px-2.5 py-1.5">
                       <Sparkles aria-hidden="true" className="h-3.5 w-3.5 text-brand-600" />
                       Nouvelle voix
                     </span>
@@ -260,7 +220,7 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
                 </div>
 
                 {author.latest_book ? (
-                  <div className="mt-4 rounded-2xl bg-slate-50 px-3 py-2.5">
+                  <div className="mt-4 rounded-md bg-paper px-3 py-2.5">
                     <p className="text-xs font-bold text-brand-600">Dernier titre</p>
                     <p className="mt-0.5 line-clamp-1 text-xs font-bold text-slate-900">{author.latest_book.title}</p>
                   </div>
@@ -268,7 +228,7 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
 
                 <Link
                   href={`/authors/${author.id}`}
-                  className="mt-4 inline-flex min-h-11 w-full items-center justify-between rounded-xl bg-night-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+                  className="mt-4 inline-flex min-h-11 w-full items-center justify-between rounded-md bg-night-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
                 >
                   Voir le profil complet
                   <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -277,8 +237,8 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
             ))}
           </div>
         ) : (
-          <div className="rounded-xl border border-slate-200 bg-white px-5 py-10 text-center shadow-sm sm:px-8 sm:py-14">
-            <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-slate-50 text-brand-600">
+          <div className="rounded-md border border-rule bg-white px-5 py-10 text-center sm:px-8 sm:py-14">
+            <span className="mx-auto grid h-12 w-12 place-items-center rounded-md bg-paper text-brand-600">
               <SearchX aria-hidden="true" className="h-5 w-5" />
             </span>
             <h2 className="mt-4 text-xl font-bold tracking-[-0.025em] text-slate-900">
@@ -291,7 +251,7 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
             </p>
             <Link
               href={authors.length === 0 ? "/register?role=author" : "/authors"}
-              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-night-900 px-5 py-3 text-sm font-bold text-white"
+              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-md bg-night-900 px-5 py-3 text-sm font-bold text-white"
             >
               {authors.length === 0 ? "Créer un espace auteur" : "Voir tous les auteurs"}
               <ArrowRight aria-hidden="true" className="h-4 w-4" />

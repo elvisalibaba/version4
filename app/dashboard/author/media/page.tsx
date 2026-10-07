@@ -17,20 +17,20 @@ export default async function AuthorMediaPage() {
   return (
     <section className="space-y-6">
       <DashboardTopbar
-        kicker="Author Studio"
+        kicker="Espace auteur"
         title="Audio & vidéo"
         description="Toutes les éditions multimédia rattachées à vos œuvres, avec leur état de préparation et de publication."
         actions={<Link href="/dashboard/author/books" className="cta-secondary px-5 py-3 text-sm"><BookOpen className="h-4 w-4" /> Mes livres</Link>}
       />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <article className="rounded-xl border border-emerald-50 bg-emerald-50 p-6">
+        <article className="rounded-md border border-emerald-50 bg-emerald-50 p-6">
           <Headphones className="h-6 w-6 text-night-900" />
           <p className="mt-5 text-3xl font-bold text-night-900">{audio.length}</p>
           <h2 className="mt-1 font-semibold text-night-900">Éditions audio</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">Narration, durée, chapitres et extraits audio centralisés par œuvre.</p>
         </article>
-        <article className="rounded-xl border border-brand-100 bg-brand-50 p-6">
+        <article className="rounded-md border border-brand-100 bg-brand-50 p-6">
           <Clapperboard className="h-6 w-6 text-brand-600" />
           <p className="mt-5 text-3xl font-bold text-brand-600">{video.length}</p>
           <h2 className="mt-1 font-semibold text-night-900">Éditions vidéo</h2>
@@ -42,9 +42,9 @@ export default async function AuthorMediaPage() {
         {editions.length ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {editions.map(({ book, edition }) => (
-              <article key={edition.id} className="rounded-xl border border-slate-200 bg-white p-5">
+              <article key={edition.id} className="rounded-md border border-rule bg-white p-5">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-2xl bg-slate-100 text-brand-600">
+                  <span className="grid h-10 w-10 place-items-center rounded-md bg-paper-deep text-brand-600">
                     {edition.media_type === "audiobook" ? <Radio className="h-5 w-5" /> : <Video className="h-5 w-5" />}
                   </span>
                   <span className="catalog-badge">{edition.status}</span>

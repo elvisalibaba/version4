@@ -4,9 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import {
-  ArrowLeft, ArrowRight, BookOpen, Check, ChevronDown, CreditCard, Library,
-  LockKeyhole, ShieldCheck, UserPlus,
+  ArrowRight, BookOpen, Check, ChevronDown, CreditCard, Library,
+  LockKeyhole, ShieldCheck, Star, UserPlus,
 } from "lucide-react";
+import { ShareButton } from "@/components/books/share-button";
+import { Breadcrumbs } from "@/components/ui/page-header";
 import { FavoriteBookButton } from "@/components/books/favorite-book-button";
 import { BookReviews } from "@/components/books/book-reviews";
 import { CinetPayButtons } from "@/components/payments/cinetpay-buttons";
@@ -22,6 +24,7 @@ type BookDetailView = {
   currency_code: string; display_price_label: string; offer_summary_label: string; categories: string[];
   language?: string | null; page_count?: number | null; is_favorite?: boolean; is_free: boolean;
   rating_avg?: number | null; ratings_count?: number | null;
+  has_sample?: boolean; isbn?: string | null; publisher?: string | null; publication_date?: string | null;
   is_single_sale_enabled: boolean; is_subscription_available: boolean;
   purchase_formats: Array<{ format: CheckoutBookFormat; price: number; currency_code: string }>;
   subscription_plans: SubscriptionPlan[];
@@ -36,6 +39,8 @@ type Props = {
   book: BookDetailView; accessState: AccessState; isAuthenticated: boolean; autoOpenReader?: boolean;
   checkoutCustomer: { customerId?: string | null; firstName?: string | null; lastName?: string | null; email?: string | null; phoneNumber?: string | null; city?: string | null; country?: string | null } | null;
 };
+
+const LANGUAGES: Record<string, string> = { fr: "Français", en: "Anglais", ln: "Lingala", sw: "Swahili", kg: "Kikongo", lu: "Tshiluba" };
 
 function firstOf<T>(value: T | T[] | null | undefined) { return Array.isArray(value) ? value[0] ?? null : value ?? null; }
 function money(amount: number, currency: string) { return amount <= 0 ? "Gratuit" : new Intl.NumberFormat("fr-FR", { style: "currency", currency }).format(amount); }
@@ -73,84 +78,109 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
       : accessState?.hasSubscriptionAccess
         ? `Inclus dans votre abonnement${activePlanName ? ` ${activePlanName}` : " Premium"}.`
         : accessState?.isSubscriptionEntitlementExpired
-          ? "Votre accès Premium a expiré. Réactivez votre abonnement pour continuer."
+          ? "Votre accès Premium à expiré. Réactivez votre abonnement pour continuer."
           : book.is_subscription_available
             ? "Disponible à l’unité ou avec un abonnement Holistique Plus."
             : "Achetez ce titre et retrouvez-le dans votre bibliothèque personnelle.";
 
+  const primaryCategory = book.categories[0] ?? null;
+  const canPreview = !canRead && Boolean(book.has_sample);
+  const facts = [
+    { label: "Auteur", value: book.author_name },
+    { label: "Éditeur", value: book.publisher || "Holistique Books" },
+    { label: "Parution", value: book.publication_date ? new Date(book.publication_date).toLocaleDateString("fr-FR", { year: "numeric", month: "long" }) : null },
+    { label: "Pages", value: book.page_count ? String(book.page_count) : null },
+    { label: "Langue", value: book.language ? (LANGUAGES[book.language] ?? book.language.toUpperCase()) : null },
+    { label: "ISBN", value: book.isbn },
+    { label: "Rayon", value: book.categories.join(", ") || null },
+  ].filter((fact): fact is { label: string; value: string } => Boolean(fact.value));
+
   return (
     <>
-      <div className="hb-fullbleed min-h-screen bg-slate-100 text-slate-900">
-        <section className="relative overflow-hidden bg-night-900 text-white">
-          <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-5 sm:px-6 sm:pb-12 lg:px-8">
-            <Link href="/books" className="inline-flex min-h-10 items-center gap-2 text-xs font-extrabold text-white/62 transition hover:text-white"><ArrowLeft className="h-4 w-4" /> Retour à la librairie</Link>
-            <div className="mt-4 grid gap-8 sm:grid-cols-[200px_minmax(0,1fr)] sm:items-start lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-12">
-              <div id="book-cover" className="mx-auto w-[180px] overflow-hidden rounded-md border border-white/10 bg-slate-300 shadow-md sm:mx-0 sm:w-[200px] lg:w-[260px]">
-                <div className="aspect-[0.69]">{book.cover_signed_url ? <Image src={book.cover_signed_url} alt={`Couverture de ${book.title}`} width={660} height={960} priority className="h-full w-full object-cover" /> : <div className="flex h-full flex-col justify-end gap-3 bg-night-800 p-8 text-white"><span className="h-0.5 w-10 bg-brand-600" aria-hidden="true" /><span className="text-2xl font-bold leading-snug">{book.title}</span><span className="text-sm text-night-200">{book.author_name}</span></div>}</div>
-              </div>
-              {/* Sur grand écran, la zone d’achat chevauche le bandeau à droite : on lui réserve la place. */}
-              <div className="min-w-0 lg:pr-[420px]">
-                <div className="flex flex-wrap gap-2">
-                  <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${book.is_free ? "bg-brand-600 text-white" : "bg-white/12 text-white"}`}>{book.is_free ? "Lecture gratuite" : book.offer_summary_label}</span>
-                  {accessType ? <span className="rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white">{getLibraryAccessLabel(accessType, !accessState?.isSubscriptionEntitlementExpired)}</span> : null}
+      <div className="hb-fullbleed bg-paper text-slate-900">
+        <div className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+          <Breadcrumbs items={[{ label: "Catalogue", href: "/books" }, ...(primaryCategory ? [{ label: primaryCategory, href: `/books?category=${encodeURIComponent(primaryCategory)}` }] : []), { label: book.title }]} />
+
+          <div className="mt-8 grid gap-x-12 gap-y-8 [grid-template-areas:'cover''head''buy''body'] lg:grid-cols-[17rem_minmax(0,1fr)_21rem] lg:[grid-template-areas:'cover_head_buy''cover_body_buy']">
+            {/* Couverture */}
+            <div className="[grid-area:cover]">
+              <div className="lg:sticky lg:top-40">
+                <div id="book-cover" className="hb-book relative mx-auto aspect-2/3 w-[11.5rem] bg-night-900 sm:w-[13rem] lg:w-full">
+                  {book.cover_signed_url ? (
+                    <Image src={book.cover_signed_url} alt={`Couverture de ${book.title}`} fill sizes="(max-width: 1024px) 13rem, 17rem" priority className="object-cover" />
+                  ) : (
+                    <div className="flex h-full flex-col px-6 pb-6 text-white">
+                      <span className="ml-auto h-10 w-5 bg-brand-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_78%,0_100%)]" aria-hidden="true" />
+                      <span className="mt-auto font-display text-2xl font-semibold leading-tight">{book.title}</span>
+                      <span className="mt-3 h-px w-10 bg-night-400" aria-hidden="true" />
+                      <span className="mt-3 font-display text-sm italic text-night-200">{book.author_name}</span>
+                    </div>
+                  )}
                 </div>
-                <h1 className="mt-4 max-w-4xl text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-[2.6rem]">{book.title}</h1>
-                {book.subtitle ? <p className="mt-4 max-w-2xl text-base leading-7 text-white/65 sm:text-lg">{book.subtitle}</p> : null}
-                <Link href={`/authors/${book.author_id}`} className="mt-6 inline-flex items-center gap-3 font-bold text-brand-300 transition hover:text-brand-300">
-                  {book.author_avatar_url ? <Image src={book.author_avatar_url} alt="" width={38} height={38} className="h-9 w-9 rounded-full object-cover ring-2 ring-white/20" /> : <span className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-xs">HB</span>}
-                  <span><span className="block text-xs text-white/45">Un livre de</span>{book.author_name}</span>
-                </Link>
-                <div className="mt-6 flex flex-wrap items-center gap-2 text-xs font-semibold text-white/55">
-                  {book.categories.map((category) => <span key={category} className="rounded-full border border-white/15 px-3 py-1.5">{category}</span>)}
-                  {book.page_count ? <span>{book.page_count} pages</span> : null}
-                  {book.language ? <span>{book.language.toUpperCase()}</span> : null}
+                <div className="mx-auto mt-5 flex w-[11.5rem] items-center justify-center gap-2 sm:w-[13rem] lg:w-full">
+                  <FavoriteBookButton bookId={book.id} initialIsFavorite={book.is_favorite} />
+                  <ShareButton title={book.title} />
                 </div>
-                <div className="mt-7"><FavoriteBookButton bookId={book.id} initialIsFavorite={book.is_favorite} /></div>
+                {canPreview ? (
+                  <button type="button" onClick={() => setReaderOpen(true)} className="hb-link mx-auto mt-4 flex items-center gap-2 text-sm font-semibold text-night-900">
+                    <BookOpen aria-hidden="true" className="h-4 w-4" /> Lire un extrait gratuit
+                  </button>
+                ) : null}
               </div>
             </div>
-          </div>
-        </section>
 
-        <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-16">
-            <div>
-              <section>
-                <p className="text-xs font-extrabold text-brand-600">À propos du livre</p>
-                <h2 className="mt-3 font-display text-3xl font-extrabold tracking-[-0.04em]">Une histoire à découvrir</h2>
-                <div className="mt-6 whitespace-pre-line text-[1.05rem] leading-8 text-slate-700">{book.description?.trim() || "La présentation éditoriale de ce titre sera bientôt disponible."}</div>
+            {/* Titre */}
+            <header className="[grid-area:head]">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className={`px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-wider ${book.is_free ? "bg-brand-600 text-white" : "border border-rule-strong text-night-800"}`}>{book.is_free ? "Lecture gratuite" : book.offer_summary_label}</span>
+                {accessType ? <span className="bg-night-900 px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-wider text-white">{getLibraryAccessLabel(accessType, !accessState?.isSubscriptionEntitlementExpired)}</span> : null}
+              </div>
+              <h1 className="mt-4 font-display text-[2.2rem] font-semibold leading-[1.1] tracking-tight text-night-900 sm:text-[2.7rem]">{book.title}</h1>
+              {book.subtitle ? <p className="mt-3 font-display text-xl italic leading-snug text-slate-600">{book.subtitle}</p> : null}
+              <Link href={`/authors/${book.author_id}`} className="group mt-5 inline-flex items-center gap-3">
+                {book.author_avatar_url ? <Image src={book.author_avatar_url} alt="" width={40} height={40} className="h-10 w-10 rounded-full object-cover ring-1 ring-rule-strong" /> : <span className="grid h-10 w-10 place-items-center rounded-full bg-night-900 font-display text-sm text-white">{book.author_name.slice(0, 1)}</span>}
+                <span className="text-[0.95rem] text-slate-600">par <span className="font-semibold text-night-900 group-hover:text-brand-700 group-hover:underline">{book.author_name}</span></span>
+              </Link>
+              {book.rating_avg ? (
+                <p className="mt-4 flex items-center gap-2 text-sm text-slate-600">
+                  <span className="flex" aria-hidden="true">{[1, 2, 3, 4, 5].map((star) => <Star key={star} className={`h-4 w-4 ${star <= Math.round(book.rating_avg ?? 0) ? "fill-amber-400 text-amber-400" : "fill-rule text-rule"}`} />)}</span>
+                  <span>{book.rating_avg.toFixed(1)} · {book.ratings_count ?? 0} avis</span>
+                </p>
+              ) : null}
+            </header>
+
+            {/* Présentation et fiche technique */}
+            <div className="[grid-area:body]">
+              <section className="border-t border-rule pt-8">
+                <h2 className="font-display text-2xl font-semibold text-night-900">Présentation</h2>
+                <div className="mt-4 whitespace-pre-line text-[1.05rem] leading-8 text-slate-700">{book.description?.trim() || "La présentation éditoriale de ce titre sera bientôt disponible."}</div>
               </section>
 
-              <section className="mt-12 border-t border-slate-300 pt-10">
-                <p className="text-xs font-extrabold text-brand-600">Formats disponibles</p>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  {book.purchase_formats.map((format) => <div key={format.format} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-300 bg-white p-4"><div><p className="font-extrabold">{getBookFormatLabel(format.format)}</p><p className="mt-1 text-xs text-slate-500">Lecture web et mobile sécurisée</p></div><p className="font-extrabold text-emerald-700">{money(format.price, format.currency_code)}</p></div>)}
-                  {book.subscription_plans.map((plan) => <div key={plan.id} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-200 p-4"><div><p className="font-extrabold">{plan.name}</p><p className="mt-1 text-xs text-slate-500">Abonnement mensuel</p></div><p className="font-extrabold text-brand-600">{money(plan.monthly_price, plan.currency_code)}</p></div>)}
-                </div>
-              </section>
-
-              <BookReviews
-                bookId={book.id}
-                isAuthenticated={isAuthenticated}
-                ratingAvg={book.rating_avg}
-                ratingsCount={book.ratings_count}
-              />
-
-              <section className="mt-10 rounded-xl bg-slate-200 p-6 sm:p-8">
-                <div className="flex items-start gap-4"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-night-900 text-brand-300"><ShieldCheck className="h-5 w-5" /></span><div><h2 className="font-display text-xl font-extrabold">Une lecture pensée pour vous</h2><p className="mt-2 text-sm leading-7 text-slate-600">Lisez sur téléphone, tablette ou ordinateur. Votre bibliothèque, votre progression et vos notes restent liées à votre compte.</p></div></div>
-              </section>
+              {facts.length > 0 ? (
+                <section className="mt-10 border-t border-rule pt-8">
+                  <h2 className="font-display text-2xl font-semibold text-night-900">Fiche technique</h2>
+                  <dl className="mt-4 divide-y divide-rule border-y border-rule text-[0.95rem]">
+                    {facts.map((fact) => (
+                      <div key={fact.label} className="grid grid-cols-[8rem_1fr] gap-4 py-2.5">
+                        <dt className="text-slate-500">{fact.label}</dt>
+                        <dd className="font-medium text-night-900">{fact.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              ) : null}
             </div>
 
-            <aside className="lg:sticky lg:top-32 lg:-mt-[400px]">
-              <div className="rounded-xl border border-slate-300 bg-white p-6 shadow-md">
-                <p className="text-xs font-extrabold text-brand-600">Votre accès</p>
-                <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900">{book.display_price_label}</p>
-                <p className="mt-3 text-sm leading-7 text-slate-600">{accessMessage}</p>
+            {/* Accès et achat */}
+            <aside className="[grid-area:buy]">
+              <div className="border border-rule-strong bg-white p-6 lg:sticky lg:top-40">
+                <p className="font-display text-[2rem] font-semibold leading-none tabular-nums text-night-900">{book.display_price_label}</p>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{accessMessage}</p>
                 {book.is_free ? (
-                  <div className="mt-5 space-y-2 text-sm font-semibold text-slate-700">
-                    <p className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-700" />{isAuthenticated ? "Livre complet avec votre compte" : "10 pages à lire sans compte"}</p>
-                    <p className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-700" />Aucun paiement</p>
-                    {!isAuthenticated ? <p className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-700" />Compte gratuit seulement pour continuer après l’aperçu</p> : null}
-                  </div>
+                  <ul className="mt-4 space-y-1.5 text-sm text-slate-700">
+                    <li className="flex items-center gap-2"><Check aria-hidden="true" className="h-4 w-4 text-emerald-700" />{isAuthenticated ? "Livre complet avec votre compte" : "10 pages à lire sans compte"}</li>
+                    <li className="flex items-center gap-2"><Check aria-hidden="true" className="h-4 w-4 text-emerald-700" />Aucun paiement</li>
+                  </ul>
                 ) : null}
 
                 {selectedCartFormat ? (
@@ -160,9 +190,9 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
                         {cartFormats.map((format) => {
                           const active = format.format === selectedCartFormat.format;
                           return (
-                            <button key={format.format} type="button" role="radio" aria-checked={active} onClick={() => setCartFormat(format.format)} className={`rounded-md border px-3 py-2 text-left text-xs transition ${active ? "border-night-900 bg-night-50 ring-1 ring-night-900" : "border-slate-300 hover:border-slate-400"}`}>
-                              <span className="block font-semibold text-slate-900">{getBookFormatLabel(format.format)}</span>
-                              <span className="mt-0.5 block font-bold text-slate-700">{money(format.price, format.currency_code)}</span>
+                            <button key={format.format} type="button" role="radio" aria-checked={active} onClick={() => setCartFormat(format.format)} className={`rounded-sm border px-3 py-2 text-left text-xs transition ${active ? "border-night-900 bg-night-50 ring-1 ring-night-900" : "border-rule-strong hover:border-night-400"}`}>
+                              <span className="block font-semibold text-night-900">{getBookFormatLabel(format.format)}</span>
+                              <span className="mt-0.5 block tabular-nums text-slate-700">{money(format.price, format.currency_code)}</span>
                             </button>
                           );
                         })}
@@ -180,45 +210,86 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
                         currencyCode: selectedCartFormat.currency_code,
                       }}
                       label={canRead ? `Commander l’édition ${getBookFormatLabel(selectedCartFormat.format).toLowerCase()}` : "Ajouter au panier"}
-                      className="min-h-12 w-full rounded-full bg-brand-600 px-6 text-sm font-extrabold text-white hover:bg-brand-700"
+                      className="cta-primary min-h-12 w-full px-6 text-sm"
                     />
                   </div>
                 ) : null}
 
                 <div className="mt-3 grid gap-3">
                   {canRead ? (
-                    <button type="button" onClick={() => setReaderOpen(true)} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-brand-600 px-6 text-sm font-extrabold text-white transition hover:bg-brand-700">
-                      <BookOpen className="h-4 w-4" /> {book.is_free && !isAuthenticated ? "Lire 10 pages gratuitement" : "Lire maintenant"}
+                    <button type="button" onClick={() => setReaderOpen(true)} className="cta-primary inline-flex min-h-12 items-center justify-center gap-2 px-6 text-sm">
+                      <BookOpen aria-hidden="true" className="h-4 w-4" /> {book.is_free && !isAuthenticated ? "Lire 10 pages gratuitement" : "Lire maintenant"}
                     </button>
                   ) : null}
-                  {!canRead && book.is_single_sale_enabled ? <button type="button" onClick={() => setPurchaseOpen((open) => !open)} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-night-900 px-6 text-sm font-extrabold text-white transition hover:bg-night-800"><CreditCard className="h-4 w-4" /> {purchaseOpen ? "Fermer" : "Acheter maintenant"}<ChevronDown className={`h-4 w-4 transition ${purchaseOpen ? "rotate-180" : ""}`} /></button> : null}
-                  {!canRead && book.is_subscription_available ? <Link href={subscriptionHref} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-night-900 bg-white px-6 text-sm font-extrabold text-night-900 transition hover:bg-night-50">Lire avec Holistique Plus <ArrowRight className="h-4 w-4" /></Link> : null}
-                  {accessState?.hasLibraryEntry ? <Link href="/dashboard/reader/library" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-slate-300 text-sm font-bold"><Library className="h-4 w-4" /> Ma bibliothèque</Link> : null}
+                  {!canRead && book.is_single_sale_enabled ? (
+                    <button type="button" onClick={() => setPurchaseOpen((open) => !open)} className="cta-secondary inline-flex min-h-12 items-center justify-center gap-2 px-6 text-sm">
+                      <CreditCard aria-hidden="true" className="h-4 w-4" /> {purchaseOpen ? "Fermer" : "Acheter maintenant"}<ChevronDown aria-hidden="true" className={`h-4 w-4 transition ${purchaseOpen ? "rotate-180" : ""}`} />
+                    </button>
+                  ) : null}
+                  {canPreview ? (
+                    <button type="button" onClick={() => setReaderOpen(true)} className="inline-flex min-h-11 items-center justify-center gap-2 text-sm font-semibold text-night-900 hover:text-brand-700">
+                      <BookOpen aria-hidden="true" className="h-4 w-4" /> Lire un extrait gratuit
+                    </button>
+                  ) : null}
+                  {!canRead && book.is_subscription_available ? <Link href={subscriptionHref} className="inline-flex min-h-11 items-center justify-center gap-2 text-sm font-semibold text-night-900 hover:text-brand-700">Inclus dans Holistique Plus <ArrowRight aria-hidden="true" className="h-4 w-4" /></Link> : null}
+                  {accessState?.hasLibraryEntry ? <Link href="/dashboard/reader/library" className="inline-flex min-h-11 items-center justify-center gap-2 text-sm font-semibold text-night-900 hover:text-brand-700"><Library aria-hidden="true" className="h-4 w-4" /> Ma bibliothèque</Link> : null}
                 </div>
+
                 {book.is_free && !isAuthenticated ? (
-                  <div className="mt-5 border-t border-slate-200 pt-5">
-                    <p className="text-xs font-semibold leading-5 text-slate-600">
-                      Pas besoin de compte pour commencer. L’inscription n’est demandée qu’après les 10 premières pages.
-                    </p>
-                    <Link href={registerHref} className="mt-3 inline-flex items-center gap-2 text-xs font-extrabold text-brand-700">
-                      <UserPlus className="h-4 w-4 shrink-0" />Créer mon compte lecteur
-                    </Link>
-                  </div>
+                  <p className="mt-5 border-t border-rule pt-4 text-xs leading-5 text-slate-600">
+                    Aucun compte pour commencer : l’inscription n’est demandée qu’après les 10 premières pages.{" "}
+                    <Link href={registerHref} className="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline"><UserPlus aria-hidden="true" className="h-3.5 w-3.5" />Créer mon compte</Link>
+                  </p>
                 ) : null}
-                <p className="mt-5 flex items-center gap-2 text-[0.68rem] font-semibold text-slate-500"><LockKeyhole className="h-3.5 w-3.5" /> Paiement sécurisé et accès après confirmation</p>
+
+                <ul className="mt-5 space-y-2 border-t border-rule pt-4 text-xs text-slate-600">
+                  <li className="flex items-center gap-2"><LockKeyhole aria-hidden="true" className="h-3.5 w-3.5 text-night-700" /> Paiement sécurisé, mobile money ou carte</li>
+                  <li className="flex items-center gap-2"><ShieldCheck aria-hidden="true" className="h-3.5 w-3.5 text-night-700" /> Lecture protégée sur tous vos appareils</li>
+                </ul>
               </div>
             </aside>
           </div>
 
+          {(book.purchase_formats.length > 0 || book.subscription_plans.length > 0) ? (
+            <section className="mt-16 border-t border-rule pt-10">
+              <h2 className="font-display text-2xl font-semibold text-night-900">Éditions et accès</h2>
+              <ul className="mt-5 grid gap-px border border-rule bg-rule sm:grid-cols-2 lg:grid-cols-3">
+                {book.purchase_formats.map((format) => (
+                  <li key={format.format} className="flex items-center justify-between gap-3 bg-white p-5">
+                    <span>
+                      <span className="block font-semibold text-night-900">{getBookFormatLabel(format.format)}</span>
+                      <span className="mt-0.5 block text-xs text-slate-500">{isPhysicalBookFormat(format.format) ? "Édition imprimée, livrée" : "Lecture web et mobile protégée"}</span>
+                    </span>
+                    <span className="font-semibold tabular-nums text-night-900">{money(format.price, format.currency_code)}</span>
+                  </li>
+                ))}
+                {book.subscription_plans.map((plan) => (
+                  <li key={plan.id} className="flex items-center justify-between gap-3 bg-white p-5">
+                    <span>
+                      <span className="block font-semibold text-night-900">{plan.name}</span>
+                      <span className="mt-0.5 block text-xs text-slate-500">Abonnement mensuel</span>
+                    </span>
+                    <span className="font-semibold tabular-nums text-night-900">{money(plan.monthly_price, plan.currency_code)}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
           {purchaseOpen && !canRead && book.is_single_sale_enabled ? (
-            <section className="mt-12 scroll-mt-28 rounded-xl border border-slate-300 bg-white p-5 sm:p-8">
-              <div className="mb-6"><p className="text-xs font-extrabold text-brand-600">Finaliser l’achat</p><h2 className="mt-2 font-display text-2xl font-extrabold">Vos informations de paiement</h2><p className="mt-2 text-sm text-slate-600">Choisissez votre format et le moyen de paiement qui vous convient.</p></div>
+            <section className="hb-fade-up mt-12 scroll-mt-40 border border-rule-strong bg-white p-5 sm:p-8">
+              <div className="mb-6">
+                <h2 className="font-display text-2xl font-semibold text-night-900">Finaliser l’achat</h2>
+                <p className="mt-1 text-sm text-slate-600">Choisissez votre format et votre moyen de paiement.</p>
+              </div>
               <CinetPayButtons bookId={book.id} bookTitle={book.title} amount={book.price} currencyCode={book.currency_code} formatOptions={book.purchase_formats.map((format) => ({ format: format.format, label: getBookFormatLabel(format.format), amount: format.price, currencyCode: format.currency_code }))} isAuthenticated={isAuthenticated} loginHref={loginHref} defaultCustomer={checkoutCustomer} />
             </section>
           ) : null}
 
-          {book.is_free && paidFormats.length > 0 ? <section className="mt-10 rounded-xl border border-slate-300 bg-white p-6"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-extrabold text-brand-600">Éditions imprimées</p><h2 className="mt-2 font-display text-xl font-extrabold">La lecture numérique reste gratuite.</h2></div><button type="button" onClick={() => setPurchaseOpen((open) => !open)} className="min-h-11 rounded-full border border-slate-300 px-5 text-sm font-bold">{purchaseOpen ? "Fermer" : "Commander une édition"}</button></div>{purchaseOpen ? <div className="mt-6"><CinetPayButtons bookId={book.id} bookTitle={book.title} amount={paidFormats[0].price} currencyCode={paidFormats[0].currency_code} formatOptions={paidFormats.map((format) => ({ format: format.format, label: getBookFormatLabel(format.format), amount: format.price, currencyCode: format.currency_code }))} isAuthenticated={isAuthenticated} loginHref={loginHref} defaultCustomer={checkoutCustomer} /></div> : null}</section> : null}
-        </main>
+          <div className="mt-6">
+            <BookReviews bookId={book.id} isAuthenticated={isAuthenticated} ratingAvg={book.rating_avg} ratingsCount={book.ratings_count} />
+          </div>
+        </div>
       </div>
       <ReaderPopup bookId={book.id} open={readerOpen} onClose={() => setReaderOpen(false)} />
     </>

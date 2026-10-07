@@ -13,9 +13,9 @@ export default function ReaderDashboardError({
     <section
       role="alert"
       aria-labelledby="reader-dashboard-error-title"
-      className="rounded-[1.5rem] border border-brand-200 bg-slate-50 p-5 shadow-[0_18px_42px_rgba(11,31,58,0.05)] sm:rounded-[2rem] sm:p-8"
+      className="rounded-md border border-brand-200 bg-paper p-5 shadow-[0_18px_42px_rgba(11,31,58,0.05)] sm:rounded-md sm:p-8"
     >
-      <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+      <span className="grid h-12 w-12 place-items-center rounded-md bg-brand-50 text-brand-600">
         <AlertTriangle aria-hidden="true" className="h-5 w-5" />
       </span>
       <p className="mt-5 text-[0.7rem] font-bold text-brand-600">Espace lecteur</p>
@@ -30,14 +30,14 @@ export default function ReaderDashboardError({
         <button
           type="button"
           onClick={reset}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-night-900 px-5 text-sm font-bold text-white transition hover:bg-night-800"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm bg-night-900 px-5 text-sm font-bold text-white transition hover:bg-night-800"
         >
           <RefreshCw aria-hidden="true" className="h-4 w-4" />
           Réessayer
         </button>
         <Link
           href="/library"
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-bold text-slate-900 transition hover:border-slate-300"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-rule bg-white px-5 text-sm font-bold text-slate-900 transition hover:border-rule-strong"
         >
           <BookOpen aria-hidden="true" className="h-4 w-4" />
           Lire un livre gratuit

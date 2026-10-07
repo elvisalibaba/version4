@@ -275,7 +275,7 @@ export function PublishLabForm({
 
   return (
     <form className="space-y-6" onSubmit={(event) => event.preventDefault()}>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-rule-strong bg-paper px-4 py-3">
         <div>
           <p className="text-xs font-bold text-brand-600">Publication</p>
           <p className="mt-1 text-sm font-semibold text-night-900">Statut actuel : {reviewLabel(initial.reviewStatus)}</p>
@@ -283,10 +283,10 @@ export function PublishLabForm({
         {initial.reviewNote ? <p className="max-w-xl text-sm text-brand-700">{initial.reviewNote}</p> : null}
       </div>
 
-      {error ? <p role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">{error}</p> : null}
-      {statusText ? <p role="status" className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">{statusText}</p> : null}
+      {error ? <p role="alert" className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">{error}</p> : null}
+      {statusText ? <p role="status" className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">{statusText}</p> : null}
 
-      <fieldset disabled={busy || disabled} className="grid gap-5 rounded-xl border border-slate-300 bg-white p-5 sm:grid-cols-2 sm:p-7">
+      <fieldset disabled={busy || disabled} className="grid gap-5 rounded-md border border-rule-strong bg-white p-5 sm:grid-cols-2 sm:p-7">
         <Field label="Titre *"><input value={title} onChange={(e) => setTitle(e.target.value)} className="form-input" /></Field>
         <Field label="Nom public de l’auteur"><input value={authorFullName} onChange={(e) => setAuthorFullName(e.target.value)} className="form-input" /></Field>
         <Field label="Sous-titre"><input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="form-input" /></Field>
@@ -308,7 +308,7 @@ export function PublishLabForm({
         <Field label="Pages d’extrait"><input type="number" min="0" value={samplePages} onChange={(e) => setSamplePages(e.target.value)} className="form-input" /></Field>
       </fieldset>
 
-      <fieldset disabled={busy || disabled} className="rounded-xl border border-emerald-50 bg-emerald-50 p-5 sm:p-7">
+      <fieldset disabled={busy || disabled} className="rounded-md border border-emerald-50 bg-emerald-50 p-5 sm:p-7">
         <div>
           <p className="text-xs font-bold text-night-900">Atelier d’écriture</p>
           <h2 className="mt-2 text-lg font-bold text-night-900">Piloter le manuscrit comme un projet éditorial</h2>
@@ -337,7 +337,7 @@ export function PublishLabForm({
         </div>
       </fieldset>
 
-      <fieldset disabled={busy || disabled} className="rounded-xl border border-slate-300 bg-white p-5 sm:p-7">
+      <fieldset disabled={busy || disabled} className="rounded-md border border-rule-strong bg-white p-5 sm:p-7">
         <h2 className="text-lg font-bold text-night-900">Fichiers numériques</h2>
         <div className="mt-5 grid gap-5 md:grid-cols-3">
           <FileField label={isEdit ? "Remplacer le manuscrit" : "Manuscrit"} accept=".pdf,.epub,.mobi,.azw3" onChange={setEbookFile} />
@@ -347,7 +347,7 @@ export function PublishLabForm({
         {isEdit && initial.ebookPath ? <p className="mt-3 text-xs text-emerald-700">Un fichier numérique privé est déjà enregistré. Laissez le champ vide pour le conserver.</p> : null}
       </fieldset>
 
-      <fieldset disabled={busy || disabled} className="rounded-xl border border-slate-300 bg-white p-5 sm:p-7">
+      <fieldset disabled={busy || disabled} className="rounded-md border border-rule-strong bg-white p-5 sm:p-7">
         <h2 className="text-lg font-bold text-night-900">Modes d’accès</h2>
         <div className="mt-4 flex flex-wrap gap-4">
           <Toggle checked={singleSale} onChange={setSingleSale} label="Vente à l’unité" />
@@ -371,9 +371,9 @@ function Field({ label, full = false, children }: { label: string; full?: boolea
 }
 
 function FileField({ label, accept, onChange }: { label: string; accept: string; onChange: (file: File | null) => void }) {
-  return <label className="grid gap-2 text-sm font-bold text-slate-800"><span>{label}</span><input type="file" accept={accept} onChange={(e) => onChange(e.target.files?.[0] ?? null)} className="block w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-3 text-sm" /></label>;
+  return <label className="grid gap-2 text-sm font-bold text-slate-800"><span>{label}</span><input type="file" accept={accept} onChange={(e) => onChange(e.target.files?.[0] ?? null)} className="block w-full rounded-md border border-rule-strong bg-paper px-3 py-3 text-sm" /></label>;
 }
 
 function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (value: boolean) => void; label: string }) {
-  return <label className="inline-flex items-center gap-3 rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold"><input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />{label}</label>;
+  return <label className="inline-flex items-center gap-3 rounded-sm border border-rule-strong bg-paper px-4 py-2 text-sm font-semibold"><input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />{label}</label>;
 }

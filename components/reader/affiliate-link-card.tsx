@@ -24,13 +24,13 @@ export function AffiliateLinkCard({ label, description, href }: AffiliateLinkCar
   }
 
   return (
-    <article className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+    <article className="rounded-[24px] border border-rule bg-paper p-4">
       <div className="space-y-2">
         <p className="text-sm font-semibold text-slate-900">{label}</p>
         <p className="text-sm leading-6 text-slate-600">{description}</p>
       </div>
 
-      <div className="mt-4 rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900">
+      <div className="mt-4 rounded-[18px] border border-rule bg-white px-4 py-3 text-sm text-slate-900">
         <span className="block overflow-hidden text-ellipsis whitespace-nowrap">{href}</span>
       </div>
 
@@ -38,7 +38,7 @@ export function AffiliateLinkCard({ label, description, href }: AffiliateLinkCar
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex h-11 items-center gap-2 rounded-full bg-night-900 px-4 text-sm font-semibold text-white transition hover:bg-night-800"
+          className="inline-flex h-11 items-center gap-2 rounded-sm bg-night-900 px-4 text-sm font-semibold text-white transition hover:bg-night-800"
         >
           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           {copied ? "Lien copie" : "Copier"}
@@ -47,7 +47,7 @@ export function AffiliateLinkCard({ label, description, href }: AffiliateLinkCar
           href={href}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 transition hover:border-slate-300"
+          className="inline-flex h-11 items-center gap-2 rounded-sm border border-rule bg-white px-4 text-sm font-semibold text-slate-900 transition hover:border-rule-strong"
         >
           <ExternalLink className="h-4 w-4" />
           Ouvrir

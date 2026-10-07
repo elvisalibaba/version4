@@ -144,7 +144,7 @@ export function EditorialTrainingForm({
           <div className="md:col-span-2">
             <Field
               label="Organisation / structure"
-              hint="Maison d edition, studio, marque personnelle ou entreprise."
+              hint="Maison d’édition, studio, marque personnelle ou entreprise."
             >
               <input
                 type="text"
@@ -169,7 +169,7 @@ export function EditorialTrainingForm({
               className="w-full px-4 py-3.5 text-slate-900"
             >
               <option value="" disabled>
-                Selectionnez votre profil
+                Sélectionnez votre profil
               </option>
               {editorialTrainingProfileTypeOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -186,7 +186,7 @@ export function EditorialTrainingForm({
               className="w-full px-4 py-3.5 text-slate-900"
             >
               <option value="" disabled>
-                Selectionnez votre niveau
+                Sélectionnez votre niveau
               </option>
               {editorialTrainingExperienceLevelOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -203,7 +203,7 @@ export function EditorialTrainingForm({
               className="w-full px-4 py-3.5 text-slate-900"
             >
               <option value="" disabled>
-                Selectionnez le stade du projet
+                Sélectionnez le stade du projet
               </option>
               {editorialTrainingProjectStageOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -220,7 +220,7 @@ export function EditorialTrainingForm({
               className="w-full px-4 py-3.5 text-slate-900"
             >
               <option value="" disabled>
-                Selectionnez le format souhaite
+                Sélectionnez le format souhaite
               </option>
               {editorialTrainingPreferredFormatOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -233,13 +233,13 @@ export function EditorialTrainingForm({
       </FormSection>
 
       <FormSection
-        title="Besoin editorial"
-        description="Decrivez votre objectif principal afin que l accompagnement soit pertinent des le premier contact."
+        title="Besoin éditorial"
+        description="Décrivez votre objectif principal afin que l’accompagnement soit pertinent des le premier contact."
       >
         <div className="grid gap-5">
           <Field
             label="Objectifs de formation *"
-            hint="Exemple: structurer un manuscrit, comprendre la chaine editoriale, lancer un catalogue."
+            hint="Exemple: structurer un manuscrit, comprendre la chaîne éditoriale, lancer un catalogue."
           >
             <textarea
               name="objectives"
@@ -249,8 +249,8 @@ export function EditorialTrainingForm({
             />
           </Field>
           <Field
-            label="Message complementaire"
-            hint="Partagez ici votre contexte, vos contraintes ou vos attentes specifiques."
+            label="Message complémentaire"
+            hint="Partagez ici votre contexte, vos contraintes ou vos attentes spécifiques."
           >
             <textarea
               name="message"
@@ -258,16 +258,16 @@ export function EditorialTrainingForm({
               className="w-full px-4 py-3.5 text-slate-900"
             />
           </Field>
-          <label className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-700">
+          <label className="flex items-start gap-3 rounded-md border border-rule bg-paper px-4 py-4 text-sm leading-6 text-slate-700">
             <input
               type="checkbox"
               name="consent_to_contact"
               required
-              className="mt-1 h-4 w-4 rounded border-slate-300"
+              className="mt-1 h-4 w-4 rounded border-rule-strong"
             />
             <span>
-              J accepte d etre contacte par Holistique Books au sujet de cette
-              formation editoriale.
+              J’accepte d’être contacte par Holistique Books au sujet de cette
+              formation éditoriale.
             </span>
           </label>
         </div>
@@ -275,7 +275,7 @@ export function EditorialTrainingForm({
 
       {state.message ? (
         <div
-          className={`rounded-xl border px-4 py-4 text-sm ${
+          className={`rounded-md border px-4 py-4 text-sm ${
             state.status === "success"
               ? "border-emerald-200 bg-emerald-50 text-emerald-800"
               : "border-red-200 bg-red-50 text-red-700"
@@ -285,10 +285,10 @@ export function EditorialTrainingForm({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white/90 px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-rule bg-white/90 px-5 py-4">
         <p className="max-w-2xl text-sm leading-6 text-slate-500">
-          Votre demande est enregistree dans l espace admin et peut etre
-          exportee en CSV pour le suivi editorial.
+          Vos informations restent confidentielles et ne servent qu’à
+          préparer votre accompagnement.
         </p>
         <SubmitButton />
       </div>

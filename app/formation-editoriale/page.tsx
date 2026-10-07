@@ -11,9 +11,9 @@ import { PageHero } from "@/components/ui/page-hero";
 import { getCurrentUserProfile } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Formation editoriale",
+  title: "Formation éditoriale",
   description:
-    "Inscription a la formation editoriale Holistique Books avec enregistrement des demandes pour l equipe admin.",
+    "Inscrivez-vous au parcours de formation éditoriale Holistique Books : diagnostic, cadrage et accompagnement de votre projet.",
 };
 
 function InfoCard({
@@ -28,7 +28,7 @@ function InfoCard({
   return (
     <article className="form-panel">
       <div className="flex items-start gap-4">
-        <span className="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-night-50 text-night-800">
+        <span className="inline-flex h-12 w-12 items-center justify-center rounded-md bg-night-50 text-night-800">
           <Icon className="h-5 w-5" />
         </span>
         <div className="space-y-2">
@@ -58,34 +58,34 @@ export default async function EditorialTrainingPage() {
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="space-y-8">
         <PageHero
-          kicker="Formation editoriale"
-          title="Inscrivez-vous a notre parcours de formation editoriale."
-          description="Partagez votre profil, le stade de votre projet et vos objectifs. L equipe admin recoit automatiquement votre demande pour suivi et export CSV."
+          kicker="Formation éditoriale"
+          title="Inscrivez-vous à notre parcours de formation éditoriale."
+          description="Partagez votre profil, le stade de votre projet et vos objectifs. Notre équipe vous recontacte pour construire un parcours adapté."
           aside={
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-md">
+            <div className="rounded-md border border-rule bg-white p-5 ">
               <div className="space-y-4">
-                <span className="inline-flex items-center gap-2 rounded-full bg-night-900 px-3 py-1 text-xs font-semibold text-white">
+                <span className="inline-flex items-center gap-2 rounded-sm bg-night-900 px-3 py-1 text-xs font-semibold text-white">
                   <GraduationCap className="h-3.5 w-3.5" />
-                  Parcours accompagne
+                  Parcours accompagné
                 </span>
                 <div className="space-y-2">
                   <p className="text-2xl font-semibold tracking-[-0.03em] text-slate-950">
-                    3 etapes claires
+                    3 étapes claires
                   </p>
                   <p className="text-sm leading-6 text-slate-500">
-                    Diagnostic, cadrage editorial et plan d execution adaptes a
+                    Diagnostic, cadrage éditorial et plan d’action adaptés à
                     votre niveau.
                   </p>
                 </div>
                 <div className="grid gap-3 text-sm text-slate-600">
-                  <div className="rounded-lg border border-white/60 bg-white/85 px-4 py-3">
-                    Positionnement editorial et clarte du projet.
+                  <div className="rounded-md border border-white/60 bg-white/85 px-4 py-3">
+                    Positionnement éditorial et clarté du projet.
                   </div>
-                  <div className="rounded-lg border border-white/60 bg-white/85 px-4 py-3">
+                  <div className="rounded-md border border-white/60 bg-white/85 px-4 py-3">
                     Structuration du manuscrit ou du catalogue.
                   </div>
-                  <div className="rounded-lg border border-white/60 bg-white/85 px-4 py-3">
-                    Suivi centralise pour l equipe admin et operationnelle.
+                  <div className="rounded-md border border-white/60 bg-white/85 px-4 py-3">
+                    Un interlocuteur unique, du premier échange au suivi.
                   </div>
                 </div>
               </div>
@@ -100,22 +100,22 @@ export default async function EditorialTrainingPage() {
             <InfoCard
               icon={Clock3}
               title="Traitement rapide"
-              description="Les demandes arrivent directement dans l espace admin pour que l equipe puisse vous recontacter sans perdre les informations envoyees."
+              description="Votre demande arrive directement à notre équipe éditoriale, qui vous recontacte rapidement."
             />
             <InfoCard
               icon={FileSpreadsheet}
-              title="Suivi exploitable"
-              description="Toutes les inscriptions peuvent etre exportees en CSV pour le pilotage commercial, editorial ou operationnel."
+              title="Un suivi personnalisé"
+              description="Un conseiller suit votre projet à chaque étape et reste votre interlocuteur unique."
             />
             <InfoCard
               icon={BookOpen}
-              title="Parcours adapte"
-              description="Que vous partiez d une idee, d un manuscrit termine ou d un catalogue existant, le formulaire aide a orienter le bon accompagnement."
+              title="Parcours adapté"
+              description="Que vous partiez d’une idée, d’un manuscrit terminé ou d’un catalogue existant, le formulaire aide à orienter le bon accompagnement."
             />
             <InfoCard
               icon={Mail}
-              title="Contact equipe"
-              description="Vous pouvez aussi preciser vos attentes dans le message libre si vous avez un contexte particulier ou des delais a respecter."
+              title="Contact équipe"
+              description="Vous pouvez aussi préciser vos attentes dans le message libre si vous avez un contexte particulier ou des délais à respecter."
             />
           </div>
         </div>

@@ -6,6 +6,7 @@ import {
   Sparkles, Target,
 } from "lucide-react";
 import { COMPANY, PUBLISHING_PACKS } from "@/lib/holistique";
+import { Kicker } from "@/components/ui/page-header";
 
 export const metadata: Metadata = {
   title: "Ingénierie éditoriale et publication",
@@ -62,16 +63,16 @@ const commitments = ["Excellence éditoriale", "Respect des délais", "Protectio
 
 export default function ServicesPage() {
   return (
-    <div className="hb-fullbleed bg-slate-100 text-night-900">
+    <div className="hb-fullbleed bg-paper-deep text-night-900">
       <section className="relative isolate overflow-hidden bg-night-900 text-white">
         <div className="relative mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-[1fr_0.72fr] lg:items-end lg:px-10 lg:py-28">
           <div>
-            <p className="text-xs font-bold text-brand-300">Pôle d’ingénierie éditoriale · Groupe Holistique SARL</p>
+            <Kicker tone="light">Pôle d’ingénierie éditoriale · Groupe Holistique SARL</Kicker>
             <h1 className="mt-6 max-w-4xl font-display text-4xl font-bold leading-[1.02] tracking-[-0.055em] sm:text-6xl lg:text-7xl">De l’idée à la satisfaction du lecteur.</h1>
             <p className="mt-7 max-w-2xl text-base leading-8 text-white/68 sm:text-lg">Une expertise intégrée pour concevoir, produire, publier, distribuer et valoriser des œuvres professionnelles à fort impact.</p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Link href="/formation-editoriale" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-brand-600 px-6 text-sm font-bold text-white transition hover:bg-brand-700">Présenter mon projet <ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
-              <a href="#poles" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/20 px-6 text-sm font-bold text-white transition hover:bg-white/10">Explorer nos expertises</a>
+              <Link href="/formation-editoriale" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm bg-brand-600 px-6 text-sm font-bold text-white transition hover:bg-brand-700">Présenter mon projet <ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
+              <a href="#poles" className="inline-flex min-h-12 items-center justify-center rounded-sm border border-white/20 px-6 text-sm font-bold text-white transition hover:bg-white/10">Explorer nos expertises</a>
             </div>
           </div>
           <div className="border-l border-white/15 pl-6 sm:pl-8">
@@ -89,24 +90,24 @@ export default function ServicesPage() {
             <h2 className="mt-4 font-display text-3xl font-bold leading-tight tracking-[-0.04em] sm:text-4xl">Un partenaire stratégique pour chaque projet.</h2>
           </div>
           <div className="space-y-5 text-base leading-8 text-slate-600">
-            <p>Holistique Books accompagne les auteurs, entreprises, institutions, universités, organisations confessionnelles, ONG et administrations publiques dans la création de publications professionnelles à forte valeur ajoutée.</p>
+            <p>Holistique Books accompagné les auteurs, entreprises, institutions, universités, organisations confessionnelles, ONG et administrations publiques dans la création de publications professionnelles à forte valeur ajoutée.</p>
             <p>Notre écosystème réunit l’ingénierie éditoriale, la production, l’impression, la distribution, l’innovation numérique, la formation et le marketing au sein d’un interlocuteur unique.</p>
             <div className="grid gap-3 pt-3 sm:grid-cols-2">
               {["Expertise complète", "Standards internationaux", "Suivi personnalisé", "Diffusion multicanale"].map((item) => (
-                <p key={item} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900"><CircleCheck aria-hidden="true" className="h-4 w-4 shrink-0 text-brand-600" /> {item}</p>
+                <p key={item} className="flex items-center gap-3 rounded-md border border-rule bg-white px-4 py-3 text-sm font-bold text-slate-900"><CircleCheck aria-hidden="true" className="h-4 w-4 shrink-0 text-brand-600" /> {item}</p>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="hb-reveal border-y border-slate-200 bg-white">
+      <section className="hb-reveal border-y border-rule bg-white">
         <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24 lg:px-10">
           <div className="max-w-2xl">
             <p className="text-xs font-bold text-brand-600">Notre méthode</p>
             <h2 className="mt-4 font-display text-3xl font-bold tracking-[-0.04em] sm:text-4xl">Un accompagnement qui couvre tout le cycle de vie du livre.</h2>
           </div>
-          <ol className="mt-12 grid gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 md:grid-cols-5">
+          <ol className="mt-12 grid gap-px overflow-hidden rounded-md border border-rule bg-paper-deep md:grid-cols-5">
             {approach.map((step) => (
               <li key={step.number} className="bg-white p-6 sm:p-7">
                 <span className="font-display text-sm font-bold text-brand-600">{step.number}</span>
@@ -130,19 +131,19 @@ export default function ServicesPage() {
           {servicePoles.map((pole, index) => {
             const Icon = pole.icon;
             return (
-              <article key={pole.number} className={`group overflow-hidden rounded-xl border border-slate-300 p-6 transition hover:-translate-y-1 hover:shadow-md sm:p-8 ${index === 0 ? "bg-night-900 text-white md:col-span-2" : "bg-slate-50"}`}>
+              <article key={pole.number} className={`group overflow-hidden rounded-md border border-rule-strong p-6 transition hover:-translate-y-1 hover:shadow-md sm:p-8 ${index === 0 ? "bg-night-900 text-white md:col-span-2" : "bg-paper"}`}>
                 <div className={`grid gap-8 ${index === 0 ? "lg:grid-cols-[0.8fr_1.2fr]" : ""}`}>
                   <div>
                     <div className="flex items-center justify-between">
                       <span className={`font-display text-sm font-bold ${index === 0 ? "text-brand-300" : "text-brand-600"}`}>PÔLE {pole.number}</span>
-                      <span className={`grid h-11 w-11 place-items-center rounded-2xl ${index === 0 ? "bg-white/10 text-brand-300" : "bg-brand-100 text-brand-600"}`}><Icon aria-hidden="true" className="h-5 w-5" /></span>
+                      <span className={`grid h-11 w-11 place-items-center rounded-md ${index === 0 ? "bg-white/10 text-brand-300" : "bg-brand-100 text-brand-600"}`}><Icon aria-hidden="true" className="h-5 w-5" /></span>
                     </div>
                     <h3 className="mt-8 font-display text-2xl font-bold leading-tight tracking-[-0.035em] sm:text-3xl">{pole.title}</h3>
                     <p className={`mt-3 text-sm font-semibold leading-6 ${index === 0 ? "text-white/58" : "text-slate-600"}`}>{pole.mission}</p>
                   </div>
                   <ul className={`grid gap-3 text-sm ${index === 0 ? "sm:grid-cols-2" : ""}`}>
                     {pole.services.map((service) => (
-                      <li key={service} className={`flex items-start gap-3 rounded-xl px-3 py-2.5 ${index === 0 ? "bg-white/[0.06] text-white/78" : "bg-slate-100 text-slate-600"}`}><Check aria-hidden="true" className={`mt-0.5 h-4 w-4 shrink-0 ${index === 0 ? "text-brand-300" : "text-brand-600"}`} />{service}</li>
+                      <li key={service} className={`flex items-start gap-3 rounded-md px-3 py-2.5 ${index === 0 ? "bg-white/[0.06] text-white/78" : "bg-paper-deep text-slate-600"}`}><Check aria-hidden="true" className={`mt-0.5 h-4 w-4 shrink-0 ${index === 0 ? "text-brand-300" : "text-brand-600"}`} />{service}</li>
                     ))}
                   </ul>
                 </div>
@@ -163,8 +164,8 @@ export default function ServicesPage() {
           </div>
           <div className="mt-12 grid gap-5 lg:grid-cols-3">
             {PUBLISHING_PACKS.map((pack) => (
-              <article key={pack.name} className={`relative flex flex-col rounded-xl border p-7 transition duration-300 hover:-translate-y-1 ${pack.featured ? "border-brand-600 bg-white text-slate-900 shadow-xl lg:-my-3 lg:py-10" : "border-white/12 bg-white/[0.04] hover:bg-white/[0.07]"}`}>
-                {pack.featured ? <span className="absolute -top-3 left-7 rounded-full bg-brand-600 px-3 py-1 text-xs font-bold text-white">Le plus choisi</span> : null}
+              <article key={pack.name} className={`relative flex flex-col rounded-md border p-7 transition duration-300 hover:-translate-y-1 ${pack.featured ? "border-brand-600 bg-white text-slate-900 shadow-xl lg:-my-3 lg:py-10" : "border-white/12 bg-white/[0.04] hover:bg-white/[0.07]"}`}>
+                {pack.featured ? <span className="absolute -top-3 left-7 rounded-sm bg-brand-600 px-3 py-1 text-xs font-bold text-white">Le plus choisi</span> : null}
                 <h3 className="font-display text-xl font-bold">{pack.name}</h3>
                 <p className="mt-5 flex items-baseline gap-2">
                   <span className="font-display text-4xl font-bold tracking-tight">{pack.price}</span>
@@ -179,8 +180,8 @@ export default function ServicesPage() {
                     <li key={line} className="flex items-start gap-2.5"><Sparkles aria-hidden="true" className={`mt-0.5 h-4 w-4 shrink-0 ${pack.featured ? "text-brand-600" : "text-brand-300"}`} /><span><strong>Bonus :</strong> {line}</span></li>
                   ))}
                 </ul>
-                <p className={`mt-6 border-t pt-4 text-sm italic ${pack.featured ? "border-slate-200 text-slate-600" : "border-white/10 text-white/60"}`}>« {pack.tagline} »</p>
-                <Link href="/formation-editoriale" className={`mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-bold transition ${pack.featured ? "bg-brand-600 text-white hover:bg-brand-700" : "border border-white/25 text-white hover:bg-white/10"}`}>
+                <p className={`mt-6 border-t pt-4 text-sm italic ${pack.featured ? "border-rule text-slate-600" : "border-white/10 text-white/60"}`}>« {pack.tagline} »</p>
+                <Link href="/formation-editoriale" className={`mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-sm px-5 text-sm font-bold transition ${pack.featured ? "bg-brand-600 text-white hover:bg-brand-700" : "border border-white/25 text-white hover:bg-white/10"}`}>
                   Choisir ce pack <ChevronRight aria-hidden="true" className="h-4 w-4" />
                 </Link>
               </article>
@@ -197,23 +198,23 @@ export default function ServicesPage() {
             <h2 className="mt-4 font-display text-3xl font-bold tracking-[-0.04em] sm:text-4xl">Une collaboration lisible, du premier échange au suivi.</h2>
             <ol className="mt-9 grid gap-3 sm:grid-cols-2">
               {collaborationSteps.map((step, index) => (
-                <li key={step} className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-50 text-xs font-bold text-brand-600">{index + 1}</span><span className="text-sm font-bold text-slate-800">{step}</span></li>
+                <li key={step} className="flex items-center gap-4 rounded-md border border-rule bg-white px-4 py-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-paper text-xs font-bold text-brand-600">{index + 1}</span><span className="text-sm font-bold text-slate-800">{step}</span></li>
               ))}
             </ol>
           </div>
-          <aside className="rounded-xl bg-slate-200 p-7 sm:p-9">
+          <aside className="rounded-md bg-paper-deep p-7 sm:p-9">
             <div className="flex items-center gap-3"><ShieldCheck aria-hidden="true" className="h-6 w-6 text-brand-600" /><p className="text-xs font-bold text-brand-700">Nos engagements</p></div>
             <ul className="mt-8 space-y-4">
               {commitments.map((commitment) => (
-                <li key={commitment} className="flex items-center gap-3 border-b border-slate-300 pb-4 text-sm font-bold text-slate-800 last:border-0"><Sparkles aria-hidden="true" className="h-4 w-4 shrink-0 text-brand-600" /> {commitment}</li>
+                <li key={commitment} className="flex items-center gap-3 border-b border-rule-strong pb-4 text-sm font-bold text-slate-800 last:border-0"><Sparkles aria-hidden="true" className="h-4 w-4 shrink-0 text-brand-600" /> {commitment}</li>
               ))}
             </ul>
-            <div className="mt-8 rounded-lg bg-white p-5">
+            <div className="mt-8 rounded-md bg-white p-5">
               <p className="flex items-center gap-2 text-sm font-bold text-slate-900"><Clock aria-hidden="true" className="h-4 w-4 text-brand-600" /> Nos délais</p>
               <dl className="mt-3 space-y-2 text-sm text-slate-600">
                 <div className="flex justify-between gap-3"><dt>Production éditoriale</dt><dd className="font-semibold text-slate-900">≤ 1 mois</dd></div>
                 <div className="flex justify-between gap-3"><dt>Transport Chine → Kinshasa</dt><dd className="font-semibold text-slate-900">≈ 2 mois</dd></div>
-                <div className="flex justify-between gap-3 border-t border-slate-200 pt-2"><dt>Cycle global avec impression</dt><dd className="font-semibold text-slate-900">≈ 3 mois</dd></div>
+                <div className="flex justify-between gap-3 border-t border-rule pt-2"><dt>Cycle global avec impression</dt><dd className="font-semibold text-slate-900">≈ 3 mois</dd></div>
               </dl>
             </div>
           </aside>
@@ -221,7 +222,7 @@ export default function ServicesPage() {
       </section>
 
       <section className="px-5 pb-16 sm:px-8 sm:pb-24 lg:px-10">
-        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-xl bg-brand-600 px-6 py-12 text-white sm:px-12 sm:py-16">
+        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-md bg-brand-600 px-6 py-12 text-white sm:px-12 sm:py-16">
           <Target aria-hidden="true" className="absolute -right-10 -top-10 h-52 w-52 text-white/[0.08]" />
           <div className="relative grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
             <div className="max-w-3xl">
@@ -230,9 +231,9 @@ export default function ServicesPage() {
               <p className="mt-5 max-w-2xl text-sm leading-7 text-white/82 sm:text-base">Présentez-nous votre idée, votre manuscrit ou le besoin de votre organisation. Notre équipe vous proposera un accompagnement adapté.</p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-              <Link href="/formation-editoriale" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-brand-600 transition hover:bg-slate-50">Démarrer mon projet <Send aria-hidden="true" className="h-4 w-4" /></Link>
-              <a href={COMPANY.phoneHref} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/35 px-6 text-sm font-bold text-white transition hover:bg-white/10"><Phone aria-hidden="true" className="h-4 w-4" /> {COMPANY.phone}</a>
-              <a href={`mailto:${COMPANY.email}`} className="inline-flex min-h-12 items-center justify-center rounded-full px-6 text-sm font-bold text-white/85 underline-offset-4 transition hover:underline">Nous écrire</a>
+              <Link href="/formation-editoriale" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm bg-white px-6 text-sm font-bold text-brand-600 transition hover:bg-paper">Démarrer mon projet <Send aria-hidden="true" className="h-4 w-4" /></Link>
+              <a href={COMPANY.phoneHref} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border border-white/35 px-6 text-sm font-bold text-white transition hover:bg-white/10"><Phone aria-hidden="true" className="h-4 w-4" /> {COMPANY.phone}</a>
+              <a href={`mailto:${COMPANY.email}`} className="inline-flex min-h-12 items-center justify-center rounded-sm px-6 text-sm font-bold text-white/85 underline-offset-4 transition hover:underline">Nous écrire</a>
             </div>
           </div>
         </div>

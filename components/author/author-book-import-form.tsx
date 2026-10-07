@@ -51,17 +51,17 @@ export function AuthorBookImportForm(props: Pick<PublishLabFormProps, "subscript
   }
 
   return <div className="space-y-6" aria-busy={busy}>
-    <div className="rounded-2xl border border-slate-300 bg-slate-50 p-4">
+    <div className="rounded-md border border-rule-strong bg-paper p-4">
       <p className="text-sm font-semibold text-night-900">Jusqu’à {MAX_AUTHOR_BOOKS_PER_SUBMISSION} livres par envoi, sans image de couverture supplémentaire.</p>
       <div className="mt-4 flex flex-wrap gap-2" aria-label="Livres à envoyer">
-        {Array.from({ length: count }, (_, index) => <button key={index} type="button" disabled={busy} aria-pressed={active === index} onClick={() => setActive(index)} className={`rounded-full border px-4 py-2 text-sm font-bold disabled:opacity-60 ${active === index ? "border-night-900 bg-night-900 text-white" : "border-slate-300 bg-white text-night-900"}`}>Livre {index + 1}{completed.includes(index) ? " ✓" : ""}</button>)}
-        {count < MAX_AUTHOR_BOOKS_PER_SUBMISSION && completed.length === 0 ? <button type="button" disabled={busy} onClick={() => { setCount((value) => value + 1); setActive(count); }} className="rounded-full border border-dashed border-night-900 px-4 py-2 text-sm font-bold text-night-900 disabled:opacity-60">+ Ajouter un livre</button> : null}
-        {count > 1 && completed.length === 0 ? <button type="button" disabled={busy} onClick={() => { setCount((value) => value - 1); setActive((value) => Math.min(value, count - 2)); }} className="rounded-full px-4 py-2 text-sm text-slate-600 disabled:opacity-60">Retirer le dernier livre</button> : null}
+        {Array.from({ length: count }, (_, index) => <button key={index} type="button" disabled={busy} aria-pressed={active === index} onClick={() => setActive(index)} className={`rounded-sm border px-4 py-2 text-sm font-bold disabled:opacity-60 ${active === index ? "border-night-900 bg-night-900 text-white" : "border-rule-strong bg-white text-night-900"}`}>Livre {index + 1}{completed.includes(index) ? " ✓" : ""}</button>)}
+        {count < MAX_AUTHOR_BOOKS_PER_SUBMISSION && completed.length === 0 ? <button type="button" disabled={busy} onClick={() => { setCount((value) => value + 1); setActive(count); }} className="rounded-sm border border-dashed border-night-900 px-4 py-2 text-sm font-bold text-night-900 disabled:opacity-60">+ Ajouter un livre</button> : null}
+        {count > 1 && completed.length === 0 ? <button type="button" disabled={busy} onClick={() => { setCount((value) => value - 1); setActive((value) => Math.min(value, count - 2)); }} className="rounded-sm px-4 py-2 text-sm text-slate-600 disabled:opacity-60">Retirer le dernier livre</button> : null}
       </div>
     </div>
 
-    {busy || completed.length > 0 ? <div role="status" className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-night-900"><p>{busy ? `Traitement du livre ${active + 1} sur ${count}…` : "Envoi interrompu."} {completed.length} sur {count} enregistré{completed.length > 1 ? "s" : ""}.</p><progress aria-label="Livres enregistrés" value={completed.length} max={count} className="mt-3 h-2 w-full accent-night-900" /></div> : null}
-    {error ? <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p> : null}
+    {busy || completed.length > 0 ? <div role="status" className="rounded-md bg-emerald-50 px-4 py-3 text-sm font-semibold text-night-900"><p>{busy ? `Traitement du livre ${active + 1} sur ${count}…` : "Envoi interrompu."} {completed.length} sur {count} enregistré{completed.length > 1 ? "s" : ""}.</p><progress aria-label="Livres enregistrés" value={completed.length} max={count} className="mt-3 h-2 w-full accent-night-900" /></div> : null}
+    {error ? <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p> : null}
 
     <fieldset disabled={busy} className="min-w-0">
       {Array.from({ length: count }, (_, index) => <div key={index} hidden={active !== index}>
@@ -69,7 +69,7 @@ export function AuthorBookImportForm(props: Pick<PublishLabFormProps, "subscript
       </div>)}
     </fieldset>
 
-    <div className="sticky bottom-3 flex flex-wrap justify-end gap-3 rounded-2xl border border-slate-300 bg-slate-50/95 p-3 shadow-lg">
+    <div className="sticky bottom-3 flex flex-wrap justify-end gap-3 rounded-md border border-rule-strong bg-paper/95 p-3 shadow-lg">
       <button type="button" disabled={busy || (completed.length > 0 && intent !== "draft")} onClick={() => void saveBooks("draft")} className="cta-secondary px-6 py-3 text-sm disabled:opacity-50">{busy && intent === "draft" ? "Enregistrement…" : "Enregistrer en brouillon"}</button>
       <button type="button" disabled={busy || (completed.length > 0 && intent !== "submit")} onClick={() => void saveBooks("submit")} className="cta-primary px-6 py-3 text-sm disabled:opacity-50">{busy && intent === "submit" ? "Envoi en cours…" : completed.length > 0 ? "Reprendre l’envoi" : `Envoyer ${count} livre${count > 1 ? "s" : ""} pour publication`}</button>
     </div>

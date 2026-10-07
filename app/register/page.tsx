@@ -37,8 +37,8 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
   return (
     <section className="mx-auto max-w-6xl px-0 py-3 sm:px-6 sm:py-8 lg:py-12">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:items-start lg:gap-10">
-        <aside className="order-last hidden overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-9 shadow-md lg:block">
-          <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-bold text-brand-600">
+        <aside className="order-last hidden overflow-hidden rounded-md border border-rule bg-paper p-9 lg:block">
+          <span className="inline-flex items-center gap-2 rounded-sm border border-rule bg-white/80 px-3 py-1.5 text-xs font-bold text-brand-600">
             <Sparkles aria-hidden="true" className="h-3.5 w-3.5" />
             Bienvenue
           </span>
@@ -50,11 +50,11 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
           </p>
 
           <div className="mt-7 grid gap-3">
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/75 p-4">
+            <div className="flex items-center gap-3 rounded-md border border-rule bg-white/75 p-4">
               <BookHeart aria-hidden="true" className="h-5 w-5 text-brand-600" />
               <p className="text-sm font-semibold text-slate-800">Une bibliothèque personnelle et synchronisée</p>
             </div>
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/75 p-4">
+            <div className="flex items-center gap-3 rounded-md border border-rule bg-white/75 p-4">
               <PenTool aria-hidden="true" className="h-5 w-5 text-slate-900" />
               <p className="text-sm font-semibold text-slate-800">Un parcours dédié pour publier comme auteur</p>
             </div>
@@ -71,7 +71,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
             nextPath={nextPath}
           />
 
-          <div className="rounded-xl border border-slate-200 bg-white/90 px-5 py-4 text-center text-sm text-slate-600 shadow-md">
+          <div className="rounded-md border border-rule bg-white/90 px-5 py-4 text-center text-sm text-slate-600 ">
             Vous avez déjà un compte ?{" "}
             <Link
               href={withNextPath("/login", nextPath)}

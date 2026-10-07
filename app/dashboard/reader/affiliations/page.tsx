@@ -24,14 +24,14 @@ export default async function ReaderAffiliationsPage() {
       <section className="surface-panel p-6">
         <p className="section-kicker">Votre lien</p>
         <h2 className="section-title mt-2 text-2xl">Code {wallet.affiliate_code}</h2>
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 text-sm break-all">{shareUrl}</div>
+        <div className="mt-4 rounded-md border border-rule bg-white p-4 text-sm break-all">{shareUrl}</div>
         <p className="mt-3 flex items-center gap-2 text-sm text-slate-600"><Copy className="h-4 w-4" /> Partagez ce lien pour attribuer les inscriptions et achats.</p>
       </section>
       <section className="surface-panel p-6">
         <p className="section-kicker">Activité</p>
         <h2 className="section-title mt-2 text-2xl">Commissions récentes</h2>
         <div className="mt-4 space-y-3">
-          {credits.slice(0, 12).map((item, index) => <pre key={String((item as { id?: unknown }).id ?? index)} className="overflow-x-auto rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs">{JSON.stringify(item, null, 2)}</pre>)}
+          {credits.slice(0, 12).map((item, index) => <pre key={String((item as { id?: unknown }).id ?? index)} className="overflow-x-auto rounded-md border border-rule bg-paper p-4 text-xs">{JSON.stringify(item, null, 2)}</pre>)}
           {!credits.length ? <p className="text-sm text-slate-600">Aucune commission enregistrée pour le moment.</p> : null}
         </div>
       </section>

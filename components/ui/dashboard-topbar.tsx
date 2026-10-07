@@ -9,11 +9,11 @@ type DashboardTopbarProps = {
 
 export function DashboardTopbar({ kicker, title, description, actions }: DashboardTopbarProps) {
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-300 bg-white p-4 shadow-md sm:rounded-xl sm:p-6">
+    <div className="overflow-hidden rounded-md border border-rule-strong bg-white p-4 sm:rounded-md sm:p-6">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-3">
           {kicker ? (
-            <p className="inline-flex w-fit items-center rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+            <p className="inline-flex w-fit items-center rounded-sm bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
               {kicker}
             </p>
           ) : null}

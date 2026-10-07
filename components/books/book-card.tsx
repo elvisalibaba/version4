@@ -34,38 +34,39 @@ export function BookCard({ book, priority = false }: { book: Book; priority?: bo
 
   return (
     <article className="group flex min-w-0 flex-col">
-      <div className="hb-card-cover relative rounded-md">
+      <div className="hb-card-cover relative">
         <Link
           href={href}
           onClick={trackClick}
           aria-label={`Découvrir ${book.title}`}
-          className="relative block aspect-2/3 overflow-hidden rounded-md border border-slate-200 bg-slate-100"
+          className="hb-book block aspect-2/3 bg-paper-deep"
         >
           {book.cover_signed_url ? (
             <Image src={book.cover_signed_url} alt={`Couverture de ${book.title}`} fill priority={priority} sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 200px" className="object-cover" />
           ) : (
-            <div className="flex h-full flex-col justify-end gap-2 bg-night-900 p-4 text-white">
-              <span className="h-0.5 w-8 bg-brand-600" aria-hidden="true" />
-              <strong className="line-clamp-4 text-lg font-bold leading-snug">{book.title}</strong>
-              <span className="line-clamp-1 text-xs text-night-200">{book.author_name ?? "Auteur Holistique"}</span>
+            <div className="flex h-full flex-col bg-night-900 px-4 pb-4 pt-0 text-white">
+              <span className="ml-auto h-7 w-3.5 bg-brand-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_78%,0_100%)]" aria-hidden="true" />
+              <strong className="mt-auto line-clamp-4 font-display text-lg font-semibold leading-snug">{book.title}</strong>
+              <span className="mt-2 h-px w-8 bg-night-400" aria-hidden="true" />
+              <span className="mt-2 line-clamp-1 font-display text-xs italic text-night-200">{book.author_name ?? "Auteur Holistique"}</span>
             </div>
           )}
         </Link>
         {book.is_free ? (
-          <span className="absolute left-2 top-2 rounded-sm bg-brand-600 px-2 py-0.5 text-[0.7rem] font-semibold text-white">Gratuit</span>
+          <span className="absolute left-0 top-3 z-10 bg-brand-600 py-0.5 pl-2.5 pr-2 text-[0.68rem] font-semibold uppercase tracking-wider text-white">Gratuit</span>
         ) : null}
-        <div className="absolute right-2 top-2">
+        <div className="absolute right-2 top-2 z-10">
           <FavoriteBookButton bookId={book.id} initialIsFavorite={book.is_favorite} compact />
         </div>
       </div>
 
       <div className="mt-3 flex flex-1 flex-col gap-1">
-        <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900">
-          <Link href={href} onClick={trackClick} className="hover:text-brand-700 hover:underline">{book.title}</Link>
+        <h3 className="line-clamp-2 font-display text-[1.02rem] font-semibold leading-snug text-night-900">
+          <Link href={href} onClick={trackClick} className="hb-link">{book.title}</Link>
         </h3>
-        <p className="line-clamp-1 text-xs text-slate-600">{book.author_name ?? "Auteur Holistique"}</p>
+        <p className="line-clamp-1 text-[0.8rem] italic text-slate-600">{book.author_name ?? "Auteur Holistique"}</p>
         <Rating value={book.rating_avg} count={book.ratings_count} />
-        <p className="mt-auto pt-1 text-base font-bold text-slate-900">
+        <p className="mt-auto pt-1 text-[0.95rem] font-semibold tabular-nums text-night-900">
           {book.is_free ? <span className="text-emerald-700">Gratuit</span> : price}
         </p>
         {book.offer_summary_label && !book.is_free ? (

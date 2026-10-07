@@ -28,8 +28,8 @@ export default async function ReaderMediaPage() {
         {media.length ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {media.map(({ entry, edition }) => (
-              <article key={edition.id} className="rounded-[24px] border border-slate-200 bg-white p-5">
-                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100 text-night-900">
+              <article key={edition.id} className="rounded-[24px] border border-rule bg-white p-5">
+                <span className="grid h-11 w-11 place-items-center rounded-md bg-paper-deep text-night-900">
                   {edition.media_type === "audiobook" ? <Headphones className="h-5 w-5" /> : <Clapperboard className="h-5 w-5" />}
                 </span>
                 <p className="mt-4 text-[0.66rem] font-bold text-brand-600">{edition.media_type === "audiobook" ? "Livre audio" : "Vidéo"}</p>

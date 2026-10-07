@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Newsreader } from "next/font/google";
 import Script from "next/script";
 import { ChromeFrame } from "@/components/layout/chrome-frame";
 import { CookieConsentBanner } from "@/components/layout/cookie-consent-banner";
@@ -12,9 +12,9 @@ import "./cinema-theme.css";
 import "./brand.css";
 import { getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
-// Une seule famille, sobre et très lisible (esprit KDP) pour le texte et les titres.
+// Identité « maison d'édition » : titres en Newsreader (serif conçue pour la lecture), interface en Inter.
 const inter = Inter({ subsets: ["latin"], variable: "--font-body", display: "swap" });
-const interDisplay = Inter({ subsets: ["latin"], variable: "--font-display", display: "swap" });
+const newsreader = Newsreader({ subsets: ["latin"], variable: "--font-display", display: "swap", style: ["normal", "italic"], weight: ["400", "500", "600", "700"] });
 const DEV_SERVICE_WORKER_RESET_SCRIPT = `
 (() => {
   if (!("serviceWorker" in navigator)) return;
@@ -85,7 +85,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" data-scroll-behavior="smooth">
-      <body className={`${inter.variable} ${interDisplay.variable} premium-body bg-white text-slate-900 antialiased`}>
+      <body className={`${inter.variable} ${newsreader.variable} premium-body bg-paper text-slate-900 antialiased`}>
         {process.env.NODE_ENV !== "production" ? (
           <Script id="dev-service-worker-reset" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: DEV_SERVICE_WORKER_RESET_SCRIPT }} />
         ) : null}

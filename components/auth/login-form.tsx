@@ -6,7 +6,7 @@ import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-
 import { getSafeNextPath, withNextPath } from "@/lib/safe-next-path";
 
 const inputClassName =
-  "h-13 w-full rounded-2xl border border-slate-300 bg-white px-4 pl-11 text-base text-night-900 outline-none transition placeholder:text-slate-500 focus:border-night-900 focus:ring-4 focus:ring-night-900/10 sm:text-sm";
+  "h-13 w-full rounded-md border border-rule-strong bg-white px-4 pl-11 text-base text-night-900 outline-none transition placeholder:text-slate-500 focus:border-night-900 focus:ring-4 focus:ring-night-900/10 sm:text-sm";
 
 type LoginFormProps = {
   nextPath: string;
@@ -65,12 +65,12 @@ export function LoginForm({ nextPath, notice = null }: LoginFormProps) {
     <form
       onSubmit={onSubmit}
       aria-busy={loading}
-      className="relative mx-auto w-full max-w-lg overflow-hidden rounded-xl bg-slate-50 p-3 sm:p-6 lg:p-0"
+      className="relative mx-auto w-full max-w-lg overflow-hidden rounded-md bg-paper p-3 sm:p-6 lg:p-0"
     >
 
       <div className="relative grid gap-5 sm:gap-7">
         <header className="space-y-3">
-          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-brand-600">
+          <span className="inline-flex w-fit items-center gap-2 rounded-sm border border-rule-strong bg-white px-3 py-1.5 text-xs font-bold text-brand-600">
             <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />
             Connexion sécurisée
           </span>
@@ -89,8 +89,8 @@ export function LoginForm({ nextPath, notice = null }: LoginFormProps) {
             role={notice.tone === "error" ? "alert" : "status"}
             className={
               notice.tone === "error"
-                ? "rounded-2xl border border-brand-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-brand-700"
-                : "rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-night-900"
+                ? "rounded-md border border-brand-200 bg-paper px-4 py-3 text-sm leading-6 text-brand-700"
+                : "rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-night-900"
             }
           >
             {notice.text}
@@ -139,7 +139,7 @@ export function LoginForm({ nextPath, notice = null }: LoginFormProps) {
               <button
                 type="button"
                 onClick={() => setPasswordVisible((visible) => !visible)}
-                className="absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl text-slate-600 transition hover:bg-slate-200 hover:text-night-900"
+                className="absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-slate-600 transition hover:bg-paper-deep hover:text-night-900"
                 aria-label={passwordVisible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                 aria-pressed={passwordVisible}
               >
@@ -150,7 +150,7 @@ export function LoginForm({ nextPath, notice = null }: LoginFormProps) {
         </div>
 
         {error ? (
-          <p role="alert" className="rounded-2xl border border-brand-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-brand-700">
+          <p role="alert" className="rounded-md border border-brand-200 bg-paper px-4 py-3 text-sm leading-6 text-brand-700">
             {error}
           </p>
         ) : null}
@@ -158,7 +158,7 @@ export function LoginForm({ nextPath, notice = null }: LoginFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="group inline-flex h-13 w-full items-center justify-center gap-2 rounded-full bg-night-900 px-6 text-sm font-bold text-white shadow-md transition hover:bg-night-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="group inline-flex h-13 w-full items-center justify-center gap-2 rounded-sm bg-night-900 px-6 text-sm font-bold text-white transition hover:bg-night-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Connexion en cours…" : "Accéder à mon espace"}
           {!loading ? <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-1" /> : null}

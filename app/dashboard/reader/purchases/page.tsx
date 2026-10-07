@@ -26,7 +26,7 @@ export default async function ReaderPurchasesPage() {
       </div>
       <section className="surface-panel p-6">
         {orders.length ? <div className="space-y-3">{orders.map((order) => (
-          <article key={order.id} className="rounded-2xl border border-slate-200 bg-white p-4">
+          <article key={order.id} className="rounded-md border border-rule bg-white p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div><p className="text-xs font-semibold text-slate-600">#{order.id.slice(0, 8).toUpperCase()}</p><p className="mt-1 font-semibold">{new Date(order.created_at).toLocaleDateString("fr-FR")}</p></div>
               <div className="text-right"><p className="font-bold">{money(order.total_price, order.currency_code)}</p><span className="catalog-badge">{order.payment_status}</span></div>

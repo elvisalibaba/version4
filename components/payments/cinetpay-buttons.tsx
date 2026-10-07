@@ -124,7 +124,7 @@ export function CinetPayButtons({
       const data = (await response.json()) as { error?: string; paymentUrl?: string };
 
       if (!response.ok || !data.paymentUrl) {
-        throw new Error(data.error ?? "Impossible de lancer le paiement EasyPay.");
+        throw new Error(data.error ?? "Impossible de lancer le paiement. Réessayez dans un instant.");
       }
 
       window.location.assign(data.paymentUrl);
@@ -137,7 +137,7 @@ export function CinetPayButtons({
   const currencyMismatch = !["USD", "CDF"].includes(effectiveCurrencyCode);
 
   return (
-    <div className="space-y-6 rounded-xl bg-slate-100 p-4 sm:p-6">
+    <div className="space-y-6 rounded-md bg-paper-deep p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-extrabold text-brand-600">Commande sécurisée</p>
@@ -163,8 +163,8 @@ export function CinetPayButtons({
                   key={option.format}
                   type="button"
                   onClick={() => setSelectedFormat(option.format)}
-                  className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
-                    isActive ? "border-night-900 bg-night-900 text-white" : "border-slate-300 bg-white text-slate-600 hover:border-brand-600"
+                  className={`rounded-md border px-3 py-2 text-xs font-semibold transition ${
+                    isActive ? "border-night-900 bg-night-900 text-white" : "border-rule-strong bg-white text-slate-600 hover:border-brand-600"
                   }`}
                 >
                   {option.label || getBookFormatLabel(option.format)} -{" "}
@@ -180,8 +180,8 @@ export function CinetPayButtons({
       ) : null}
 
       {currencyMismatch ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          EasyPay accepte les paiements en USD ou CDF. La devise de ce livre n’est pas compatible.
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          Le paiement en ligne accepte les dollars (USD) et les francs congolais (CDF). Contactez-nous pour ce titre.
         </div>
       ) : null}
 
@@ -220,7 +220,7 @@ export function CinetPayButtons({
           type="button"
           onClick={() => launchCheckout("CREDIT_CARD")}
           disabled={Boolean(busyChannel) || currencyMismatch}
-          className="rounded-full bg-brand-600 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-sm bg-brand-600 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busyChannel === "CREDIT_CARD" ? "Redirection..." : "Payer par carte"}
         </button>
@@ -228,7 +228,7 @@ export function CinetPayButtons({
           type="button"
           onClick={() => launchCheckout("MOBILE_MONEY")}
           disabled={Boolean(busyChannel) || currencyMismatch}
-          className="rounded-full bg-night-900 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-night-800 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-sm bg-night-900 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-night-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busyChannel === "MOBILE_MONEY" ? "Redirection..." : "Payer par mobile money"}
         </button>
@@ -236,14 +236,14 @@ export function CinetPayButtons({
           type="button"
           onClick={() => launchCheckout("ALL")}
           disabled={Boolean(busyChannel) || currencyMismatch}
-          className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-extrabold text-slate-800 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-sm border border-rule-strong bg-white px-5 py-3 text-sm font-extrabold text-slate-800 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {busyChannel === "ALL" ? "Redirection..." : "Choisir sur le guichet"}
+          {busyChannel === "ALL" ? "Redirection..." : "Autre moyen de paiement"}
         </button>
       </div>
 
       {!isAuthenticated ? (
-        <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+        <div className="rounded-md border border-rule bg-white px-4 py-3 text-sm text-slate-600">
           Connectez-vous pour effectuer l’achat.
           {" "}
           <Link href={loginHref} className="font-semibold text-brand-700 hover:text-brand-800">
@@ -252,9 +252,9 @@ export function CinetPayButtons({
         </div>
       ) : null}
 
-      <div className="rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-600">Carte bancaire et mobile money sont proposés selon votre pays et votre opérateur.</div>
+      <div className="rounded-md border border-rule-strong bg-white px-4 py-3 text-sm leading-6 text-slate-600">Carte bancaire et mobile money sont proposés selon votre pays et votre opérateur.</div>
 
-      {error ? <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
+      {error ? <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
     </div>
   );
 }

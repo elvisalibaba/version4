@@ -91,7 +91,7 @@ export function ProtectedMediaPlayer({
   }
 
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-white p-4">
+    <div className="rounded-[24px] border border-rule bg-white p-4">
       {!started ? (
         <button
           type="button"
@@ -100,7 +100,7 @@ export function ProtectedMediaPlayer({
           className="flex w-full items-center justify-between gap-4 rounded-[20px] bg-night-900 p-4 text-left text-white transition hover:bg-night-800 disabled:opacity-60"
         >
           <span className="flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/10">
+            <span className="grid h-11 w-11 place-items-center rounded-md bg-white/10">
               {loading ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <Icon className="h-5 w-5" />}
             </span>
             <span>
@@ -113,7 +113,7 @@ export function ProtectedMediaPlayer({
       ) : null}
 
       {error ? (
-        <div className="rounded-[20px] border border-brand-200 bg-slate-50 p-4 text-sm text-brand-700">
+        <div className="rounded-[20px] border border-brand-200 bg-paper p-4 text-sm text-brand-700">
           <div className="flex items-center gap-2 font-bold"><LockKeyhole className="h-4 w-4" /> Lecture indisponible</div>
           <p className="mt-2">{error}</p>
           <button type="button" onClick={() => void loadAccess()} className="mt-3 inline-flex items-center gap-2 font-bold text-night-900">
@@ -147,13 +147,13 @@ export function ProtectedMediaPlayer({
           )}
 
           <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-            <span className="rounded-full bg-slate-100 px-2.5 py-1">{access.language?.toUpperCase() || "FR"}</span>
+            <span className="rounded-sm bg-paper-deep px-2.5 py-1">{access.language?.toUpperCase() || "FR"}</span>
             {access.narrator ? <span>Narration : {access.narrator}</span> : null}
             {access.presenter ? <span>Présentation : {access.presenter}</span> : null}
           </div>
 
           {chapterSummary.length ? (
-            <div className="border-t border-slate-200 pt-4">
+            <div className="border-t border-rule pt-4">
               <p className="text-[0.68rem] font-extrabold uppercase tracking-[.16em] text-brand-600">Chapitres</p>
               <div className="mt-3 grid gap-2">
                 {chapterSummary.map((chapter) => (
@@ -161,7 +161,7 @@ export function ProtectedMediaPlayer({
                     key={chapter.id}
                     type="button"
                     onClick={() => seekTo(chapter.starts_at_second)}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm transition hover:border-slate-400"
+                    className="flex items-center justify-between gap-3 rounded-md border border-rule bg-white px-3 py-2 text-left text-sm transition hover:border-slate-400"
                   >
                     <span><strong className="mr-2 text-night-900">{chapter.position}.</strong>{chapter.title}</span>
                     {chapter.starts_at_second !== null ? (

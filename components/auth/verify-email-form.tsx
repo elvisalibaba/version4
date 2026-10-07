@@ -78,12 +78,12 @@ export function VerifyEmailForm({ email, nextPath }: VerifyEmailFormProps) {
   }
 
   return (
-    <form onSubmit={verify} className="mx-auto w-full max-w-lg rounded-xl border border-slate-200 bg-slate-50 p-5 shadow-md sm:p-9">
-      <span className="grid h-14 w-14 place-items-center rounded-2xl bg-night-900 text-white">
+    <form onSubmit={verify} className="mx-auto w-full max-w-lg rounded-md border border-rule bg-paper p-5 sm:p-9">
+      <span className="grid h-14 w-14 place-items-center rounded-md bg-night-900 text-white">
         <MailCheck className="h-6 w-6" />
       </span>
       <div className="mt-5">
-        <div className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-brand-600">
+        <div className="inline-flex items-center gap-2 rounded-sm border border-rule-strong bg-white px-3 py-1.5 text-xs font-bold text-brand-600">
           <ShieldCheck className="h-3.5 w-3.5" />
           Vérification email
         </div>
@@ -105,20 +105,20 @@ export function VerifyEmailForm({ email, nextPath }: VerifyEmailFormProps) {
           autoComplete="one-time-code"
           pattern="[0-9]{6}"
           maxLength={6}
-          className="h-16 rounded-2xl border border-slate-300 bg-white px-4 text-center text-2xl font-bold tracking-[0.5em] text-night-900 outline-none focus:border-night-900 focus:ring-4 focus:ring-night-900/10"
+          className="h-16 rounded-md border border-rule-strong bg-white px-4 text-center text-2xl font-bold tracking-[0.5em] text-night-900 outline-none focus:border-night-900 focus:ring-4 focus:ring-night-900/10"
           placeholder="000000"
           required
         />
       </label>
 
-      {error ? <p role="alert" className="mt-4 rounded-2xl border border-brand-200 bg-slate-50 px-4 py-3 text-sm text-brand-700">{error}</p> : null}
-      {message ? <p role="status" className="mt-4 flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-night-900"><CheckCircle2 className="h-4 w-4" />{message}</p> : null}
+      {error ? <p role="alert" className="mt-4 rounded-md border border-brand-200 bg-paper px-4 py-3 text-sm text-brand-700">{error}</p> : null}
+      {message ? <p role="status" className="mt-4 flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-night-900"><CheckCircle2 className="h-4 w-4" />{message}</p> : null}
 
-      <button type="submit" disabled={loading || code.length !== 6} className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-full bg-night-900 px-6 text-sm font-bold text-white disabled:opacity-50">
+      <button type="submit" disabled={loading || code.length !== 6} className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-sm bg-night-900 px-6 text-sm font-bold text-white disabled:opacity-50">
         {loading ? "Vérification…" : "Valider mon compte"}
       </button>
 
-      <button type="button" onClick={resend} disabled={resending} className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-4 text-sm font-semibold text-night-900 disabled:opacity-50">
+      <button type="button" onClick={resend} disabled={resending} className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-sm border border-rule-strong bg-white px-4 text-sm font-semibold text-night-900 disabled:opacity-50">
         <RefreshCw className={`h-4 w-4 ${resending ? "animate-spin" : ""}`} />
         {resending ? "Renvoi…" : "Renvoyer le code"}
       </button>

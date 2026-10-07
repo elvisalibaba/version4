@@ -174,7 +174,7 @@ export function PwaInstallPrompt() {
       </div>
       <div className="hb-install-copy">
         <p className="hb-install-kicker">{isAndroid ? "Android" : isIos ? "iPhone / iPad" : "Application"}</p>
-        <p className="hb-install-title">Holistique sur votre telephone</p>
+        <p className="hb-install-title">Holistique sur votre téléphone</p>
         <p className="hb-install-text">
           {isIos
             ? "Dans Safari, touchez Partager puis Sur l’écran d’accueil."

@@ -67,9 +67,9 @@ export function FavoriteBookButton({
       aria-label={compact ? accessibleLabel : undefined}
       className={joinClassNames(
         compact
-          ? "inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
-          : "inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-60",
-        isFavorite ? "border-brand-600 bg-slate-50 text-brand-600" : undefined,
+          ? "inline-flex h-10 w-10 items-center justify-center rounded-full border border-rule bg-white text-slate-700 transition hover:border-rule-strong hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
+          : "inline-flex h-10 items-center gap-2 rounded-sm border border-rule-strong bg-white px-3.5 text-sm font-semibold text-slate-700 transition hover:border-night-900 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-60",
+        isFavorite ? "border-brand-600 bg-paper text-brand-600" : undefined,
         className,
       )}
     >

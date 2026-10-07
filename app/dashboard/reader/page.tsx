@@ -47,7 +47,7 @@ export default async function ReaderDashboardPage() {
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {data.library.slice(0, 6).map((entry) => (
-              <Link key={entry.id} href={`/book/${entry.book.id}?read=1`} className="rounded-2xl border border-slate-200 bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-md">
+              <Link key={entry.id} href={`/book/${entry.book.id}?read=1`} className="rounded-md border border-rule bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-md">
                 <p className="text-xs font-semibold text-brand-600">{entry.access_type}</p>
                 <h3 className="mt-2 font-semibold text-slate-900">{entry.book.title}</h3>
                 <p className="mt-2 line-clamp-2 text-sm text-slate-600">{entry.book.description ?? "Prêt à reprendre."}</p>
@@ -57,7 +57,7 @@ export default async function ReaderDashboardPage() {
                       <span>Progression</span>
                       <span>{Math.round(Number(entry.reading_progress.progress_percent ?? 0))}%</span>
                     </div>
-                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-200">
+                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-paper-deep">
                       <div className="h-full rounded-full bg-night-900" style={{ width: `${Math.max(0, Math.min(100, Number(entry.reading_progress.progress_percent ?? 0)))}%` }} />
                     </div>
                   </div>
@@ -71,7 +71,7 @@ export default async function ReaderDashboardPage() {
           <p className="section-kicker">Transactions récentes</p>
           <div className="mt-4 space-y-3">
             {data.orders.slice(0, 5).map((order) => (
-              <div key={order.id} className="rounded-2xl border border-slate-200 p-4">
+              <div key={order.id} className="rounded-md border border-rule p-4">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm font-semibold">#{order.id.slice(0, 8).toUpperCase()}</span>
                   <span className="catalog-badge">{order.payment_status}</span>

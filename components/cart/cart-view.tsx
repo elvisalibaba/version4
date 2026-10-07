@@ -93,8 +93,8 @@ export function CartView({ isAuthenticated, customer }: { isAuthenticated: boole
 
   if (items.length === 0) {
     return (
-      <div className="hb-fade-up mx-auto max-w-xl rounded-lg border border-slate-200 bg-white px-6 py-14 text-center">
-        <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-slate-100 text-slate-500">
+      <div className="hb-fade-up mx-auto max-w-xl rounded-md border border-rule bg-white px-6 py-14 text-center">
+        <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-paper-deep text-slate-500">
           <ShoppingCart className="h-7 w-7" />
         </span>
         <h1 className="mt-5 text-2xl font-bold text-slate-900">Votre panier est vide</h1>
@@ -116,8 +116,8 @@ export function CartView({ isAuthenticated, customer }: { isAuthenticated: boole
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
-      <section className="rounded-lg border border-slate-200 bg-white" aria-labelledby="cart-title">
-        <div className="flex items-end justify-between gap-4 border-b border-slate-200 px-5 py-5 sm:px-6">
+      <section className="rounded-md border border-rule bg-white" aria-labelledby="cart-title">
+        <div className="flex items-end justify-between gap-4 border-b border-rule px-5 py-5 sm:px-6">
           <div>
             <h1 id="cart-title" className="text-2xl font-bold text-slate-900">Panier</h1>
             <p className="mt-1 text-sm text-slate-600">{count} article{count > 1 ? "s" : ""}</p>
@@ -125,14 +125,14 @@ export function CartView({ isAuthenticated, customer }: { isAuthenticated: boole
           <span className="hidden text-sm text-slate-500 sm:block">Prix</span>
         </div>
 
-        <ul className="divide-y divide-slate-200">
+        <ul className="divide-y divide-rule">
           {items.map((item) => {
             const key = lineKey(item);
             const physical = isPhysicalBookFormat(item.format);
             return (
               <li key={key} className={`hb-cart-line px-5 py-5 sm:px-6 ${removing === key ? "is-removing" : ""}`}>
                 <div className="flex gap-4">
-                  <Link href={`/book/${item.bookId}`} className="relative h-32 w-[5.3rem] shrink-0 overflow-hidden rounded border border-slate-200 bg-night-900 sm:h-36 sm:w-24">
+                  <Link href={`/book/${item.bookId}`} className="relative h-32 w-[5.3rem] shrink-0 overflow-hidden rounded border border-rule bg-night-900 sm:h-36 sm:w-24">
                     {item.coverUrl ? (
                       <Image src={item.coverUrl} alt={`Couverture de ${item.title}`} fill sizes="96px" className="object-cover" />
                     ) : (
@@ -148,12 +148,12 @@ export function CartView({ isAuthenticated, customer }: { isAuthenticated: boole
 
                       <div className="mt-3 flex flex-wrap items-center gap-3">
                         {physical ? (
-                          <div className="inline-flex h-9 items-center overflow-hidden rounded-md border border-slate-300" role="group" aria-label={`Quantité pour ${item.title}`}>
-                            <button type="button" onClick={() => (item.quantity <= 1 ? remove(key) : setCartQuantity(key, item.quantity - 1))} className="grid h-full w-9 place-items-center text-slate-700 transition hover:bg-slate-100" aria-label="Diminuer la quantité">
+                          <div className="inline-flex h-9 items-center overflow-hidden rounded-md border border-rule-strong" role="group" aria-label={`Quantité pour ${item.title}`}>
+                            <button type="button" onClick={() => (item.quantity <= 1 ? remove(key) : setCartQuantity(key, item.quantity - 1))} className="grid h-full w-9 place-items-center text-slate-700 transition hover:bg-paper-deep" aria-label="Diminuer la quantité">
                               {item.quantity <= 1 ? <Trash2 className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
                             </button>
-                            <span key={item.quantity} className="hb-qty-tick grid h-full min-w-9 place-items-center border-x border-slate-300 px-2 text-sm font-semibold tabular-nums" aria-live="polite">{item.quantity}</span>
-                            <button type="button" onClick={() => setCartQuantity(key, item.quantity + 1)} className="grid h-full w-9 place-items-center text-slate-700 transition hover:bg-slate-100" aria-label="Augmenter la quantité">
+                            <span key={item.quantity} className="hb-qty-tick grid h-full min-w-9 place-items-center border-x border-rule-strong px-2 text-sm font-semibold tabular-nums" aria-live="polite">{item.quantity}</span>
+                            <button type="button" onClick={() => setCartQuantity(key, item.quantity + 1)} className="grid h-full w-9 place-items-center text-slate-700 transition hover:bg-paper-deep" aria-label="Augmenter la quantité">
                               <Plus className="h-4 w-4" />
                             </button>
                           </div>
@@ -174,7 +174,7 @@ export function CartView({ isAuthenticated, customer }: { isAuthenticated: boole
           })}
         </ul>
 
-        <div className="flex items-center justify-between gap-4 border-t border-slate-200 px-5 py-4 sm:px-6">
+        <div className="flex items-center justify-between gap-4 border-t border-rule px-5 py-4 sm:px-6">
           <Link href="/books" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700 hover:text-brand-700">
             <ArrowLeft className="h-4 w-4" /> Continuer mes achats
           </Link>
@@ -185,14 +185,14 @@ export function CartView({ isAuthenticated, customer }: { isAuthenticated: boole
       </section>
 
       <aside className="space-y-4 lg:sticky lg:top-32">
-        <div className="rounded-lg border border-slate-200 bg-white p-5">
+        <div className="rounded-md border border-rule bg-white p-5">
           {subtotals.length > 1 ? (
             <fieldset className="mb-4">
               <legend className="text-sm font-semibold text-slate-900">Payer en</legend>
               <p className="mt-1 text-xs leading-5 text-slate-600">Une commande se règle dans une seule devise. Les autres articles restent dans votre panier.</p>
               <div className="mt-3 grid gap-2">
                 {subtotals.map((entry) => (
-                  <label key={entry.currencyCode} className={`flex cursor-pointer items-center justify-between rounded-md border px-3 py-2 text-sm transition ${entry.currencyCode === activeCurrency ? "border-night-900 bg-night-50" : "border-slate-300 hover:border-slate-400"}`}>
+                  <label key={entry.currencyCode} className={`flex cursor-pointer items-center justify-between rounded-md border px-3 py-2 text-sm transition ${entry.currencyCode === activeCurrency ? "border-night-900 bg-night-50" : "border-rule-strong hover:border-slate-400"}`}>
                     <span className="flex items-center gap-2">
                       <input type="radio" name="cart-currency" checked={entry.currencyCode === activeCurrency} onChange={() => setCurrency(entry.currencyCode)} className="accent-night-900" />
                       {entry.currencyCode}
@@ -227,7 +227,7 @@ export function CartView({ isAuthenticated, customer }: { isAuthenticated: boole
 
           {error ? <p className="hb-shake mt-3 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">{error}</p> : null}
 
-          <ul className="mt-5 space-y-2 border-t border-slate-200 pt-4 text-xs text-slate-600">
+          <ul className="mt-5 space-y-2 border-t border-rule pt-4 text-xs text-slate-600">
             <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 shrink-0 text-night-700" /> Paiement sécurisé par carte ou mobile money</li>
             <li className="flex items-center gap-2"><LockKeyhole className="h-4 w-4 shrink-0 text-night-700" /> Livres numériques ajoutés à votre bibliothèque</li>
             {hasPhysical ? <li className="flex items-center gap-2"><Truck className="h-4 w-4 shrink-0 text-night-700" /> Livraison des éditions imprimées organisée après confirmation</li> : null}
@@ -236,7 +236,7 @@ export function CartView({ isAuthenticated, customer }: { isAuthenticated: boole
       </aside>
 
       {activeOrder ? (
-        <section className="hb-fade-up rounded-lg border border-slate-200 bg-white p-5 sm:p-6 lg:col-span-2" aria-label="Paiement">
+        <section className="hb-fade-up rounded-md border border-rule bg-white p-5 sm:p-6 lg:col-span-2" aria-label="Paiement">
           <CinetPayButtons
             orderId={activeOrder.id}
             bookTitle={`Commande de ${payableItems.length} livre${payableItems.length > 1 ? "s" : ""}`}

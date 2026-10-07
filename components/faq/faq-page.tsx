@@ -122,7 +122,7 @@ const faqCategories: FaqCategory[] = [
       {
         question: "Comment acheter un livre ?",
         answer:
-          "Ajoutez le livre au panier, confirmez vos informations de paiement et terminez le checkout. Après validation du paiement, l'accès est rattaché à votre compte et le livre apparaît dans votre espace lecteur.",
+          "Ajoutez le livre au panier, confirmez vos informations de paiement et validez votre commande. Après validation du paiement, l'accès est rattaché à votre compte et le livre apparaît dans votre espace lecteur.",
       },
       {
         question: "Où retrouver mes achats et mes lectures ?",
@@ -160,7 +160,7 @@ const faqCategories: FaqCategory[] = [
       {
         question: "Comment fonctionne la mise en ligne d'un livre ?",
         answer:
-          "Le livre est créé dans votre dashboard, puis il suit son cycle de travail selon le statut défini dans la plateforme. Une fois prêt et validé selon le workflow en place, il peut être rendu visible dans la librairie.",
+          "Le livre est créé dans votre espace auteur, puis il suit son cycle de travail selon le statut défini dans la plateforme. Une fois prêt et validé selon le workflow en place, il peut être rendu visible dans la librairie.",
       },
       {
         question: "Puis-je proposer un livre gratuit ?",
@@ -226,7 +226,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-gray-200 bg-white shadow-sm">
+    <section className="rounded-md border border-gray-200 bg-white ">
       <div className="border-b border-gray-200 px-5 py-4 sm:px-6">
         <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
         {description ? (
@@ -247,11 +247,11 @@ function JourneyList({
 }) {
   return (
     <div className="space-y-4">
-      <div className="inline-flex rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+      <div className="inline-flex rounded-sm bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
         {badge}
       </div>
 
-      <div className="divide-y divide-gray-200 rounded-lg border border-gray-200">
+      <div className="divide-y divide-gray-200 rounded-md border border-gray-200">
         {steps.map((step, index) => {
           const Icon = step.icon;
 
@@ -296,7 +296,7 @@ function JourneyList({
 
 export function FaqPage() {
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-paper-deep">
       <div className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="grid gap-6 lg:grid-cols-[1.4fr_0.8fr] lg:items-start">
@@ -329,7 +329,7 @@ export function FaqPage() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-gray-200 bg-slate-50 p-4 sm:p-5">
+            <div className="rounded-md border border-gray-200 bg-paper p-4 sm:p-5">
               <p className="text-sm font-semibold text-gray-900">
                 Accès rapides
               </p>
@@ -368,7 +368,7 @@ export function FaqPage() {
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Link
               href="/register"
-              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-brand-600"
+              className="rounded-md border border-gray-200 bg-white p-4 transition hover:border-brand-600"
             >
               <UserRoundPlus className="h-5 w-5 text-brand-600" />
               <p className="mt-3 text-sm font-semibold text-gray-900">
@@ -381,7 +381,7 @@ export function FaqPage() {
 
             <Link
               href="/books"
-              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-brand-600"
+              className="rounded-md border border-gray-200 bg-white p-4 transition hover:border-brand-600"
             >
               <BookOpenText className="h-5 w-5 text-brand-600" />
               <p className="mt-3 text-sm font-semibold text-gray-900">
@@ -394,7 +394,7 @@ export function FaqPage() {
 
             <Link
               href="/dashboard/reader"
-              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-brand-600"
+              className="rounded-md border border-gray-200 bg-white p-4 transition hover:border-brand-600"
             >
               <LibraryBig className="h-5 w-5 text-brand-600" />
               <p className="mt-3 text-sm font-semibold text-gray-900">
@@ -407,7 +407,7 @@ export function FaqPage() {
 
             <Link
               href="/dashboard/author"
-              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-brand-600"
+              className="rounded-md border border-gray-200 bg-white p-4 transition hover:border-brand-600"
             >
               <Sparkles className="h-5 w-5 text-brand-600" />
               <p className="mt-3 text-sm font-semibold text-gray-900">
@@ -449,7 +449,7 @@ export function FaqPage() {
               <div
                 key={category.id}
                 id={category.id}
-                className="rounded-lg border border-gray-200 bg-white"
+                className="rounded-md border border-gray-200 bg-white"
               >
                 <div className="border-b border-gray-200 px-4 py-4">
                   <div className="flex items-center gap-2">
@@ -484,7 +484,7 @@ export function FaqPage() {
           </div>
         </SectionCard>
 
-        <section className="rounded-xl border border-gray-200 bg-white shadow-sm">
+        <section className="rounded-md border border-gray-200 bg-white ">
           <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div>
               <p className="text-sm font-semibold text-gray-900">

@@ -64,10 +64,10 @@ export default function QuiSommesNousPage() {
         </div>
       </section>
 
-      <section aria-label="Holistique Books en chiffres" className="border-b border-slate-200 bg-slate-50">
-        <dl className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-slate-200 lg:grid-cols-4">
+      <section aria-label="Holistique Books en chiffres" className="border-b border-rule bg-paper">
+        <dl className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-paper-deep lg:grid-cols-4">
           {figures.map((figure) => (
-            <div key={figure.label} className="bg-slate-50 px-4 py-6 sm:px-8">
+            <div key={figure.label} className="bg-paper px-4 py-6 sm:px-8">
               <dt className="order-2 mt-1 text-xs leading-5 text-slate-600 sm:text-sm">{figure.label}</dt>
               <dd className="text-2xl font-bold text-night-900 sm:text-3xl">{figure.value}</dd>
             </div>
@@ -96,17 +96,17 @@ export default function QuiSommesNousPage() {
         </div>
       </section>
 
-      <section id="poles" aria-labelledby="poles-title" className="hb-reveal scroll-mt-28 border-y border-slate-200 bg-slate-50">
+      <section id="poles" aria-labelledby="poles-title" className="hb-reveal scroll-mt-28 border-y border-rule bg-paper">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
           <p className="text-sm font-semibold text-brand-700">Nos pôles d’intervention</p>
           <h2 id="poles-title" className="mt-2 max-w-2xl text-3xl font-bold tracking-tight">
-            Une Église a un message à transmettre, une institution un savoir à préserver, une entreprise une expertise à valoriser.
+            Une Église à un message à transmettre, une institution un savoir à préserver, une entreprise une expertise à valoriser.
           </h2>
           <div className="mt-10 grid gap-5 lg:grid-cols-3">
             {INTERVENTION_POLES.map((pole) => {
               const Icon = POLE_ICONS[pole.slug];
               return (
-                <article key={pole.slug} id={pole.slug} className="scroll-mt-32 flex flex-col rounded-lg border border-slate-200 bg-white p-6 target:ring-2 target:ring-brand-600">
+                <article key={pole.slug} id={pole.slug} className="scroll-mt-32 flex flex-col rounded-md border border-rule bg-white p-6 target:ring-2 target:ring-brand-600">
                   <span className="grid h-12 w-12 place-items-center rounded-md bg-night-900 text-white">
                     <Icon aria-hidden="true" className="h-6 w-6" />
                   </span>
@@ -114,7 +114,7 @@ export default function QuiSommesNousPage() {
                   <p className="mt-1 font-semibold text-brand-700">{pole.tagline}</p>
                   <p className="mt-3 flex-1 text-sm leading-6 text-slate-600">{pole.description}</p>
                   <p className="mt-4 text-xs font-medium text-slate-500">Pour : {pole.audience}</p>
-                  <div className="mt-5 rounded-md bg-slate-50 px-4 py-3 text-sm">
+                  <div className="mt-5 rounded-md bg-paper px-4 py-3 text-sm">
                     <p className="font-semibold text-night-900">{pole.magazine.name}</p>
                     <p className="text-xs text-slate-600">{pole.magazine.focus}</p>
                   </div>
@@ -133,7 +133,7 @@ export default function QuiSommesNousPage() {
           </div>
           <p className="max-w-md text-sm leading-6 text-slate-600">Bien concevoir. Bien produire. Bien présenter. Bien livrer.</p>
         </div>
-        <ul className="mt-8 grid gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-8 grid gap-px overflow-hidden rounded-md border border-rule bg-paper-deep sm:grid-cols-2 lg:grid-cols-3">
           {COMPANY_VALUES.map((value) => (
             <li key={value.name} className="bg-white p-6">
               <p className="font-bold text-night-900">{value.name}</p>
@@ -143,12 +143,12 @@ export default function QuiSommesNousPage() {
         </ul>
       </section>
 
-      <section aria-labelledby="team-title" className="hb-reveal border-t border-slate-200 bg-slate-50">
+      <section aria-labelledby="team-title" className="hb-reveal border-t border-rule bg-paper">
         <div className="mx-auto grid max-w-7xl gap-12 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:px-8">
           <div>
             <p className="text-sm font-semibold text-brand-700">L’équipe du siège</p>
             <h2 id="team-title" className="mt-2 text-2xl font-bold tracking-tight">Une direction centrale forte</h2>
-            <ul className="mt-6 divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white">
+            <ul className="mt-6 divide-y divide-rule rounded-md border border-rule bg-white">
               {COMPANY_TEAM.map((member) => (
                 <li key={member.name} className="flex items-center gap-4 px-5 py-4">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-night-900 text-sm font-bold text-white">{initials(member.name)}</span>
@@ -168,14 +168,14 @@ export default function QuiSommesNousPage() {
             <h2 className="mt-2 text-2xl font-bold tracking-tight">Des représentations proches du terrain</h2>
             <ul className="mt-6 grid gap-3 sm:grid-cols-2">
               {NATIONAL_EDITORS.map((editor) => (
-                <li key={editor.country} className="rounded-lg border border-slate-200 bg-white p-5">
+                <li key={editor.country} className="rounded-md border border-rule bg-white p-5">
                   <p className="flex items-center gap-2 text-sm font-bold text-night-900"><Globe2 aria-hidden="true" className="h-4 w-4 text-brand-600" />{editor.country}</p>
                   <p className="mt-2 font-semibold">{editor.name}</p>
                   <p className="text-sm text-slate-600">{editor.role}</p>
                 </li>
               ))}
             </ul>
-            <div className="mt-5 rounded-lg bg-night-900 p-5 text-white">
+            <div className="mt-5 rounded-md bg-night-900 p-5 text-white">
               <p className="flex items-start gap-2 text-sm"><MapPin aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-brand-300" /><span><strong>Siège central</strong><br />{COMPANY.address.join(", ")}</span></p>
               <a href={COMPANY.phoneHref} className="mt-3 flex items-center gap-2 text-sm font-semibold hover:underline"><Phone aria-hidden="true" className="h-4 w-4 text-brand-300" />{COMPANY.phone}</a>
             </div>
@@ -190,7 +190,7 @@ export default function QuiSommesNousPage() {
             <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Une idée à transformer ? Parlons-en.</h2>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Link href="/services#packs" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-white px-6 text-sm font-bold text-brand-700 transition hover:bg-slate-100">
+            <Link href="/services#packs" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-white px-6 text-sm font-bold text-brand-700 transition hover:bg-paper-deep">
               Voir nos packs <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
             <Link href="/formation-editoriale" className="inline-flex min-h-12 items-center justify-center rounded-md border border-white/40 px-6 text-sm font-bold text-white transition hover:bg-white/10">

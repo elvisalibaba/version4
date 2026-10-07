@@ -109,8 +109,8 @@ export function AdSlot({
   }
 
   const content = (
-    <article className={`group relative overflow-hidden rounded-xl border border-slate-300 bg-white shadow-md ${className}`}>
-      <span className="absolute right-3 top-3 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs font-bold text-white">
+    <article className={`group relative overflow-hidden rounded-md border border-rule-strong bg-white ${className}`}>
+      <span className="absolute right-3 top-3 z-10 rounded-sm bg-black/60 px-2.5 py-1 text-xs font-bold text-white">
         Sponsorisé
       </span>
       <div className="grid md:grid-cols-[minmax(0,0.9fr)_minmax(280px,1.1fr)] md:items-stretch">

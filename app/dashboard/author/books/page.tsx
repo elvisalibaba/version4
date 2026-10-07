@@ -18,7 +18,7 @@ const status: Record<BookStatus, { label: string; style: string }> = {
   published: { label: "Publié", style: "bg-emerald-50 text-night-900" },
   draft: { label: "Brouillon", style: "bg-brand-100 text-amber-800" },
   coming_soon: { label: "À venir", style: "bg-night-50 text-night-700" },
-  archived: { label: "Archivé", style: "bg-slate-200 text-slate-600" },
+  archived: { label: "Archivé", style: "bg-paper-deep text-slate-600" },
 };
 
 const review: Record<BookReviewStatus, string> = {
@@ -48,7 +48,7 @@ export default async function AuthorBooksPage() {
 
   return (
     <div className="space-y-6">
-      <header className="overflow-hidden rounded-xl bg-night-900 p-6 text-white shadow-md sm:p-8">
+      <header className="overflow-hidden rounded-md bg-night-900 p-6 text-white sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-bold text-brand-300">Bibliothèque éditoriale</p>
@@ -58,15 +58,15 @@ export default async function AuthorBooksPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href="/dashboard/author/distribution" className="inline-flex h-11 items-center gap-2 rounded-full border border-white/20 px-4 text-sm font-bold">
+            <Link href="/dashboard/author/distribution" className="inline-flex h-11 items-center gap-2 rounded-sm border border-white/20 px-4 text-sm font-bold">
               <Globe2 className="h-4 w-4" />
               Distribution
             </Link>
-            <Link href="/dashboard/author/finance" className="inline-flex h-11 items-center gap-2 rounded-full border border-white/20 px-4 text-sm font-bold">
+            <Link href="/dashboard/author/finance" className="inline-flex h-11 items-center gap-2 rounded-sm border border-white/20 px-4 text-sm font-bold">
               <CircleDollarSign className="h-4 w-4" />
               Finances
             </Link>
-            <Link href="/dashboard/author/add-book" className="inline-flex h-11 items-center gap-2 rounded-full bg-brand-600 px-4 text-sm font-bold text-white">
+            <Link href="/dashboard/author/add-book" className="inline-flex h-11 items-center gap-2 rounded-sm bg-brand-600 px-4 text-sm font-bold text-white">
               <Plus className="h-4 w-4" />
               Nouveau titre
             </Link>
@@ -83,7 +83,7 @@ export default async function AuthorBooksPage() {
         ].map((item) => {
           const Icon = item.icon;
           return (
-            <article key={item.label} className="rounded-xl border border-slate-300 bg-white p-5 shadow-md">
+            <article key={item.label} className="rounded-md border border-rule-strong bg-white p-5 ">
               <Icon className="h-5 w-5 text-brand-600" />
               <p className="mt-4 text-2xl font-bold tracking-[-0.04em] text-night-900">{item.value}</p>
               <p className="mt-1 text-xs font-semibold text-slate-600">{item.label}</p>
@@ -99,9 +99,9 @@ export default async function AuthorBooksPage() {
             const reviewStatus = (book.review_status ?? "draft") as BookReviewStatus;
 
             return (
-              <article key={book.id} className="overflow-hidden rounded-xl border border-slate-300 bg-white shadow-md">
+              <article key={book.id} className="overflow-hidden rounded-md border border-rule-strong bg-white ">
                 <div className="flex gap-4 p-5 sm:gap-5 sm:p-6">
-                  <div className="relative h-32 w-24 shrink-0 overflow-hidden rounded-lg bg-night-900 shadow-md">
+                  <div className="relative h-32 w-24 shrink-0 overflow-hidden rounded-md bg-night-900 ">
                     {book.cover_url ? (
                       <Image
                         src={book.cover_url}
@@ -120,9 +120,9 @@ export default async function AuthorBooksPage() {
 
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className={`rounded-full px-2.5 py-1 text-[.65rem] font-bold ${status[book.status].style}`}>{status[book.status].label}</span>
-                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[.65rem] font-bold text-slate-600">{review[reviewStatus]}</span>
-                      <span className={`rounded-full px-2.5 py-1 text-[.65rem] font-bold ${book.copyright_status === "clear" ? "bg-emerald-50 text-emerald-700" : book.copyright_status === "blocked" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-800"}`}>
+                      <span className={`rounded-sm px-2.5 py-1 text-[.65rem] font-bold ${status[book.status].style}`}>{status[book.status].label}</span>
+                      <span className="rounded-sm bg-paper-deep px-2.5 py-1 text-[.65rem] font-bold text-slate-600">{review[reviewStatus]}</span>
+                      <span className={`rounded-sm px-2.5 py-1 text-[.65rem] font-bold ${book.copyright_status === "clear" ? "bg-emerald-50 text-emerald-700" : book.copyright_status === "blocked" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-800"}`}>
                         {book.copyright_status === "clear" ? "Droits validés" : book.copyright_status === "blocked" ? "Droits bloqués" : "Droits à vérifier"}
                       </span>
                     </div>
@@ -131,31 +131,31 @@ export default async function AuthorBooksPage() {
                     {book.subtitle ? <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-600">{book.subtitle}</p> : null}
 
                     <div className="mt-4 grid grid-cols-3 gap-2">
-                      <div className="rounded-xl bg-slate-50 p-2.5"><p className="text-[0.62rem] font-bold text-slate-500">Vues</p><p className="mt-1 text-sm font-bold text-night-900">{book.views_count ?? 0}</p></div>
-                      <div className="rounded-xl bg-slate-50 p-2.5"><p className="text-[0.62rem] font-bold text-slate-500">Clics</p><p className="mt-1 text-sm font-bold text-night-900">{book.clicks_count ?? 0}</p></div>
-                      <div className="rounded-xl bg-slate-50 p-2.5"><p className="text-[0.62rem] font-bold text-slate-500">Achats</p><p className="mt-1 text-sm font-bold text-night-900">{book.purchases_count ?? 0}</p></div>
+                      <div className="rounded-md bg-paper p-2.5"><p className="text-[0.62rem] font-bold text-slate-500">Vues</p><p className="mt-1 text-sm font-bold text-night-900">{book.views_count ?? 0}</p></div>
+                      <div className="rounded-md bg-paper p-2.5"><p className="text-[0.62rem] font-bold text-slate-500">Clics</p><p className="mt-1 text-sm font-bold text-night-900">{book.clicks_count ?? 0}</p></div>
+                      <div className="rounded-md bg-paper p-2.5"><p className="text-[0.62rem] font-bold text-slate-500">Achats</p><p className="mt-1 text-sm font-bold text-night-900">{book.purchases_count ?? 0}</p></div>
                     </div>
                   </div>
                 </div>
 
                 {book.review_note ? (
-                  <p className="mx-5 mb-4 rounded-xl bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800 sm:mx-6">
+                  <p className="mx-5 mb-4 rounded-md bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800 sm:mx-6">
                     <strong>Message éditorial :</strong> {book.review_note}
                   </p>
                 ) : null}
 
-                <div className="flex flex-col gap-3 border-t border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <div className="flex flex-col gap-3 border-t border-rule bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                   <div className="text-xs text-slate-500">
                     <span className="font-bold text-night-900">{book.is_single_sale_enabled ? price(book.price, book.currency_code) : "Vente unitaire désactivée"}</span>
                     {book.is_subscription_available ? " · Inclus dans Premium" : ""}
                     <span className="block mt-1">MAJ {book.updated_at ? new Date(book.updated_at).toLocaleDateString("fr-FR") : "—"} · ISBN {book.isbn || "non renseigné"}</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Link href="/dashboard/author/distribution" className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-300 px-4 text-sm font-bold text-night-900 hover:bg-slate-100">
+                    <Link href="/dashboard/author/distribution" className="inline-flex h-10 items-center justify-center gap-2 rounded-sm border border-rule-strong px-4 text-sm font-bold text-night-900 hover:bg-paper-deep">
                       <Globe2 className="h-3.5 w-3.5" />
                       Distribuer
                     </Link>
-                    <Link href={`/dashboard/author/books/${book.id}/edit`} className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-night-900 px-4 text-sm font-bold text-white hover:bg-night-800">
+                    <Link href={`/dashboard/author/books/${book.id}/edit`} className="inline-flex h-10 items-center justify-center gap-2 rounded-sm bg-night-900 px-4 text-sm font-bold text-white hover:bg-night-800">
                       <Pencil className="h-3.5 w-3.5" />
                       Modifier
                     </Link>
@@ -166,11 +166,11 @@ export default async function AuthorBooksPage() {
           })}
         </section>
       ) : (
-        <section className="rounded-xl border border-dashed border-slate-300 bg-slate-50 py-20 text-center">
+        <section className="rounded-md border border-dashed border-rule-strong bg-paper py-20 text-center">
           <BookOpen className="mx-auto h-8 w-8 text-slate-400" />
           <h2 className="mt-4 font-bold text-2xl text-night-900">Votre catalogue est vide</h2>
           <p className="mt-2 text-sm text-slate-600">Commencez par ajouter votre premier livre et préparez sa diffusion.</p>
-          <Link href="/dashboard/author/add-book" className="mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-night-900 px-5 text-sm font-bold text-white"><Plus className="h-4 w-4" />Ajouter un livre</Link>
+          <Link href="/dashboard/author/add-book" className="mt-5 inline-flex h-11 items-center gap-2 rounded-sm bg-night-900 px-5 text-sm font-bold text-white"><Plus className="h-4 w-4" />Ajouter un livre</Link>
         </section>
       )}
     </div>

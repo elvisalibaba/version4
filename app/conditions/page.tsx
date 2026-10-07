@@ -11,42 +11,42 @@ export default function ConditionsPage() {
         {
           title: "Objet",
           paragraphs: [
-            "HolistiqueBooks propose un acces a des livres numeriques, a des contenus editoriaux et a des services lies a la lecture, a l edition et a la distribution de contenus.",
-            "En utilisant la plateforme, vous acceptez les presentes conditions dans leur integralite. Si vous n acceptez pas ces conditions, vous ne devez pas utiliser le service.",
+            "HolistiqueBooks propose un accès à des livres numériques, à des contenus éditoriaux et à des services liés à la lecture, à l’édition et à la distribution de contenus.",
+            "En utilisant la plateforme, vous acceptez les présentes conditions dans leur intégralité. Si vous n’acceptez pas ces conditions, vous ne devez pas utiliser le service.",
           ],
         },
         {
           title: "Compte utilisateur",
           paragraphs: [
-            "Certaines fonctionnalites necessitent la creation d un compte. Vous vous engagez a fournir des informations exactes, a proteger vos identifiants et a ne pas partager votre acces de maniere abusive.",
-            "Vous etes responsable des activites effectuees depuis votre compte, sauf en cas d acces frauduleux signale sans delai a HolistiqueBooks.",
+            "Certaines fonctionnalités nécessitent la création d’un compte. Vous vous engagez à fournir des informations exactes, à protéger vos identifiants et à ne pas partager votre accès de manière abusive.",
+            "Vous êtes responsable des activités effectuées depuis votre compte, sauf en cas d’accès frauduleux signalé sans délai à HolistiqueBooks.",
           ],
         },
         {
-          title: "Achats et acces aux livres",
+          title: "Achats et accès aux livres",
           paragraphs: [
-            "Les livres achetes ou obtenus via abonnement donnent un droit d acces personnel, non exclusif et non transferable. Ils ne peuvent pas etre revendus, copies ou redistribues sans autorisation.",
-            "Les prix, modalites de paiement, periodes promotionnelles et conditions d abonnement sont affiches avant validation de la commande.",
+            "Les livres achetés ou obtenus via abonnement donnent un droit d’accès personnel, non exclusif et non transférable. Ils ne peuvent pas être revendus, copies ou redistribués sans autorisation.",
+            "Les prix, modalités de paiement, périodes promotionnelles et conditions d’abonnement sont affichés avant validation de la commande.",
           ],
         },
         {
-          title: "Propriete intellectuelle",
+          title: "Propriété intellectuelle",
           paragraphs: [
-            "Les livres, visuels, textes, extraits, marques et contenus presents sur HolistiqueBooks restent proteges par le droit d auteur et les droits de propriete intellectuelle applicables.",
-            "Toute reproduction, extraction massive, diffusion ou exploitation non autorisee est strictement interdite.",
+            "Les livres, visuels, textes, extraits, marques et contenus présents sur HolistiqueBooks restent protégés par le droit d’auteur et les droits de propriété intellectuelle applicables.",
+            "Toute reproduction, extraction massive, diffusion ou exploitation non autorisée est strictement interdite.",
           ],
         },
         {
-          title: "Disponibilite et limitation de responsabilite",
+          title: "Disponibilité et limitation de responsabilité",
           paragraphs: [
-            "HolistiqueBooks s efforce d assurer la disponibilite continue de la plateforme, sans pouvoir garantir l absence totale d interruption, de maintenance ou d incident technique.",
-            "La responsabilite de HolistiqueBooks ne saurait etre engagee pour des dommages indirects, pertes de donnees, pertes d exploitation ou indisponibilites temporaires independantes de sa volonte raisonnable.",
+            "HolistiqueBooks s’efforce d’assurer la disponibilité continue de la plateforme, sans pouvoir garantir l’absence totale d’interruption, de maintenance ou d’incident technique.",
+            "La responsabilité de HolistiqueBooks ne saurait être engagée pour des dommages indirects, pertes de données, pertes d’exploitation ou indisponibilités temporaires indépendantes de sa volonté raisonnable.",
           ],
         },
         {
           title: "Contact",
           paragraphs: [
-            "Pour toute question relative a ces conditions, vous pouvez contacter HolistiqueBooks via les coordonnees mentionnees sur la plateforme ou par email a l adresse de support communiquee.",
+            "Pour toute question relative à ces conditions, vous pouvez contacter HolistiqueBooks via les coordonnées mentionnées sur la plateforme ou par email à l’adresse de support communiquée.",
           ],
         },
       ]}

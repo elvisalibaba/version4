@@ -50,10 +50,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <section className="mx-auto max-w-6xl px-0 py-3 sm:px-6 sm:py-8 lg:py-12">
-      <div className="grid overflow-hidden rounded-xl border border-slate-300 bg-slate-50 shadow-md lg:min-h-[680px] lg:grid-cols-[1.02fr_.98fr] lg:rounded-xl">
+      <div className="grid overflow-hidden rounded-md border border-rule-strong bg-paper lg:min-h-[680px] lg:grid-cols-[1.02fr_.98fr] lg:rounded-md">
         <aside className="relative order-last hidden overflow-hidden bg-night-900 p-8 text-white lg:order-none lg:flex lg:flex-col lg:justify-between lg:p-12">
           <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-brand-300">
+          <span className="inline-flex items-center gap-2 rounded-sm border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-brand-300">
             <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />
             Votre espace privé
           </span>
@@ -66,14 +66,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </p>
 
           <div className="mt-9 grid gap-3">
-            <div className="flex items-center gap-3 rounded-2xl border border-white/12 bg-white/[.06] p-4">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-600 text-white">
+            <div className="flex items-center gap-3 rounded-md border border-white/12 bg-white/[.06] p-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-brand-600 text-white">
                 <BookOpen aria-hidden="true" className="h-4 w-4" />
               </span>
               <p className="text-sm font-semibold">Vos lectures et favoris synchronisés</p>
             </div>
-            <div className="flex items-center gap-3 rounded-2xl border border-white/12 bg-white/[.06] p-4">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-600 text-white">
+            <div className="flex items-center gap-3 rounded-md border border-white/12 bg-white/[.06] p-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-brand-600 text-white">
                 <PenTool aria-hidden="true" className="h-4 w-4" />
               </span>
               <p className="text-sm font-semibold">Un véritable studio professionnel pour les auteurs</p>

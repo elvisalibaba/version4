@@ -17,7 +17,7 @@ export function CartCountBadge({ className = "" }: { className?: string }) {
   return (
     <span
       key={bump}
-      className={`hb-cart-badge grid min-w-[1.15rem] place-items-center rounded-full bg-brand-600 px-1 text-[0.68rem] font-bold leading-[1.15rem] text-white ${bump ? "is-bumping" : ""} ${className}`}
+      className={`hb-cart-badge grid min-w-[1.15rem] place-items-center rounded-sm bg-brand-600 px-1 text-[0.68rem] font-bold leading-[1.15rem] text-white ${bump ? "is-bumping" : ""} ${className}`}
       aria-hidden="true"
     >
       {count > 99 ? "99+" : count}
@@ -33,14 +33,13 @@ export function CartIndicator() {
     <Link
       href="/cart"
       data-cart-target
-      className="relative flex h-11 items-center gap-1.5 rounded-md px-2 transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+      className="relative grid h-11 w-11 place-items-center rounded-sm text-night-900 transition hover:bg-paper-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
       aria-label={count > 0 ? `Panier, ${count} article${count > 1 ? "s" : ""}` : "Panier"}
     >
       <span className="relative">
-        <ShoppingCart className="h-6 w-6" />
-        <CartCountBadge className="absolute -right-2 -top-1.5" />
+        <ShoppingCart aria-hidden="true" className="h-5 w-5" />
+        <CartCountBadge className="absolute -right-2.5 -top-2" />
       </span>
-      <span className="hidden text-sm font-semibold sm:inline">Panier</span>
     </Link>
   );
 }

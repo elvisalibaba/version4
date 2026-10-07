@@ -51,7 +51,7 @@ class EasyPayService
 
         if (! in_array($order->currency_code, ['USD', 'CDF'], true)) {
             throw ValidationException::withMessages([
-                'currency_code' => 'EasyPay accepte uniquement les commandes en USD ou CDF.',
+                'currency_code' => 'Le paiement en ligne accepte uniquement les commandes en USD ou CDF.',
             ]);
         }
 
@@ -122,14 +122,14 @@ class EasyPayService
             $payload = $response->json();
 
             if (! $response->successful()) {
-                throw new RuntimeException('La passerelle EasyPay est temporairement indisponible.');
+                throw new RuntimeException('Le service de paiement est temporairement indisponible. Réessayez dans un instant.');
             }
 
             $reference = data_get($payload, 'reference') ?: data_get($payload, 'transaction.reference');
             $code = data_get($payload, 'code');
 
             if (! $reference || ($code !== null && (string) $code !== '1')) {
-                throw new RuntimeException((string) (data_get($payload, 'message') ?: 'EasyPay n’a pas pu initialiser la transaction.'));
+                throw new RuntimeException((string) (data_get($payload, 'message') ?: 'Le paiement n’a pas pu être lancé. Réessayez dans un instant.'));
             }
 
             DB::transaction(function () use ($attempt, $order, $reference, $payload, $channel): void {
@@ -443,7 +443,7 @@ class EasyPayService
             $lastError = $error;
         }
 
-        throw $lastError ?? new RuntimeException('Vérification EasyPay indisponible.');
+        throw $lastError ?? new RuntimeException('La vérification du paiement est momentanément indisponible.');
     }
 
     private function orderReference(Order $order): string

@@ -139,7 +139,7 @@ function toProviderAmount(amount: number) {
   const normalizedAmount = Number(amount.toFixed(2));
 
   if (!Number.isFinite(normalizedAmount) || normalizedAmount <= 0) {
-    throw new DonationFlowError("Montant de don invalide pour EasyPay.", 400);
+    throw new DonationFlowError("Montant de don invalide.", 400);
   }
 
   return normalizedAmount;
@@ -181,7 +181,7 @@ async function fetchJson<T>(url: string, body?: Record<string, unknown>) {
   }
 
   if (!response.ok) {
-    throw new DonationFlowError("La passerelle EasyPay est temporairement indisponible.", 502);
+    throw new DonationFlowError("Le service de paiement est temporairement indisponible. Réessayez dans un instant.", 502);
   }
 
   return data;
@@ -227,7 +227,7 @@ export async function initCinetPayDonation(params: {
   const isInitSuccess = responseCode === "1" || (responseCode === null && Boolean(providerReference));
 
   if (!isInitSuccess || !providerReference) {
-    throw new DonationFlowError(responseMessage ?? "EasyPay n a pas pu initialiser la transaction de don.", 502);
+    throw new DonationFlowError(responseMessage ?? "Le paiement n’a pas pu être lancé. Réessayez dans un instant.", 502);
   }
 
   const paymentUrl = `${buildEasyPayModeUrl(config, "/payment/initialization")}?reference=${encodeURIComponent(providerReference)}`;
@@ -261,11 +261,11 @@ export async function verifyCinetPayDonationTransaction(transactionId: string): 
       throw error;
     }
 
-    throw new DonationFlowError("Verification EasyPay indisponible pour cette transaction.", 502);
+    throw new DonationFlowError("La vérification du paiement est momentanément indisponible.", 502);
   }
 
   if (!result) {
-    throw new DonationFlowError("Verification EasyPay indisponible pour cette transaction.", 502);
+    throw new DonationFlowError("La vérification du paiement est momentanément indisponible.", 502);
   }
 
   const providerStatus = (cleanString(result?.payment?.status) ?? "UNKNOWN").toUpperCase();

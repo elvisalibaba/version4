@@ -9,38 +9,38 @@ export default function ConfidentialitePage() {
       lastUpdated="16 mars 2026"
       sections={[
         {
-          title: "Donnees collectees",
+          title: "Données collectées",
           paragraphs: [
-            "HolistiqueBooks peut collecter les donnees necessaires a la creation de compte, a la gestion des commandes, a la livraison des contenus, au support client et a l amelioration du service.",
-            "Cela peut inclure vos informations de profil, vos historiques d achat, vos acces de lecture, certaines donnees techniques de navigation et vos preferences declarees.",
+            "HolistiqueBooks peut collecter les données nécessaires à la création de compte, à la gestion des commandes, à la livraison des contenus, au support client et à l’amélioration du service.",
+            "Cela peut inclure vos informations de profil, vos historiques d’achat, vos accès de lecture, certaines données techniques de navigation et vos préférences déclarées.",
           ],
         },
         {
           title: "Finalites",
           paragraphs: [
-            "Les donnees sont utilisees pour authentifier les utilisateurs, securiser les achats, donner acces aux livres, assurer le support, prevenir la fraude, analyser les usages et ameliorer l experience produit.",
-            "Nous pouvons aussi utiliser certaines donnees pour des communications transactionnelles ou marketing lorsque cela est autorise par votre choix ou la reglementation applicable.",
+            "Les données sont utilisées pour authentifier les utilisateurs, sécuriser les achats, donner accès aux livres, assurer le support, prévenir la fraude, analyser les usages et améliorer l’expérience produit.",
+            "Nous pouvons aussi utiliser certaines données pour des communications transactionnelles ou marketing lorsque cela est autorisé par votre choix ou la réglementation applicable.",
           ],
         },
         {
           title: "Partage et sous-traitance",
           paragraphs: [
-            "Certaines donnees peuvent etre traitees par des prestataires techniques indispensables au fonctionnement de la plateforme, notamment pour l hebergement, l authentification, le stockage, les paiements et l envoi d emails.",
-            "HolistiqueBooks ne vend pas vos donnees personnelles. Les acces accordes a des tiers sont limites au strict besoin operationnel.",
+            "Certaines données peuvent être traitées par des prestataires techniques indispensables au fonctionnement de la plateforme, notamment pour l’hébergement, l’authentification, le stockage, les paiements et l’envoi d’emails.",
+            "HolistiqueBooks ne vend pas vos données personnelles. Les accès accordés à des tiers sont limités au strict besoin opérationnel.",
           ],
         },
         {
-          title: "Conservation et securite",
+          title: "Conservation et sécurité",
           paragraphs: [
-            "Nous conservons les donnees pendant la duree necessaire aux finalites de traitement, a la gestion de la relation utilisateur, au respect des obligations legales et a la resolution des litiges.",
-            "Des mesures techniques et organisationnelles raisonnables sont mises en place pour limiter les acces non autorises, la perte, l alteration ou la divulgation des donnees.",
+            "Nous conservons les données pendant la durée nécessaire aux finalités de traitement, à la gestion de la relation utilisateur, au respect des obligations légales et à la résolution des litiges.",
+            "Des mesures techniques et organisationnelles raisonnables sont mises en place pour limiter les accès non autorisés, la perte, l’alteration ou la divulgation des données.",
           ],
         },
         {
           title: "Vos droits",
           paragraphs: [
-            "Vous pouvez demander l acces, la correction ou la suppression de certaines donnees vous concernant, sous reserve des obligations legales et contractuelles applicables.",
-            "Vous pouvez egalement gerer vos preferences de communication et nous contacter pour toute demande liee a la protection de vos donnees.",
+            "Vous pouvez demander l’accès, la correction ou la suppression de certaines données vous concernant, sous réserve des obligations légales et contractuelles applicables.",
+            "Vous pouvez également gérer vos préférences de communication et nous contacter pour toute demande liée à la protection de vos données.",
           ],
         },
       ]}

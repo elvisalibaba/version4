@@ -20,7 +20,7 @@ export default async function CartPage() {
   const names = profile ? splitName(profile) : null;
 
   return (
-    <div className="hb-fullbleed bg-slate-50">
+    <div className="hb-fullbleed bg-paper">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <CartView
           isAuthenticated={Boolean(profile)}

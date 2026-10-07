@@ -37,8 +37,8 @@ function getStatusCopy(status: OrderPaymentStatus) {
     default:
       return {
         title: "Vérification du paiement",
-        description: "Nous vérifions votre paiement auprès d’EasyPay. Cette page se met à jour automatiquement.",
-        accent: "bg-slate-100 text-slate-700 border-slate-200",
+        description: "Nous confirmons votre paiement. Cette page se met à jour automatiquement.",
+        accent: "bg-paper-deep text-slate-700 border-rule",
       };
   }
 }
@@ -86,10 +86,10 @@ export default async function PaymentReturnPage({ searchParams }: { searchParams
     new Intl.NumberFormat("fr-FR", { style: "currency", currency }).format(Number(amount));
 
   return (
-    <div className="hb-fullbleed bg-slate-50">
+    <div className="hb-fullbleed bg-paper">
       <PaymentReturnEffects orderId={order.id} status={order.payment_status} />
       <section className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
-        <div className="hb-fade-up rounded-lg border border-slate-200 bg-white">
+        <div className="hb-fade-up rounded-md border border-rule bg-white">
           <div className={`flex items-start gap-4 border-b px-6 py-6 ${statusCopy.accent}`}>
             <StatusIcon status={order.payment_status} />
             <div>
@@ -98,7 +98,7 @@ export default async function PaymentReturnPage({ searchParams }: { searchParams
             </div>
           </div>
 
-          <dl className="grid gap-4 border-b border-slate-200 px-6 py-5 text-sm sm:grid-cols-3">
+          <dl className="grid gap-4 border-b border-rule px-6 py-5 text-sm sm:grid-cols-3">
             <div>
               <dt className="text-slate-500">Commande</dt>
               <dd className="mt-1 font-mono text-xs font-semibold text-slate-900">{order.id.slice(0, 8).toUpperCase()}</dd>
@@ -113,7 +113,7 @@ export default async function PaymentReturnPage({ searchParams }: { searchParams
             </div>
           </dl>
 
-          <ul className="divide-y divide-slate-200 px-6">
+          <ul className="divide-y divide-rule px-6">
             {(order.items ?? []).map((item) => (
               <li key={item.id} className="flex items-center justify-between gap-3 py-3.5 text-sm">
                 <div className="min-w-0">
@@ -128,7 +128,7 @@ export default async function PaymentReturnPage({ searchParams }: { searchParams
             ))}
           </ul>
 
-          <div className="flex flex-col gap-2 border-t border-slate-200 px-6 py-5 sm:flex-row">
+          <div className="flex flex-col gap-2 border-t border-rule px-6 py-5 sm:flex-row">
             {order.payment_status === "failed" ? (
               <Link href="/cart" className="cta-primary inline-flex min-h-11 items-center justify-center px-5 text-sm">Revenir au panier</Link>
             ) : (

@@ -52,6 +52,12 @@
   --color-night-800: #13294b;
   --color-night-900: #0b1f3a;
   --color-night-950: #071226;
+
+  /* Papier et filets : le blanc cassé d'une page de livre. */
+  --color-paper: #faf8f4;
+  --color-paper-deep: #f3efe7;
+  --color-rule: #e6e0d4;
+  --color-rule-strong: #d6cfc1;
 }
 
 * {

@@ -24,7 +24,7 @@ export default async function AuthorDashboardLayout({
 
   return (
     <DashboardShell
-      areaLabel="Author Studio"
+      areaLabel="Espace auteur"
       headline="Holistique Books"
       description="Pilotez vos livres, éditions audio/vidéo, ventes, royalties, paiements et distribution."
       userName={profile?.name ?? profile?.email ?? "Auteur"}
