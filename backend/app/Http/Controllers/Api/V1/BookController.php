@@ -7,6 +7,7 @@ use App\Http\Requests\Book\IndexBookRequest;
 use App\Http\Requests\Book\StoreBookRequest;
 use App\Http\Requests\Book\UpdateBookRequest;
 use App\Http\Resources\BookResource;
+use App\Http\Resources\PublicBookResource;
 use App\Models\AcademicTaxonomy;
 use App\Models\AuthorProfile;
 use App\Models\Book;
@@ -114,7 +115,7 @@ class BookController extends Controller
             ->paginate($request->perPage())
             ->withQueryString();
 
-        return BookResource::collection($books);
+        return PublicBookResource::collection($books);
     }
 
     public function store(
@@ -264,7 +265,7 @@ class BookController extends Controller
         ]));
     }
 
-    public function show(Book $book): BookResource
+    public function show(Book $book): PublicBookResource
     {
         if ($book->status !== 'published' || $book->copyright_status !== 'clear') {
             Gate::authorize('view', $book);
@@ -276,7 +277,7 @@ class BookController extends Controller
             'ratings as visible_ratings_count' => fn ($query) => $query->where('is_hidden', false),
         ]);
 
-        return new BookResource($book->load([
+        return new PublicBookResource($book->load([
             'author',
             'publishingHouse',
             'imprint',

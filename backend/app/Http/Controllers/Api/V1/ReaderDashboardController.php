@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\BookResource;
 use App\Http\Resources\LibraryResource;
 use App\Http\Resources\OrderResource;
 use App\Http\Resources\SubscriptionResource;

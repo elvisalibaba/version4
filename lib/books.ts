@@ -88,7 +88,7 @@ export async function getPublishedBooks(options: GetPublishedBooksOptions = {}) 
       apiServer<ApiPagination<ApiBook>>(`books${params.size ? `?${params.toString()}` : ""}`, { authenticated: false }),
       getFavoriteIds(),
     ]);
-    return (response.data ?? []).filter((book) => book.status === "published" && book.copyright_status === "clear").map((book) => mapBook(book, favoriteIds));
+    return (response.data ?? []).filter((book) => book.status === "published").map((book) => mapBook(book, favoriteIds));
   } catch (error) {
     console.error("[Books] Laravel API unavailable.", error);
     return [];
@@ -101,7 +101,7 @@ export async function getComingSoonBooks() {
       apiServer<ApiPagination<ApiBook>>("books", { authenticated: false }),
       getFavoriteIds(),
     ]);
-    return (response.data ?? []).filter((book) => book.status === "coming_soon" && book.copyright_status !== "blocked").map((book) => mapBook(book, favoriteIds));
+    return (response.data ?? []).filter((book) => book.status === "coming_soon").map((book) => mapBook(book, favoriteIds));
   } catch {
     return [];
   }

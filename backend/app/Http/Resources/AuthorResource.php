@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources;
 
+use App\Support\PublicMediaUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Support\PublicMediaUrl;
 
 class AuthorResource extends JsonResource
 {
@@ -33,7 +33,7 @@ class AuthorResource extends JsonResource
             'favorite_character' => $this->favorite_character,
             'press_mentions' => $this->press_mentions,
             'published_books_count' => $this->whenHas('published_books_count'),
-            'books' => BookResource::collection($this->whenLoaded('books')),
+            'books' => PublicBookResource::collection($this->whenLoaded('books')),
         ];
     }
 }

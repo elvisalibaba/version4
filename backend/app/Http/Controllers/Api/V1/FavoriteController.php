@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\BookResource;
+use App\Http\Resources\PublicBookResource;
 use App\Models\Book;
 use App\Models\Favorite;
 use Illuminate\Http\JsonResponse;
@@ -22,7 +22,7 @@ class FavoriteController extends Controller
             ->latest()
             ->paginate(24);
 
-        return BookResource::collection($books);
+        return PublicBookResource::collection($books);
     }
 
     public function store(Request $request, Book $book): JsonResponse

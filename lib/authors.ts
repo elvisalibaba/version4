@@ -28,7 +28,6 @@ export type PublicAuthor = ApiAuthor & {
   published_books_count: number;
   latest_book: PublishedBook | null;
   top_category: string;
-  total_views: number;
   total_purchases: number;
   average_rating: number | null;
 };
@@ -64,7 +63,6 @@ export async function getPublicAuthors(): Promise<PublicAuthor[]> {
         published_books_count: author.published_books_count ?? authorBooks.length,
         latest_book: authorBooks[0] ?? null,
         top_category: pickTopCategory(authorBooks, author.genres ?? []),
-        total_views: authorBooks.reduce((sum, book) => sum + Number(book.views_count ?? 0), 0),
         total_purchases: authorBooks.reduce((sum, book) => sum + Number(book.purchases_count ?? 0), 0),
         average_rating: averageRating(authorBooks),
       };
@@ -89,7 +87,6 @@ export async function getPublicAuthorById(authorId: string) {
       published_books_count: author.published_books_count ?? authorBooks.length,
       latest_book: authorBooks[0] ?? null,
       top_category: pickTopCategory(authorBooks, author.genres ?? []),
-      total_views: authorBooks.reduce((sum, book) => sum + Number(book.views_count ?? 0), 0),
       total_purchases: authorBooks.reduce((sum, book) => sum + Number(book.purchases_count ?? 0), 0),
       average_rating: averageRating(authorBooks),
     } satisfies PublicAuthor;

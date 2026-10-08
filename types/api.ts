@@ -86,6 +86,10 @@ export type ApiBookFormat = {
   file_size_mb?: number | null;
   downloadable: boolean;
   is_published: boolean;
+};
+
+/** Format tel que vu par l'auteur et l'administration (coût d'impression inclus). */
+export type ApiAuthorBookFormat = ApiBookFormat & {
   printing_cost?: number | string | null;
 };
 
@@ -116,10 +120,6 @@ export type ApiBook = {
   cover_alt_text: string | null;
   cover_thumbnail_url?: string | null;
   status: BookStatus;
-  review_status?: BookReviewStatus;
-  review_note?: string | null;
-  copyright_note?: string | null;
-  copyright_status: CopyrightStatus;
   language: string | null;
   publisher: string | null;
   publishing_house?: { id: string; name: string; slug: string } | null;
@@ -140,8 +140,6 @@ export type ApiBook = {
   has_file?: boolean;
   has_sample?: boolean;
   sample_pages?: number | null;
-  views_count: number;
-  clicks_count: number;
   purchases_count: number;
   is_free: boolean;
   rating_avg: number | string | null;
@@ -152,10 +150,28 @@ export type ApiBook = {
   media_editions?: ApiMediaEdition[];
   subscription_plans?: ApiSubscriptionPlan[];
   published_at?: string | null;
-  submitted_at?: string | null;
-  reviewed_at?: string | null;
   created_at?: string;
   updated_at?: string;
+};
+
+/**
+ * Livre tel que renvoyé à son auteur et à l'administration : la vue publique
+ * plus le suivi éditorial, les droits et les statistiques internes.
+ */
+export type ApiAuthorBook = Omit<ApiBook, "formats"> & {
+  review_status?: BookReviewStatus;
+  review_note?: string | null;
+  copyright_status: CopyrightStatus;
+  copyright_note?: string | null;
+  editorial_stage?: string | null;
+  spiritual_metadata?: Record<string, unknown> | null;
+  bat_status?: string | null;
+  bat_approved_at?: string | null;
+  views_count: number;
+  clicks_count: number;
+  submitted_at?: string | null;
+  reviewed_at?: string | null;
+  formats?: ApiAuthorBookFormat[];
 };
 
 export type ApiLibraryEntry = {

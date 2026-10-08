@@ -24,9 +24,9 @@ type HomeBook = Awaited<ReturnType<typeof getPublishedBooks>>[number];
 function rankByAudience(a: HomeBook, b: HomeBook) {
   const aReads = Number(a.purchases_count ?? 0);
   const bReads = Number(b.purchases_count ?? 0);
-  const aViews = Number(a.views_count ?? 0);
-  const bViews = Number(b.views_count ?? 0);
-  return bReads - aReads || bViews - aViews || new Date(b.published_at ?? b.created_at ?? 0).getTime() - new Date(a.published_at ?? a.created_at ?? 0).getTime();
+  const aRatings = Number(a.ratings_count ?? 0);
+  const bRatings = Number(b.ratings_count ?? 0);
+  return bReads - aReads || bRatings - aRatings || new Date(b.published_at ?? b.created_at ?? 0).getTime() - new Date(a.published_at ?? a.created_at ?? 0).getTime();
 }
 
 function Shelf({ index, kicker, title, intro, books, href }: { index: string; kicker: string; title: string; intro?: string; books: HomeBook[]; href: string }) {

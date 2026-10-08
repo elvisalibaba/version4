@@ -1,5 +1,5 @@
 import { apiServer } from "@/lib/api/server";
-import type { ApiAuthorProfile, ApiBook, ApiSubscriptionPlan } from "@/types/api";
+import type { ApiAuthorBook, ApiAuthorProfile, ApiSubscriptionPlan } from "@/types/api";
 
 export type AuthorDashboardPayload = {
   profile: ApiAuthorProfile;
@@ -13,7 +13,7 @@ export type AuthorDashboardPayload = {
     audiobooks: number;
     videos: number;
   };
-  recent_books: ApiBook[];
+  recent_books: ApiAuthorBook[];
 };
 
 export type AuthorSale = {
@@ -152,7 +152,7 @@ export type AuthorReviewCase = {
   book?: { id: string; title: string } | null;
 };
 
-export type AuthorBookWorkspace = ApiBook & {
+export type AuthorBookWorkspace = ApiAuthorBook & {
   author_workspace?: {
     writing_status?: string | null;
     target_word_count?: number | null;
@@ -206,7 +206,7 @@ export async function getAuthorDashboard() {
 }
 
 export async function getAuthorBooks() {
-  return (await apiServer<{ data: ApiBook[] }>("author/books")).data ?? [];
+  return (await apiServer<{ data: ApiAuthorBook[] }>("author/books")).data ?? [];
 }
 
 export async function getAuthorBook(bookId: string) {

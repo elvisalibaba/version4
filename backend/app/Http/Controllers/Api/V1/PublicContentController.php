@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\BookResource;
+use App\Http\Resources\PublicBookResource;
 use App\Models\BlogPost;
 use App\Models\Book;
 use App\Models\Category;
@@ -83,7 +83,7 @@ class PublicContentController extends Controller
             ->values();
 
         return response()->json([
-            'data' => BookResource::collection($books)->resolve(),
+            'data' => PublicBookResource::collection($books)->resolve(),
             'selected_book_ids' => $ids,
         ]);
     }
@@ -103,7 +103,7 @@ class PublicContentController extends Controller
         return response()->json([
             'discount_percentage' => $config?->discount_percentage ?? 20,
             'selected_book_ids' => $ids,
-            'books' => BookResource::collection($books)->resolve(),
+            'books' => PublicBookResource::collection($books)->resolve(),
         ]);
     }
 

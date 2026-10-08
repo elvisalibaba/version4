@@ -22,7 +22,7 @@ class LibraryResource extends JsonResource
             'expires_at' => $this->expires_at,
             'last_opened_at' => $this->last_opened_at,
             'reading_progress' => $this->getAttribute('reading_progress_snapshot'),
-            'book' => new BookResource($this->whenLoaded('book')),
+            'book' => new PublicBookResource($this->whenLoaded('book')),
             'subscription' => new SubscriptionResource($this->whenLoaded('subscription')),
         ];
     }
