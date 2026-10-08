@@ -65,6 +65,7 @@ function splitPrice(price: string) {
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ pack?: string; projet?: string }> }) {
   const [{ pack, projet }, featuredBooks, categories] = await Promise.all([searchParams, getHomeFeaturedBooks(4), getPublicCategories()]);
+  const storeCategories = categories.filter((category) => (category.books_count ?? 0) > 0).slice(0, 8);
   const chosenPack = PUBLISHING_PACKS.find((item) => item.name === pack);
   const defaultProject = chosenPack ? `Je suis intéressé(e) par le pack ${chosenPack.name} (${chosenPack.price}).` : projet ? `Je souhaite être averti(e) du lancement de ${projet}.` : "";
 
@@ -223,12 +224,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             title="Vos auteurs africains, dans votre poche."
             action={<ButtonLink href="/librairie" variant="outline-on-dark">Voir tout le catalogue <ArrowRight aria-hidden="true" /></ButtonLink>}
           />
-          {categories.length > 0 ? (
+          {storeCategories.length > 0 ? (
             <ul aria-label="Catégories" className="mt-8 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
               <li className="shrink-0">
                 <Link href="/librairie?sort=newest" className="inline-flex min-h-11 items-center rounded-full bg-brand px-4 text-sm font-semibold text-black transition-colors hover:bg-brand-soft">Nouveautés</Link>
               </li>
-              {categories.slice(0, 8).map((category) => (
+              {storeCategories.map((category) => (
                 <li key={category.id} className="shrink-0">
                   <Link href={`/librairie?category=${encodeURIComponent(category.name)}`} className="inline-flex min-h-11 items-center rounded-full border border-white/20 px-4 text-sm font-semibold text-white transition-colors hover:border-white hover:bg-white/10">
                     {category.name}

@@ -157,3 +157,38 @@ export async function getHomeFeaturedBooks(limit = 4) {
   }
   return (await getPublishedBooks()).slice(0, limit);
 }
+
+export type CatalogueResult =
+  | { status: "ok"; books: PublishedBook[]; total: number; currentPage: number; lastPage: number }
+  | { status: "error" };
+
+/** Page du catalogue telle que filtrée et triée par l'API (query issue de catalogueApiQuery). */
+export async function getCataloguePage(query: string): Promise<CatalogueResult> {
+  try {
+    const [response, favoriteIds] = await Promise.all([
+      apiServer<ApiPagination<ApiBook>>(`books?${query}`, { authenticated: false }),
+      getFavoriteIds(),
+    ]);
+    const books = (response.data ?? []).map((book) => mapBook(book, favoriteIds));
+    return {
+      status: "ok",
+      books,
+      total: response.meta?.total ?? books.length,
+      currentPage: response.meta?.current_page ?? 1,
+      lastPage: response.meta?.last_page ?? 1,
+    };
+  } catch (error) {
+    console.error("[Books] Catalogue unavailable.", error);
+    return { status: "error" };
+  }
+}
+
+/** Sélection « vente flash » configurée dans l'administration. */
+export async function getFlashSaleBooks() {
+  try {
+    const response = await apiServer<{ discount_percentage: number; books: ApiBook[] }>("home/flash-sale", { authenticated: false });
+    return { discountPercentage: response.discount_percentage ?? 0, books: (response.books ?? []).map((book) => mapBook(book)) };
+  } catch {
+    return { discountPercentage: 0, books: [] };
+  }
+}

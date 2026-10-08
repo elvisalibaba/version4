@@ -20,15 +20,24 @@ class PublicContentController extends Controller
 {
     public function categories(): JsonResponse
     {
-        return response()->json([
-            'data' => Category::query()
-                ->where('is_active', true)
-                ->withCount('books')
-                ->orderByDesc('is_featured')
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get(),
-        ]);
+        // Même source que le filtre `category` du catalogue : le champ JSON des
+        // livres visibles publiquement (la table pivot n'est pas toujours tenue à jour).
+        $publicBookCounts = Book::query()
+            ->publiclyAvailable()
+            ->pluck('categories')
+            ->flatten()
+            ->filter(fn (mixed $name): bool => is_string($name) && $name !== '')
+            ->countBy();
+
+        $categories = Category::query()
+            ->where('is_active', true)
+            ->orderByDesc('is_featured')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->each(fn (Category $category) => $category->setAttribute('books_count', (int) $publicBookCounts->get($category->name, 0)));
+
+        return response()->json(['data' => $categories]);
     }
 
     public function plans(): JsonResponse

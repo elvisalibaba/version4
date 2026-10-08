@@ -4,6 +4,7 @@ namespace Tests\Feature\Api\V1;
 
 use App\Models\Book;
 use App\Models\BookFormat;
+use App\Models\Category;
 use App\Models\MediaEdition;
 use App\Models\Rating;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -169,6 +170,21 @@ class BookCatalogueFilterTest extends TestCase
             [$match->id],
             $this->catalogueIds('?search=Prière&editorial_pole=ecclesial&work_type=prayer&category=Vie%20chrétienne&is_free=1'),
         );
+    }
+
+    public function test_category_counts_match_the_public_catalogue_filter(): void
+    {
+        Category::query()->create(['name' => 'Contes de test', 'slug' => 'contes-de-test', 'is_active' => true]);
+        Category::query()->create(['name' => 'Fables de test', 'slug' => 'fables-de-test', 'is_active' => true]);
+        Book::factory()->count(2)->create(['categories' => ['Contes de test']]);
+        Book::factory()->draft()->create(['categories' => ['Contes de test']]);
+        Book::factory()->create(['categories' => ['Contes de test'], 'copyright_status' => 'review']);
+
+        $counts = collect($this->getJson('/api/v1/categories')->assertOk()->json('data'))->pluck('books_count', 'name');
+
+        $this->assertSame(2, $counts['Contes de test']);
+        $this->assertSame(0, $counts['Fables de test']);
+        $this->assertCount(2, $this->catalogueIds('?category=Contes%20de%20test'));
     }
 
     /**
