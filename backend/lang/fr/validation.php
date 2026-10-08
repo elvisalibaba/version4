@@ -7,4 +7,11 @@ return [
     ],
     'mimetypes' => 'Le fichier :attribute doit être d’un type autorisé.',
     'mimes' => 'Le fichier :attribute doit être de type : :values.',
+    'password' => [
+        'letters' => 'Le champ :attribute doit contenir au moins une lettre.',
+        'mixed' => 'Le champ :attribute doit contenir au moins une lettre majuscule et une lettre minuscule.',
+        'numbers' => 'Le champ :attribute doit contenir au moins un chiffre.',
+        'symbols' => 'Le champ :attribute doit contenir au moins un symbole.',
+        'uncompromised' => 'Le :attribute renseigné est apparu dans une fuite de données. Veuillez en choisir un autre.',
+    ],
 ];

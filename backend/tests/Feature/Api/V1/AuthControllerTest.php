@@ -52,6 +52,21 @@ class AuthControllerTest extends TestCase
         $this->assertDatabaseMissing('users', ['email' => 'admin@example.com']);
     }
 
+    public function test_password_number_validation_message_is_translated_in_french(): void
+    {
+        $this->app->setLocale('fr');
+
+        $this->postJson('/api/v1/auth/register', [
+            'email' => 'reader@example.com',
+            'password' => 'Password',
+            'password_confirmation' => 'Password',
+            'role' => 'reader',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'password' => 'Le champ password doit contenir au moins un chiffre.',
+            ]);
+    }
+
     public function test_unverified_user_cannot_login(): void
     {
         $user = User::factory()->create([
