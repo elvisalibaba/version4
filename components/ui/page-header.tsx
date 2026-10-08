@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { Ribbon } from "@/components/brand/ribbon";
 
 export type Crumb = { label: string; href?: string };
 
@@ -27,12 +26,11 @@ export function Breadcrumbs({ items, tone = "ink" }: { items: Crumb[]; tone?: "i
   );
 }
 
-/** Rubrique façon édition : ruban, numéro de chapitre, intitulé. */
+/** Surtitre de la charte (Montserrat 700, capitales espacées), avec numéro optionnel. */
 export function Kicker({ children, index, tone = "ink" }: { children: ReactNode; index?: string; tone?: "ink" | "light" }) {
   return (
-    <p className={`flex items-center gap-2.5 text-[0.78rem] font-semibold uppercase tracking-[0.14em] ${tone === "light" ? "text-night-100" : "text-night-700"}`}>
-      <Ribbon className="h-4 w-2.5" />
-      {index ? <span className="font-display text-sm normal-case tracking-normal text-brand-600">{index}</span> : null}
+    <p className={`hb-eyebrow flex items-center gap-2.5 ${tone === "light" ? "!text-brand-soft" : ""}`}>
+      {index ? <span>{index}</span> : null}
       <span>{children}</span>
     </p>
   );

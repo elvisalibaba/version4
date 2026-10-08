@@ -1,20 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Newsreader } from "next/font/google";
+import { Instrument_Sans, Montserrat } from "next/font/google";
 import Script from "next/script";
 import { ChromeFrame } from "@/components/layout/chrome-frame";
 import { CookieConsentBanner } from "@/components/layout/cookie-consent-banner";
 import { PwaInstallPrompt } from "@/components/layout/pwa-install-prompt";
-import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/ui/site-footer";
+import { SiteHeader } from "@/components/ui/site-header";
 // Fichier renommé (ex-globals.css) : force Vercel à recompiler Tailwind au lieu de réutiliser un cache périmé.
 import "./theme.css";
 import "./cinema-theme.css";
 import "./brand.css";
 import { getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
-// Identité « maison d'édition » : titres en Newsreader (serif conçue pour la lecture), interface en Inter.
-const inter = Inter({ subsets: ["latin"], variable: "--font-body", display: "swap" });
-const newsreader = Newsreader({ subsets: ["latin"], variable: "--font-display", display: "swap", style: ["normal", "italic"], weight: ["400", "500", "600", "700"] });
+// Charte Holistique Books : titres en Montserrat, texte en Instrument Sans.
+const instrumentSans = Instrument_Sans({ subsets: ["latin"], variable: "--font-body", display: "swap", weight: ["400", "500", "600"] });
+const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-display", display: "swap" });
 const DEV_SERVICE_WORKER_RESET_SCRIPT = `
 (() => {
   if (!("serviceWorker" in navigator)) return;
@@ -75,7 +75,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0b1f3a",
+  themeColor: "#0E1124",
 };
 
 export default function RootLayout({
@@ -85,7 +85,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" data-scroll-behavior="smooth">
-      <body className={`${inter.variable} ${newsreader.variable} premium-body bg-paper text-slate-900 antialiased`}>
+      <body className={`${instrumentSans.variable} ${montserrat.variable} premium-body bg-paper text-slate-900 antialiased`}>
         {process.env.NODE_ENV !== "production" ? (
           <Script id="dev-service-worker-reset" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: DEV_SERVICE_WORKER_RESET_SCRIPT }} />
         ) : null}

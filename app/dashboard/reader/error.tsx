@@ -13,7 +13,7 @@ export default function ReaderDashboardError({
     <section
       role="alert"
       aria-labelledby="reader-dashboard-error-title"
-      className="rounded-md border border-brand-200 bg-paper p-5 shadow-[0_18px_42px_rgba(11,31,58,0.05)] sm:rounded-md sm:p-8"
+      className="rounded-md border border-brand-200 bg-paper p-5 shadow-[0_18px_42px_rgba(14, 17, 36,0.05)] sm:rounded-md sm:p-8"
     >
       <span className="grid h-12 w-12 place-items-center rounded-md bg-brand-50 text-brand-600">
         <AlertTriangle aria-hidden="true" className="h-5 w-5" />

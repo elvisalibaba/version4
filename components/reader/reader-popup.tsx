@@ -99,19 +99,19 @@ const HIGHLIGHT_COLOR_OPTIONS: Array<{
     value: "yellow",
     label: "Jaune",
     buttonClassName: "border-amber-200 bg-amber-50 text-amber-800",
-    annotationStyles: { fill: "#c8102e", "fill-opacity": "0.28" },
+    annotationStyles: { fill: "#2B3FD6", "fill-opacity": "0.28" },
   },
   {
     value: "blue",
     label: "Bleu",
     buttonClassName: "border-sky-200 bg-sky-50 text-sky-800",
-    annotationStyles: { fill: "#2c4a73", "fill-opacity": "0.22" },
+    annotationStyles: { fill: "#3D4260", "fill-opacity": "0.22" },
   },
   {
     value: "pink",
     label: "Rose",
     buttonClassName: "border-rose-200 bg-rose-50 text-rose-800",
-    annotationStyles: { fill: "#c8102e", "fill-opacity": "0.2" },
+    annotationStyles: { fill: "#2B3FD6", "fill-opacity": "0.2" },
   },
   {
     value: "green",
@@ -489,7 +489,7 @@ export function ReaderPopup({
       rendition.themes.register("light", {
         body: {
           background: "#ffffff",
-          color: "#0b1f3a",
+          color: "#0E1124",
           "font-family": "'Iowan Old Style', Georgia, serif",
         },
       });
@@ -502,8 +502,8 @@ export function ReaderPopup({
       });
       rendition.themes.register("dark", {
         body: {
-          background: "#0b1f3a",
-          color: "#f2f5fa",
+          background: "#0E1124",
+          color: "#F4F5FA",
           "font-family": "'Iowan Old Style', Georgia, serif",
         },
       });
@@ -767,7 +767,7 @@ export function ReaderPopup({
         aria-modal="true"
         aria-labelledby={dialogTitleId}
         tabIndex={-1}
-        className="reader-window flex h-[100dvh] w-full max-w-[100rem] flex-col overflow-hidden rounded-none border-0 border-black/10 bg-paper-deep shadow-[0_35px_100px_rgba(11,31,58,.45)] outline-none sm:h-[97vh] sm:rounded-md sm:border"
+        className="reader-window flex h-[100dvh] w-full max-w-[100rem] flex-col overflow-hidden rounded-none border-0 border-black/10 bg-paper-deep shadow-[0_35px_100px_rgba(14, 17, 36,.45)] outline-none sm:h-[97vh] sm:rounded-md sm:border"
       >
         <h2 id={dialogTitleId} className="sr-only">Lecteur Holistique Books</h2>
         <div className="reader-toolbar reader-mobile-toolbar grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-rule-strong bg-white px-3 py-2 text-night-900 sm:flex sm:flex-wrap sm:justify-between sm:gap-3 sm:px-5 sm:py-3">
@@ -859,7 +859,7 @@ export function ReaderPopup({
                     onError={setError}
                   />
                 ) : (
-                  <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-none bg-paper-deep p-1 shadow-[0_20px_40px_rgba(11,31,58,0.22)] sm:rounded-md sm:p-2">
+                  <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-none bg-paper-deep p-1 shadow-[0_20px_40px_rgba(14, 17, 36,0.22)] sm:rounded-md sm:p-2">
                     <div ref={mountRef} className="h-full min-h-0 w-full overflow-hidden rounded-md bg-white sm:rounded-md" onContextMenu={(event) => event.preventDefault()} />
                   </div>
                 )}

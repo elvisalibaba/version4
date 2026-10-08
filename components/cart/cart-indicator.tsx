@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import { cartCount, onCartAdded, useCart } from "@/lib/cart";
 
-/** Pastille rouge qui rebondit à chaque ajout. */
+/** Pastille qui rebondit à chaque ajout. */
 export function CartCountBadge({ className = "" }: { className?: string }) {
   const count = cartCount(useCart());
   const [bump, setBump] = useState(0);
@@ -17,7 +17,7 @@ export function CartCountBadge({ className = "" }: { className?: string }) {
   return (
     <span
       key={bump}
-      className={`hb-cart-badge grid min-w-[1.15rem] place-items-center rounded-sm bg-brand-600 px-1 text-[0.68rem] font-bold leading-[1.15rem] text-white ${bump ? "is-bumping" : ""} ${className}`}
+      className={`hb-cart-badge grid min-w-[1.15rem] place-items-center rounded-full bg-brand-deep px-1 text-[0.68rem] font-bold leading-[1.15rem] text-white ${bump ? "is-bumping" : ""} ${className}`}
       aria-hidden="true"
     >
       {count > 99 ? "99+" : count}
@@ -33,13 +33,12 @@ export function CartIndicator() {
     <Link
       href="/cart"
       data-cart-target
-      className="relative grid h-11 w-11 place-items-center rounded-sm text-night-900 transition hover:bg-paper-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+      className="inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-full bg-ink px-3 text-sm font-semibold text-white transition-colors hover:bg-ink-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-deep focus-visible:ring-offset-2 sm:px-4"
       aria-label={count > 0 ? `Panier, ${count} article${count > 1 ? "s" : ""}` : "Panier"}
     >
-      <span className="relative">
-        <ShoppingCart aria-hidden="true" className="h-5 w-5" />
-        <CartCountBadge className="absolute -right-2.5 -top-2" />
-      </span>
+      <ShoppingCart aria-hidden="true" className="h-4 w-4" />
+      <span aria-hidden="true" className="hidden sm:inline">Panier</span>
+      {count > 0 ? <span aria-hidden="true" className="tabular-nums">· {count > 99 ? "99+" : count}</span> : null}
     </Link>
   );
 }

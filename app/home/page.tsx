@@ -4,7 +4,6 @@ import Link from "next/link";
 import { ArrowRight, BookOpen, GraduationCap, LockKeyhole, PenLine, School, Smartphone, Wallet } from "lucide-react";
 import { AdSlot } from "@/components/ads/ad-slot";
 import { BookCard } from "@/components/books/book-card";
-import { Ribbon } from "@/components/brand/ribbon";
 import { AllAuthorsSection } from "@/components/home/all-authors-section";
 import { Kicker, SectionHeading } from "@/components/ui/page-header";
 import { getPublicAuthors } from "@/lib/authors";
@@ -166,7 +165,6 @@ export default async function HomePage() {
       {/* Mot de la direction */}
       <section className="hb-reveal bg-night-900 text-white">
         <figure className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 sm:py-20">
-          <Ribbon className="mx-auto h-8 w-5" />
           <blockquote className="mt-6 font-display text-[1.65rem] font-medium italic leading-snug sm:text-[2.1rem]">
             « La littérature est une âme de l’entreprise : elle n’est plus une option, mais une nécessité pour construire, transmettre et réussir. »
           </blockquote>

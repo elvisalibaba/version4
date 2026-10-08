@@ -1,12 +1,12 @@
 /* =============================================================================
-   Identité Holistique Books — « maison d'édition ».
-   Papier blanc cassé, encre bleu nuit, ruban rouge. Titres en serif (Newsreader),
-   interface en Inter. Chargée en dernier : harmonise toutes les pages.
+   Identité Holistique Books — charte « De l'idée à l'impact ».
+   Blanc, encre #0E1124, bleu du logo. Titres en Montserrat, texte en
+   Instrument Sans. Chargée en dernier : harmonise toutes les pages.
    ========================================================================== */
 
 body {
   background: var(--color-paper);
-  color: #0f172a;
+  color: var(--color-ink);
   font-family: var(--font-body), system-ui, sans-serif;
   line-height: 1.55;
   font-feature-settings: "kern", "liga";
@@ -17,24 +17,36 @@ body {
   display: none;
 }
 
-/* Tous les grands titres en serif, partout (site, espaces lecteur et auteur). */
+/* Titres en Montserrat, partout (site, espaces lecteur et auteur). */
 h1,
 h2,
 .font-display {
-  font-family: var(--font-display), Georgia, serif;
-  letter-spacing: -0.012em;
+  font-family: var(--font-display), system-ui, sans-serif;
+  letter-spacing: -0.02em;
 }
 
-h1 { font-weight: 600; }
+h1,
+h2 { font-weight: 800; }
+
+/* Surtitre : Montserrat 700, 13 px, capitales espacées. */
+.hb-eyebrow {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--color-brand-deep);
+}
 
 :focus-visible {
-  outline: 2px solid #c8102e;
+  outline: 2px solid #2B3FD6;
   outline-offset: 2px;
 }
 
 ::selection {
-  background: #fce4e8;
-  color: #0b1f3a;
+  background: #E0E4FF;
+  color: #0E1124;
 }
 
 /* Les pages pleine largeur gèrent leurs propres bandeaux. */
@@ -49,18 +61,18 @@ h1 { font-weight: 600; }
   margin: 0;
 }
 
-/* Liens éditoriaux : soulignement rouge qui se dessine. */
+/* Liens éditoriaux : soulignement qui se dessine. */
 .hb-link {
   background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
   transition: background-size 0.25s ease, color 0.2s ease;
 }
 
 .hb-link:hover {
-  color: #a50d26;
+  color: #2233B0;
   background-size: 100% 1px;
 }
 
-/* Navigation : onglet courant marqué par un filet rouge. */
+/* Navigation : onglet courant marqué d'un filet bleu. */
 .hb-tab {
   position: relative;
   transition: color 0.2s ease;
@@ -73,7 +85,7 @@ h1 { font-weight: 600; }
   right: 0.625rem;
   bottom: 0.15rem;
   height: 2px;
-  background: #c8102e;
+  background: #2B3FD6;
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.25s ease;
@@ -81,7 +93,7 @@ h1 { font-weight: 600; }
 
 .hb-tab:hover,
 .hb-tab[aria-current="page"] {
-  color: #0b1f3a;
+  color: #0E1124;
 }
 
 .hb-tab:hover::after,
@@ -89,31 +101,12 @@ h1 { font-weight: 600; }
   transform: scaleX(1);
 }
 
-/* Couverture traitée comme un objet livre : dos, reliure, ombre portée. */
+/* Couverture : coins arrondis et ombre douce, sans effet décoratif. */
 .hb-book {
   position: relative;
   overflow: hidden;
-  border-radius: 2px 4px 4px 2px;
-  box-shadow: 0 1px 2px rgba(11, 31, 58, 0.12), 0 8px 18px -8px rgba(11, 31, 58, 0.35);
-}
-
-.hb-book::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  z-index: 1;
-  width: 7%;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.22), rgba(255, 255, 255, 0.18) 45%, rgba(0, 0, 0, 0.08));
-  pointer-events: none;
-}
-
-.hb-book::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(115deg, rgba(255, 255, 255, 0.14), transparent 35%);
-  pointer-events: none;
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-cover);
 }
 
 /* Barre d'onglets mobile */
@@ -128,20 +121,20 @@ h1 { font-weight: 600; }
   border-radius: 0;
   background: var(--color-paper);
   padding: 0.25rem 0.25rem max(0.25rem, env(safe-area-inset-bottom));
-  box-shadow: 0 -4px 12px rgba(11, 31, 58, 0.05);
+  box-shadow: 0 -4px 12px rgba(14, 17, 36, 0.05);
   backdrop-filter: none;
 }
 
 .hb-app-nav-item {
   min-height: 3.25rem;
   border-radius: 2px;
-  color: #475569;
+  color: #3D4260;
   font-weight: 600;
 }
 
 .hb-app-nav-item.is-active {
   background: transparent;
-  color: #c8102e;
+  color: #2B3FD6;
   box-shadow: none;
 }
 
@@ -159,13 +152,13 @@ h1 { font-weight: 600; }
   }
 }
 
-/* Boutons : angles nets, comme une couverture. Rouge = action principale. */
+/* Boutons en pilule. Bleu profond = action principale. */
 .cta-primary,
 .hb-button-primary,
 .ios-button-primary {
-  border-radius: 2px;
+  border-radius: 9999px;
   border: 1px solid transparent;
-  background: #c8102e;
+  background: #2B3FD6;
   color: #ffffff;
   font-weight: 600;
   letter-spacing: 0.005em;
@@ -177,7 +170,7 @@ h1 { font-weight: 600; }
 .hb-button-primary:hover,
 .ios-button-primary:hover {
   transform: none;
-  background: #a50d26;
+  background: #2233B0;
   box-shadow: none;
   filter: none;
 }
@@ -191,10 +184,10 @@ h1 { font-weight: 600; }
 .hb-button-ghost,
 .hb-top-button,
 .ios-button-secondary {
-  border-radius: 2px;
-  border: 1px solid #0b1f3a;
+  border-radius: 9999px;
+  border: 1px solid #0E1124;
   background: transparent;
-  color: #0b1f3a;
+  color: #0E1124;
   font-weight: 600;
   box-shadow: none;
   transition: background-color 0.15s ease, color 0.15s ease;
@@ -205,7 +198,7 @@ h1 { font-weight: 600; }
 .hb-top-button:hover,
 .ios-button-secondary:hover {
   transform: none;
-  background: #0b1f3a;
+  background: #0E1124;
   color: #ffffff;
 }
 
@@ -215,8 +208,8 @@ h1 { font-weight: 600; }
 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
 select,
 textarea {
-  border-radius: 2px;
-  border: 1px solid #d6cfc1;
+  border-radius: 0.75rem;
+  border: 1px solid #CFD3E8;
   background: #ffffff;
   box-shadow: none;
 }
@@ -226,8 +219,8 @@ textarea {
 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
 select:focus,
 textarea:focus {
-  border-color: #0b1f3a;
-  outline: 2px solid rgba(200, 16, 46, 0.25);
+  border-color: #0E1124;
+  outline: 2px solid rgba(43, 63, 214, 0.25);
   outline-offset: 0;
 }
 
@@ -245,22 +238,22 @@ input.hb-bare-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]
   border: 1px solid var(--color-rule);
   border-radius: 2px;
   background: #ffffff;
-  box-shadow: 0 8px 24px rgba(11, 31, 58, 0.12);
+  box-shadow: 0 8px 24px rgba(14, 17, 36, 0.12);
   backdrop-filter: none;
 }
 
 .hb-cookie-banner-title {
-  color: #0b1f3a;
+  color: #0E1124;
   font-family: var(--font-display), Georgia, serif;
   font-weight: 600;
 }
 
 .hb-cookie-banner-text {
-  color: #475569;
+  color: #3D4260;
 }
 
 .hb-cookie-banner-link {
-  color: #1e3a64;
+  color: #1C2140;
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -339,8 +332,8 @@ input.hb-bare-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]
   z-index: 120;
   overflow: hidden;
   border-radius: 0.375rem;
-  background: #0b1f3a;
-  box-shadow: 0 18px 40px rgba(11, 31, 58, 0.35);
+  background: #0E1124;
+  box-shadow: 0 18px 40px rgba(14, 17, 36, 0.35);
   pointer-events: none;
   will-change: transform, opacity;
 }
@@ -390,7 +383,7 @@ input.hb-bare-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]
   border: 1px solid var(--color-rule);
   border-radius: 2px;
   background: #ffffff;
-  box-shadow: 0 24px 48px rgba(11, 31, 58, 0.18);
+  box-shadow: 0 24px 48px rgba(14, 17, 36, 0.18);
   opacity: 0;
   transform: translateY(-12px) scale(0.98);
   transform-origin: top right;
@@ -460,7 +453,7 @@ input.hb-bare-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]
 @media (hover: hover) {
   .group:hover .hb-card-cover {
     transform: translateY(-4px);
-    box-shadow: 0 14px 28px rgba(11, 31, 58, 0.16);
+    box-shadow: 0 14px 28px rgba(14, 17, 36, 0.16);
   }
 }
 
@@ -520,7 +513,7 @@ input.hb-bare-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]
 .section-title,
 .ios-title,
 .hb-title {
-  color: #0b1f3a;
+  color: #0E1124;
   font-family: var(--font-display), Georgia, serif;
   font-weight: 600;
   letter-spacing: -0.012em;
@@ -529,7 +522,7 @@ input.hb-bare-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]
 .section-description,
 .ios-muted,
 .hb-muted {
-  color: #475569;
+  color: #3D4260;
 }
 
 .section-kicker,
@@ -543,7 +536,7 @@ input.hb-bare-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]
   border-radius: 0;
   background: none;
   padding: 0;
-  color: #1e3a64;
+  color: #1C2140;
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -558,7 +551,7 @@ input.hb-bare-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]
   width: 0.55rem;
   height: 0.9rem;
   flex-shrink: 0;
-  background: #c8102e;
+  background: #2B3FD6;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
 }
 
@@ -567,7 +560,7 @@ input.hb-bare-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]
   border: 1px solid var(--color-rule-strong);
   border-radius: 2px;
   background: #ffffff;
-  color: #0b1f3a;
+  color: #0E1124;
   font-weight: 600;
   box-shadow: none;
 }

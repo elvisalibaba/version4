@@ -82,7 +82,7 @@ export function PdfReaderSurface({
         {visiblePages.map((pageNumber) => (
           <figure
             key={pageNumber}
-            className="relative overflow-hidden rounded-md border border-slate-400 bg-paper-deep p-1.5 shadow-[0_24px_60px_rgba(11,31,58,0.38)] sm:rounded-md sm:p-4"
+            className="relative overflow-hidden rounded-md border border-slate-400 bg-paper-deep p-1.5 shadow-[0_24px_60px_rgba(14, 17, 36,0.38)] sm:rounded-md sm:p-4"
           >
             <div className="relative flex justify-center overflow-auto">
               {/* Le navigateur ne reçoit que le rendu JPEG de cette page, jamais le PDF source complet. */}
@@ -93,7 +93,7 @@ export function PdfReaderSurface({
                 draggable={false}
                 onLoad={() => markLoaded(pageNumber)}
                 onError={() => markError(pageNumber)}
-                className="select-none rounded-md shadow-[0_12px_30px_rgba(11,31,58,0.16)]"
+                className="select-none rounded-md shadow-[0_12px_30px_rgba(14, 17, 36,0.16)]"
                 style={{
                   width: `${Math.max(80, Math.min(220, scale * 100))}%`,
                   maxWidth: "none",

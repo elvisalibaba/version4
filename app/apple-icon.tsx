@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 export const size = {
@@ -7,7 +9,12 @@ export const size = {
 
 export const contentType = "image/png";
 
-export default function AppleIcon() {
+/** Icône de l'application : la marque blanche sur le bleu du logo. */
+export default async function AppleIcon() {
+  const mark = await readFile(join(process.cwd(), "public/brand/icon-white.png"));
+  const src = `data:image/png;base64,${mark.toString("base64")}`;
+  const markHeight = Math.round(size.height * 0.62);
+
   return new ImageResponse(
     (
       <div
@@ -17,17 +24,10 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background:
-            "radial-gradient(circle at top right, rgba(248,198,207,0.28), transparent 24%), linear-gradient(135deg, #0b1f3à 0%, #820b1f 52%, #820b1f 100%)",
-          color: "#f8fafc",
-          fontSize: 76,
-          fontWeight: 800,
-          fontFamily: "Georgia, serif",
-          letterSpacing: "-0.08em",
-          borderRadius: 42,
+          background: "#506AFF",
         }}
       >
-        HB
+        <img src={src} alt="" height={markHeight} width={Math.round(markHeight * (484 / 658))} />
       </div>
     ),
     size,

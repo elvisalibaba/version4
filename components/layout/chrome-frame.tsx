@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Library, Search, ShoppingCart, UserCircle2 } from "lucide-react";
-import { WordmarkLink } from "@/components/brand/ribbon";
+import { LogoLink } from "@/components/brand/logo";
 import { CartFeedback } from "@/components/cart/cart-feedback";
 import { CartCountBadge } from "@/components/cart/cart-indicator";
 
@@ -53,8 +53,8 @@ export function ChromeFrame({ header, footer, children }: ChromeFrameProps) {
       <div className="min-h-screen bg-paper">
         <header className="border-b border-rule bg-paper">
           <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
-            <WordmarkLink size="sm" />
-            <Link href="/books?access=free" className="hb-link text-sm font-medium text-night-800">
+            <LogoLink height={32} />
+            <Link href="/librairie?is_free=1" className="hb-link text-sm font-medium text-night-800">
               Lire sans compte
             </Link>
           </div>

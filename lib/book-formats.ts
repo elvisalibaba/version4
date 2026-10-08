@@ -10,12 +10,12 @@ export type CheckoutBookFormat = (typeof CHECKOUT_BOOK_FORMATS)[number];
 const FORMAT_ORDER = new Map<BookFormatType, number>(BOOK_FORMATS.map((format, index) => [format, index]));
 
 export const BOOK_FORMAT_LABELS: Record<BookFormatType, string> = {
-  holistique_store: "Holistique Store",
+  holistique_store: "Lecture en ligne",
   ebook: "eBook",
-  paperback: "Broche",
+  paperback: "Broché",
   pocket: "Poche",
-  hardcover: "Relie",
-  audiobook: "Audiobook",
+  hardcover: "Relié",
+  audiobook: "Audio",
 };
 
 export function getBookFormatLabel(format: BookFormatType) {

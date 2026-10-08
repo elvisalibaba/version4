@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 export const size = {
@@ -7,7 +9,12 @@ export const size = {
 
 export const contentType = "image/png";
 
-export default function Icon() {
+/** Icône de l'application : la marque blanche sur le bleu du logo. */
+export default async function Icon() {
+  const mark = await readFile(join(process.cwd(), "public/brand/icon-white.png"));
+  const src = `data:image/png;base64,${mark.toString("base64")}`;
+  const markHeight = Math.round(size.height * 0.62);
+
   return new ImageResponse(
     (
       <div
@@ -17,30 +24,10 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background:
-            "radial-gradient(circle at top right, rgba(248,198,207,0.28), transparent 24%), linear-gradient(135deg, #0b1f3à 0%, #820b1f 52%, #820b1f 100%)",
-          color: "#f8fafc",
-          fontSize: 210,
-          fontWeight: 800,
-          fontFamily: "Georgia, serif",
-          letterSpacing: "-0.08em",
+          background: "#506AFF",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            width: 400,
-            height: 400,
-            borderRadius: 120,
-            alignItems: "center",
-            justifyContent: "center",
-            border: "1px solid rgba(253,242,244,0.18)",
-            boxShadow: "0 30px 60px rgba(11,31,58,0.22) inset",
-            background: "linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
-          }}
-        >
-          HB
-        </div>
+        <img src={src} alt="" height={markHeight} width={Math.round(markHeight * (484 / 658))} />
       </div>
     ),
     size,
