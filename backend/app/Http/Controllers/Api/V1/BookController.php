@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Book\IndexBookRequest;
 use App\Http\Requests\Book\StoreBookRequest;
 use App\Http\Requests\Book\UpdateBookRequest;
 use App\Http\Resources\BookResource;
@@ -12,6 +13,7 @@ use App\Models\Book;
 use App\Services\BookDocumentMetadataService;
 use App\Services\BookTaxonomyService;
 use App\Services\PrivateBookFileService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
@@ -20,8 +22,11 @@ use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
 {
-    public function index(): AnonymousResourceCollection
+    public function index(IndexBookRequest $request): AnonymousResourceCollection
     {
+        $filters = $request->validated();
+        $formats = $request->formats();
+
         $books = Book::query()
             ->publiclyAvailable()
             ->withAvg([
@@ -38,9 +43,9 @@ class BookController extends Controller
                 'mediaEditions' => fn ($query) => $query->where('status', 'published'),
                 'formats' => fn ($query) => $query->where('is_published', true),
             ])
-            ->when(request()->string('search')->isNotEmpty(), function ($query): void {
+            ->when(filled($filters['search'] ?? null), function ($query) use ($filters): void {
                 // Échappe % et _ : saisis par l'utilisateur, ils deviendraient des jokers SQL.
-                $search = addcslashes(mb_substr(request()->string('search')->trim()->toString(), 0, 120), '%_\\');
+                $search = addcslashes(mb_substr(trim($filters['search']), 0, 120), '%_\\');
                 $query->where(fn ($query) => $query
                     ->where('title', 'like', "%{$search}%")
                     ->orWhere('subtitle', 'like', "%{$search}%")
@@ -49,14 +54,14 @@ class BookController extends Controller
                     ->orWhere('publisher', 'like', "%{$search}%")
                 );
             })
-            ->when(request()->string('category')->isNotEmpty(), fn ($query) => $query
-                ->whereJsonContains('categories', request()->string('category')->toString()))
-            ->when(request()->string('editorial_pole')->isNotEmpty(), fn ($query) => $query
-                ->where('editorial_pole', request()->string('editorial_pole')->toString()))
-            ->when(request()->string('work_type')->isNotEmpty(), fn ($query) => $query
-                ->where('work_type', request()->string('work_type')->toString()))
-            ->when(request()->string('education')->isNotEmpty(), function ($query): void {
-                $education = request()->string('education')->toString();
+            ->when(filled($filters['category'] ?? null), fn ($query) => $query
+                ->whereJsonContains('categories', $filters['category']))
+            ->when(filled($filters['editorial_pole'] ?? null), fn ($query) => $query
+                ->where('editorial_pole', $filters['editorial_pole']))
+            ->when(filled($filters['work_type'] ?? null), fn ($query) => $query
+                ->where('work_type', $filters['work_type']))
+            ->when(filled($filters['education'] ?? null), function ($query) use ($filters): void {
+                $education = $filters['education'];
                 $taxonomy = AcademicTaxonomy::query()
                     ->where('slug', $education)
                     ->orWhere('code', $education)
@@ -89,14 +94,25 @@ class BookController extends Controller
                 $query->whereHas('educationTaxonomies', fn ($taxonomyQuery) => $taxonomyQuery
                     ->whereIn('academic_taxonomies.id', $taxonomyIds));
             })
-            ->when(request()->string('education_audience')->isNotEmpty(), function ($query): void {
-                $audience = request()->string('education_audience')->toString();
-                $query->whereHas('educationTaxonomies', fn ($taxonomyQuery) => $taxonomyQuery
-                    ->where('academic_taxonomies.audience', $audience));
-            })
-            ->latest('published_at')
-            ->orderByDesc('id')
-            ->paginate(24);
+            ->when(filled($filters['education_audience'] ?? null), fn ($query) => $query
+                ->whereHas('educationTaxonomies', fn ($taxonomyQuery) => $taxonomyQuery
+                    ->where('academic_taxonomies.audience', $filters['education_audience'])))
+            ->when($formats !== [], fn ($query) => $this->filterByFormats($query, $formats))
+            ->when(filled($filters['language'] ?? null), fn ($query) => $query
+                ->where('language', $filters['language']))
+            ->when(isset($filters['is_free']), fn ($query) => $request->boolean('is_free')
+                ? $query->where('is_single_sale_enabled', true)->where('price', '<=', 0)
+                : $query->where(fn ($query) => $query->where('is_single_sale_enabled', false)->orWhere('price', '>', 0)))
+            ->when(isset($filters['subscription']), fn ($query) => $query
+                ->where('is_subscription_available', $request->boolean('subscription')))
+            ->when(isset($filters['has_sample']), fn ($query) => $request->boolean('has_sample')
+                ? $query->whereNotNull('sample_url')->where('sample_url', '!=', '')
+                : $query->where(fn ($query) => $query->whereNull('sample_url')->orWhere('sample_url', '')))
+            ->when(isset($filters['price_min']), fn ($query) => $query->where('price', '>=', $filters['price_min']))
+            ->when(isset($filters['price_max']), fn ($query) => $query->where('price', '<=', $filters['price_max']))
+            ->tap(fn ($query) => $this->applySort($query, $filters['sort'] ?? 'newest'))
+            ->paginate($request->perPage())
+            ->withQueryString();
 
         return BookResource::collection($books);
     }
@@ -455,6 +471,40 @@ class BookController extends Controller
         $book->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * Garde les livres ayant au moins un des formats demandés en vente.
+     * L'audio compte aussi via une édition multimédia publiée.
+     *
+     * @param  list<string>  $formats
+     */
+    private function filterByFormats(Builder $query, array $formats): void
+    {
+        $query->where(function (Builder $query) use ($formats): void {
+            $query->whereHas('formats', fn (Builder $formatQuery) => $formatQuery
+                ->where('is_published', true)
+                ->whereIn('format', $formats));
+
+            if (in_array('audiobook', $formats, true)) {
+                $query->orWhereHas('mediaEditions', fn (Builder $editionQuery) => $editionQuery
+                    ->where('status', 'published')
+                    ->where('media_type', 'audiobook'));
+            }
+        });
+    }
+
+    private function applySort(Builder $query, string $sort): void
+    {
+        match ($sort) {
+            'bestsellers' => $query->orderByDesc('purchases_count'),
+            'price_asc' => $query->orderBy('price'),
+            'price_desc' => $query->orderByDesc('price'),
+            'rating' => $query->orderByDesc('visible_rating_avg')->orderByDesc('visible_ratings_count'),
+            default => null,
+        };
+
+        $query->latest('published_at')->orderByDesc('id');
     }
 
     private function archiveManuscriptVersion(
