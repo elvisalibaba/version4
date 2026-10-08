@@ -37,7 +37,7 @@ export function FilterGroup({ title, options, variant = "radio", className }: Fi
                 scroll={false}
                 aria-current={option.active ? "true" : undefined}
                 className={cx(
-                  "inline-flex min-h-9 items-center rounded-full border px-3.5 text-[0.8rem] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-deep",
+                  "inline-flex min-h-11 items-center rounded-full border px-3.5 text-[0.8rem] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-deep",
                   option.active ? "border-ink bg-ink text-white" : "border-line bg-white text-ink hover:border-brand-tint hover:bg-brand-wash",
                 )}
               >
@@ -48,7 +48,7 @@ export function FilterGroup({ title, options, variant = "radio", className }: Fi
                 href={option.href}
                 scroll={false}
                 aria-current={option.active ? "true" : undefined}
-                className="group flex min-h-10 items-center gap-3 rounded-lg px-1 text-sm text-ink transition-colors hover:text-brand-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-deep"
+                className="group flex min-h-11 items-center gap-3 rounded-lg px-1 text-sm text-ink transition-colors hover:text-brand-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-deep"
               >
                 <span
                   aria-hidden="true"

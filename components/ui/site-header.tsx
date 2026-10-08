@@ -62,10 +62,10 @@ export async function SiteHeader() {
               )}
             </Link>
           ) : (
-            <ButtonLink href="/login" variant="secondary" className="hidden sm:inline-flex">Se connecter</ButtonLink>
+            <ButtonLink href="/login" variant="secondary" className="max-sm:hidden">Se connecter</ButtonLink>
           )}
           <CartIndicator />
-          <ButtonLink href={publishHref} className="hidden xl:inline-flex">Publier mon livre</ButtonLink>
+          <ButtonLink href={publishHref} className="max-xl:hidden">Publier mon livre</ButtonLink>
           <MobileMenu links={SITE_NAV_LINKS}>
             {user ? null : <ButtonLink href="/login" variant="secondary" className="sm:hidden">Se connecter</ButtonLink>}
             <ButtonLink href={publishHref}>Publier mon livre</ButtonLink>

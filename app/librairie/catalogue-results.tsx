@@ -38,7 +38,7 @@ export async function CatalogueResults({ filters }: { filters: CatalogueFilters 
                     href={filter.href}
                     scroll={false}
                     aria-label={`Retirer le filtre ${filter.label}`}
-                    className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-brand-wash pl-3 pr-2 text-[0.8rem] font-semibold text-brand-deep transition-colors hover:bg-brand-tint"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-brand-wash pl-3 pr-2 text-[0.8rem] font-semibold text-brand-deep transition-colors hover:bg-brand-tint"
                   >
                     {filter.label}
                     <X aria-hidden="true" className="h-3.5 w-3.5" />
@@ -46,7 +46,7 @@ export async function CatalogueResults({ filters }: { filters: CatalogueFilters 
                 </li>
               ))}
               <li>
-                <Link href="/librairie" scroll={false} className="inline-flex min-h-9 items-center px-2 text-[0.8rem] font-semibold text-ink underline underline-offset-4">
+                <Link href="/librairie" scroll={false} className="inline-flex min-h-11 items-center px-2 text-[0.8rem] font-semibold text-ink underline underline-offset-4">
                   Tout effacer
                 </Link>
               </li>

@@ -16,7 +16,7 @@ type ChromeFrameProps = {
 
 const appNavItems = [
   { label: "Accueil", href: "/home", icon: Home },
-  { label: "Livres", href: "/books", icon: Search },
+  { label: "Librairie", href: "/librairie", icon: Search },
   { label: "Bibliothèque", href: "/library", icon: Library },
   { label: "Panier", href: "/cart", icon: ShoppingCart },
   { label: "Compte", href: "/dashboard", icon: UserCircle2 },
@@ -108,8 +108,8 @@ function isActivePath(pathname: string, href: string) {
     return pathname === "/" || pathname === "/home";
   }
 
-  if (href === "/books") {
-    return pathname.startsWith("/books") || pathname.startsWith("/book/") || pathname.startsWith("/librairie");
+  if (href === "/librairie") {
+    return pathname.startsWith("/librairie") || pathname.startsWith("/books") || pathname.startsWith("/book/");
   }
 
   if (href === "/dashboard") {

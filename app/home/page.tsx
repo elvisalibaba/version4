@@ -74,9 +74,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {/* Hero */}
       <section aria-labelledby="hero-title" className="bg-ink text-white">
         <div className="mx-auto grid max-w-7xl gap-12 px-4 pb-14 pt-14 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:px-8 lg:pb-20 lg:pt-20">
-          <div className="hb-fade-up">
+          <div className="hb-fade-up min-w-0">
             <p className="hb-eyebrow !text-brand-soft">Édition · Production littéraire · Innovation</p>
-            <h1 id="hero-title" className="mt-5 max-w-2xl font-display text-[2.5rem] font-extrabold leading-[1.05] tracking-[-0.02em] text-balance sm:text-6xl lg:text-[4rem]">
+            <h1 id="hero-title" className="mt-5 max-w-2xl font-display text-[2rem] font-extrabold leading-[1.08] tracking-[-0.02em] text-balance hyphens-auto min-[400px]:text-[2.4rem] sm:text-6xl sm:hyphens-none lg:text-[4rem]">
               La révolution transformationnelle de l’écriture.
             </h1>
             <p className="mt-6 max-w-xl text-[1.08rem] leading-8 text-muted-dark">
@@ -257,8 +257,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           {MAGAZINES.map((entry) => {
             const pole = INTERVENTION_POLES.find((item) => item.slug === entry.pole)!;
             return (
-              <li key={pole.magazine.name} className="flex flex-col rounded-card border border-line p-7">
-                <div className="flex items-start justify-between gap-3">
+              <li key={pole.magazine.name} className="flex min-w-0 flex-col rounded-card border border-line p-7">
+                <div className="flex flex-wrap items-start justify-between gap-2">
                   <h3 className="font-display text-xl font-extrabold uppercase tracking-[-0.01em] text-ink">{pole.magazine.name}</h3>
                   {entry.upcoming ? <Badge tone="brand" className="normal-case tracking-normal">En développement</Badge> : null}
                 </div>

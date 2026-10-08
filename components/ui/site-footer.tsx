@@ -57,7 +57,7 @@ const legalLinks: FooterLink[] = [
 ];
 
 const whatsappHref = `https://wa.me/${COMPANY.phone.replace(/\D/g, "")}`;
-const linkClass = "inline-flex min-h-9 items-center rounded-sm text-[0.92rem] text-muted-dark transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white";
+const linkClass = "inline-flex min-h-11 items-center rounded-sm text-[0.92rem] text-muted-dark transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white";
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -71,8 +71,8 @@ export function SiteFooter() {
             <p className="mt-5 font-display text-[0.95rem] font-bold text-brand-soft">{COMPANY.slogan}</p>
             <address className="mt-6 space-y-2 text-sm not-italic leading-6 text-muted-dark">
               <p className="flex items-start gap-2.5"><MapPin aria-hidden="true" className="mt-1 h-4 w-4 shrink-0 text-brand-soft" /><span>{COMPANY.address.join(", ")}</span></p>
-              <a href={COMPANY.phoneHref} className="flex min-h-9 items-center gap-2.5 font-semibold text-white hover:underline"><Phone aria-hidden="true" className="h-4 w-4 text-brand-soft" />{COMPANY.phone}</a>
-              <a href={`mailto:${COMPANY.email}`} className="flex min-h-9 items-center gap-2.5 hover:text-white hover:underline"><Mail aria-hidden="true" className="h-4 w-4 text-brand-soft" />{COMPANY.email}</a>
+              <a href={COMPANY.phoneHref} className="flex min-h-11 items-center gap-2.5 font-semibold text-white hover:underline"><Phone aria-hidden="true" className="h-4 w-4 text-brand-soft" />{COMPANY.phone}</a>
+              <a href={`mailto:${COMPANY.email}`} className="flex min-h-11 items-center gap-2.5 hover:text-white hover:underline"><Mail aria-hidden="true" className="h-4 w-4 text-brand-soft" />{COMPANY.email}</a>
             </address>
             <div className="mt-6 flex flex-wrap gap-3">
               <ButtonLink href="/home#contact" variant="on-dark">Présenter mon projet</ButtonLink>
@@ -119,9 +119,9 @@ export function SiteFooter() {
           <p>Paiement sécurisé · Lecture sur mobile, tablette et ordinateur</p>
           <nav aria-label="Informations légales" className="flex flex-wrap items-center gap-x-5 gap-y-1">
             {legalLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="inline-flex min-h-9 items-center transition-colors hover:text-white hover:underline">{link.label}</Link>
+              <Link key={link.href} href={link.href} className="inline-flex min-h-11 items-center transition-colors hover:text-white hover:underline">{link.label}</Link>
             ))}
-            <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="inline-flex min-h-9 items-center gap-1.5 font-semibold text-white transition-colors hover:text-brand-soft">
+            <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-white transition-colors hover:text-brand-soft">
               Haut de page <ArrowUp aria-hidden="true" className="h-3.5 w-3.5" />
             </button>
           </nav>
