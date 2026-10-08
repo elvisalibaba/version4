@@ -145,3 +145,15 @@ export async function getBookById(bookId: string) {
 
 export type PublishedBook = Awaited<ReturnType<typeof getPublishedBooks>>[number];
 export type BookDetail = Awaited<ReturnType<typeof getBookById>>;
+
+/** Livres mis en avant sur l'accueil (sélection Laravel), à défaut les dernières parutions. */
+export async function getHomeFeaturedBooks(limit = 4) {
+  try {
+    const response = await apiServer<{ data: ApiBook[] }>("home/featured", { authenticated: false });
+    const featured = (response.data ?? []).map((book) => mapBook(book));
+    if (featured.length > 0) return featured.slice(0, limit);
+  } catch (error) {
+    console.error("[Books] Home featured unavailable.", error);
+  }
+  return (await getPublishedBooks()).slice(0, limit);
+}

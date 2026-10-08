@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, ComponentProps } from "react";
 import Link from "next/link";
 import { cx } from "@/components/ui/cx";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "on-dark" | "outline-on-dark";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "on-dark" | "outline-on-dark" | "ink" | "outline-on-brand";
 export type ButtonSize = "md" | "lg";
 
 const base =
@@ -16,6 +16,9 @@ const variants: Record<ButtonVariant, string> = {
   // Fond sombre : bleu du logo. Texte noir plutôt qu'encre : 4,9:1 au lieu de 4,3:1 (AA).
   "on-dark": "bg-brand text-black hover:bg-brand-soft focus-visible:ring-brand-soft focus-visible:ring-offset-ink",
   "outline-on-dark": "border border-white/40 text-white hover:border-white hover:bg-white/10 focus-visible:ring-white focus-visible:ring-offset-ink",
+  // Sur fond bleu du logo : encre pleine.
+  ink: "bg-ink text-white hover:bg-ink-2 focus-visible:ring-ink focus-visible:ring-offset-brand",
+  "outline-on-brand": "border border-black text-black hover:bg-black/10 focus-visible:ring-black focus-visible:ring-offset-brand",
 };
 
 const sizes: Record<ButtonSize, string> = {
