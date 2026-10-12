@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ArrowLeft, BookOpen, Globe2 } from "lucide-react";
 import { COMPANY } from "@/lib/holistique";
 import { getRepresentative, REPRESENTATIVES } from "@/lib/representants";
@@ -27,7 +28,6 @@ export default async function RepresentativePage({ params }: Props) {
   const { slug } = await params;
   const person = getRepresentative(slug);
   if (!person) {
-    const { notFound } = await import("next/navigation");
     notFound();
   }
 
