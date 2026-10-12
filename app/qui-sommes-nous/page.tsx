@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Building2, Church, Globe2, MapPin, Phone, Quote, Rocket } from "lucide-react";
 import {
   COMPANY,
@@ -9,6 +10,7 @@ import {
   NATIONAL_EDITORS,
   type InterventionPole,
 } from "@/lib/holistique";
+import { REPRESENTATIVES } from "@/lib/representants";
 
 export const metadata: Metadata = {
   title: "Qui sommes-nous ?",
@@ -164,16 +166,35 @@ export default function QuiSommesNousPage() {
             </p>
           </div>
           <div>
-            <p className="text-sm font-semibold text-brand-700">Présence en Afrique</p>
+            <p id="representations" className="scroll-mt-28 text-sm font-semibold text-brand-700">Présence en Afrique</p>
             <h2 className="mt-2 text-2xl font-bold tracking-tight">Des représentations proches du terrain</h2>
-            <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-              {NATIONAL_EDITORS.map((editor) => (
-                <li key={editor.country} className="rounded-md border border-rule bg-white p-5">
-                  <p className="flex items-center gap-2 text-sm font-bold text-night-900"><Globe2 aria-hidden="true" className="h-4 w-4 text-brand-600" />{editor.country}</p>
-                  <p className="mt-2 font-semibold">{editor.name}</p>
-                  <p className="text-sm text-slate-600">{editor.role}</p>
-                </li>
-              ))}
+            <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+              {NATIONAL_EDITORS.map((editor) => {
+                const person = REPRESENTATIVES.find((item) => item.country === editor.country);
+                return (
+                  <li key={editor.country} className="overflow-hidden rounded-md border border-rule bg-white">
+                    {person ? (
+                      <Link href={`/equipe/${person.slug}`} aria-label={`Voir la biographie de ${person.name}`} className="group block h-full">
+                        <div className="relative aspect-[4/3] overflow-hidden bg-paper-deep">
+                          <Image src={person.image} alt={`Portrait de ${person.name}`} fill sizes="(max-width: 640px) 100vw, 320px" className="object-cover object-[center_30%] transition duration-300 group-hover:scale-[1.03]" />
+                        </div>
+                        <div className="p-5">
+                          <p className="flex items-center gap-2 text-sm font-bold text-brand-700"><span aria-hidden="true">{person.flag}</span>{person.country}</p>
+                          <h3 className="mt-2 text-lg font-bold text-night-900">{person.name}</h3>
+                          <p className="mt-2 text-sm leading-6 text-slate-600">{person.role}</p>
+                          <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-700">Lire la biographie <ArrowRight className="h-4 w-4" aria-hidden="true" /></span>
+                        </div>
+                      </Link>
+                    ) : (
+                      <div className="p-5">
+                        <p className="flex items-center gap-2 text-sm font-bold text-night-900"><Globe2 aria-hidden="true" className="h-4 w-4 text-brand-600" />{editor.country}</p>
+                        <h3 className="mt-2 font-semibold">{editor.name}</h3>
+                        <p className="mt-1 text-sm text-slate-600">{editor.role}</p>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
             <div className="mt-5 rounded-md bg-night-900 p-5 text-white">
               <p className="flex items-start gap-2 text-sm"><MapPin aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-brand-300" /><span><strong>Siège central</strong><br />{COMPANY.address.join(", ")}</span></p>
