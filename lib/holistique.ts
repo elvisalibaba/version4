@@ -140,8 +140,8 @@ export const COMPANY_TEAM = [
 ];
 
 export const NATIONAL_EDITORS = [
-  { country: "RDC", name: "Gode Muala", role: "Siège central et coordination générale" },
-  { country: "Togo", name: "Pasteur Jean", role: "Éditeur national" },
+  { country: "RDC", name: "Gode Muala", role: "Éditeur et superviseur de Holistique Books" },
+  { country: "Togo", name: "Jean Essohanam MALANLE", role: "Sociologue et consultant en accompagnement humain" },
   { country: "Côte d’Ivoire", name: "Pasteur Yapo Athanase", role: "Éditeur national" },
-  { country: "Cameroun", name: "Pasteur Serge Nkoti", role: "Éditeur national" },
+  { country: "Cameroun", name: "Pasteur Nkoti Serge Valéry Lycel", role: "Responsable national de l’édition" },
 ];
