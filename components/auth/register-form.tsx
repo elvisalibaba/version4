@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { BOOK_CATEGORIES } from "@/lib/book-categories";
 import { getSafeNextPath } from "@/lib/safe-next-path";
+import { getRegistrationErrorMessage, getRegistrationPasswordChecks, getRegistrationPasswordError } from "@/lib/auth/registration-validation";
 import type { AffiliateSourceType, UserRole } from "@/types/api";
 
 type RoleOption = Exclude<UserRole, "admin">;
@@ -153,6 +154,7 @@ export function RegisterForm({
   const [loading, setLoading] = useState(false);
 
   const fullName = useMemo(() => `${firstName} ${lastName}`.trim(), [firstName, lastName]);
+  const passwordChecks = getRegistrationPasswordChecks(password);
 
   useEffect(() => {
     setRole(initialRole);
@@ -169,8 +171,9 @@ export function RegisterForm({
       return;
     }
 
-    if (password.length < 8) {
-      setError("Le mot de passe doit contenir au moins 8 caractères.");
+    const passwordError = getRegistrationPasswordError(password);
+    if (passwordError) {
+      setError(passwordError);
       setLoading(false);
       return;
     }
@@ -230,10 +233,7 @@ export function RegisterForm({
 
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
-        const firstValidationError = payload?.errors
-          ? Object.values(payload.errors).flat().find((value) => typeof value === "string")
-          : null;
-        setError((firstValidationError as string | null) ?? payload?.message ?? "Inscription impossible.");
+        setError(getRegistrationErrorMessage(payload));
         return;
       }
 
@@ -306,10 +306,22 @@ export function RegisterForm({
           <PasswordField id="register-password" label="Mot de passe" value={password} onChange={setPassword} visible={passwordVisible} onToggle={() => setPasswordVisible((visible) => !visible)} autoComplete="new-password" />
           <PasswordField id="register-password-confirmation" label="Confirmer le mot de passe" value={passwordConfirmation} onChange={setPasswordConfirmation} visible={confirmationVisible} onToggle={() => setConfirmationVisible((visible) => !visible)} autoComplete="new-password" />
 
-          <p className="flex items-start gap-2 text-xs leading-5 text-slate-600">
-            <Check aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-600" />
-            Utilisez au moins 8 caractères. Les deux saisies doivent être identiques.
-          </p>
+          <div className="rounded-md border border-rule bg-white px-4 py-3 text-xs leading-5 text-slate-600">
+            <p className="mb-2 font-semibold">Votre mot de passe doit contenir :</p>
+            <ul className="grid gap-1.5" aria-label="Règles du mot de passe">
+              {([
+                [passwordChecks.minLength, "Au moins 8 caractères"],
+                [passwordChecks.hasLetter, "Au moins une lettre"],
+                [passwordChecks.hasNumber, "Au moins un chiffre (0 à 9)"],
+              ] as const).map(([valid, label]) => (
+                <li key={label} className={`flex items-center gap-2 ${valid ? "font-semibold text-brand-700" : "text-slate-600"}`}>
+                  <Check aria-hidden="true" className={`h-3.5 w-3.5 shrink-0 ${valid ? "text-brand-700" : "text-slate-300"}`} />
+                  {label}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-slate-500">La confirmation doit être identique.</p>
+          </div>
 
           {role === "author" ? (
             <div className="grid gap-4 rounded-md border border-rule bg-white/65 p-4">
