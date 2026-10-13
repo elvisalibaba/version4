@@ -40,6 +40,7 @@ type CheckoutBookContext = {
 type InitProviderPayload = {
   orderId: string;
   amount: number;
+  currency: "USD" | "CDF";
   description: string;
   channel: CinetPayChannel;
   customer: ValidatedCheckoutCustomer;
@@ -287,9 +288,9 @@ async function loadCheckoutBookContext(userId: string, bookId: string, requested
   if (!Number.isFinite(amount) || amount <= 0) throw new PaymentFlowError("Ce format est gratuit : aucun paiement n’est requis.",409);
   const currencyCode = selectedFormat?.currency_code ?? book.currency_code;
 
-  if (currencyCode !== "USD") {
+  if (currencyCode !== "USD" && currencyCode !== "CDF") {
     throw new PaymentFlowError(
-      "Le checkout EasyPay de HolistiqueBooks est actuellement configure en USD. Le livre selectionne doit donc etre facture en USD.",
+      "Cette devise n’est pas acceptée pour le règlement EasyPay.",
       409,
     );
   }
@@ -332,8 +333,8 @@ async function loadPreparedOrderForUser(userId: string, orderId: string): Promis
   }
 
   if (order.total_price <= 0 || !Number.isFinite(order.total_price)) throw new PaymentFlowError("Commande sans montant à payer.",409);
-  if (order.currency_code !== "USD" || items.some((item) => item.currency_code !== "USD")) {
-    throw new PaymentFlowError("EasyPay checkout est actuellement limite aux commandes USD.", 409);
+  if (!["USD","CDF"].includes(order.currency_code) || items.some((item) => item.currency_code !== order.currency_code)) {
+    throw new PaymentFlowError("Les devises de la commande ne correspondent pas.", 409);
   }
 
   const bookIds = Array.from(new Set(items.map((item) => item.book_id)));
@@ -380,7 +381,7 @@ async function createPendingOrderForBook(params: {
     id: orderId,
     user_id: params.userId,
     total_price: checkoutBook.amount,
-    currency_code: "USD",
+    currency_code: checkoutBook.currencyCode,
     payment_status: "pending",
     payment_provider: "easypay",
     payment_transaction_id: transactionId,
@@ -405,7 +406,7 @@ async function createPendingOrderForBook(params: {
     order_id: orderId,
     book_id: checkoutBook.id,
     price: checkoutBook.amount,
-    currency_code: "USD",
+    currency_code: checkoutBook.currencyCode,
     book_format: checkoutBook.format,
   } satisfies OrderItemInsert;
 
@@ -497,7 +498,7 @@ async function initializeProviderCheckout(payload: InitProviderPayload) {
 
   const requestBody: Record<string, unknown> = {
     order_ref: payload.orderId,
-    currency: "USD",
+    currency: payload.currency,
     amount: toProviderAmount(payload.amount),
     description: payload.description,
     success_url: payload.returnUrl,
@@ -584,6 +585,7 @@ export async function initCinetPayCheckout(params: {
     const providerResponse = await initializeProviderCheckout({
       orderId: preparedOrder.order.id,
       amount: preparedOrder.order.total_price,
+      currency: preparedOrder.order.currency_code as "USD"|"CDF",
       description: buildCheckoutDescription(preparedOrder.bookTitles),
       channel: params.channel,
       customer: params.customer,
