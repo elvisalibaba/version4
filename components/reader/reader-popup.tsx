@@ -219,7 +219,7 @@ export function ReaderPopup({
     pdfPageCount > 0 && pdfSpreadMode && pdfPageNumber < pdfPageCount
       ? `Pages ${pdfPageNumber}-${Math.min(pdfPageCount, pdfPageNumber + 1)} / ${pdfPageCount}`
       : `Page ${pdfPageNumber}${pdfPageCount > 0 ? ` / ${pdfPageCount}` : ""}`;
-  const readerProgress = isPdf && pdfPageCount > 0 ? Math.round((pdfPageNumber / pdfPageCount) * 100) : epubProgress;
+  const readerProgress = isPdf && pdfPageCount > 0 ? Math.round((pdfPageNumber / pdfPageCount) * 100) : deliveryMode === "epub_pages" && epubTotalPages > 0 ? Math.round((epubCurrentPage / epubTotalPages) * 100) : epubProgress;
 
   const openGuestGate = useCallback(() => setPreviewGateOpen(true), []);
   const goPrevious = useCallback(() => {
@@ -609,7 +609,7 @@ export function ReaderPopup({
   }, [pdfPageNumber]);
 
   useEffect(() => {
-    if (!open || isGuestReader || !readerProfileId || !progressHydrated) {
+    if (!open || deliveryMode !== "page_images" || isGuestReader || !readerProfileId || !progressHydrated) {
       return;
     }
 
@@ -646,6 +646,7 @@ export function ReaderPopup({
     return () => window.clearTimeout(timeout);
   }, [
     bookId,
+    deliveryMode,
     epubCurrentCfi,
     epubProgress,
     isEpub,
