@@ -5,11 +5,30 @@ import type { ApiBook, ApiBookFormat } from "@/types/api";
 type PublicBook = ApiBook & { cover_signed_url?: string | null };
 const numeric = (v: unknown) => Number(v ?? 0) || 0;
 
-export async function getSupabaseBooks(options: { searchQuery?:string; category?:string; status?: "published"|"coming_soon"; bookId?:string; page?:number; perPage?:number } = {}) {
+export async function getSupabaseBooks(options: { searchQuery?:string; category?:string; status?: "published"|"coming_soon"; bookId?:string; education?:string; educationAudience?:"school"|"university"; page?:number; perPage?:number } = {}) {
   const supabase = await createClient();
   const status = options.status ?? "published";
   let query = supabase.from("books").select("*", { count: "exact" }).eq("status",status).neq("copyright_status","blocked");
   if(options.bookId) query=query.eq("id", options.bookId);
+  if(options.education){
+    const {data: taxonomy, error:taxError}=await supabase.from("academic_taxonomies")
+      .select("id,parent_id,slug,audience").eq("is_active",true);
+    if(taxError)throw new Error(taxError.message);
+    const root=taxonomy?.find(n=>n.slug===options.education && (!options.educationAudience || n.audience===options.educationAudience));
+    if(!root)return {books:[] as PublicBook[],total:0,page:1,lastPage:1};
+    const selected=new Set<string>([root.id]);
+    let changed=true;
+    while(changed){
+      changed=false;
+      for(const n of taxonomy??[])if(n.parent_id&&selected.has(n.parent_id)&&!selected.has(n.id)){selected.add(n.id);changed=true;}
+    }
+    const {data: mapped, error:mapError}=await supabase.from("book_academic_taxonomy")
+      .select("book_id").in("academic_taxonomy_id",Array.from(selected));
+    if(mapError)throw new Error(mapError.message);
+    const bookIds=Array.from(new Set((mapped??[]).map(n=>n.book_id)));
+    if(!bookIds.length)return {books:[] as PublicBook[],total:0,page:1,lastPage:1};
+    query=query.in("id",bookIds);
+  }
   if(options.category && options.category !== "all") query=query.contains("categories",[options.category]);
   if(options.searchQuery?.trim()){
     const term=options.searchQuery.replace(/[%_,]/g," ").trim();
