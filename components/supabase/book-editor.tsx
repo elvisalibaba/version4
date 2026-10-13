@@ -108,7 +108,7 @@ export function SupabaseBookEditor({ book, area }: { book?: BookDraft; area: "ad
       }
       setMessage("Brouillon et fichiers enregistrés dans Supabase.");
       router.refresh();
-      router.push(area==="admin"?"/admin/books":"/dashboard/author/books");
+      router.push(area==="admin"?"/dashboard/admin/books":"/dashboard/author/books");
     }catch(caught){
       setError(caught instanceof Error?caught.message:"Erreur inattendue lors de l'enregistrement.");
     }finally{setLoading(false);}

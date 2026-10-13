@@ -2,7 +2,7 @@ name: HolisticBooks Supabase Migration CI
 
 on:
   push:
-    branches: [dev-ancien]
+    branches: [dev-ancien, fix/admin-supabase-dashboard, main]
   workflow_dispatch:
 
 permissions:

@@ -11,7 +11,7 @@ export default async function AdminBooksPage(){
    <div className="flex flex-wrap items-center justify-between gap-3">
      <div><h2 className="text-3xl font-bold">Catalogue</h2>
        <p className="mt-1 text-sm text-slate-500">100 derniers livres, gestion directe de Supabase</p></div>
-     <Link href="/admin/books/new" className="rounded-sm bg-night-900 px-5 py-3 text-sm font-bold text-white">Nouveau livre</Link>
+     <Link href="/dashboard/admin/books/new" className="rounded-sm bg-night-900 px-5 py-3 text-sm font-bold text-white">Nouveau livre</Link>
    </div>
    {error?<p role="alert" className="text-red-700">{error.message}</p>:null}
    <div className="overflow-x-auto rounded-md border border-rule bg-white">
@@ -23,7 +23,7 @@ export default async function AdminBooksPage(){
         <td className="p-4">{book.status} / {book.review_status}</td>
         <td className="p-4">{book.copyright_status}</td>
         <td className="p-4">{book.price} {book.currency_code}</td>
-        <td className="p-4"><Link className="text-brand-600 underline" href={`/admin/books/${book.id}`}>Modifier</Link></td>
+        <td className="p-4"><Link className="text-brand-600 underline" href={`/dashboard/admin/books/${book.id}`}>Modifier</Link></td>
        </tr>)}</tbody>
      </table>
      {!data?.length?<p className="p-5 text-sm text-slate-500">Aucun livre enregistré.</p>:null}
