@@ -8,16 +8,18 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
  const db=await createClient();
  const {data:book,error}=await db.from("books").select("cover_thumbnail_url,cover_url,status,review_status,copyright_status").eq("id",id).maybeSingle();
  if(error||!book||book.status!=="published"||book.review_status!=="approved"||book.copyright_status==="blocked")return fallback();
- const path=book.cover_thumbnail_url??book.cover_url;
- if(!path||!path.startsWith("covers/")||path.includes(".."))return fallback();
- const {data,error:signedError}=await db.storage.from("books").createSignedUrl(path,120);
- if(signedError||!data?.signedUrl)return fallback();
+ const paths=[book.cover_thumbnail_url,book.cover_url].filter((path):path is string=>typeof path==="string"&&path.startsWith("covers/")&&!path.includes(".."));
  try{
+  for(const path of [...new Set(paths)]){
+  const {data,error:signedError}=await db.storage.from("books").createSignedUrl(path,120);
+  if(signedError||!data?.signedUrl)continue;
   const response=await fetch(data.signedUrl,{cache:"no-store",signal:AbortSignal.timeout(8000)});
   const type=response.headers.get("content-type")??"";
-  if(!response.ok||!/^image\/(jpeg|png|webp)$/i.test(type))return fallback();
+  if(!response.ok||!/^image\/(jpeg|png|webp)$/i.test(type))continue;
   const bytes=await response.arrayBuffer();
-  if(bytes.byteLength>8*1024*1024)return fallback();
+  if(bytes.byteLength>8*1024*1024)continue;
   return new NextResponse(bytes,{headers:{"Content-Type":type,"Cache-Control":"public, s-maxage=300, stale-while-revalidate=600","X-Content-Type-Options":"nosniff"}});
+  }
+  return fallback();
  }catch{return fallback()}
 }
