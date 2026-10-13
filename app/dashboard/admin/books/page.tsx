@@ -1,5 +1,1 @@
-import { redirect } from "next/navigation";
-
-export default async function AdminBooksPage() {
-  redirect("/admin/books");
-}
+export { default, dynamic } from "@/app/admin/books/page";
