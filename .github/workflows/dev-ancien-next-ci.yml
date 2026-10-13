@@ -1,0 +1,39 @@
+name: HolisticBooks Supabase Migration CI
+
+on:
+  push:
+    branches: [dev-ancien]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: holisticbooks-supabase-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Next.js lint, tests and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      APP_BASE_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:8000
+      API_URL: http://127.0.0.1:8000
+      HOLISTIC_DATA_SOURCE: laravel
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Setup Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run build
