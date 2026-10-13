@@ -6,7 +6,14 @@ async function get(path) {
  const response = await fetch(base + path, { cache: "no-store", signal: AbortSignal.timeout(30_000), redirect: "manual" });
  return response;
 }
-const cover = await get("/api/covers/" + id);
+// Wait for Vercel to promote the exact release before judging the public domain.
+let cover;
+for (let attempt=0; attempt<80; attempt++){
+  cover=await get("/api/covers/" + id);
+  if(cover.status===200)break;
+  await new Promise(resolve=>setTimeout(resolve,5000));
+}
+if(!cover)throw Error("Cover endpoint did not respond");
 if (cover.status !== 200 || !/^image\/(?:png|jpeg|webp|avif)/i.test(cover.headers.get("content-type")??"")) {
  throw Error("Public cover failed: status=" + cover.status + " type=" + cover.headers.get("content-type"));
 }

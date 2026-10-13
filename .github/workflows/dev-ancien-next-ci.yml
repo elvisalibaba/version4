@@ -39,7 +39,7 @@ jobs:
       - run: npm run build
       - run: node scripts/check-guest-preview.mjs
       - name: Verify guest covers and reading on Vercel preview
-        if: github.ref == 'refs/heads/fix/covers-reader-browser-20261013'
+        if: github.ref == 'refs/heads/main'
         env:
-          HOLISTIC_PUBLIC_SMOKE_URL: https://version4-iv4m4og4r-elvisalibabas-projects.vercel.app
+          HOLISTIC_PUBLIC_SMOKE_URL: https://www.holistique-books.com
         run: node scripts/check-public-cover-reader.mjs
