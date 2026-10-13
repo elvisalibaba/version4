@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 import { proxyForwardHeaders } from "@/lib/api/forwarded";
 
 export const dynamic="force-dynamic";
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export async function GET(request:Request,context:{params:Promise<{bookId:string}>}){
  const {bookId}=await context.params;
  const url=new URL(request.url);
