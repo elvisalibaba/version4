@@ -3,11 +3,11 @@ import {createClient} from "@/lib/supabase/server";
 import {isSupabaseMode} from "@/lib/data-source";
 export const dynamic="force-dynamic";
 const uuid=/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
-type Ctx={params:Promise<{bookId:string}>};
+type Ctx={params:Promise<{id:string}>};
 const fail=(message:string,status:number)=>NextResponse.json({message},{status});
 export async function GET(request:Request,{params}:Ctx){
  if(!isSupabaseMode())return fail("Indisponible",404);
- const {bookId}=await params;if(!uuid.test(bookId))return fail("Identifiant invalide",422);
+ const {id:bookId}=await params;if(!uuid.test(bookId))return fail("Identifiant invalide",422);
  const db=await createClient(),url=new URL(request.url);
  const page=Math.max(1,Math.min(1000,parseInt(url.searchParams.get("page")??"1",10)||1));
  const limit=Math.max(1,Math.min(30,parseInt(url.searchParams.get("per_page")??"8",10)||8));
@@ -34,7 +34,7 @@ export async function GET(request:Request,{params}:Ctx){
 }
 export async function POST(request:Request,{params}:Ctx){
  if(!isSupabaseMode())return fail("Indisponible",404);
- const {bookId}=await params;if(!uuid.test(bookId))return fail("Livre invalide",422);
+ const {id:bookId}=await params;if(!uuid.test(bookId))return fail("Livre invalide",422);
  const origin=request.headers.get("origin");if(origin&&origin!==new URL(request.url).origin)return fail("Origine non autorisée",403);
  const db=await createClient(),{data:{user}}=await db.auth.getUser();
  if(!user)return fail("Connectez-vous pour donner votre avis",401);
