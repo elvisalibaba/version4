@@ -33,7 +33,7 @@ export default async function AdminSectionPage({params}:{params:Promise<{section
   {error?<p role="alert" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error.message}</p>:null}
   <div className="overflow-x-auto rounded-md border border-rule bg-white"><table className="w-full min-w-[640px] text-left text-sm">
    <thead className="bg-paper"><tr>{item.labels.map(label=><th key={label} className="p-4">{label}</th>)}</tr></thead>
-   <tbody>{((data??[]) as Array<Record<string,unknown>>).map((row,i)=><tr key={String(row.id??i)} className="border-t border-rule">
+   <tbody>{((data??[]) as unknown as Array<Record<string,unknown>>).map((row,i)=><tr key={String(row.id??i)} className="border-t border-rule">
     {item.columns.map(column=><td key={column} className="max-w-[300px] break-words p-4">{render(row[column])}</td>)}
    </tr>)}</tbody>
   </table>{!data?.length&&!error?<p className="p-5 text-sm text-slate-600">Aucune donnée enregistrée.</p>:null}</div>
