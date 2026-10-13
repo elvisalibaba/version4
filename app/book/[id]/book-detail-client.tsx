@@ -36,7 +36,7 @@ type AccessState = {
   isSubscriptionEntitlementExpired: boolean;
 } | null;
 type Props = {
-  book: BookDetailView; accessState: AccessState; isAuthenticated: boolean; autoOpenReader?: boolean;
+  book: BookDetailView; accessState: AccessState; isAuthenticated: boolean; autoOpenReader?: boolean; supabaseReaderMode?: boolean;
   checkoutCustomer: { customerId?: string | null; firstName?: string | null; lastName?: string | null; email?: string | null; phoneNumber?: string | null; city?: string | null; country?: string | null } | null;
 };
 
@@ -45,12 +45,12 @@ const LANGUAGES: Record<string, string> = { fr: "Français", en: "Anglais", ln: 
 function firstOf<T>(value: T | T[] | null | undefined) { return Array.isArray(value) ? value[0] ?? null : value ?? null; }
 function money(amount: number, currency: string) { return amount <= 0 ? "Gratuit" : new Intl.NumberFormat("fr-FR", { style: "currency", currency }).format(amount); }
 
-export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenReader = false, checkoutCustomer }: Props) {
+export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenReader = false, checkoutCustomer, supabaseReaderMode = false }: Props) {
   const [readerOpen, setReaderOpen] = useState(autoOpenReader);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const activePlanName = firstOf(accessState?.activeSubscription?.subscription_plans)?.name ?? null;
   const accessType = accessState?.libraryEntry?.access_type;
-  const canRead = book.is_free || Boolean(accessState?.hasAccess);
+  const canRead = supabaseReaderMode || book.is_free || Boolean(accessState?.hasAccess);
   const paidFormats = book.purchase_formats.filter((format) => format.price > 0);
   // Formats que l'on peut mettre au panier : tout format payant tant que le livre n'est pas lu,
   // puis seulement les éditions imprimées (un lecteur peut vouloir le papier en plus).
@@ -69,7 +69,11 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
   const loginHref = `/login?next=${encodeURIComponent(returnPath)}`;
   const registerHref = `/register?role=reader&next=${encodeURIComponent(returnPath)}`;
   const subscriptionHref = isAuthenticated ? "/dashboard/reader/subscriptions" : loginHref;
-  const accessMessage = book.is_free
+  const accessMessage = supabaseReaderMode
+    ? isAuthenticated
+      ? "Lecture intégrale gratuite avec votre compte lecteur HolisticBooks."
+      : "Lisez les dix premières pages sans inscription. Créez un compte gratuit pour lire la suite."
+    : book.is_free
     ? isAuthenticated
       ? "Cette édition numérique est offerte. Vous pouvez lire le livre complet avec votre compte."
       : "Lisez les 10 premières pages immédiatement, sans compte. Créez ensuite un compte lecteur gratuit pour continuer le livre complet."
@@ -218,7 +222,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
                 <div className="mt-3 grid gap-3">
                   {canRead ? (
                     <button type="button" onClick={() => setReaderOpen(true)} className="cta-primary inline-flex min-h-12 items-center justify-center gap-2 px-6 text-sm">
-                      <BookOpen aria-hidden="true" className="h-4 w-4" /> {book.is_free && !isAuthenticated ? "Lire 10 pages gratuitement" : "Lire maintenant"}
+                      <BookOpen aria-hidden="true" className="h-4 w-4" /> {!isAuthenticated && (book.is_free || supabaseReaderMode) ? "Lire 10 pages gratuitement" : "Lire maintenant"}
                     </button>
                   ) : null}
                   {!canRead && book.is_single_sale_enabled ? (
@@ -235,7 +239,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
                   {accessState?.hasLibraryEntry ? <Link href="/dashboard/reader/library" className="inline-flex min-h-11 items-center justify-center gap-2 text-sm font-semibold text-night-900 hover:text-brand-700"><Library aria-hidden="true" className="h-4 w-4" /> Ma bibliothèque</Link> : null}
                 </div>
 
-                {book.is_free && !isAuthenticated ? (
+                {(book.is_free || supabaseReaderMode) && !isAuthenticated ? (
                   <p className="mt-5 border-t border-rule pt-4 text-xs leading-5 text-slate-600">
                     Aucun compte pour commencer : l’inscription n’est demandée qu’après les 10 premières pages.{" "}
                     <Link href={registerHref} className="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline"><UserPlus aria-hidden="true" className="h-3.5 w-3.5" />Créer mon compte</Link>

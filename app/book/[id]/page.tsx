@@ -3,6 +3,7 @@ import { BookViewTracker } from "@/components/books/book-view-tracker";
 import { getReaderBookAccessState } from "@/lib/book-access";
 import { getCurrentUserProfile } from "@/lib/auth";
 import { getBookById } from "@/lib/books";
+import { isSupabaseMode } from "@/lib/data-source";
 import { BookDetailClient } from "./book-detail-client";
 import type { Metadata } from "next";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
@@ -68,7 +69,8 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  const accessState = profile
+  const supabaseReaderMode=isSupabaseMode();
+  const accessState = !supabaseReaderMode && profile
     ? await getReaderBookAccessState({
         userId: profile.id,
         bookId: book.id,
@@ -106,7 +108,8 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
         book={book}
         accessState={accessState}
         isAuthenticated={Boolean(profile)}
-        autoOpenReader={read === "1" && (book.is_free || Boolean(accessState?.hasAccess))}
+        supabaseReaderMode={supabaseReaderMode}
+        autoOpenReader={read === "1" && (supabaseReaderMode || book.is_free || Boolean(accessState?.hasAccess))}
         checkoutCustomer={
           profile
             ? {
