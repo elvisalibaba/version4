@@ -123,7 +123,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
                 </div>
                 <div className="mx-auto mt-5 flex w-[11.5rem] items-center justify-center gap-2 sm:w-[13rem] lg:w-full">
                   <FavoriteBookButton bookId={book.id} initialIsFavorite={book.is_favorite} supabaseMode={supabaseReaderMode} />
-                  <ShareButton title={book.title} />
+                  <ShareButton title={book.title} bookId={book.id} />
                 </div>
                 {canPreview ? (
                   <button type="button" onClick={() => setReaderOpen(true)} className="hb-link mx-auto mt-4 flex items-center gap-2 text-sm font-semibold text-night-900">

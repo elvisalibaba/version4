@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
   }
 
   const description = book.description?.trim().slice(0, 160) || `Découvrez ${book.title} sur ${SITE_NAME}.`;
-  const image = book.cover_signed_url || "/pwa-icon-512.png";
+  const image = isSupabaseMode() ? absoluteUrl(`/api/og/book/${book.id}`) : (book.cover_signed_url || absoluteUrl("/pwa-icon-512.png"));
 
   return {
     title: book.title,
@@ -34,6 +34,8 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
       description,
       url: `/book/${book.id}`,
       images: [{ url: image, alt: book.cover_alt_text || `Couverture de ${book.title}` }],
+      siteName: SITE_NAME,
+      locale: "fr_CD",
     },
     twitter: { card: "summary_large_image", title: book.title, description, images: [image] },
   };
