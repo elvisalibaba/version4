@@ -111,7 +111,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
               <div className="lg:sticky lg:top-40">
                 <div id="book-cover" className="hb-book relative mx-auto aspect-2/3 w-[11.5rem] bg-night-900 sm:w-[13rem] lg:w-full">
                   {book.cover_signed_url ? (
-                    <Image src={book.cover_signed_url} alt={`Couverture de ${book.title}`} fill sizes="(max-width: 1024px) 13rem, 17rem" priority className="object-cover" />
+                    <Image src={book.cover_signed_url} unoptimized={book.cover_signed_url.startsWith("/api/covers/")} alt={`Couverture de ${book.title}`} fill sizes="(max-width: 1024px) 13rem, 17rem" priority className="object-cover" />
                   ) : (
                     <div className="flex h-full flex-col px-6 pb-6 text-white">
                       <span className="ml-auto h-10 w-5 bg-brand-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_78%,0_100%)]" aria-hidden="true" />

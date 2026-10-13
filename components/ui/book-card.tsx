@@ -94,7 +94,7 @@ export function BookCard({ book, priority = false, tone = "light" }: { book: Boo
         className="hb-card-cover relative block aspect-[2/3] overflow-hidden rounded-xl shadow-[var(--shadow-cover)]"
       >
         {book.cover_signed_url ? (
-          <Image src={book.cover_signed_url} alt="" fill priority={priority} sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px" className="object-cover" />
+          <Image src={book.cover_signed_url} unoptimized={book.cover_signed_url.startsWith("/api/covers/")} alt="" fill priority={priority} sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px" className="object-cover" />
         ) : (
           <span className={cx("flex h-full flex-col justify-end p-4", placeholderTone(book.id))}>
             <strong className="line-clamp-4 font-display text-lg font-extrabold leading-snug tracking-[-0.02em]">{book.title}</strong>
