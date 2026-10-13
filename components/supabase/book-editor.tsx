@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -34,6 +34,18 @@ export function SupabaseBookEditor({ book, area }: { book?: BookDraft; area: "ad
   const [tags,setTags]=useState((book?.tags??[]).join(", "));
   const [cover,setCover]=useState<File|null>(null);
   const [document,setDocument]=useState<File|null>(null);
+  const [educationId,setEducationId]=useState("");
+  const [taxonomies,setTaxonomies]=useState<Array<{id:string;name:string;code:string;audience:string}>>([]);
+  useEffect(()=>{
+    const client=createClient();
+    let active=true;
+    async function load(){
+      const {data}=await client.from("academic_taxonomies").select("id,name,code,audience").eq("is_active",true).order("audience").order("name");
+      if(active)setTaxonomies(data??[]);
+    }
+    void load();
+    return ()=>{active=false;};
+  },[]);
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState("");
   const [message,setMessage]=useState("");
@@ -87,6 +99,13 @@ export function SupabaseBookEditor({ book, area }: { book?: BookDraft; area: "ad
         const detail=await synced.json();
         if(!synced.ok)throw new Error(detail.message??"Fichier importé mais référencement impossible.");
       }
+      if(educationId){
+        const {error:taxError}=await client.from("book_academic_taxonomy").upsert(
+          {book_id:id,academic_taxonomy_id:educationId},
+          {onConflict:"book_id,academic_taxonomy_id",ignoreDuplicates:true}
+        );
+        if(taxError)throw new Error("Classement académique : "+taxError.message);
+      }
       setMessage("Brouillon et fichiers enregistrés dans Supabase.");
       router.refresh();
       router.push(area==="admin"?"/admin/books":"/dashboard/author/books");
@@ -118,6 +137,14 @@ export function SupabaseBookEditor({ book, area }: { book?: BookDraft; area: "ad
     </div>
     <label className="block space-y-1 text-sm font-semibold">Description
       <textarea rows={5} className="w-full rounded-md border border-rule bg-white p-3 font-normal" value={description} onChange={e=>setDescription(e.target.value)}/></label>
+    <label className="block space-y-2 text-sm font-semibold">Classification scolaire ou universitaire
+      <select className={inputStyle} value={educationId} onChange={e=>setEducationId(e.target.value)}>
+        <option value="">Aucune classification supplémentaire</option>
+        {taxonomies.map(t=><option key={t.id} value={t.id}>
+          {t.audience==="school"?"Élève":"Étudiant"} | {t.name}
+        </option>)}
+      </select>
+    </label>
     <div className="grid gap-4 md:grid-cols-2">
       <label className="block space-y-2 text-sm font-semibold">Couverture (PNG, JPG, WebP)
         <input className="block w-full text-sm font-normal" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" onChange={e=>setCover(e.target.files?.[0]??null)}/></label>

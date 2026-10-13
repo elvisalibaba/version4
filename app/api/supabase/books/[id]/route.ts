@@ -25,6 +25,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   if (lookupError || !book) return NextResponse.json({ message: "Livre introuvable." }, { status: 404 });
   const admin = current.profile.role === "admin";
   if (!admin && book.author_id !== current.id) return NextResponse.json({ message: "Accès refusé." }, { status: 403 });
+  if (!admin && book.status === "published") return NextResponse.json({ message: "Un ouvrage publié doit passer par une nouvelle révision éditoriale." }, { status: 409 });
   let input: Record<string, unknown>;
   try { input = (await request.json()) as Record<string, unknown>; }
   catch { return NextResponse.json({ message: "JSON invalide." }, { status: 400 }); }
@@ -58,5 +59,19 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   if (Object.keys(patch).length===0) return NextResponse.json({ message:"Aucun changement." },{status:422});
   const {error}=await supabase.from("books").update(patch).eq("id",id);
   if (error) return NextResponse.json({message:error.message},{status:422});
+  if (typeof patch.file_url === "string") {
+    const {data:latest,error:readError}=await supabase.from("books").select("price,currency_code").eq("id",id).single();
+    if(readError || !latest) return NextResponse.json({message:"Fichier enregistré, lecture des métadonnées impossible."},{status:409});
+    const {data:existing}=await supabase.from("book_formats").select("id").eq("book_id",id).eq("format","ebook").maybeSingle();
+    const formatRecord={
+      book_id:id,format:"ebook",file_url:patch.file_url,
+      price:Number(latest.price),currency_code:latest.currency_code,
+      downloadable:false,is_published:false
+    };
+    const result=existing
+      ? await supabase.from("book_formats").update(formatRecord).eq("id",existing.id)
+      : await supabase.from("book_formats").insert(formatRecord);
+    if(result.error) return NextResponse.json({message:"Livre sauvegardé, mais format privé non référencé : "+result.error.message},{status:409});
+  }
   return NextResponse.json({ok:true,id});
 }
