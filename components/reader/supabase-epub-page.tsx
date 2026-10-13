@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
-export function SupabaseEpubPage({fileUrl,page,onError,onLoginRequired}:{fileUrl:string;page:number;onError:(message:string|null)=>void;onLoginRequired:()=>void}){
+export function SupabaseEpubPage({fileUrl,page,onError,onLoginRequired,fontSize=105,theme="light",lineHeight=1.7}:{fileUrl:string;page:number;onError:(message:string|null)=>void;onLoginRequired:()=>void;fontSize?:number;theme?:"light"|"sepia"|"dark";lineHeight?:number}){
  const [text,setText]=useState<string|null>(null);
  useEffect(()=>{
   let cancelled=false;
@@ -17,8 +17,8 @@ export function SupabaseEpubPage({fileUrl,page,onError,onLoginRequired}:{fileUrl
   void run();
   return ()=>{cancelled=true;};
  },[fileUrl,page,onError,onLoginRequired]);
- return <div className="h-full w-full overflow-auto rounded-md bg-white p-6 shadow-sm sm:p-10" onContextMenu={e=>e.preventDefault()}>
+ return <div className={`h-full w-full overflow-auto rounded-lg p-4 shadow-sm sm:p-8 lg:p-12 ${theme==="dark"?"bg-slate-900 text-slate-100":theme==="sepia"?"bg-amber-50 text-amber-950":"bg-white text-slate-900"}`} onContextMenu={e=>e.preventDefault()}>
   {text===null?<p role="status" className="text-sm text-slate-500">Préparation de la page {page}…</p>:
-   <article className="mx-auto max-w-prose whitespace-pre-wrap font-serif text-[1.08rem] leading-8 text-slate-900">{text}</article>}
+   <article style={{fontSize:`${fontSize}%`,lineHeight}} className="mx-auto max-w-[74ch] whitespace-pre-wrap font-serif">{text}</article>}
  </div>;
 }
