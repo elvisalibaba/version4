@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { isSupabaseMode } from "@/lib/data-source";
-import { CHECKOUT_BOOK_FORMATS, isPhysicalBookFormat } from "@/lib/book-formats";
+import { CHECKOUT_BOOK_FORMATS, isPhysicalBookFormat, type CheckoutBookFormat } from "@/lib/book-formats";
 
 export const dynamic = "force-dynamic";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-type Line={book_id:string;book_format:string;quantity:number};
+type Line={book_id:string;book_format:CheckoutBookFormat;quantity:number};
 function fail(message:string,status:number){return NextResponse.json({message},{status});}
 export async function POST(request:Request){
  if(!isSupabaseMode())return fail("Route indisponible",404);
@@ -32,7 +32,7 @@ export async function POST(request:Request){
     ||!Number.isSafeInteger(qty)||qty<1||qty>(isPhysicalBookFormat(format as typeof CHECKOUT_BOOK_FORMATS[number])?50:1))return fail("Livre, format ou quantité invalide",422);
   const key=id+":"+format;
   if(unique.has(key))return fail("Article en double",422);
-  unique.add(key);lines.push({book_id:id,book_format:format,quantity:qty});
+  unique.add(key);lines.push({book_id:id,book_format:format as CheckoutBookFormat,quantity:qty});
  }
  const service=createServiceRoleClient();
  const ids=[...new Set(lines.map(l=>l.book_id))];
@@ -45,7 +45,7 @@ export async function POST(request:Request){
  const books=new Map((booksResult.data??[]).map(b=>[b.id,b]));
  const formats=new Map((formatsResult.data??[]).map(f=>[f.book_id+":"+f.format,f]));
  const owned=new Set((libraryResult.data??[]).filter(x=>x.access_type==="purchase").map(x=>x.book_id));
- const items:Array<{book_id:string;book_format:string;price:number;currency_code:string;quantity:number}>=[];
+ const items:Array<{book_id:string;book_format:CheckoutBookFormat;price:number;currency_code:string;quantity:number}>=[];
  let total=0;
  for(const line of lines){
   const book=books.get(line.book_id),format=formats.get(line.book_id+":"+line.book_format);
