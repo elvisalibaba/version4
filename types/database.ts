@@ -1123,6 +1123,7 @@ export type Database = {
           price: number;
           currency_code: string;
           book_format: BookFormatType;
+          quantity: number;
         };
         Insert: {
           id?: string;
@@ -1131,6 +1132,7 @@ export type Database = {
           price: number;
           currency_code?: string;
           book_format?: BookFormatType;
+          quantity?: number;
         };
         Update: {
           id?: string;
@@ -1139,6 +1141,7 @@ export type Database = {
           price?: number;
           currency_code?: string;
           book_format?: BookFormatType;
+          quantity?: number;
         };
         Relationships: [
           {
