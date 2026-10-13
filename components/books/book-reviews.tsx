@@ -56,11 +56,13 @@ function StarPicker({
 export function BookReviews({
   bookId,
   isAuthenticated,
+  supabaseMode = false,
   ratingAvg,
   ratingsCount,
 }: {
   bookId: string;
   isAuthenticated: boolean;
+  supabaseMode?: boolean;
   ratingAvg: number | null | undefined;
   ratingsCount: number | null | undefined;
 }) {
@@ -85,7 +87,7 @@ export function BookReviews({
 
     try {
       const request = await fetch(
-        buildReviewsPath(bookId, { sort, page, perPage: 8 }),
+        supabaseMode ? `/api/supabase/books/${encodeURIComponent(bookId)}/reviews?sort=${sort}&page=${page}&per_page=8` : buildReviewsPath(bookId, { sort, page, perPage: 8 }),
         {
           cache: "no-store",
           headers: { Accept: "application/json" },
@@ -109,7 +111,7 @@ export function BookReviews({
     } finally {
       setLoading(false);
     }
-  }, [bookId, page, sort]);
+  }, [bookId, page, sort, supabaseMode]);
 
   useEffect(() => {
     void load();
@@ -137,8 +139,8 @@ export function BookReviews({
     setError(null);
 
     const endpoint = currentReview
-      ? "/api/backend/reviews/" + encodeURIComponent(currentReview.id)
-      : "/api/backend/books/" + encodeURIComponent(bookId) + "/reviews";
+      ? (supabaseMode ? "/api/supabase/reviews/" : "/api/backend/reviews/") + encodeURIComponent(currentReview.id)
+      : (supabaseMode ? "/api/supabase/books/" : "/api/backend/books/") + encodeURIComponent(bookId) + "/reviews";
 
     try {
       const request = await fetch(endpoint, {
@@ -189,7 +191,7 @@ export function BookReviews({
 
     try {
       const request = await fetch(
-        "/api/backend/reviews/" + encodeURIComponent(currentReview.id),
+        (supabaseMode ? "/api/supabase/reviews/" : "/api/backend/reviews/") + encodeURIComponent(currentReview.id),
         {
           method: "DELETE",
           headers: { Accept: "application/json" },

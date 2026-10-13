@@ -122,7 +122,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
                   )}
                 </div>
                 <div className="mx-auto mt-5 flex w-[11.5rem] items-center justify-center gap-2 sm:w-[13rem] lg:w-full">
-                  <FavoriteBookButton bookId={book.id} initialIsFavorite={book.is_favorite} />
+                  <FavoriteBookButton bookId={book.id} initialIsFavorite={book.is_favorite} supabaseMode={supabaseReaderMode} />
                   <ShareButton title={book.title} />
                 </div>
                 {canPreview ? (
@@ -291,7 +291,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
           ) : null}
 
           <div className="mt-6">
-            <BookReviews bookId={book.id} isAuthenticated={isAuthenticated} ratingAvg={book.rating_avg} ratingsCount={book.ratings_count} />
+            <BookReviews bookId={book.id} isAuthenticated={isAuthenticated} supabaseMode={supabaseReaderMode} ratingAvg={book.rating_avg} ratingsCount={book.ratings_count} />
           </div>
         </div>
       </div>
