@@ -48,6 +48,7 @@ export async function POST(request:Request){
  const items:Array<{book_id:string;book_format:CheckoutBookFormat;price:number;currency_code:string;quantity:number}>=[];
  let total=0;
  for(const line of lines){
+  if(!isPhysicalBookFormat(line.book_format))return fail("Les livres numériques se lisent gratuitement. Choisissez une édition imprimée pour payer.",409);
   const book=books.get(line.book_id),format=formats.get(line.book_id+":"+line.book_format);
   if(!book||book.status!=="published"||book.review_status!=="approved"||book.copyright_status!=="clear"
     ||!book.is_single_sale_enabled)return fail("Un livre n’est pas disponible à la vente",409);

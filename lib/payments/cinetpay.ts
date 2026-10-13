@@ -1,7 +1,7 @@
 import "server-only";
 
 import { isBookCopyrightBlocked } from "@/lib/book-copyright";
-import { CHECKOUT_BOOK_FORMATS, isDigitalBookFormat } from "@/lib/book-formats";
+import { CHECKOUT_BOOK_FORMATS, isDigitalBookFormat, isPhysicalBookFormat } from "@/lib/book-formats";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import type { Database, OrderPaymentStatus } from "@/types/database";
 import type { CheckoutBookFormat, CinetPayChannel, ValidatedCheckoutCustomer } from "./validation";
@@ -65,6 +65,8 @@ type EasyPayCheckingResponse = {
     channel?: string;
     status?: string;
     reference?: string;
+    amount?: number | string;
+    currency?: string;
   };
   message?: string;
 };
@@ -279,6 +281,7 @@ async function loadCheckoutBookContext(userId: string, bookId: string, requested
   }
 
   const effectiveFormat = (selectedFormat?.format ?? "ebook") as CheckoutBookFormat;
+  if(!isPhysicalBookFormat(effectiveFormat)) throw new PaymentFlowError("La lecture numérique est gratuite. Le paiement concerne uniquement une édition physique mise en vente.",409);
 
   if (existingLibraryEntry?.access_type === "purchase" && isDigitalBookFormat(effectiveFormat)) {
     throw new PaymentFlowError("Ce livre a deja ete achete sur votre compte.", 409);
@@ -318,8 +321,8 @@ async function loadPreparedOrderForUser(userId: string, orderId: string): Promis
     throw new PaymentFlowError("Commande introuvable pour cet utilisateur.", 404);
   }
 
-  if (order.payment_status === "paid") {
-    throw new PaymentFlowError("Cette commande est deja payee.", 409);
+  if (order.payment_status !== "pending") {
+    throw new PaymentFlowError("Cette commande n’est pas en attente de paiement.", 409);
   }
 
   const { data: itemData } = await service
@@ -333,6 +336,7 @@ async function loadPreparedOrderForUser(userId: string, orderId: string): Promis
   }
 
   if (order.total_price <= 0 || !Number.isFinite(order.total_price)) throw new PaymentFlowError("Commande sans montant à payer.",409);
+  if(items.some(item=>!isPhysicalBookFormat(item.book_format??"ebook"))) throw new PaymentFlowError("Les éditions numériques se lisent gratuitement, hors commande payante.",409);
   if (!["USD","CDF"].includes(order.currency_code) || items.some((item) => item.currency_code !== order.currency_code)) {
     throw new PaymentFlowError("Les devises de la commande ne correspondent pas.", 409);
   }
@@ -552,6 +556,16 @@ export async function initCinetPayCheckout(params: {
       })
     : await loadPreparedOrderForUser(params.userId, params.orderId!);
 
+  // Reuse initialized provider URL after refresh to avoid duplicate collection requests.
+  const existingRef = preparedOrder.order.payment_transaction_id;
+  if(preparedOrder.order.payment_provider_status==="INITIATED" && existingRef){
+    const configuration=getEasyPayConfig();
+    return {
+      orderId:preparedOrder.order.id,transactionId:existingRef,
+      paymentUrl:`${buildEasyPayModeUrl(configuration,"/payment/initialization")}?reference=${encodeURIComponent(existingRef)}`,
+      reused:true,
+    };
+  }
   const provisionalReference =
     preparedOrder.order.payment_transaction_id && preparedOrder.order.payment_transaction_id.trim().length > 0
       ? preparedOrder.order.payment_transaction_id
@@ -677,6 +691,8 @@ async function verifyProviderTransaction(transactionId: string) {
       order_ref: cleanString(result?.transaction?.order_ref),
       channel: cleanString(result?.payment?.channel),
       payment_status: providerStatus,
+      amount: result?.payment?.amount ?? null,
+      currency: result?.payment?.currency ?? null,
     },
   } satisfies VerificationOutcome;
 }
@@ -775,6 +791,12 @@ export async function reconcileCinetPayTransaction(transactionId: string) {
   // Verify that the provider's transaction refers to this exact server-owned order.
   const verifiedOrderRef = verification.providerData.order_ref;
   const verifiedTxnRef = verification.providerData.transaction_reference;
+  const providerAmount = verification.providerData.amount;
+  const providerCurrency = verification.providerData.currency;
+  if (providerAmount !== null && providerAmount !== undefined && Math.abs(Number(providerAmount)-prepared.order.total_price)>0.009)
+    throw new PaymentFlowError("Montant EasyPay incorrect : validation refusée.",409);
+  if (providerCurrency && providerCurrency !== prepared.order.currency_code)
+    throw new PaymentFlowError("Devise EasyPay incorrecte : validation refusée.",409);
   if (verifiedOrderRef !== prepared.order.id || verifiedTxnRef !== transactionId) {
     throw new PaymentFlowError("Référence de paiement EasyPay non concordante : validation refusée.", 409);
   }

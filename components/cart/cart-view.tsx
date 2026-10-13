@@ -49,6 +49,7 @@ export function CartView({ isAuthenticated, customer, supabaseMode = false }: { 
   const [error, setError] = useState<string | null>(null);
   const count = cartCount(items);
   const hasPhysical = items.some((item) => isPhysicalBookFormat(item.format));
+  const hasDigitalSale = supabaseMode && items.some((item) => !isPhysicalBookFormat(item.format));
   // Toute modification du panier invalide la commande préparée.
   const activeOrder = order && order.signature === signature ? order : null;
 
@@ -61,6 +62,7 @@ export function CartView({ isAuthenticated, customer, supabaseMode = false }: { 
   }
 
   async function prepareOrder() {
+    if(hasDigitalSale){setError("La lecture numérique est gratuite. Retirez les formats numériques du panier et utilisez le lecteur.");return;}
     setBusy(true);
     setError(null);
     try {
