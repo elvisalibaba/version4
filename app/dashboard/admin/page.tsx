@@ -28,7 +28,7 @@ export default async function AdminDashboardPage(){
  const stats=[
   {title:"Livres",count:books.error?null:books.count,desc:"Catalogue complet",url:"/dashboard/admin/books",icon:BookOpen},
   {title:"Publications",count:published.error?null:published.count,desc:"Livres publiés",url:"/dashboard/admin/books",icon:ShieldCheck},
-  {title:"À valider",count:pending.error?null:pending.count,desc:"Éditions en attente",url:"/dashboard/admin/books",icon:Clock3},
+  {title:"À valider",count:pending.error?null:pending.count,desc:"Éditions en attente",url:"/dashboard/admin/books?filter=submitted",icon:Clock3},
   {title:"Utilisateurs",count:users.error?null:users.count,desc:"Profils enregistrés",url:"/dashboard/admin/users",icon:Users},
   {title:"Auteurs",count:authors.error?null:authors.count,desc:"Profils auteurs",url:"/admin/authors",icon:Users},
   {title:"Commandes",count:orders.error?null:orders.count,desc:"Transactions",url:"/dashboard/admin/orders",icon:Receipt},
