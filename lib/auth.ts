@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { isSupabaseMode } from "@/lib/data-source";
+import { getSupabaseUser } from "@/lib/supabase/user";
 import { ApiError } from "@/lib/api/client";
 import { apiServer } from "@/lib/api/server";
 import type { ApiUser, UserRole } from "@/types/api";
@@ -39,6 +41,9 @@ function flattenUser(user: ApiUser): CurrentUserProfile {
 }
 
 export async function getCurrentUserProfile(): Promise<CurrentUserProfile | null> {
+  if (isSupabaseMode()) {
+    try { const user = await getSupabaseUser(); return user ? flattenUser(user) : null; } catch { return null; }
+  }
   try {
     const response = await apiServer<{ data: ApiUser }>("auth/me");
     return response?.data ? flattenUser(response.data) : null;
