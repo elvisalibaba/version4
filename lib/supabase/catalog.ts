@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { ApiBook, ApiBookFormat } from "@/types/api";
+import { publicBookCoverUrl } from "@/lib/book-cover-url";
 
 type PublicBook = ApiBook & { cover_signed_url?: string | null };
 const numeric = (v: unknown) => Number(v ?? 0) || 0;
@@ -51,8 +52,9 @@ export async function getSupabaseBooks(options: { searchQuery?:string; category?
     }));
     const publishedFormats=bookFormats.filter(f=>f.is_published && (f.format==="ebook"||f.format==="holistique_store"));
     const price=numeric(publishedFormats[0]?.price??row.price);
-    let cover=typeof row.cover_url==="string"?row.cover_url:null;
-    if(cover && !/^https?:\/\//.test(cover)){const {data}=await supabase.storage.from("books").createSignedUrl(cover,3600);cover=data?.signedUrl??null;}
+    // Do not embed expiring Supabase URLs in public HTML or Next's image cache.
+    const cover = typeof row.cover_url === "string" && row.cover_url.startsWith("covers/")
+      ? publicBookCoverUrl(String(row.id)) : null;
     const mapped={
       ...row,id:String(row.id),title:String(row.title??""),subtitle:row.subtitle??null,
       author_id:String(row.author_id??""),author_display_name:row.author_display_name??null,
