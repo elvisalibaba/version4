@@ -178,9 +178,9 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
             {/* Accès et achat */}
             <aside className="[grid-area:buy]">
               <div className="border border-rule-strong bg-white p-6 lg:sticky lg:top-40">
-                <p className="font-display text-[2rem] font-semibold leading-none tabular-nums text-night-900">{book.display_price_label}</p>
+                <p className="font-display text-[2rem] font-semibold leading-none tabular-nums text-night-900">{supabaseReaderMode ? "Lecture numérique gratuite" : book.display_price_label}</p>
                 <p className="mt-3 text-sm leading-6 text-slate-600">{accessMessage}</p>
-                {book.is_free ? (
+                {(book.is_free || supabaseReaderMode) ? (
                   <ul className="mt-4 space-y-1.5 text-sm text-slate-700">
                     <li className="flex items-center gap-2"><Check aria-hidden="true" className="h-4 w-4 text-emerald-700" />{isAuthenticated ? "Livre complet avec votre compte" : "10 pages à lire sans compte"}</li>
                     <li className="flex items-center gap-2"><Check aria-hidden="true" className="h-4 w-4 text-emerald-700" />Aucun paiement</li>
