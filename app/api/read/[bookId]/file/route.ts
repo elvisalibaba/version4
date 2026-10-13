@@ -1,3 +1,4 @@
+import { isSupabaseMode } from "@/lib/data-source";
 import { NextResponse } from "next/server";
 import { getApiBaseUrl } from "@/lib/api/client";
 import { getServerAuthToken } from "@/lib/api/server";
@@ -26,6 +27,7 @@ async function proxyPage(request: Request, targetUrl: string, token?: string | n
 }
 
 export async function GET(request: Request, context: { params: Promise<{ bookId: string }> }) {
+  if (isSupabaseMode()) return NextResponse.json({ error:"Lecteur sécurisé Supabase non validé. Accès protégé temporairement indisponible." },{status:503});
   const { bookId } = await context.params;
   const token = await getServerAuthToken();
   const encodedBookId = encodeURIComponent(bookId);

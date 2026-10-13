@@ -5,7 +5,10 @@ import { createServerClient } from "@supabase/ssr";
 import { AUTH_COOKIE_NAME } from "@/lib/api/session";
 
 export function proxy(request: NextRequest) {
-  if (isSupabaseMode()) return supabaseProxy(request);
+  if (isSupabaseMode()) {
+    if(request.nextUrl.pathname.startsWith("/admin")) return new NextResponse("Administration Supabase en cours de sécurisation.",{status:503});
+    return supabaseProxy(request);
+  }
   const pathname = request.nextUrl.pathname;
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
 

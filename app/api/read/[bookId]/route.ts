@@ -1,9 +1,11 @@
+import { isSupabaseMode } from "@/lib/data-source";
 import { NextResponse } from "next/server";
 import { ApiError } from "@/lib/api/client";
 import { apiServer, getServerAuthToken } from "@/lib/api/server";
 import type { ApiBook } from "@/types/api";
 
 export async function GET(_request: Request, context: { params: Promise<{ bookId: string }> }) {
+  if (isSupabaseMode()) return NextResponse.json({ error:"Lecteur sécurisé Supabase non validé. Accès protégé temporairement indisponible." },{status:503});
   const { bookId } = await context.params;
 
   try {

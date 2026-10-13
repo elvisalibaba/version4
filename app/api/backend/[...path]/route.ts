@@ -1,3 +1,4 @@
+import { isSupabaseMode } from "@/lib/data-source";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME } from "@/lib/api/session";
@@ -10,6 +11,7 @@ const API_URL = (
 ).replace(/\/$/, "");
 
 async function proxyRequest(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
+  if (isSupabaseMode()) return NextResponse.json({ message:"API Laravel indisponible en mode Supabase : endpoint non migré." },{status:503});
   const { path } = await context.params;
   const target = new URL(`${API_URL}/api/v1/${path.map(encodeURIComponent).join("/")}`);
   request.nextUrl.searchParams.forEach((value, key) => target.searchParams.append(key, value));
