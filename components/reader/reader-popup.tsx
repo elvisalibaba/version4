@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Maximize2, Settings2, X } from "lucide-react";
 import { PdfReaderSurface } from "@/components/reader/pdf-reader-surface";
+import { SupabasePdfPage } from "@/components/reader/supabase-pdf-page";
+import { SupabaseEpubPage } from "@/components/reader/supabase-epub-page";
 
 type EpubTheme = "light" | "sepia" | "dark";
 type HighlightColor = "yellow" | "blue" | "pink" | "green";
@@ -174,6 +176,7 @@ export function ReaderPopup({
   const dialogTitleId = useId();
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<"epub" | "pdf" | null>(null);
+  const [deliveryMode, setDeliveryMode] = useState<"page_images" | "pdf_pages" | "epub_pages">("page_images");
   const [error, setError] = useState<string | null>(null);
   const [readerProfileId, setReaderProfileId] = useState<string | null>(null);
   const [highlights, setHighlights] = useState<ReaderHighlight[]>([]);
@@ -218,10 +221,12 @@ export function ReaderPopup({
       : `Page ${pdfPageNumber}${pdfPageCount > 0 ? ` / ${pdfPageCount}` : ""}`;
   const readerProgress = isPdf && pdfPageCount > 0 ? Math.round((pdfPageNumber / pdfPageCount) * 100) : epubProgress;
 
+  const openGuestGate = useCallback(() => setPreviewGateOpen(true), []);
   const goPrevious = useCallback(() => {
-    if (isEpub) renditionRef.current?.prev();
+    if (isEpub && deliveryMode === "epub_pages") setEpubCurrentPage((previous) => Math.max(1, previous - 1));
+    else if (isEpub) renditionRef.current?.prev();
     if (isPdf) setPdfPageNumber((previous) => Math.max(1, previous - pdfStep));
-  }, [isEpub, isPdf, pdfStep]);
+  }, [deliveryMode, isEpub, isPdf, pdfStep]);
 
   const goNext = useCallback(() => {
     if (isGuestReader && guestPreviewLimit && currentReaderPage >= guestPreviewLimit) {
@@ -229,7 +234,8 @@ export function ReaderPopup({
       return;
     }
 
-    if (isEpub) renditionRef.current?.next();
+    if (isEpub && deliveryMode === "epub_pages") setEpubCurrentPage((previous) => Math.min(epubTotalPages || previous + 1, previous + 1));
+    else if (isEpub) renditionRef.current?.next();
     if (isPdf) {
       setPdfPageNumber((previous) => {
         const maxPage = guestPreviewLimit
@@ -238,7 +244,7 @@ export function ReaderPopup({
         return Math.min(maxPage, previous + pdfStep);
       });
     }
-  }, [currentReaderPage, guestPreviewLimit, isEpub, isGuestReader, isPdf, pdfPageCount, pdfSpreadMode, pdfStep]);
+  }, [currentReaderPage, deliveryMode, epubTotalPages, guestPreviewLimit, isEpub, isGuestReader, isPdf, pdfPageCount, pdfSpreadMode, pdfStep]);
 
   useEffect(() => {
     if (!open) {
@@ -352,6 +358,7 @@ export function ReaderPopup({
       setError(null);
       setFileUrl(null);
       setFileType(null);
+      setDeliveryMode("page_images");
       setReaderProfileId(null);
       setHighlights([]);
       setSelectedQuote("");
@@ -388,6 +395,10 @@ export function ReaderPopup({
 
         setFileUrl(readerPayload.readerUrl);
         setFileType(readerPayload.fileType);
+        setDeliveryMode(readerPayload.deliveryMode ?? "page_images");
+        if(readerPayload.fileType === "epub" && Number.isInteger(readerPayload.pageCount)){
+          setEpubTotalPages(readerPayload.pageCount);
+        }
 
         if (typeof readerPayload.pageCount === "number" && readerPayload.pageCount > 0) {
           setPdfPageCount(readerPayload.pageCount);
@@ -408,6 +419,10 @@ export function ReaderPopup({
         if (!user || guestPreview) return;
 
         setReaderProfileId(user.id);
+        if(readerPayload.deliveryMode === "pdf_pages" || readerPayload.deliveryMode === "epub_pages"){
+          setProgressHydrated(true);
+          return;
+        }
 
         const [highlightsResponse, progressResponse] = await Promise.all([
           fetch(`/api/backend/books/${encodeURIComponent(bookId)}/highlights`, {
@@ -452,7 +467,7 @@ export function ReaderPopup({
   }, [bookId, open]);
 
   useEffect(() => {
-    if (!open || !fileUrl || !isEpub || !mountRef.current) {
+    if (!open || !fileUrl || !isEpub || deliveryMode === "epub_pages" || !mountRef.current) {
       return;
     }
 
@@ -558,7 +573,7 @@ export function ReaderPopup({
       bookRef.current?.destroy?.();
       bookRef.current = null;
     };
-  }, [fileUrl, isEpub, open, resumeEpubCfi]);
+  }, [deliveryMode, fileUrl, isEpub, open, resumeEpubCfi]);
 
   useEffect(() => {
     const rendition = renditionRef.current;
@@ -844,7 +859,13 @@ export function ReaderPopup({
             <div className="relative grid h-full min-h-0 gap-3 xl:grid-cols-[minmax(0,1fr)_340px]">
               <div className="relative min-h-0 overflow-hidden rounded-none border-0 border-black/10 bg-slate-300 p-1 sm:rounded-md sm:border sm:p-3">
                 {fileType === "pdf" ? (
-                  <PdfReaderSurface
+                  deliveryMode === "pdf_pages" ? (
+                    <div className="h-full min-h-0 overflow-auto rounded-md bg-night-900 p-3">
+                      <div className={pdfSpreadMode && pdfVisiblePages.length > 1 ? "grid gap-4 xl:grid-cols-2" : "mx-auto max-w-4xl"}>
+                        {pdfVisiblePages.map(page => <SupabasePdfPage key={page} fileUrl={fileUrl} pageNumber={page} scale={pdfScale} onError={setError}/>)}
+                      </div>
+                    </div>
+                  ) : <PdfReaderSurface
                     fileUrl={fileUrl}
                     pageNumbers={pdfVisiblePages}
                     scale={pdfScale}
@@ -858,6 +879,8 @@ export function ReaderPopup({
                     onPageCount={setPdfPageCount}
                     onError={setError}
                   />
+                ) : deliveryMode === "epub_pages" ? (
+                  <SupabaseEpubPage fileUrl={fileUrl} page={epubCurrentPage} onError={setError} onLoginRequired={openGuestGate}/>
                 ) : (
                   <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-none bg-paper-deep p-1 shadow-[0_20px_40px_rgba(14, 17, 36,0.22)] sm:rounded-md sm:p-2">
                     <div ref={mountRef} className="h-full min-h-0 w-full overflow-hidden rounded-md bg-white sm:rounded-md" onContextMenu={(event) => event.preventDefault()} />
