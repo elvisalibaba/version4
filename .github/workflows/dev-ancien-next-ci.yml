@@ -2,7 +2,7 @@ name: HolisticBooks Supabase Migration CI
 
 on:
   push:
-    branches: [dev-ancien, fix/admin-supabase-dashboard, fix/book-review-covers-20261013, fix/supabase-free-reader-10-pages, fix/reviews-favorites-sharing-reader-20261013, fix/supabase-easypay-gateway-20261013, main]
+    branches: [dev-ancien, fix/admin-supabase-dashboard, fix/book-review-covers-20261013, fix/supabase-free-reader-10-pages, fix/reviews-favorites-sharing-reader-20261013, fix/supabase-easypay-gateway-20261013, fix/covers-reader-browser-20261013, main]
   workflow_dispatch:
 
 permissions:
