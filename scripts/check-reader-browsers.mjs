@@ -1,15 +1,27 @@
 import { chromium, webkit } from "playwright";
+import { spawn } from "node:child_process";
 
 const base="http://127.0.0.1:3000";
 const id="8a701e21-6636-4468-8b53-d827bf2ce409";
 const edge="https://wgsvzhhzsmioihjwcwcs.supabase.co/functions/v1/holistic-reader-page?bookId="+id+"&page=1";
 
+const server=spawn(process.execPath,["node_modules/next/dist/bin/next","start","-p","3000"],{
+ cwd:process.cwd(),env:{...process.env,ALLOW_BROWSER_SMOKE:"1"},stdio:["ignore","pipe","pipe"],
+});
+let serverLogs="";
+for(const stream of [server.stdout,server.stderr])stream.on("data",part=>{serverLogs+=(part.toString()).slice(-6000);});
 async function waitForServer(){
- for(let i=0;i<55;i++){
-  try{const response=await fetch(base+"/__smoke__/reader");if(response.status===200)return;}catch{}
+ let lastStatus="unreachable";
+ for(let i=0;i<45;i++){
+  try{
+   const response=await fetch(base+"/__smoke__/reader",{signal:AbortSignal.timeout(4000)});
+   lastStatus=String(response.status);
+   if(response.status===200)return;
+  }catch(e){lastStatus=String(e);}
+  if(server.exitCode!==null)break;
   await new Promise(resolve=>setTimeout(resolve,1000));
  }
- throw Error("Smoke reader server did not start");
+ throw Error("Reader harness not available. HTTP="+lastStatus+" logs="+serverLogs.slice(-3200));
 }
 await waitForServer();
 const pdfResponse=await fetch(edge,{signal:AbortSignal.timeout(30000)});
@@ -43,3 +55,5 @@ for(const [name,type,mobile] of [["Chrome desktop",chromium,false],["Safari mobi
  console.log("PASS "+name+": 10-page limit displays signup prompt");
  await context.close();await browser.close();
 }
+
+server.kill();
