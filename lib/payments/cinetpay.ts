@@ -324,6 +324,9 @@ async function loadPreparedOrderForUser(userId: string, orderId: string): Promis
   if (order.payment_status !== "pending") {
     throw new PaymentFlowError("Cette commande n’est pas en attente de paiement.", 409);
   }
+  if (!isRecord(order.payment_metadata) || order.payment_metadata.source !== "supabase_cart_checkout") {
+    throw new PaymentFlowError("Recréez cette commande depuis le panier sécurisé Supabase.",409);
+  }
 
   const { data: itemData } = await service
     .from("order_items")
@@ -337,6 +340,23 @@ async function loadPreparedOrderForUser(userId: string, orderId: string): Promis
 
   if (order.total_price <= 0 || !Number.isFinite(order.total_price)) throw new PaymentFlowError("Commande sans montant à payer.",409);
   if(items.some(item=>!isPhysicalBookFormat(item.book_format??"ebook"))) throw new PaymentFlowError("Les éditions numériques se lisent gratuitement, hors commande payante.",409);
+  const {data:dbFormats,error:formatError}=await service.from("book_formats")
+    .select("book_id,format,price,currency_code,is_published")
+    .in("book_id",[...new Set(items.map(item=>item.book_id))]);
+  if(formatError)throw new PaymentFlowError("Impossible de vérifier les tarifs du catalogue.",503);
+  let verifiedTotal=0;
+  for(const item of items){
+    const matching=(dbFormats??[]).find(format=>format.book_id===item.book_id&&format.format===item.book_format&&format.is_published);
+    const quantity=item.quantity??1;
+    if(!matching||matching.currency_code!==order.currency_code
+      ||!Number.isInteger(quantity)||quantity<1||quantity>50
+      ||Number(matching.price)!==Number(item.price))
+      throw new PaymentFlowError("Une édition ou son prix a changé. Recréez votre panier.",409);
+    verifiedTotal+=Number(item.price)*quantity;
+  }
+  if(Math.abs(verifiedTotal-Number(order.total_price))>0.009)
+    throw new PaymentFlowError("Le total est différent des prix officiels du catalogue.",409);
+
   if (!["USD","CDF"].includes(order.currency_code) || items.some((item) => item.currency_code !== order.currency_code)) {
     throw new PaymentFlowError("Les devises de la commande ne correspondent pas.", 409);
   }
