@@ -6,7 +6,7 @@ import { AUTH_COOKIE_NAME } from "@/lib/api/session";
 
 export function proxy(request: NextRequest) {
   if (isSupabaseMode()) {
-    if(request.nextUrl.pathname.startsWith("/admin")) return new NextResponse("Administration Supabase en cours de sécurisation.",{status:503});
+    if (request.nextUrl.pathname.startsWith("/api/payments/")) return NextResponse.json({ message: "Paiement désactivé pendant la migration Supabase." }, { status: 503 });
     return supabaseProxy(request);
   }
   const pathname = request.nextUrl.pathname;
@@ -51,5 +51,5 @@ async function supabaseProxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*"],
+  matcher: ["/dashboard/:path*", "/admin/:path*", "/api/payments/:path*"],
 };

@@ -5,10 +5,11 @@ import type { ApiBook, ApiBookFormat } from "@/types/api";
 type PublicBook = ApiBook & { cover_signed_url?: string | null };
 const numeric = (v: unknown) => Number(v ?? 0) || 0;
 
-export async function getSupabaseBooks(options: { searchQuery?:string; category?:string; status?: "published"|"coming_soon"; page?:number; perPage?:number } = {}) {
+export async function getSupabaseBooks(options: { searchQuery?:string; category?:string; status?: "published"|"coming_soon"; bookId?:string; page?:number; perPage?:number } = {}) {
   const supabase = await createClient();
   const status = options.status ?? "published";
   let query = supabase.from("books").select("*", { count: "exact" }).eq("status",status).neq("copyright_status","blocked");
+  if(options.bookId) query=query.eq("id", options.bookId);
   if(options.category && options.category !== "all") query=query.contains("categories",[options.category]);
   if(options.searchQuery?.trim()){
     const term=options.searchQuery.replace(/[%_,]/g," ").trim();
@@ -54,6 +55,6 @@ export async function getSupabaseBookById(id:string):Promise<ApiBook|null>{
  const client=await createClient();
  const {data,error}=await client.from("books").select("*").eq("id",id).maybeSingle();
  if(error||!data||data.copyright_status==="blocked"||!["published","coming_soon"].includes(data.status))return null;
- const all=await getSupabaseBooks({status:data.status,perPage:100});
+ const all=await getSupabaseBooks({status:data.status,bookId:id,perPage:1});
  return all.books.find(book=>book.id===id)??null;
 }
