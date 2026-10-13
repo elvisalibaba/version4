@@ -1,4 +1,6 @@
 import { ApiError } from "@/lib/api/client";
+import { isSupabaseMode } from "@/lib/data-source";
+import { getSupabaseBooks, getSupabaseBookById } from "@/lib/supabase/catalog";
 import { apiServer } from "@/lib/api/server";
 import { resolveBookOfferDetails } from "@/lib/book-offers";
 import { resolveBookAuthorName } from "@/lib/book-authors";
@@ -77,6 +79,7 @@ async function getFavoriteIds() {
 }
 
 export async function getPublishedBooks(options: GetPublishedBooksOptions = {}) {
+  if (isSupabaseMode()) { const result=await getSupabaseBooks({...options,perPage:100}); return result.books.map(book=>mapBook(book)); }
   const params = new URLSearchParams();
   if (options.searchQuery?.trim()) params.set("search", options.searchQuery.trim());
   if (options.category?.trim() && options.category.trim().toLowerCase() !== "all") params.set("category", options.category.trim());
@@ -96,6 +99,7 @@ export async function getPublishedBooks(options: GetPublishedBooksOptions = {}) 
 }
 
 export async function getComingSoonBooks() {
+  if (isSupabaseMode()) { const result=await getSupabaseBooks({status:"coming_soon",perPage:100}); return result.books.map(book=>mapBook(book)); }
   try {
     const [response, favoriteIds] = await Promise.all([
       apiServer<ApiPagination<ApiBook>>("books", { authenticated: false }),
@@ -108,6 +112,7 @@ export async function getComingSoonBooks() {
 }
 
 export async function getBookById(bookId: string) {
+  if (isSupabaseMode()) { const book=await getSupabaseBookById(bookId); if(!book)return null;const mapped=mapBook(book);return {...mapped,digital_format:null,purchase_formats:[],subscription_plans:[]}; }
   try {
     const [response, favoriteIds] = await Promise.all([
       apiServer<{ data: ApiBook }>(`books/${encodeURIComponent(bookId)}`),
@@ -148,6 +153,7 @@ export type BookDetail = Awaited<ReturnType<typeof getBookById>>;
 
 /** Livres mis en avant sur l'accueil (sélection Laravel), à défaut les dernières parutions. */
 export async function getHomeFeaturedBooks(limit = 4) {
+  if (isSupabaseMode()) return (await getPublishedBooks()).slice(0,limit);
   try {
     const response = await apiServer<{ data: ApiBook[] }>("home/featured", { authenticated: false });
     const featured = (response.data ?? []).map((book) => mapBook(book));
@@ -164,6 +170,7 @@ export type CatalogueResult =
 
 /** Page du catalogue telle que filtrée et triée par l'API (query issue de catalogueApiQuery). */
 export async function getCataloguePage(query: string): Promise<CatalogueResult> {
+  if (isSupabaseMode()) {try { const params=new URLSearchParams(query);const result=await getSupabaseBooks({searchQuery:params.get("search")??params.get("q")??undefined,category:params.get("category")??undefined,page:Number(params.get("page")??1),perPage:Number(params.get("per_page")??24)});return {status:"ok",books:result.books.map(book=>mapBook(book)),total:result.total,currentPage:result.page,lastPage:result.lastPage};}catch{return {status:"error"};}}
   try {
     const [response, favoriteIds] = await Promise.all([
       apiServer<ApiPagination<ApiBook>>(`books?${query}`, { authenticated: false }),
@@ -185,6 +192,7 @@ export async function getCataloguePage(query: string): Promise<CatalogueResult> 
 
 /** Sélection « vente flash » configurée dans l'administration. */
 export async function getFlashSaleBooks() {
+  if (isSupabaseMode()) return {discountPercentage:0,books:[]};
   try {
     const response = await apiServer<{ discount_percentage: number; books: ApiBook[] }>("home/flash-sale", { authenticated: false });
     return { discountPercentage: response.discount_percentage ?? 0, books: (response.books ?? []).map((book) => mapBook(book)) };
