@@ -695,6 +695,10 @@ export function ReaderPopup({
   }
 
   async function saveHighlight() {
+    if (deliveryMode !== "page_images") {
+      setError("La synchronisation des notes Supabase arrive prochainement.");
+      return;
+    }
     if (!readerProfileId) {
       setError("Reconnectez-vous pour sauvegarder vos notes de lecture.");
       return;
@@ -776,20 +780,20 @@ export function ReaderPopup({
   }
 
   return (
-    <div className="reader-modal fixed inset-0 z-[120] flex items-center justify-center bg-night-950/85 p-0 backdrop-blur-md sm:p-3">
+    <div className="reader-modal fixed inset-0 z-[120] flex items-center justify-center bg-night-950/90 p-0 backdrop-blur-sm">
       <div
         ref={containerRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={dialogTitleId}
         tabIndex={-1}
-        className="reader-window flex h-[100dvh] w-full max-w-[100rem] flex-col overflow-hidden rounded-none border-0 border-black/10 bg-paper-deep shadow-[0_35px_100px_rgba(14, 17, 36,.45)] outline-none sm:h-[97vh] sm:rounded-md sm:border"
+        className="reader-window flex h-[100dvh] w-screen max-w-none flex-col overflow-hidden rounded-none border-0 bg-paper-deep shadow-xl outline-none"
       >
         <h2 id={dialogTitleId} className="sr-only">Lecteur Holistique Books</h2>
         <div className="reader-toolbar reader-mobile-toolbar grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-rule-strong bg-white px-3 py-2 text-night-900 sm:flex sm:flex-wrap sm:justify-between sm:gap-3 sm:px-5 sm:py-3">
           <div className="min-w-0">
             <p className="font-display text-sm font-semibold text-brand-300 sm:text-base">Holistique Books</p>
-            <h3 className="mt-0.5 hidden font-serif text-lg font-semibold sm:block">Lecture immersive</h3>
+            <h3 className="mt-0.5 hidden font-serif text-lg font-semibold sm:block">Lecture immersive et fluide</h3>
             <p className="mt-0.5 truncate text-[0.68rem] text-slate-600 sm:text-xs">
               {isPdf ? pdfPageLabel : `Progression ${epubProgress}%${epubTotalPages > 0 ? ` • Page ${epubCurrentPage}/${epubTotalPages}` : ""}`}
             </p>
@@ -831,7 +835,7 @@ export function ReaderPopup({
               ref={toolsButtonRef}
               type="button"
               onClick={() => setMobileToolsOpen(true)}
-              className="grid h-10 w-10 place-items-center rounded-md border border-rule-strong bg-paper text-night-900 xl:hidden"
+              className="grid h-10 w-10 place-items-center rounded-md border border-rule-strong bg-paper text-night-900"
               aria-label="Ouvrir les outils de lecture"
             >
               <Settings2 aria-hidden="true" className="h-4 w-4" />
@@ -843,7 +847,7 @@ export function ReaderPopup({
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-hidden p-0 sm:p-3">
+        <div className="min-h-0 flex-1 overflow-hidden p-0 sm:p-2">
           {error ? (
             <div role="alert" className="mb-4 rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
               {error}
@@ -857,12 +861,12 @@ export function ReaderPopup({
           ) : null}
 
           {!error && fileUrl ? (
-            <div className="relative grid h-full min-h-0 gap-3 xl:grid-cols-[minmax(0,1fr)_340px]">
-              <div className="relative min-h-0 overflow-hidden rounded-none border-0 border-black/10 bg-slate-300 p-1 sm:rounded-md sm:border sm:p-3">
+            <div className="relative grid h-full min-h-0 grid-cols-1 gap-0">
+              <div className="relative min-h-0 overflow-hidden rounded-none border-0 bg-slate-100 p-1 sm:p-2">
                 {fileType === "pdf" ? (
                   deliveryMode === "pdf_pages" ? (
-                    <div className="h-full min-h-0 overflow-auto rounded-md bg-night-900 p-3">
-                      <div className={pdfSpreadMode && pdfVisiblePages.length > 1 ? "grid gap-4 xl:grid-cols-2" : "mx-auto max-w-4xl"}>
+                    <div className="h-full min-h-0 overflow-auto rounded-lg bg-slate-200 p-3 sm:p-5">
+                      <div className={pdfSpreadMode && pdfVisiblePages.length > 1 ? "mx-auto grid max-w-[1500px] gap-6 xl:grid-cols-2" : "mx-auto max-w-[950px]"}>
                         {pdfVisiblePages.map(page => <SupabasePdfPage key={page} fileUrl={fileUrl} pageNumber={page} scale={pdfScale} onError={setError}/>)}
                       </div>
                     </div>
@@ -881,7 +885,7 @@ export function ReaderPopup({
                     onError={setError}
                   />
                 ) : deliveryMode === "epub_pages" ? (
-                  <SupabaseEpubPage fileUrl={fileUrl} page={epubCurrentPage} onError={setError} onLoginRequired={openGuestGate}/>
+                  <SupabaseEpubPage fileUrl={fileUrl} page={epubCurrentPage} onError={setError} onLoginRequired={openGuestGate} fontSize={epubFontSize} theme={epubTheme} lineHeight={epubLineHeight}/>
                 ) : (
                   <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-none bg-paper-deep p-1 shadow-[0_20px_40px_rgba(14, 17, 36,0.22)] sm:rounded-md sm:p-2">
                     <div ref={mountRef} className="h-full min-h-0 w-full overflow-hidden rounded-md bg-white sm:rounded-md" onContextMenu={(event) => event.preventDefault()} />
@@ -891,8 +895,8 @@ export function ReaderPopup({
                 <button type="button" onClick={goNext} aria-label="Passer à la page suivante" className="absolute right-3 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-black/10 bg-white/90 text-night-900 shadow-lg transition hover:scale-105 lg:grid"><ChevronRight className="h-6 w-6" /></button>
               </div>
 
-              <aside ref={toolsPanelRef} tabIndex={-1} className={`${mobileToolsOpen ? "absolute inset-0 z-20 block" : "hidden"} reader-mobile-tools min-h-0 overflow-auto rounded-none border border-white/10 bg-night-900 p-3 text-white outline-none sm:rounded-md sm:p-4 xl:static xl:block`}>
-                <div className="mb-3 flex items-center justify-between xl:hidden">
+              <aside ref={toolsPanelRef} tabIndex={-1} className={`${mobileToolsOpen ? "absolute inset-y-0 right-0 z-30 block w-full max-w-[380px]" : "hidden"} reader-mobile-tools min-h-0 overflow-auto border border-white/10 bg-night-900 p-4 text-white shadow-2xl outline-none sm:rounded-lg sm:p-5`}>
+                <div className="mb-3 flex items-center justify-between">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-300">Réglages</p>
                     <p className="mt-1 text-xs text-white/55">Lecture, navigation et notes</p>
