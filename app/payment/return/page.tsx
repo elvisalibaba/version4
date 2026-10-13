@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 import { ApiError } from "@/lib/api/client";
 import { apiServer } from "@/lib/api/server";
 import { getCurrentUserProfile } from "@/lib/auth";
+import { isSupabaseMode } from "@/lib/data-source";
+import SupabasePaymentReturn from "@/components/payments/supabase-payment-return";
 import type { ApiOrder, OrderPaymentStatus } from "@/types/api";
 
 type SearchParams = Promise<{
@@ -52,6 +54,9 @@ export default async function PaymentReturnPage({ searchParams }: { searchParams
 
   if (!orderId) {
     redirect("/dashboard/reader/purchases");
+  }
+  if(isSupabaseMode()){
+    return <SupabasePaymentReturn orderId={orderId}/>;
   }
 
   const profile = await getCurrentUserProfile();
