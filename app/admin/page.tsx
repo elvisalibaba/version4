@@ -28,7 +28,7 @@ export default async function AdminPage(){
   </div>
   <section className="rounded-md border border-rule bg-white p-6">
     <h3 className="text-lg font-bold">Fonctions disponibles</h3>
-    <p className="mt-2 text-sm text-slate-600">Catalogue, couverture, fichiers privés et inventaire des comptes. Les opérations financières et le lecteur anti-téléchargement sont bloqués tant que leur validation serveur n'est pas complète.</p>
+    <p className="mt-2 text-sm text-slate-600">Catalogue, couverture, fichiers privés et inventaire des comptes. Les opérations financières et le lecteur anti-téléchargement sont bloqués tant que leur validation serveur n&apos;est pas complète.</p>
     <div className="mt-4 flex gap-4 text-sm font-semibold">
       <Link className="text-brand-600 underline" href="/admin/books">Gérer le catalogue</Link>
       <Link className="text-brand-600 underline" href="/admin/authors">Auteurs</Link>

@@ -12,7 +12,7 @@ export default async function SupabaseAdminLayout({children}:{children:React.Rea
         <div><p className="text-xs font-semibold text-brand-300">HolisticBooks / Supabase</p>
           <h1 className="text-xl font-bold">Administration éditoriale</h1></div>
         <nav className="flex flex-wrap gap-4 text-sm font-semibold">
-          <Link href="/admin">Vue d'ensemble</Link>
+          <Link href="/admin">Vue d&apos;ensemble</Link>
           <Link href="/admin/books">Livres</Link>
           <Link href="/admin/authors">Auteurs</Link>
           <Link href="/admin/orders">Commandes</Link>

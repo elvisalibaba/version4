@@ -95,15 +95,15 @@ export function SupabaseBookEditor({ book, area }: { book?: BookDraft; area: "ad
     }finally{setLoading(false);}
   }
   return <form onSubmit={submit} className="space-y-5 rounded-md border border-rule bg-white p-5 sm:p-8">
-    <p className="text-sm text-slate-600">Enregistrez le titre en brouillon. Sa publication nécessite la validation des droits et de l'équipe éditoriale.</p>
+    <p className="text-sm text-slate-600">Enregistrez le titre en brouillon. Sa publication nécessite la validation des droits et de l&apos;équipe éditoriale.</p>
     <div className="grid gap-4 md:grid-cols-2">
       <label className="space-y-1 text-sm font-semibold">Titre *
         <input className={inputStyle} required maxLength={250} value={title} onChange={e=>setTitle(e.target.value)}/></label>
       <label className="space-y-1 text-sm font-semibold">Sous-titre
         <input className={inputStyle} maxLength={250} value={subtitle} onChange={e=>setSubtitle(e.target.value)}/></label>
-      <label className="space-y-1 text-sm font-semibold">Nom de l'auteur / mention
+      <label className="space-y-1 text-sm font-semibold">Nom de l&apos;auteur / mention
         <input className={inputStyle} maxLength={250} placeholder="Sans auteur, collectif, institution…" value={author} onChange={e=>setAuthor(e.target.value)}/></label>
-      <label className="space-y-1 text-sm font-semibold">Maison d'édition
+      <label className="space-y-1 text-sm font-semibold">Maison d&apos;édition
         <input className={inputStyle} maxLength={250} value={publisher} onChange={e=>setPublisher(e.target.value)}/></label>
       <label className="space-y-1 text-sm font-semibold">ISBN
         <input className={inputStyle} maxLength={30} value={isbn} onChange={e=>setIsbn(e.target.value)}/></label>

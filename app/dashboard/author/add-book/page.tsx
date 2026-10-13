@@ -13,7 +13,7 @@ export default async function AddBookPage() {
       <header className="rounded-md bg-night-900 p-6 text-white sm:p-8">
         <Link href="/dashboard/author/books" className="text-sm text-white/70">Retour aux livres</Link>
         <h1 className="mt-5 text-3xl font-bold">Créer un livre sur Supabase</h1>
-        <p className="mt-3 text-sm text-white/65">Le dépôt reste privé jusqu'à validation des droits et publication.</p>
+        <p className="mt-3 text-sm text-white/65">Le dépôt reste privé jusqu&apos;à validation des droits et publication.</p>
       </header>
       <SupabaseBookEditor area="author" />
     </section>;

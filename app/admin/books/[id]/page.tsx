@@ -10,7 +10,7 @@ export default async function EditSupabaseBook({params}:{params:Promise<{id:stri
  return <section className="space-y-5">
   <div><h2 className="text-3xl font-bold">Modifier : {data.title}</h2>
    <p className="mt-2 text-sm text-slate-500">État : {data.status} | Vérification : {data.review_status} | Droits : {data.copyright_status}</p>
-   <p className="mt-2 text-sm text-slate-600">Validation des droits et publication : module sécurisé à compléter. L'enregistrement n'accorde aucun droit au lecteur.</p></div>
+   <p className="mt-2 text-sm text-slate-600">Validation des droits et publication : module sécurisé à compléter. L&apos;enregistrement n&apos;accorde aucun droit au lecteur.</p></div>
   <SupabaseBookEditor book={data} area="admin"/>
  </section>;
 }
