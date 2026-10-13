@@ -38,6 +38,15 @@ jobs:
       - run: npm run test
       - run: npm run build
       - run: node scripts/check-guest-preview.mjs
+      - name: Mobile and desktop browser smoke (real PDF rendering)
+        if: github.ref == 'refs/heads/fix/covers-reader-browser-20261013'
+        env:
+          ALLOW_BROWSER_SMOKE: "1"
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install chromium webkit --with-deps
+          (ALLOW_BROWSER_SMOKE=1 npm run start > /tmp/hb-reader-server.log 2>&1 &)
+          node scripts/check-reader-browsers.mjs
       - name: Verify guest covers and reading on Vercel preview
         if: github.ref == 'refs/heads/main'
         env:
