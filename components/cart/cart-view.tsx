@@ -36,7 +36,7 @@ function readApiError(payload: unknown) {
   return undefined;
 }
 
-export function CartView({ isAuthenticated, customer }: { isAuthenticated: boolean; customer: Customer | null }) {
+export function CartView({ isAuthenticated, customer, supabaseMode = false }: { isAuthenticated: boolean; customer: Customer | null; supabaseMode?: boolean }) {
   const items = useCart();
   const [removing, setRemoving] = useState<string | null>(null);
   const subtotals = useMemo(() => subtotalsByCurrency(items), [items]);
@@ -64,7 +64,7 @@ export function CartView({ isAuthenticated, customer }: { isAuthenticated: boole
     setBusy(true);
     setError(null);
     try {
-      const response = await fetch("/api/backend/orders", {
+      const response = await fetch(supabaseMode ? "/api/supabase/orders" : "/api/backend/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
