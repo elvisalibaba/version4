@@ -813,7 +813,7 @@ export async function reconcileCinetPayTransaction(transactionId: string) {
   const verifiedTxnRef = verification.providerData.transaction_reference;
   const providerAmount = verification.providerData.amount;
   const providerCurrency = verification.providerData.currency;
-  if (providerAmount !== null && providerAmount !== undefined && Math.abs(Number(providerAmount)-prepared.order.total_price)>0.009)
+  if (providerAmount !== null && providerAmount !== undefined && (!Number.isFinite(Number(providerAmount)) || Math.abs(Number(providerAmount)-prepared.order.total_price)>0.009))
     throw new PaymentFlowError("Montant EasyPay incorrect : validation refusée.",409);
   if (providerCurrency && providerCurrency !== prepared.order.currency_code)
     throw new PaymentFlowError("Devise EasyPay incorrecte : validation refusée.",409);

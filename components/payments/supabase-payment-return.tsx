@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PaymentReturnEffects } from "@/components/cart/payment-return-effects";
 import { redirect } from "next/navigation";
 import { reconcileCinetPayOrder } from "@/lib/payments/cinetpay";
 import { createClient } from "@/lib/supabase/server";
@@ -91,6 +92,7 @@ export default async function SupabasePaymentReturn({ orderId }: { orderId: stri
 
   return (
     <section className="page-hero-shell space-y-8 py-12">
+      <PaymentReturnEffects orderId={resolvedOrder.id} status={resolvedOrder.payment_status}/>
       <div className="surface-panel space-y-6 p-8">
         <div className={`rounded-[1.6rem] border px-5 py-4 ${statusCopy.accent}`}>
           <p className="text-xs font-semibold uppercase tracking-[0.2em]">EasyPay redirect return</p>
