@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { isValidBookId } from "@/lib/book-cover-url";
+import { createClient } from "../../../../lib/supabase/server";
+import { isValidBookId } from "../../../../lib/book-cover-url";
 
 export const dynamic = "force-dynamic";
 const FALLBACK = "/pwa-icon-512.png";
