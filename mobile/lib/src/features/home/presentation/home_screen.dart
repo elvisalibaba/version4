@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:holistic_books/src/core/widgets/load_state_views.dart';
 import 'package:holistic_books/src/core/constants/app_colors.dart';
 import 'package:holistic_books/src/core/widgets/app_logo.dart';
 import 'package:holistic_books/src/core/widgets/book_cover.dart';
@@ -30,14 +31,18 @@ class HomeScreen extends ConsumerWidget {
                       children: [
                         Text(
                           'HolisticBooks',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.ink,
                               ),
                         ),
                         const Text(
                           'Lire. Découvrir. Grandir.',
-                          style: TextStyle(fontSize: 12, color: AppColors.mutedInk),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.mutedInk,
+                          ),
                         ),
                       ],
                     ),
@@ -96,23 +101,26 @@ class HomeScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 14),
+              if (books.value?.cachedAt case final cachedAt?)
+                OfflineCatalogueBanner(
+                  cachedAt: cachedAt,
+                  onRetry: () => ref.invalidate(booksProvider),
+                ),
               books.when(
                 loading: () => const Padding(
                   padding: EdgeInsets.symmetric(vertical: 50),
                   child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (error, _) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 34),
-                  child: Text(
-                    'Catalogue indisponible\n$error',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                data: (items) {
+                error: (_, _) =>
+                    LoadErrorView(onRetry: () => ref.invalidate(booksProvider)),
+                data: (snapshot) {
+                  final items = snapshot.books;
                   if (items.isEmpty) {
                     return const Padding(
                       padding: EdgeInsets.symmetric(vertical: 42),
-                      child: Center(child: Text('Aucun livre publié pour le moment.')),
+                      child: Center(
+                        child: Text('Aucun livre publié pour le moment.'),
+                      ),
                     );
                   }
 
@@ -122,60 +130,65 @@ class HomeScreen extends ConsumerWidget {
                       return Wrap(
                         spacing: 14,
                         runSpacing: 20,
-                        children: items.take(10).map((book) {
-                          return SizedBox(
-                            width: cardWidth,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(18),
-                              onTap: () => context.push('/books/${book.id}'),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AspectRatio(
-                                    aspectRatio: .68,
-                                    child: BookCover(
-                                      imageUrl: book.coverUrl,
-                                      width: double.infinity,
-                                      height: double.infinity,
-                                      borderRadius: 16,
-                                    ),
+                        children: items
+                            .take(10)
+                            .map((book) {
+                              return SizedBox(
+                                width: cardWidth,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(18),
+                                  onTap: () =>
+                                      context.push('/books/${book.id}'),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      AspectRatio(
+                                        aspectRatio: .68,
+                                        child: BookCover(
+                                          imageUrl: book.coverUrl,
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                          borderRadius: 16,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        book.title,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          height: 1.2,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.ink,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        book.authorName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.mutedInk,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        book.priceLabel,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    book.title,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      height: 1.2,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.ink,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    book.authorName,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.mutedInk,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    book.priceLabel,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(growable: false),
+                                ),
+                              );
+                            })
+                            .toList(growable: false),
                       );
                     },
                   );

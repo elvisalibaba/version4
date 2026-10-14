@@ -16,8 +16,9 @@ class Book {
   });
 
   factory Book.fromJson(Map<String, dynamic> json) {
-    final rawCover = (json['cover_thumbnail_url'] as String?)?.trim().isNotEmpty == true
-        ? json['cover_thumbnail_url'] as String
+    final thumbnail = json['cover_thumb_url'] ?? json['cover_thumbnail_url'];
+    final rawCover = thumbnail is String && thumbnail.trim().isNotEmpty
+        ? thumbnail
         : json['cover_url'] as String?;
 
     return Book(
@@ -49,7 +50,8 @@ class Book {
   final int? pageCount;
   final List<String> categories;
 
-  String get priceLabel => isFree ? 'Gratuit' : '${price.toStringAsFixed(2)} $currencyCode';
+  String get priceLabel =>
+      isFree ? 'Gratuit' : '${price.toStringAsFixed(2)} $currencyCode';
 
   static String? _resolveMediaUrl(String? value) {
     if (value == null) return null;
@@ -61,7 +63,7 @@ class Book {
       return trimmed;
     }
 
-    final normalized = trimmed.startsWith('/') ? trimmed.substring(1) : trimmed;
-    return '${AppConfig.apiBaseUrl}/media/$normalized';
+    final normalized = trimmed.startsWith('/') ? trimmed : '/$trimmed';
+    return Uri.parse(AppConfig.apiBaseUrl).resolve(normalized).toString();
   }
 }

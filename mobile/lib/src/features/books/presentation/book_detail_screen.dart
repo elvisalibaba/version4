@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:holistic_books/src/core/widgets/load_state_views.dart';
 import 'package:holistic_books/src/core/constants/app_colors.dart';
 import 'package:holistic_books/src/core/constants/app_dimensions.dart';
 import 'package:holistic_books/src/core/widgets/app_button.dart';
 import 'package:holistic_books/src/core/widgets/book_cover.dart';
 import 'package:holistic_books/src/features/books/data/books_repository.dart';
+import 'package:holistic_books/src/features/offline/presentation/offline_download_button.dart';
 
 class BookDetailScreen extends ConsumerWidget {
   const BookDetailScreen({required this.bookId, super.key});
@@ -26,15 +28,18 @@ class BookDetailScreen extends ConsumerWidget {
       ),
       body: book.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text('Impossible de charger ce livre.\n$error', textAlign: TextAlign.center),
+        error: (_, _) => Center(
+          child: LoadErrorView(
+            message:
+                'Impossible de charger ce livre. Vérifiez votre connexion.',
+            onRetry: () => ref.invalidate(bookProvider(bookId)),
           ),
         ),
         data: (item) => Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: AppDimensions.contentMaxWidth),
+            constraints: const BoxConstraints(
+              maxWidth: AppDimensions.contentMaxWidth,
+            ),
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
               children: [
@@ -70,7 +75,10 @@ class BookDetailScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 7,
+                      ),
                       child: Text(
                         item.priceLabel,
                         style: const TextStyle(
@@ -97,13 +105,16 @@ class BookDetailScreen extends ConsumerWidget {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: item.categories.take(4).map((category) {
-                      return Chip(
-                        label: Text(category),
-                        backgroundColor: AppColors.white,
-                        side: const BorderSide(color: Color(0xFFE5E5E9)),
-                      );
-                    }).toList(growable: false),
+                    children: item.categories
+                        .take(4)
+                        .map((category) {
+                          return Chip(
+                            label: Text(category),
+                            backgroundColor: AppColors.white,
+                            side: const BorderSide(color: Color(0xFFE5E5E9)),
+                          );
+                        })
+                        .toList(growable: false),
                   ),
                 ],
                 const SizedBox(height: 28),
@@ -112,6 +123,8 @@ class BookDetailScreen extends ConsumerWidget {
                   icon: const Icon(Icons.chrome_reader_mode_rounded, size: 18),
                   onPressed: () => context.push('/reader/$bookId'),
                 ),
+                const SizedBox(height: 12),
+                OfflineDownloadButton(book: item),
               ],
             ),
           ),

@@ -25,8 +25,8 @@ class AppButton extends StatelessWidget {
     final background = isPrimary
         ? AppColors.primary
         : isDark
-            ? AppColors.darkButton
-            : AppColors.white;
+        ? AppColors.darkButton
+        : AppColors.white;
     final foreground = isPrimary || isDark ? AppColors.white : AppColors.ink;
 
     return SizedBox(
@@ -38,7 +38,9 @@ class AppButton extends StatelessWidget {
           backgroundColor: background,
           foregroundColor: foreground,
           side: BorderSide(
-            color: isPrimary || isDark ? background : AppColors.lightButtonBorder,
+            color: isPrimary || isDark
+                ? background
+                : AppColors.lightButtonBorder,
           ),
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -62,7 +64,10 @@ class AppButton extends StatelessWidget {
                     if (icon != null) ...[icon!, const SizedBox(width: 7)],
                     Text(
                       label,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),

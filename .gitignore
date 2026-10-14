@@ -31,6 +31,12 @@
 /mobile/android/
 /mobile/ios/
 /mobile/holistiquestores/
+/Mobile/.dart_tool/
+/Mobile/.flutter-plugins-dependencies
+/Mobile/.idea/
+/Mobile/build/
+/Mobile/*.iml
+/Mobile/.metadata
 
 # misc
 .DS_Store

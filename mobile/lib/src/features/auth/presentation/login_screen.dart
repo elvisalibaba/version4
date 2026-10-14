@@ -3,11 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:holistic_books/src/core/constants/app_colors.dart';
 import 'package:holistic_books/src/core/constants/app_dimensions.dart';
-import 'package:holistic_books/src/core/network/api_client.dart';
 import 'package:holistic_books/src/core/widgets/app_button.dart';
 import 'package:holistic_books/src/core/widgets/app_logo.dart';
 import 'package:holistic_books/src/core/widgets/app_text_field.dart';
 import 'package:holistic_books/src/core/widgets/auth_background.dart';
+import 'package:holistic_books/src/features/auth/data/auth_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -30,25 +31,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _login() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
-      final api = ref.read(apiClientProvider);
-      final response = await api.dio.post<Map<String, dynamic>>(
-        '/auth/login',
-        data: {
-          'email': _email.text.trim(),
-          'password': _password.text,
-          'device_name': 'HolisticBooks Mobile',
-        },
-      );
-      final directToken = response.data?['token'] as String?;
-      final data = response.data?['data'] as Map<String, dynamic>?;
-      final token = directToken ?? data?['token'] as String?;
-      if (token == null || token.isEmpty) throw StateError('Token absent');
-      await api.saveToken(token);
+      await ref
+          .read(authRepositoryProvider)
+          .signIn(email: _email.text, password: _password.text);
       if (mounted) context.go('/');
+    } on AuthException catch (error) {
+      if (mounted) setState(() => _error = error.message);
     } catch (_) {
-      if (mounted) setState(() => _error = 'Connexion impossible. Vérifiez vos identifiants.');
+      if (mounted) {
+        setState(() => _error = 'Connexion momentanément impossible.');
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -70,7 +67,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 child: Center(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: AppDimensions.contentMaxWidth),
+                    constraints: const BoxConstraints(
+                      maxWidth: AppDimensions.contentMaxWidth,
+                    ),
                     child: Column(
                       children: [
                         Align(
@@ -93,7 +92,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const Text(
                           'Connectez-vous pour reprendre votre lecture, vos favoris et votre bibliothèque.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 13, height: 1.4, color: AppColors.mutedInk),
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.4,
+                            color: AppColors.mutedInk,
+                          ),
                         ),
                         const SizedBox(height: 30),
                         AppTextField(
@@ -109,9 +112,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           obscureText: !_showPassword,
                           prefixIcon: Icons.lock_outline_rounded,
                           suffixIcon: IconButton(
-                            tooltip: _showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe',
-                            onPressed: () => setState(() => _showPassword = !_showPassword),
-                            icon: Icon(_showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                            tooltip: _showPassword
+                                ? 'Masquer le mot de passe'
+                                : 'Afficher le mot de passe',
+                            onPressed: () =>
+                                setState(() => _showPassword = !_showPassword),
+                            icon: Icon(
+                              _showPassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                            ),
                           ),
                         ),
                         if (_error != null) ...[
@@ -119,7 +129,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           Text(
                             _error!,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: AppColors.danger, fontSize: 12),
+                            style: const TextStyle(
+                              color: AppColors.danger,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                         const SizedBox(height: 24),

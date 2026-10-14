@@ -5,10 +5,7 @@ import 'package:holistic_books/src/core/theme/app_metrics.dart';
 import 'package:holistic_books/src/features/explore/domain/reading_progress.dart';
 
 class ContinueReadingCard extends StatelessWidget {
-  const ContinueReadingCard({
-    required this.progress,
-    super.key,
-  });
+  const ContinueReadingCard({required this.progress, super.key});
 
   final ReadingProgress progress;
 

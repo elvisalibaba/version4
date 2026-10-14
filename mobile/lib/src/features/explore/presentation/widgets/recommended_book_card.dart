@@ -7,10 +7,7 @@ import 'package:holistic_books/src/features/explore/presentation/widgets/categor
 import 'package:holistic_books/src/features/explore/presentation/widgets/rating_badge.dart';
 
 class RecommendedBookCard extends StatelessWidget {
-  const RecommendedBookCard({
-    required this.book,
-    super.key,
-  });
+  const RecommendedBookCard({required this.book, super.key});
 
   final Book book;
 

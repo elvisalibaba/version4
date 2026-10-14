@@ -104,7 +104,9 @@ class FeaturedBookCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.white,
-                          borderRadius: BorderRadius.circular(AppMetrics.chipRadius),
+                          borderRadius: BorderRadius.circular(
+                            AppMetrics.chipRadius,
+                          ),
                         ),
                         child: const Text(
                           '2k+',
@@ -119,31 +121,35 @@ class FeaturedBookCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppMetrics.smallGap),
-                Wrap(
-                  spacing: AppMetrics.smallGap,
-                  runSpacing: AppMetrics.smallGap,
+                Row(
                   children: [
-                    FilledButton(
-                      onPressed: onStartReading,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.white,
-                        foregroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppMetrics.mediumGap,
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: onStartReading,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.white,
+                          foregroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        child: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('Commencer la lecture'),
                         ),
                       ),
-                      child: const Text('Commencer la lecture'),
                     ),
-                    OutlinedButton(
-                      onPressed: onPreview,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.white,
-                        side: const BorderSide(color: AppColors.white),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppMetrics.mediumGap,
+                    const SizedBox(width: AppMetrics.smallGap),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: onPreview,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.white,
+                          side: const BorderSide(color: AppColors.white),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          visualDensity: VisualDensity.compact,
                         ),
+                        child: const Text('Aperçu'),
                       ),
-                      child: const Text('Aperçu'),
                     ),
                   ],
                 ),

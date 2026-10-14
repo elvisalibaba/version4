@@ -3,11 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:holistic_books/src/core/constants/app_colors.dart';
 import 'package:holistic_books/src/core/constants/app_dimensions.dart';
-import 'package:holistic_books/src/core/network/api_client.dart';
 import 'package:holistic_books/src/core/widgets/app_button.dart';
 import 'package:holistic_books/src/core/widgets/app_logo.dart';
 import 'package:holistic_books/src/core/widgets/app_text_field.dart';
 import 'package:holistic_books/src/core/widgets/auth_background.dart';
+import 'package:holistic_books/src/features/auth/data/auth_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class VerifyEmailScreen extends ConsumerStatefulWidget {
   const VerifyEmailScreen({required this.email, super.key});
@@ -28,23 +29,21 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   }
 
   Future<void> _verify() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
-      final api = ref.read(apiClientProvider);
-      final response = await api.dio.post<Map<String, dynamic>>(
-        '/auth/verify-email',
-        data: {
-          'email': widget.email,
-          'code': _code.text.trim(),
-          'device_name': 'HolisticBooks Mobile',
-        },
-      );
-      final token = response.data?['token'] as String?;
-      if (token == null || token.isEmpty) throw StateError('Token absent');
-      await api.saveToken(token);
+      await ref
+          .read(authRepositoryProvider)
+          .verifyEmail(email: widget.email, code: _code.text);
       if (mounted) context.go('/');
+    } on AuthException catch (error) {
+      if (mounted) setState(() => _error = error.message);
     } catch (_) {
-      if (mounted) setState(() => _error = 'Code invalide ou expiré.');
+      if (mounted) {
+        setState(() => _error = 'Vérification momentanément impossible.');
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -64,7 +63,9 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
             ),
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: AppDimensions.contentMaxWidth),
+                constraints: const BoxConstraints(
+                  maxWidth: AppDimensions.contentMaxWidth,
+                ),
                 child: Column(
                   children: [
                     const AppLogo(),
@@ -78,7 +79,11 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                     Text(
                       'Nous avons envoyé un code à 6 chiffres à ${widget.email}.',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.mutedInk),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        height: 1.4,
+                        color: AppColors.mutedInk,
+                      ),
                     ),
                     const SizedBox(height: 30),
                     AppTextField(
@@ -90,10 +95,20 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 12),
-                      Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 12)),
+                      Text(
+                        _error!,
+                        style: const TextStyle(
+                          color: AppColors.danger,
+                          fontSize: 12,
+                        ),
+                      ),
                     ],
                     const SizedBox(height: 24),
-                    AppButton(label: 'Valider le code', loading: _loading, onPressed: _verify),
+                    AppButton(
+                      label: 'Valider le code',
+                      loading: _loading,
+                      onPressed: _verify,
+                    ),
                   ],
                 ),
               ),

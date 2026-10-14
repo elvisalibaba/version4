@@ -95,10 +95,7 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _FeaturedSection extends StatelessWidget {
-  const _FeaturedSection({
-    required this.state,
-    required this.onRetry,
-  });
+  const _FeaturedSection({required this.state, required this.onRetry});
 
   final SectionState<Book> state;
   final VoidCallback onRetry;
@@ -107,25 +104,22 @@ class _FeaturedSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (state.status) {
       SectionStatus.loading => const SectionLoadingSkeleton(
-          height: AppMetrics.featuredHeight,
-        ),
+        height: AppMetrics.featuredHeight,
+      ),
       SectionStatus.empty => const SectionEmptyState(
-          message: 'Aucun livre à la une pour le moment.',
-        ),
+        message: 'Aucun livre à la une pour le moment.',
+      ),
       SectionStatus.error => SectionErrorState(
-          message: state.errorMessage ?? 'Une erreur est survenue.',
-          onRetry: onRetry,
-        ),
+        message: state.errorMessage ?? 'Une erreur est survenue.',
+        onRetry: onRetry,
+      ),
       SectionStatus.data => FeaturedBookCard(book: state.data!),
     };
   }
 }
 
 class _ProgressSection extends StatelessWidget {
-  const _ProgressSection({
-    required this.state,
-    required this.onRetry,
-  });
+  const _ProgressSection({required this.state, required this.onRetry});
 
   final SectionState<List<ReadingProgress>> state;
   final VoidCallback onRetry;
@@ -135,32 +129,30 @@ class _ProgressSection extends StatelessWidget {
     return switch (state.status) {
       SectionStatus.loading => const SectionLoadingSkeleton(),
       SectionStatus.empty => const SectionEmptyState(
-          message: 'Aucune lecture en cours.',
-        ),
+        message: 'Aucune lecture en cours.',
+      ),
       SectionStatus.error => SectionErrorState(
-          message: state.errorMessage ?? 'Une erreur est survenue.',
-          onRetry: onRetry,
-        ),
+        message: state.errorMessage ?? 'Une erreur est survenue.',
+        onRetry: onRetry,
+      ),
       SectionStatus.data => SizedBox(
-          height: AppMetrics.continueCardHeight,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: state.data!.length,
-            separatorBuilder: (_, _) => const SizedBox(width: AppMetrics.mediumGap),
-            itemBuilder: (context, index) {
-              return ContinueReadingCard(progress: state.data![index]);
-            },
-          ),
+        height: AppMetrics.continueCardHeight,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: state.data!.length,
+          separatorBuilder: (_, _) =>
+              const SizedBox(width: AppMetrics.mediumGap),
+          itemBuilder: (context, index) {
+            return ContinueReadingCard(progress: state.data![index]);
+          },
         ),
+      ),
     };
   }
 }
 
 class _RecommendationsSection extends StatelessWidget {
-  const _RecommendationsSection({
-    required this.state,
-    required this.onRetry,
-  });
+  const _RecommendationsSection({required this.state, required this.onRetry});
 
   final SectionState<List<Book>> state;
   final VoidCallback onRetry;
@@ -169,35 +161,33 @@ class _RecommendationsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (state.status) {
       SectionStatus.loading => const SectionLoadingSkeleton(
-          height: AppMetrics.recommendedCoverHeight,
-        ),
+        height: AppMetrics.recommendedCoverHeight,
+      ),
       SectionStatus.empty => const SectionEmptyState(
-          message: 'Aucune recommandation pour le moment.',
-        ),
+        message: 'Aucune recommandation pour le moment.',
+      ),
       SectionStatus.error => SectionErrorState(
-          message: state.errorMessage ?? 'Une erreur est survenue.',
-          onRetry: onRetry,
-        ),
+        message: state.errorMessage ?? 'Une erreur est survenue.',
+        onRetry: onRetry,
+      ),
       SectionStatus.data => SizedBox(
-          height: AppMetrics.recommendedCoverHeight + 48,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: state.data!.length,
-            separatorBuilder: (_, _) => const SizedBox(width: AppMetrics.mediumGap),
-            itemBuilder: (context, index) {
-              return RecommendedBookCard(book: state.data![index]);
-            },
-          ),
+        height: AppMetrics.recommendedCoverHeight + 48,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: state.data!.length,
+          separatorBuilder: (_, _) =>
+              const SizedBox(width: AppMetrics.mediumGap),
+          itemBuilder: (context, index) {
+            return RecommendedBookCard(book: state.data![index]);
+          },
         ),
+      ),
     };
   }
 }
 
 class _GenresSection extends StatelessWidget {
-  const _GenresSection({
-    required this.state,
-    required this.onRetry,
-  });
+  const _GenresSection({required this.state, required this.onRetry});
 
   final SectionState<List<Genre>> state;
   final VoidCallback onRetry;
@@ -205,21 +195,23 @@ class _GenresSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (state.status) {
-      SectionStatus.loading => const SectionLoadingSkeleton(height: AppMetrics.genreSkeletonHeight),
+      SectionStatus.loading => const SectionLoadingSkeleton(
+        height: AppMetrics.genreSkeletonHeight,
+      ),
       SectionStatus.empty => const SectionEmptyState(
-          message: 'Aucun genre disponible.',
-        ),
+        message: 'Aucun genre disponible.',
+      ),
       SectionStatus.error => SectionErrorState(
-          message: state.errorMessage ?? 'Une erreur est survenue.',
-          onRetry: onRetry,
-        ),
+        message: state.errorMessage ?? 'Une erreur est survenue.',
+        onRetry: onRetry,
+      ),
       SectionStatus.data => Wrap(
-          spacing: AppMetrics.smallGap,
-          runSpacing: AppMetrics.smallGap,
-          children: state.data!
-              .map((genre) => CategoryChip(label: genre.name))
-              .toList(growable: false),
-        ),
+        spacing: AppMetrics.smallGap,
+        runSpacing: AppMetrics.smallGap,
+        children: state.data!
+            .map((genre) => CategoryChip(label: genre.name))
+            .toList(growable: false),
+      ),
     };
   }
 }

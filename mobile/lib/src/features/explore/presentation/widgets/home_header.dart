@@ -4,10 +4,7 @@ import 'package:holistic_books/src/core/theme/app_colors.dart';
 import 'package:holistic_books/src/core/theme/app_metrics.dart';
 
 class HomeHeader extends StatelessWidget {
-  const HomeHeader({
-    super.key,
-    this.initial = 'E',
-  });
+  const HomeHeader({super.key, this.initial = 'E'});
 
   final String initial;
 

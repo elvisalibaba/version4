@@ -20,19 +20,19 @@ class HolisticBottomBar extends StatelessWidget {
       indicatorColor: AppColors.surfaceStrong,
       destinations: const [
         NavigationDestination(
+          icon: Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home_rounded),
+          label: 'Accueil',
+        ),
+        NavigationDestination(
           icon: Icon(Icons.explore_outlined),
           selectedIcon: Icon(Icons.explore_rounded),
-          label: 'Explorer',
+          label: 'Découvrir',
         ),
         NavigationDestination(
           icon: Icon(Icons.local_library_outlined),
           selectedIcon: Icon(Icons.local_library_rounded),
           label: 'Bibliothèque',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.groups_outlined),
-          selectedIcon: Icon(Icons.groups_rounded),
-          label: 'Communauté',
         ),
         NavigationDestination(
           icon: Icon(Icons.person_outline_rounded),

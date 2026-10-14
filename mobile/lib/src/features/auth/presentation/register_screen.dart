@@ -3,11 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:holistic_books/src/core/constants/app_colors.dart';
 import 'package:holistic_books/src/core/constants/app_dimensions.dart';
-import 'package:holistic_books/src/core/network/api_client.dart';
 import 'package:holistic_books/src/core/widgets/app_button.dart';
 import 'package:holistic_books/src/core/widgets/app_logo.dart';
 import 'package:holistic_books/src/core/widgets/app_text_field.dart';
 import 'package:holistic_books/src/core/widgets/auth_background.dart';
+import 'package:holistic_books/src/features/auth/data/auth_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -32,23 +33,28 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _register() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
-      await ref.read(apiClientProvider).dio.post<Map<String, dynamic>>(
-        '/auth/register',
-        data: {
-          'name': _name.text.trim(),
-          'email': _email.text.trim(),
-          'password': _password.text,
-          'password_confirmation': _password.text,
-          'role': 'reader',
-          'preferred_language': 'fr',
-        },
-      );
+      await ref
+          .read(authRepositoryProvider)
+          .signUp(
+            name: _name.text,
+            email: _email.text,
+            password: _password.text,
+          );
       if (!mounted) return;
-      context.go('/verify-email?email=${Uri.encodeComponent(_email.text.trim())}');
+      context.go(
+        '/verify-email?email=${Uri.encodeComponent(_email.text.trim())}',
+      );
+    } on AuthException catch (error) {
+      if (mounted) setState(() => _error = error.message);
     } catch (_) {
-      if (mounted) setState(() => _error = 'Création du compte impossible. Vérifiez les informations saisies.');
+      if (mounted) {
+        setState(() => _error = 'Création du compte momentanément impossible.');
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -68,7 +74,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ),
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: AppDimensions.contentMaxWidth),
+                constraints: const BoxConstraints(
+                  maxWidth: AppDimensions.contentMaxWidth,
+                ),
                 child: Column(
                   children: [
                     Align(
@@ -91,7 +99,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     const Text(
                       'Un compte gratuit suffit pour dépasser l’aperçu de 10 pages et synchroniser vos lectures.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13, height: 1.4, color: AppColors.mutedInk),
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.4,
+                        color: AppColors.mutedInk,
+                      ),
                     ),
                     const SizedBox(height: 30),
                     AppTextField(
@@ -113,17 +125,35 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       obscureText: !_showPassword,
                       prefixIcon: Icons.lock_outline_rounded,
                       suffixIcon: IconButton(
-                        tooltip: _showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe',
-                        onPressed: () => setState(() => _showPassword = !_showPassword),
-                        icon: Icon(_showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                        tooltip: _showPassword
+                            ? 'Masquer le mot de passe'
+                            : 'Afficher le mot de passe',
+                        onPressed: () =>
+                            setState(() => _showPassword = !_showPassword),
+                        icon: Icon(
+                          _showPassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                        ),
                       ),
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 12),
-                      Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.danger, fontSize: 12)),
+                      Text(
+                        _error!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: AppColors.danger,
+                          fontSize: 12,
+                        ),
+                      ),
                     ],
                     const SizedBox(height: 24),
-                    AppButton(label: 'Créer mon compte', loading: _loading, onPressed: _register),
+                    AppButton(
+                      label: 'Créer mon compte',
+                      loading: _loading,
+                      onPressed: _register,
+                    ),
                     const SizedBox(height: 12),
                     AppButton(
                       label: 'J’ai déjà un compte',

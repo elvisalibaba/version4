@@ -6,11 +6,7 @@ import 'package:holistic_books/src/features/explore/presentation/explore_screen.
 void main() {
   testWidgets('Explorer affiche les sections principales', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(
-          home: ExploreScreen(),
-        ),
-      ),
+      const ProviderScope(child: MaterialApp(home: ExploreScreen())),
     );
 
     await tester.pump();

@@ -16,13 +16,29 @@ dependencies:
   go_router: ^18.0.2
   pdfx: ^2.11.0
   cached_network_image: ^3.4.1
+  cryptography: 2.9.0
   google_fonts: ^6.3.2
+  path_provider: 2.1.6
   shimmer: ^3.0.0
+  supabase_flutter: 2.18.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: assets/brand/icon-blue.png
+  adaptive_icon_background: "#F8F9FE"
+  adaptive_icon_foreground: assets/brand/icon-blue.png
+  adaptive_icon_foreground_inset: 24
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/brand/icon-blue.png
+    - assets/brand/icon-white.png
+    - assets/brand/logo-light.png

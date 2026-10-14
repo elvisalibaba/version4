@@ -1,13 +1,17 @@
-import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:holistic_books/src/core/config/app_config.dart';
 import 'package:holistic_books/src/core/network/api_client.dart';
+import 'package:holistic_books/src/core/reader/pdf_page_renderer.dart';
+import 'package:holistic_books/src/features/offline/data/offline_library_repository.dart';
+import 'package:holistic_books/src/features/offline/domain/offline_book.dart';
 
 final readerRepositoryProvider = Provider<ReaderRepository>(
-  (ref) => ReaderRepository(ref.watch(apiClientProvider)),
+  (ref) => ReaderRepository(
+    ref.watch(apiClientProvider),
+    ref.watch(offlineLibraryRepositoryProvider),
+  ),
 );
 
 class ReaderBootstrap {
@@ -15,47 +19,35 @@ class ReaderBootstrap {
     required this.authenticated,
     required this.pageCount,
     required this.previewPageLimit,
-    this.readerToken,
+    this.offlineBook,
   });
 
   final bool authenticated;
   final int pageCount;
   final int previewPageLimit;
-  final String? readerToken;
+  final OfflineBook? offlineBook;
+
+  bool get isOffline => offlineBook != null;
 }
 
 class ReaderRepository {
-  ReaderRepository(this._api);
+  ReaderRepository(this._api, this._offlineLibrary);
   final ApiClient _api;
+  final OfflineLibraryRepository _offlineLibrary;
 
-  Future<ReaderBootstrap> prepare({
-    required String bookId,
-    required bool authenticated,
-  }) async {
-    final bookResponse = await _api.dio.get<Map<String, dynamic>>('/books/$bookId');
-    final bookData = bookResponse.data?['data'] as Map<String, dynamic>?;
-    if (bookData == null) {
-      throw StateError('Livre introuvable');
-    }
-
-    final pageCount = _asInt(bookData['page_count']);
-    final samplePages = _asInt(bookData['sample_pages']) ?? AppConfig.guestPreviewPageLimit;
-    final previewLimit = math.max(1, math.min(AppConfig.guestPreviewPageLimit, samplePages));
-
-    if (!authenticated) {
-      if (bookData['has_sample'] != true) {
-        throw StateError('Aucun aperçu sécurisé disponible');
-      }
-
+  Future<ReaderBootstrap> prepare({required String bookId}) async {
+    final offlineBook = await _offlineLibrary.getBook(bookId);
+    if (offlineBook != null && !offlineBook.isExpired) {
       return ReaderBootstrap(
-        authenticated: false,
-        pageCount: previewLimit,
-        previewPageLimit: previewLimit,
+        authenticated: true,
+        pageCount: offlineBook.pageCount,
+        previewPageLimit: offlineBook.pageCount,
+        offlineBook: offlineBook,
       );
     }
 
-    final access = await _api.dio.get<Map<String, dynamic>>(
-      '/books/$bookId/access',
+    final response = await _api.dio.get<Map<String, dynamic>>(
+      '/read/$bookId',
       options: Options(
         headers: const {
           'Accept': 'application/json',
@@ -63,28 +55,18 @@ class ReaderRepository {
         },
       ),
     );
-
-    final data = access.data?['data'] as Map<String, dynamic>?;
-    if (data?['hasAccess'] != true) {
-      throw StateError('Accès de lecture refusé');
-    }
-
-    final session = data?['readerSession'] as Map<String, dynamic>?;
-    final readerToken = session?['token'] as String?;
-
-    if (readerToken == null || readerToken.isEmpty) {
-      throw StateError('Session de lecture indisponible');
-    }
-
-    if (pageCount == null || pageCount < 1) {
+    final data = response.data;
+    final fullPageCount = _asInt(data?['pageCount']);
+    final previewLimit = _asInt(data?['previewPageLimit']) ?? fullPageCount;
+    if (fullPageCount == null || fullPageCount < 1 || previewLimit == null) {
       throw StateError('Nombre de pages indisponible');
     }
+    final isGuestPreview = data?['isGuestPreview'] == true;
 
     return ReaderBootstrap(
-      authenticated: true,
-      pageCount: pageCount,
+      authenticated: !isGuestPreview,
+      pageCount: isGuestPreview ? previewLimit : fullPageCount,
       previewPageLimit: previewLimit,
-      readerToken: readerToken,
     );
   }
 
@@ -93,20 +75,18 @@ class ReaderRepository {
     required int page,
     required ReaderBootstrap bootstrap,
   }) async {
-    final path = bootstrap.authenticated
-        ? '/read/$bookId/pages/$page'
-        : '/books/$bookId/preview/pages/$page';
+    final offlineBook = bootstrap.offlineBook;
+    if (offlineBook != null) {
+      final bytes = await _offlineLibrary.readPage(offlineBook, page);
+      return renderProtectedPage(bytes);
+    }
 
     final response = await _api.dio.get<List<int>>(
-      path,
+      '/read/$bookId/file',
+      queryParameters: {'page': page},
       options: Options(
         responseType: ResponseType.bytes,
-        headers: {
-          'Accept': 'image/jpeg',
-          'X-Holistique-Reader': 'mobile',
-          if (bootstrap.readerToken != null)
-            'X-Holistique-Reader-Token': bootstrap.readerToken,
-        },
+        headers: {'Accept': 'image/jpeg', 'X-Holistique-Reader': 'mobile'},
       ),
     );
 
@@ -115,7 +95,7 @@ class ReaderRepository {
       throw StateError('Page vide');
     }
 
-    return bytes;
+    return renderProtectedPage(bytes);
   }
 
   int? _asInt(dynamic value) {

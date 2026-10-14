@@ -45,14 +45,14 @@ Le dev Flutter doit initialiser `supabase_flutter` avec les memes variables que 
 ```dart
 await Supabase.initialize(
   url: const String.fromEnvironment('SUPABASE_URL'),
-  anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
+  publishableKey: const String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY'),
 );
 ```
 
 En pratique:
 
 - `SUPABASE_URL` = meme valeur que `NEXT_PUBLIC_SUPABASE_URL`
-- `SUPABASE_ANON_KEY` = meme valeur que `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_PUBLISHABLE_KEY` = meme valeur que `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
 ## Authentification et profils
 
@@ -246,6 +246,25 @@ Recommendation mobile:
 
 ## Reader mobile: lecture EPUB et PDF
 
+### Hors-ligne sécurisé implémenté
+
+Le mobile appelle `public.issue_mobile_offline_license` avec son JWT Supabase.
+La fonction vérifie `auth.uid()`, le droit d'accès au livre, l'état copyright
+et l'appareil avant de créer les lignes dans `user_devices`,
+`offline_reading_licenses` et `book_downloads`.
+
+Règles de sécurité :
+
+- `anon` ne peut pas exécuter cette fonction ;
+- seul le hash SHA-256 du jeton de licence est conservé en base ;
+- le jeton brut est conservé dans le stockage sécurisé Android ;
+- chaque page est chiffrée en AES-256-GCM dans l'espace privé de l'application ;
+- le lecteur refuse une licence expirée ou appartenant à un autre compte ;
+- la suppression locale efface les pages et le jeton de licence.
+
+Le contenu reste servi par `/api/read/[bookId]/file`, donc le fichier source
+privé Supabase n'est jamais exposé directement au client.
+
 ### Ce qui doit etre partage avec le web
 
 La lecture mobile doit partager:
@@ -303,18 +322,14 @@ await supabase.from('highlights').insert({
 
 ### Point critique sur la lecture securisee
 
-Aujourd hui, les routes Next suivantes reposent sur la session web par cookies:
+Les routes Next suivantes acceptent la session web par cookies et la session
+mobile par `Authorization: Bearer <supabase_access_token>`:
 
 - `GET /api/read/[bookId]`
 - `GET /api/read/[bookId]/file`
 
-Elles utilisent le client serveur Next avec `cookies()` et pas un bearer token mobile.
-
-Conclusion importante:
-
-- Flutter ne peut pas reutiliser ces routes telles quelles en natif
-- pour le mobile, il faut ajouter une authentification `Authorization: Bearer <supabase_access_token>` sur ces routes
-- ou creer des routes mobiles dediees
+Flutter peut donc reutiliser ces routes en natif sans partager les cookies du
+navigateur. Le SDK Supabase rafraichit la session et Dio transmet le JWT courant.
 
 Je recommande de garder la logique de lecture securisee cote backend, puis d adapter les routes pour accepter le JWT Supabase du mobile.
 

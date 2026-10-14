@@ -10,7 +10,8 @@ class MockExploreRepository implements ExploreRepository {
     id: 'atomic-habits',
     title: 'Un rien peut tout changer',
     authors: ['James Clear'],
-    coverUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500&q=80',
+    coverUrl:
+        'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500&q=80',
     rating: 4.8,
     category: 'Développement personnel',
   );
@@ -19,7 +20,8 @@ class MockExploreRepository implements ExploreRepository {
     id: 'design-everyday-things',
     title: 'The Design of Everyday Things',
     authors: ['Don Norman'],
-    coverUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500&q=80',
+    coverUrl:
+        'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500&q=80',
     rating: 4.6,
     category: 'Design/Usabilité',
   );
@@ -28,7 +30,8 @@ class MockExploreRepository implements ExploreRepository {
     id: 'laws-of-ux',
     title: 'Laws of UX',
     authors: ['Jon Yablonski'],
-    coverUrl: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=500&q=80',
+    coverUrl:
+        'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=500&q=80',
     rating: 4.5,
     category: 'Expérience utilisateur',
   );
@@ -39,7 +42,8 @@ class MockExploreRepository implements ExploreRepository {
       id: 'featured',
       title: 'Refactoring UI',
       authors: ['Adam Wathan', 'Steve Schoger'],
-      coverUrl: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500&q=80',
+      coverUrl:
+          'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500&q=80',
       rating: 4.9,
       category: 'Design UI',
     );
@@ -53,7 +57,8 @@ class MockExploreRepository implements ExploreRepository {
           id: 'steal-like-an-artist',
           title: 'Steal Like an Artist',
           authors: ['Austin Kleon'],
-          coverUrl: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=500&q=80',
+          coverUrl:
+              'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=500&q=80',
           rating: 4.7,
           category: 'Créativité',
         ),
@@ -66,7 +71,8 @@ class MockExploreRepository implements ExploreRepository {
           id: 'thinking-with-type',
           title: 'Thinking with Type',
           authors: ['Ellen Lupton'],
-          coverUrl: 'https://images.unsplash.com/photo-1526243741027-444d633d7365?w=500&q=80',
+          coverUrl:
+              'https://images.unsplash.com/photo-1526243741027-444d633d7365?w=500&q=80',
           rating: 4.4,
           category: 'Typographie',
         ),
@@ -93,7 +99,8 @@ class MockExploreRepository implements ExploreRepository {
         id: 'deep-work',
         title: 'Deep Work',
         authors: ['Cal Newport'],
-        coverUrl: 'https://images.unsplash.com/photo-1511108690759-009324a90311?w=500&q=80',
+        coverUrl:
+            'https://images.unsplash.com/photo-1511108690759-009324a90311?w=500&q=80',
         rating: 4.7,
         category: 'Productivité',
       ),
@@ -101,7 +108,8 @@ class MockExploreRepository implements ExploreRepository {
         id: 'start-with-why',
         title: 'Start With Why',
         authors: ['Simon Sinek'],
-        coverUrl: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=500&q=80',
+        coverUrl:
+            'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=500&q=80',
         rating: 4.6,
         category: 'Leadership',
       ),
@@ -109,7 +117,8 @@ class MockExploreRepository implements ExploreRepository {
         id: 'hooked',
         title: 'Hooked',
         authors: ['Nir Eyal'],
-        coverUrl: 'https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=500&q=80',
+        coverUrl:
+            'https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=500&q=80',
         rating: 4.5,
         category: 'Produit',
       ),

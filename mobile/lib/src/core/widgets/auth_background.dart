@@ -30,7 +30,10 @@ class AuthBackground extends StatelessWidget {
               width: 260,
               height: 260,
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.primaryLight.withValues(alpha: .18), width: 18),
+                border: Border.all(
+                  color: AppColors.primaryLight.withValues(alpha: .18),
+                  width: 18,
+                ),
                 shape: BoxShape.circle,
               ),
             ),

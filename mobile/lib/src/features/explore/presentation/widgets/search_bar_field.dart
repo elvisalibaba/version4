@@ -3,10 +3,7 @@ import 'package:holistic_books/src/core/theme/app_colors.dart';
 import 'package:holistic_books/src/core/theme/app_metrics.dart';
 
 class SearchBarField extends StatelessWidget {
-  const SearchBarField({
-    super.key,
-    this.onChanged,
-  });
+  const SearchBarField({super.key, this.onChanged});
 
   final ValueChanged<String>? onChanged;
 

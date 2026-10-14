@@ -8,17 +8,14 @@ import 'package:holistic_books/src/features/explore/domain/reading_progress.dart
 enum SectionStatus { loading, data, empty, error }
 
 class SectionState<T> {
-  const SectionState._({
-    required this.status,
-    this.data,
-    this.errorMessage,
-  });
+  const SectionState._({required this.status, this.data, this.errorMessage});
 
   const SectionState.loading() : this._(status: SectionStatus.loading);
-  const SectionState.data(T data) : this._(status: SectionStatus.data, data: data);
+  const SectionState.data(T data)
+    : this._(status: SectionStatus.data, data: data);
   const SectionState.empty() : this._(status: SectionStatus.empty);
   const SectionState.error(String message)
-      : this._(status: SectionStatus.error, errorMessage: message);
+    : this._(status: SectionStatus.error, errorMessage: message);
 
   final SectionStatus status;
   final T? data;
@@ -84,11 +81,15 @@ class ExploreController extends Notifier<ExploreState> {
     try {
       final book = await _repository.getFeaturedBook();
       state = state.copyWith(
-        featured: book == null ? const SectionState.empty() : SectionState.data(book),
+        featured: book == null
+            ? const SectionState.empty()
+            : SectionState.data(book),
       );
     } catch (_) {
       state = state.copyWith(
-        featured: const SectionState.error('Impossible de charger le livre à la une.'),
+        featured: const SectionState.error(
+          'Impossible de charger le livre à la une.',
+        ),
       );
     }
   }
@@ -98,11 +99,15 @@ class ExploreController extends Notifier<ExploreState> {
     try {
       final items = await _repository.getReadingProgress();
       state = state.copyWith(
-        progress: items.isEmpty ? const SectionState.empty() : SectionState.data(items),
+        progress: items.isEmpty
+            ? const SectionState.empty()
+            : SectionState.data(items),
       );
     } catch (_) {
       state = state.copyWith(
-        progress: const SectionState.error('Impossible de charger vos lectures.'),
+        progress: const SectionState.error(
+          'Impossible de charger vos lectures.',
+        ),
       );
     }
   }
@@ -112,13 +117,15 @@ class ExploreController extends Notifier<ExploreState> {
     try {
       final items = await _repository.getRecommendations();
       state = state.copyWith(
-        recommendations:
-            items.isEmpty ? const SectionState.empty() : SectionState.data(items),
+        recommendations: items.isEmpty
+            ? const SectionState.empty()
+            : SectionState.data(items),
       );
     } catch (_) {
       state = state.copyWith(
-        recommendations:
-            const SectionState.error('Impossible de charger les recommandations.'),
+        recommendations: const SectionState.error(
+          'Impossible de charger les recommandations.',
+        ),
       );
     }
   }
@@ -128,7 +135,9 @@ class ExploreController extends Notifier<ExploreState> {
     try {
       final items = await _repository.getGenres();
       state = state.copyWith(
-        genres: items.isEmpty ? const SectionState.empty() : SectionState.data(items),
+        genres: items.isEmpty
+            ? const SectionState.empty()
+            : SectionState.data(items),
       );
     } catch (_) {
       state = state.copyWith(

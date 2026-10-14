@@ -31,7 +31,11 @@ class AppTextField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink),
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: AppColors.ink,
+          ),
         ),
         const SizedBox(height: AppDimensions.fieldLabelGap),
         SizedBox(
@@ -46,9 +50,13 @@ class AppTextField extends StatelessWidget {
               counterText: '',
               filled: true,
               fillColor: AppColors.inputFill,
-              prefixIcon: prefixIcon == null ? null : Icon(prefixIcon, size: 20),
+              prefixIcon: prefixIcon == null
+                  ? null
+                  : Icon(prefixIcon, size: 20),
               suffixIcon: suffixIcon,
-              contentPadding: const EdgeInsets.symmetric(horizontal: AppDimensions.fieldHorizontalPadding),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.fieldHorizontalPadding,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppDimensions.fieldRadius),
                 borderSide: BorderSide.none,
