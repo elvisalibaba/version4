@@ -57,3 +57,5 @@ next-env.d.ts
 
 # Phase 0 : sorties du diagnostic Supabase (métadonnées de sécurité)
 /supabase/diagnostics/out/
+# Cache local de la CLI Supabase (projet lié)
+/supabase/.temp/

@@ -17,17 +17,17 @@
 SET default_transaction_read_only = on;
 SET statement_timeout = '60s';
 
-\echo '=== 00. Contexte'
+\qecho '=== 00. Contexte'
 SELECT current_database() AS db, version() AS pg, now() AS run_at, current_setting('transaction_read_only') AS read_only;
 
-\echo '=== 01. Historique des migrations (CLI Supabase)'
+\qecho '=== 01. Historique des migrations (CLI Supabase)'
 SELECT version, name FROM supabase_migrations.schema_migrations ORDER BY version;
 
-\echo '=== 02. Extensions'
+\qecho '=== 02. Extensions'
 SELECT extname, extversion, n.nspname AS schema
 FROM pg_extension e JOIN pg_namespace n ON n.oid = e.extnamespace ORDER BY 1;
 
-\echo '=== 03. Tables public : RLS, RLS forcé, lignes estimées, nombre de policies'
+\qecho '=== 03. Tables public : RLS, RLS forcé, lignes estimées, nombre de policies'
 SELECT c.relname AS table_name,
        c.relrowsecurity AS rls_enabled,
        c.relforcerowsecurity AS rls_forced,
@@ -37,28 +37,28 @@ FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
 WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p')
 ORDER BY 1;
 
-\echo '=== 04. Tables public SANS RLS (doit être vide après la Phase 1)'
+\qecho '=== 04. Tables public SANS RLS (doit être vide après la Phase 1)'
 SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
 WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p') AND NOT c.relrowsecurity ORDER BY 1;
 
-\echo '=== 05. Vues et vues matérialisées public (security_invoker ?)'
+\qecho '=== 05. Vues et vues matérialisées public (security_invoker ?)'
 SELECT c.relname, c.relkind, c.reloptions
 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
 WHERE n.nspname = 'public' AND c.relkind IN ('v', 'm') ORDER BY 1;
 
-\echo '=== 06. Policies (public + storage)'
+\qecho '=== 06. Policies (public + storage)'
 SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
 FROM pg_policies WHERE schemaname IN ('public', 'storage')
 ORDER BY schemaname, tablename, policyname;
 
-\echo '=== 07. Privilèges de table pour anon et authenticated'
+\qecho '=== 07. Privilèges de table pour anon et authenticated'
 SELECT table_schema, table_name, grantee,
        string_agg(privilege_type, ',' ORDER BY privilege_type) AS privileges
 FROM information_schema.role_table_grants
 WHERE grantee IN ('anon', 'authenticated') AND table_schema IN ('public', 'storage')
 GROUP BY 1, 2, 3 ORDER BY 2, 3;
 
-\echo '=== 08. Privilèges de colonne pour anon et authenticated'
+\qecho '=== 08. Privilèges de colonne pour anon et authenticated'
 SELECT table_name, column_name, grantee, privilege_type
 FROM information_schema.column_privileges
 WHERE grantee IN ('anon', 'authenticated') AND table_schema = 'public'
@@ -67,11 +67,11 @@ WHERE grantee IN ('anon', 'authenticated') AND table_schema = 'public'
     WHERE table_schema = 'public')
 ORDER BY 1, 2, 3;
 
-\echo '=== 09. Privilèges par défaut (ALTER DEFAULT PRIVILEGES)'
+\qecho '=== 09. Privilèges par défaut (ALTER DEFAULT PRIVILEGES)'
 SELECT pg_get_userbyid(d.defaclrole) AS owner, n.nspname AS schema, d.defaclobjtype AS obj, d.defaclacl
 FROM pg_default_acl d LEFT JOIN pg_namespace n ON n.oid = d.defaclnamespace ORDER BY 1, 2, 3;
 
-\echo '=== 10. Fonctions public : SECURITY DEFINER, search_path, ACL, EXECUTE pour anon / authenticated'
+\qecho '=== 10. Fonctions public : SECURITY DEFINER, search_path, ACL, EXECUTE pour anon / authenticated'
 SELECT p.oid::regprocedure AS function,
        p.prosecdef AS security_definer,
        p.provolatile AS volatility,
@@ -83,23 +83,23 @@ FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = 'public' AND p.prokind = 'f'
 ORDER BY p.prosecdef DESC, 1;
 
-\echo '=== 11. SECURITY DEFINER sans search_path figé (à corriger en Phase 1)'
+\qecho '=== 11. SECURITY DEFINER sans search_path figé (à corriger en Phase 1)'
 SELECT p.oid::regprocedure
 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = 'public' AND p.prosecdef
   AND NOT EXISTS (SELECT 1 FROM unnest(coalesce(p.proconfig, '{}')) c WHERE c LIKE 'search_path=%')
 ORDER BY 1;
 
-\echo '=== 12. Triggers public'
+\qecho '=== 12. Triggers public'
 SELECT event_object_table AS table_name, trigger_name, action_timing, string_agg(event_manipulation, ',') AS events, action_statement
 FROM information_schema.triggers WHERE trigger_schema = 'public'
 GROUP BY 1, 2, 3, 5 ORDER BY 1, 2;
 
-\echo '=== 13. Triggers sur auth.users'
+\qecho '=== 13. Triggers sur auth.users'
 SELECT tgname, pg_get_triggerdef(t.oid) FROM pg_trigger t
 WHERE t.tgrelid = 'auth.users'::regclass AND NOT t.tgisinternal;
 
-\echo '=== 14. Définitions des fonctions sensibles'
+\qecho '=== 14. Définitions des fonctions sensibles'
 SELECT p.oid::regprocedure AS function, pg_get_functiondef(p.oid) AS definition
 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = 'public' AND p.proname IN (
@@ -110,33 +110,33 @@ WHERE n.nspname = 'public' AND p.proname IN (
   'normalize_affiliate_source_type', 'handle_new_user')
 ORDER BY 1;
 
-\echo '=== 15. Colonnes des tables public'
+\qecho '=== 15. Colonnes des tables public'
 SELECT table_name, ordinal_position, column_name, data_type, is_nullable, column_default
 FROM information_schema.columns WHERE table_schema = 'public'
 ORDER BY table_name, ordinal_position;
 
-\echo '=== 16. Contraintes (PK, FK, UNIQUE, CHECK)'
+\qecho '=== 16. Contraintes (PK, FK, UNIQUE, CHECK)'
 SELECT conrelid::regclass AS table_name, conname, contype, pg_get_constraintdef(oid) AS definition
 FROM pg_constraint WHERE connamespace = 'public'::regnamespace
 ORDER BY 1, 3, 2;
 
-\echo '=== 17. Index public'
+\qecho '=== 17. Index public'
 SELECT tablename, indexname, indexdef FROM pg_indexes WHERE schemaname = 'public' ORDER BY 1, 2;
 
-\echo '=== 18. Types énumérés'
+\qecho '=== 18. Types énumérés'
 SELECT t.typname, string_agg(e.enumlabel, ',' ORDER BY e.enumsortorder)
 FROM pg_type t JOIN pg_enum e ON e.enumtypid = t.oid
 JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' GROUP BY 1 ORDER BY 1;
 
-\echo '=== 19. Buckets Storage'
+\qecho '=== 19. Buckets Storage'
 SELECT id, name, public, file_size_limit, allowed_mime_types, created_at FROM storage.buckets ORDER BY 1;
 
-\echo '=== 20. Objets Storage par bucket et premier dossier'
+\qecho '=== 20. Objets Storage par bucket et premier dossier'
 SELECT bucket_id, split_part(name, '/', 1) AS prefix, count(*) AS objects,
        pg_size_pretty(sum(coalesce((metadata ->> 'size')::bigint, 0))) AS size
 FROM storage.objects GROUP BY 1, 2 ORDER BY 1, 2;
 
-\echo '=== 21. Couvertures : préparation Phase 3 (comptages, aucun contenu)'
+\qecho '=== 21. Couvertures : préparation Phase 3 (comptages, aucun contenu)'
 SELECT count(*) AS total_books,
        count(*) FILTER (WHERE cover_url IS NULL OR cover_url = '') AS no_cover,
        count(*) FILTER (WHERE cover_url ~ '^https?://') AS absolute_url,
@@ -146,10 +146,10 @@ SELECT count(*) AS total_books,
                                         WHERE o.bucket_id = 'books' AND o.name = b.cover_url)) AS relative_missing_in_storage
 FROM public.books b;
 
-\echo '=== 22. Exemples de cover_url (10 premiers, pour voir les formats)'
+\qecho '=== 22. Exemples de cover_url (10 premiers, pour voir les formats)'
 SELECT id, status, left(cover_url, 120) AS cover_url FROM public.books ORDER BY created_at DESC LIMIT 10;
 
-\echo '=== 23. Bug A : livres publiés marqués « gratuits » par la règle actuelle'
+\qecho '=== 23. Bug A : livres publiés marqués « gratuits » par la règle actuelle'
 SELECT b.status, b.is_single_sale_enabled,
        count(*) AS books,
        count(*) FILTER (WHERE coalesce(b.price, 0) = 0) AS books_price_zero,
@@ -162,19 +162,19 @@ SELECT b.status, b.is_single_sale_enabled,
 FROM public.books b WHERE b.status IN ('published', 'coming_soon')
 GROUP BY 1, 2 ORDER BY 1, 2;
 
-\echo '=== 24. Formats publiés par type'
+\qecho '=== 24. Formats publiés par type'
 SELECT format, is_published, currency_code, count(*), min(price), max(price)
 FROM public.book_formats GROUP BY 1, 2, 3 ORDER BY 1, 2, 3;
 
-\echo '=== 25. Commandes par statut (aucune donnée client)'
-SELECT status, payment_status, count(*) FROM public.orders GROUP BY 1, 2 ORDER BY 1, 2;
+\qecho '=== 25. Commandes par statut (aucune donnée client)'
+SELECT payment_status, count(*) FROM public.orders GROUP BY 1 ORDER BY 1;
 
-\echo '=== 26. Bibliothèque par type d accès et statut'
+\qecho '=== 26. Bibliothèque par type d accès et statut'
 SELECT access_type, status, count(*) FROM public.library GROUP BY 1, 2 ORDER BY 1, 2;
 
-\echo '=== 27. Profils par rôle'
+\qecho '=== 27. Profils par rôle'
 SELECT role, count(*) FROM public.profiles GROUP BY 1 ORDER BY 1;
 
-\echo '=== 28. Edge Functions : impossible en SQL — lister avec « supabase functions list --project-ref wgsvzhhzsmioihjwcwcs »'
+\qecho '=== 28. Edge Functions : impossible en SQL — lister avec « supabase functions list --project-ref wgsvzhhzsmioihjwcwcs »'
 
-\echo '=== FIN'
+\qecho '=== FIN'
