@@ -30,7 +30,7 @@ export default async function AdminBooksPage({searchParams}:{searchParams:Promis
  const currentPage=Math.max(1,Math.min(500,Number.parseInt(page,10)||1));
  const size=24;
  const db=await createClient();
- let booksQuery=db.from("books").select("id,title,author_display_name,status,review_status,copyright_status,price,currency_code,created_at,cover_url,cover_thumbnail_url",{count:"exact"});
+ let booksQuery=db.from("books").select("id,title,author_display_name,status,review_status,copyright_status,price,currency_code,created_at,cover_url,cover_thumbnail_url,cover_bucket",{count:"exact"});
  if(["submitted","draft","approved","rejected","changes_requested"].includes(selected))booksQuery=booksQuery.eq("review_status",selected);
  if(["published","coming_soon","archived"].includes(selected))booksQuery=booksQuery.eq("status",selected);
  if(query)booksQuery=booksQuery.or(`title.ilike.%${query}%,author_display_name.ilike.%${query}%`);
@@ -39,7 +39,7 @@ export default async function AdminBooksPage({searchParams}:{searchParams:Promis
   db.from("books").select("id",{head:true,count:"exact"}).eq("review_status","submitted"),
  ]);
  const items=await Promise.all((data??[]).map(async book=>({
-  ...book,cover:await getBookCoverUrl(db,book.cover_thumbnail_url||book.cover_url)
+  ...book,cover:await getBookCoverUrl(db,book,true)
  })));
  const total=count??0,lastPage=Math.max(1,Math.ceil(total/size));
  function makeHref(nextFilter:string,nextPage=1){const qp=new URLSearchParams();if(nextFilter!=="all")qp.set("filter",nextFilter);if(query)qp.set("q",query);if(nextPage>1)qp.set("page",String(nextPage));return "/dashboard/admin/books"+(qp.size?"?"+qp.toString():"");}

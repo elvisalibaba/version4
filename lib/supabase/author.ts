@@ -1,6 +1,8 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { AUTHOR_PROFILE_PUBLIC_COLUMNS, BOOK_PUBLIC_COLUMNS, PGRST_FUNCTION_NOT_FOUND } from "@/lib/supabase/columns";
+import { getBookCoverUrl } from "@/lib/supabase/book-covers";
+import type { CoverSource } from "@/lib/covers";
 import type { ApiAuthorBook, ApiAuthorProfile } from "@/types/api";
 
 export async function getLegacyAuthorProfile() {
@@ -25,11 +27,7 @@ export async function getLegacyAuthorBooks(){
  const {data,error}=await c.from("books").select(BOOK_PUBLIC_COLUMNS).eq("author_id",user.id).order("created_at",{ascending:false});
  if(error)throw new Error(error.message);
  return await Promise.all(((data??[]) as unknown as Record<string,unknown>[]).map(async row=>{
-   let cover=typeof row.cover_url==="string"?row.cover_url:null;
-   if(cover && !/^https?:\/\//.test(cover)){
-     const {data:signed}=await c.storage.from("books").createSignedUrl(cover,3600);
-     cover=signed?.signedUrl??null;
-   }
+   const cover=await getBookCoverUrl(c,row as CoverSource);
    return {...row,is_free:Number(row.price??0)===0,formats:[],media_editions:[],subscription_plans:[],
      views_count:Number(row.views_count??0),clicks_count:Number(row.clicks_count??0),cover_url:cover};
  })) as unknown as ApiAuthorBook[];

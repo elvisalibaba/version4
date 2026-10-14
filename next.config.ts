@@ -1,5 +1,10 @@
 import type { NextConfig } from "next";
 
+// Hôte Supabase dérivé de l'unique variable d'URL du projet (repli : ancien nom pendant la transition).
+const supabaseHost = new URL(
+  process.env.NEXT_PUBLIC_HOLISTIC_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://wgsvzhhzsmioihjwcwcs.supabase.co",
+).hostname;
+
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
@@ -14,7 +19,10 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "wgsvzhhzsmioihjwcwcs.supabase.co", pathname: "/storage/v1/object/sign/books/**" },
+      { protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/covers/**" },
+      { protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/render/image/public/covers/**" },
+      // Ancien emplacement des couvertures (URL signées), le temps de la migration.
+      { protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/sign/books/**" },
       {
         protocol: "https",
         hostname: "images.unsplash.com",

@@ -2,6 +2,8 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseBooks } from "@/lib/supabase/catalog";
 import { BOOK_PUBLIC_COLUMNS } from "@/lib/supabase/columns";
+import { getBookCoverUrl } from "@/lib/supabase/book-covers";
+import type { CoverSource } from "@/lib/covers";
 import type { ApiBook,ApiLibraryEntry,ApiOrder,ApiSubscription,ApiSubscriptionPlan } from "@/types/api";
 async function currentId(){const client=await createClient();const {data:{user}}=await client.auth.getUser();if(!user)throw new Error("Connexion requise.");return {client,id:user.id};}
 export async function getLegacyReaderLibrary():Promise<ApiLibraryEntry[]>{
@@ -9,8 +11,8 @@ export async function getLegacyReaderLibrary():Promise<ApiLibraryEntry[]>{
  if(error)throw new Error(error.message);
  const ids=(data??[]).map(row=>row.book_id);
  if(!ids.length)return [];
- const books=await Promise.all(ids.map(async bookId=>{const {data:b}=await client.from("books").select(BOOK_PUBLIC_COLUMNS).eq("id",bookId).maybeSingle();return b as unknown as {price?:number|string|null;cover_url?:string|null;[key:string]:unknown}|null;}));
- return (data??[]).flatMap((row,index)=>{const b=books[index];if(!b)return [];const book={...b,price:Number(b.price??0),is_free:Number(b.price??0)===0,formats:[],media_editions:[],subscription_plans:[],cover_url:/^https?:\/\//.test(b.cover_url??"")?b.cover_url:null} as unknown as ApiBook;
+ const books=await Promise.all(ids.map(async bookId=>{const {data:b}=await client.from("books").select(BOOK_PUBLIC_COLUMNS).eq("id",bookId).maybeSingle();const row=b as unknown as {price?:number|string|null;cover_url?:string|null;[key:string]:unknown}|null;return row?{...row,cover_url:await getBookCoverUrl(client,row as CoverSource)}:null;}));
+ return (data??[]).flatMap((row,index)=>{const b=books[index];if(!b)return [];const book={...b,price:Number(b.price??0),is_free:Number(b.price??0)===0,formats:[],media_editions:[],subscription_plans:[],cover_url:b.cover_url??null,cover_signed_url:b.cover_url??null} as unknown as ApiBook;
  return [{...row,book,reading_progress:null,purchased_at:row.purchased_at??row.created_at,expires_at:row.expires_at??null,last_opened_at:row.last_opened_at??null}] as ApiLibraryEntry[];});
 }
 export async function getLegacyReaderFavorites():Promise<ApiBook[]>{

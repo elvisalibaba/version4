@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { BookCover } from "@/components/ui/book-cover";
 import Link from "next/link";
 import {
   BarChart3,
@@ -103,12 +103,12 @@ export default async function AuthorBooksPage() {
                 <div className="flex gap-4 p-5 sm:gap-5 sm:p-6">
                   <div className="relative h-32 w-24 shrink-0 overflow-hidden rounded-md bg-night-900 ">
                     {book.cover_url ? (
-                      <Image
+                      <BookCover
                         src={book.cover_url}
                         alt={book.cover_alt_text || `Couverture de ${book.title}`}
-                        fill
+                        seed={book.id}
+                        title={book.title}
                         sizes="96px"
-                        className="object-cover"
                       />
                     ) : (
                       <div className="grid h-full place-items-center p-3 text-center text-white">

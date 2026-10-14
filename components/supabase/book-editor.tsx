@@ -50,6 +50,19 @@ export function SupabaseBookEditor({ book, area }: { book?: BookDraft; area: "ad
   const [error,setError]=useState("");
   const [message,setMessage]=useState("");
   const inputStyle="h-11 w-full rounded-md border border-rule bg-white px-3 text-sm text-night-900 focus:border-night-900 outline-none";
+  /** Couverture → bucket public « covers » (<book_id>/cover-<uuid>.<ext>, nom unique : cache long sûr). */
+  async function uploadCover(file:File,bookId:string) {
+    if (file.size>5*1024*1024) throw new Error("Couverture trop lourde (maximum 5 Mo).");
+    const extension=file.name.split(".").pop()?.toLowerCase()??"";
+    const types:Record<string,string>={jpg:"image/jpeg",jpeg:"image/jpeg",png:"image/png",webp:"image/webp"};
+    if(!types[extension]) throw new Error("Couverture : JPG, PNG ou WebP uniquement.");
+    const key=`${bookId}/cover-${crypto.randomUUID()}.${extension}`;
+    const {error:uploadError}=await createClient().storage.from("covers").upload(key,file,{
+      cacheControl:"31536000",contentType:types[extension],upsert:false,
+    });
+    if(uploadError)throw new Error(uploadError.message);
+    return key;
+  }
   async function upload(file:File,kind:"covers"|"files",userId:string,bookId:string) {
     if (file.size>80*1024*1024) throw new Error("Fichier trop volumineux (maximum 80 Mo).");
     const extension=file.name.split(".").pop()?.toLowerCase()??"";
@@ -87,7 +100,7 @@ export function SupabaseBookEditor({ book, area }: { book?: BookDraft; area: "ad
       if(!saved.ok)throw new Error(result.message??"Enregistrement impossible.");
       const id=book?.id??result.id as string;
       const assets:Record<string,string>={};
-      if(cover)assets.cover_url=await upload(cover,"covers",user.id,id);
+      if(cover){assets.cover_url=await uploadCover(cover,id);assets.cover_bucket="covers";}
       if(document){
         assets.file_url=await upload(document,"files",user.id,id);
         assets.file_format=document.name.toLowerCase().endsWith(".pdf")?"pdf":"epub";

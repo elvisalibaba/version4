@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import { BookCover } from "@/components/ui/book-cover";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CheckCircle2, X } from "lucide-react";
@@ -134,7 +134,7 @@ export function CartFeedback() {
         {added ? (
           <div className="flex gap-4 px-5 py-4">
             <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded border border-rule bg-night-900">
-              {added.coverUrl ? <Image src={added.coverUrl} alt="" fill sizes="64px" className="object-cover" /> : null}
+              <BookCover src={added.coverUrl} alt="" seed={added.bookId} title={added.title} sizes="64px" fallback={null} />
             </div>
             <div className="min-w-0">
               <p className="line-clamp-2 text-sm font-semibold text-slate-900">{added.title}</p>

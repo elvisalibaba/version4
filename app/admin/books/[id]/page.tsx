@@ -12,7 +12,7 @@ export const dynamic="force-dynamic";
 export default async function EditSupabaseBook({params}:{params:Promise<{id:string}>}){
  await requireAdmin();const {id}=await params;
  const db=await createClient();
- const {data:book,error}=await db.from("books").select("id,title,subtitle,description,author_display_name,publisher,isbn,language,price,categories,tags,cover_url,cover_thumbnail_url,status,review_status,copyright_status,review_note").eq("id",id).maybeSingle();
+ const {data:book,error}=await db.from("books").select("id,title,subtitle,description,author_display_name,publisher,isbn,language,price,categories,tags,cover_url,cover_thumbnail_url,cover_bucket,status,review_status,copyright_status,review_note").eq("id",id).maybeSingle();
  if(error||!book)notFound();
  // file_url est une colonne privée : lue par RPC (admin ou auteur), en direct avant la migration.
  const privateFields=await db.rpc("hb_book_private_fields",{p_book_id:id});
@@ -22,7 +22,7 @@ export default async function EditSupabaseBook({params}:{params:Promise<{id:stri
    ?((await db.from("books").select("file_url").eq("id",id).maybeSingle()).data?.file_url??null)
    :null;
  const [cover,events]=await Promise.all([
-  getBookCoverUrl(db,book.cover_thumbnail_url||book.cover_url),
+  getBookCoverUrl(db,book,true),
   db.from("book_editorial_events").select("id,event_type,notes,created_at").eq("book_id",id).order("created_at",{ascending:false}).limit(10)
  ]);
  return <div className="space-y-6">

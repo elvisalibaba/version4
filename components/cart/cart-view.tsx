@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
+import { BookCover } from "@/components/ui/book-cover";
 import Link from "next/link";
 import { ArrowLeft, LockKeyhole, Minus, Plus, ShieldCheck, ShoppingCart, Trash2, Truck } from "lucide-react";
 import { CinetPayButtons } from "@/components/payments/cinetpay-buttons";
@@ -135,11 +135,14 @@ export function CartView({ isAuthenticated, customer, supabaseMode = false }: { 
               <li key={key} className={`hb-cart-line px-5 py-5 sm:px-6 ${removing === key ? "is-removing" : ""}`}>
                 <div className="flex gap-4">
                   <Link href={`/book/${item.bookId}`} className="relative h-32 w-[5.3rem] shrink-0 overflow-hidden rounded border border-rule bg-night-900 sm:h-36 sm:w-24">
-                    {item.coverUrl ? (
-                      <Image src={item.coverUrl} alt={`Couverture de ${item.title}`} fill sizes="96px" className="object-cover" />
-                    ) : (
-                      <span className="flex h-full items-end p-2 text-[0.7rem] font-semibold leading-tight text-white">{item.title}</span>
-                    )}
+                    <BookCover
+                      src={item.coverUrl}
+                      alt={`Couverture de ${item.title}`}
+                      seed={item.bookId}
+                      title={item.title}
+                      sizes="96px"
+                      fallback={<span className="flex h-full items-end p-2 text-[0.7rem] font-semibold leading-tight text-white">{item.title}</span>}
+                    />
                   </Link>
                   <div className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:justify-between sm:gap-6">
                     <div className="min-w-0">

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { BookCover } from "@/components/ui/book-cover";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -110,16 +111,23 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
             <div className="[grid-area:cover]">
               <div className="lg:sticky lg:top-40">
                 <div id="book-cover" className="hb-book relative mx-auto aspect-2/3 w-[11.5rem] bg-night-900 sm:w-[13rem] lg:w-full">
-                  {book.cover_signed_url ? (
-                    <Image src={book.cover_signed_url} alt={`Couverture de ${book.title}`} fill sizes="(max-width: 1024px) 13rem, 17rem" priority className="object-cover" />
-                  ) : (
+                  <BookCover
+                    src={book.cover_signed_url}
+                    alt={`Couverture de ${book.title}`}
+                    seed={book.id}
+                    title={book.title}
+                    author={book.author_name}
+                    sizes="(max-width: 1024px) 13rem, 17rem"
+                    priority
+                    fallback={
                     <div className="flex h-full flex-col px-6 pb-6 text-white">
                       <span className="ml-auto h-10 w-5 bg-brand-600 [clip-path:polygon(0_0,100%_0,100%_100%,50%_78%,0_100%)]" aria-hidden="true" />
                       <span className="mt-auto font-display text-2xl font-semibold leading-tight">{book.title}</span>
                       <span className="mt-3 h-px w-10 bg-night-400" aria-hidden="true" />
                       <span className="mt-3 font-display text-sm italic text-night-200">{book.author_name}</span>
                     </div>
-                  )}
+                    }
+                  />
                 </div>
                 <div className="mx-auto mt-5 flex w-[11.5rem] items-center justify-center gap-2 sm:w-[13rem] lg:w-full">
                   <FavoriteBookButton bookId={book.id} initialIsFavorite={book.is_favorite} supabaseMode={supabaseReaderMode} />

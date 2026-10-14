@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { BookCover } from "@/components/ui/book-cover";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, BookOpen, ExternalLink, Globe2, MapPin, Newspaper, Quote, Sparkles } from "lucide-react";
@@ -97,7 +98,7 @@ export default async function AuthorPage({ params }: Props) {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-extrabold text-brand-600">Du même auteur</p><h2 className="mt-2 font-display text-3xl font-extrabold tracking-[-0.04em]">Les livres de {author.display_name}</h2></div><Link href={`/books?author=${encodeURIComponent(author.display_name)}`} className="inline-flex items-center gap-2 text-sm font-bold text-brand-600">Voir dans la librairie <ArrowRight className="h-4 w-4" /></Link></div>
           {author.books.length > 0 ? <div className="mt-8 divide-y divide-slate-300">{author.books.map((book) => (
             <article key={book.id} className="grid gap-5 py-7 first:pt-0 sm:grid-cols-[110px_minmax(0,1fr)_auto] sm:items-center">
-              <Link href={`/book/${book.id}`} className="block w-[110px] overflow-hidden rounded-md bg-slate-300 "><div className="aspect-[0.69]">{book.cover_signed_url ? <Image src={book.cover_signed_url} alt={`Couverture de ${book.title}`} width={220} height={320} className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center p-2 text-center text-xs font-bold">{book.title}</div>}</div></Link>
+              <Link href={`/book/${book.id}`} className="block w-[110px] overflow-hidden rounded-md bg-slate-300 "><div className="relative aspect-[0.69]">{book.cover_signed_url ? <BookCover src={book.cover_signed_url} alt={`Couverture de ${book.title}`} seed={book.id} title={book.title} sizes="110px" /> : <div className="grid h-full place-items-center p-2 text-center text-xs font-bold">{book.title}</div>}</div></Link>
               <div><h3 className="font-display text-xl font-extrabold tracking-[-0.025em]">{book.title}</h3>{book.description ? <p className="mt-3 line-clamp-3 max-w-3xl text-sm leading-7 text-slate-600">{book.description}</p> : null}<p className="mt-3 text-sm font-extrabold text-emerald-700">{book.display_price_label || (book.is_free ? "Gratuit" : `${book.price.toFixed(2)} ${book.currency_code}`)}</p></div>
               <Link href={book.is_free ? `/book/${book.id}?read=1` : `/book/${book.id}`} className="inline-flex min-h-11 items-center justify-center rounded-sm bg-brand-600 px-5 text-sm font-extrabold text-white">{book.is_free ? "Lire" : "Voir le livre"}</Link>
             </article>

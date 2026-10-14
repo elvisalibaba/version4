@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { BookCover } from "@/components/ui/book-cover";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Check, ChevronRight, LibraryBig, Search } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
@@ -29,8 +30,8 @@ function BookTile({ book, priority = false }: { book: LibraryBook; priority?: bo
   return (
     <article className="group min-w-0">
       <Link href={`/book/${book.id}?read=1`} className="relative block overflow-hidden rounded-md bg-paper-deep transition duration-300 hover:-translate-y-1 hover:shadow-md">
-        <div className="aspect-[0.69]">
-          {book.cover_signed_url ? <Image src={book.cover_signed_url} alt={book.cover_alt_text || `Couverture de ${book.title}`} width={420} height={610} priority={priority} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]" /> : <div className="grid h-full place-items-center bg-white p-5 text-center font-display text-sm font-extrabold text-white">{book.title}</div>}
+        <div className="relative aspect-[0.69]">
+          <BookCover src={book.cover_signed_url} alt={book.cover_alt_text || `Couverture de ${book.title}`} seed={book.id} title={book.title} author={book.author_name} sizes="(max-width: 640px) 45vw, 210px" priority={priority} className="transition duration-500 group-hover:scale-[1.025]" />
         </div>
         <span className="absolute left-2.5 top-2.5 rounded-sm bg-brand-600 px-2.5 py-1 text-[0.62rem] font-extrabold text-white ">Gratuit</span>
         <span className="absolute inset-x-0 bottom-0 flex translate-y-full items-center justify-center gap-2 bg-night-900/95 py-3 text-xs font-extrabold text-white transition duration-300 group-hover:translate-y-0"><BookOpen className="h-4 w-4" /> Lire maintenant</span>

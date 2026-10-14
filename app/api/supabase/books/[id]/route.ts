@@ -47,7 +47,15 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   if ("categories" in input) patch.categories=Array.isArray(input.categories)?input.categories.filter(x=>typeof x==="string").slice(0,30):[];
   if ("tags" in input) patch.tags=Array.isArray(input.tags)?input.tags.filter(x=>typeof x==="string").slice(0,30):[];
   try {
-    if ("cover_url" in input) patch.cover_url=safePath(input.cover_url,"covers",current.id,admin);
+    if ("cover_url" in input && input.cover_bucket === "covers") {
+      // Bucket public « covers » : clé sous le dossier du livre (contrôlée aussi par le trigger en base).
+      const key=input.cover_url;
+      if (typeof key !== "string" || !new RegExp(`^${id}/cover-[0-9a-f-]{36}\\.(jpg|jpeg|png|webp)$`, "i").test(key))
+        throw new Error("Chemin de couverture non conforme.");
+      patch.cover_url=key;
+      patch.cover_bucket="covers";
+      patch.cover_thumbnail_url=null;
+    } else if ("cover_url" in input) patch.cover_url=safePath(input.cover_url,"covers",current.id,admin);
     if ("file_url" in input) {
       patch.file_url=safePath(input.file_url,"files",current.id,admin);
       if (input.file_format !== "pdf" && input.file_format !== "epub")

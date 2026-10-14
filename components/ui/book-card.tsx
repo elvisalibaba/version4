@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Check, Plus } from "lucide-react";
 import { useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { BookCover } from "@/components/ui/book-cover";
 import { cx } from "@/components/ui/cx";
 import { PriceTag } from "@/components/ui/price-tag";
 import { RatingStars } from "@/components/ui/rating-stars";
@@ -33,19 +33,6 @@ export type BookCardBook = {
   formats?: CardFormat[];
   media_editions?: Array<{ media_type: string }>;
 };
-
-const PLACEHOLDER_TONES = [
-  "bg-ink text-white",
-  "bg-brand-deep text-white",
-  "bg-brand text-black",
-  "bg-brand-tint text-ink",
-];
-
-function placeholderTone(id: string) {
-  let hash = 0;
-  for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-  return PLACEHOLDER_TONES[hash % PLACEHOLDER_TONES.length];
-}
 
 function publishedFormats(book: BookCardBook) {
   return (book.book_formats ?? book.formats ?? []).filter((format) => format.is_published !== false);
@@ -93,14 +80,15 @@ export function BookCard({ book, priority = false, tone = "light" }: { book: Boo
         aria-hidden="true"
         className="hb-card-cover relative block aspect-[2/3] overflow-hidden rounded-xl shadow-[var(--shadow-cover)]"
       >
-        {book.cover_signed_url ? (
-          <Image src={book.cover_signed_url} alt="" fill priority={priority} sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px" className="object-cover" />
-        ) : (
-          <span className={cx("flex h-full flex-col justify-end p-4", placeholderTone(book.id))}>
-            <strong className="line-clamp-4 font-display text-lg font-extrabold leading-snug tracking-[-0.02em]">{book.title}</strong>
-            <span className="mt-2 line-clamp-1 text-xs opacity-80">{book.author_name ?? "Holistique Books"}</span>
-          </span>
-        )}
+        <BookCover
+          src={book.cover_signed_url}
+          alt=""
+          seed={book.id}
+          title={book.title}
+          author={book.author_name}
+          priority={priority}
+          sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
+        />
         {format ? <Badge tone="light" className="absolute left-3 top-3 shadow-sm">{format}</Badge> : null}
       </Link>
 

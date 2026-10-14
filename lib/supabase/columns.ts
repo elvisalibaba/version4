@@ -18,7 +18,7 @@ export const BOOK_PUBLIC_COLUMNS = [
   "cover_source", "bat_status", "bat_approved_at", "bat_approved_by", "publishing_house_id", "imprint_id",
   "reading_access_mode", "can_read_on_platform", "allow_download", "allow_print", "allow_copy",
   "reader_watermark_enabled", "reader_rights_note", "writing_status", "target_word_count",
-  "current_word_count", "next_author_action", "editorial_deadline", "clicks_count",
+  "current_word_count", "next_author_action", "editorial_deadline", "clicks_count", "cover_bucket",
 ].join(",");
 
 export const AUTHOR_PROFILE_PUBLIC_COLUMNS = [
