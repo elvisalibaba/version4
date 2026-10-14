@@ -20,7 +20,7 @@ failures=0
 status_of() { # $1 = livre, $2 = page, $3 = jeton (facultatif)
   local auth=()
   [[ -n "${3:-}" ]] && auth=(-H "Authorization: Bearer $3")
-  curl -s -o /dev/null -w '%{http_code}' -H "apikey: $HB_SUPABASE_PUBLISHABLE_KEY" "${auth[@]}" \
+  curl -s -o /dev/null -w '%{http_code}' -H "apikey: $HB_SUPABASE_PUBLISHABLE_KEY" ${auth[@]+"${auth[@]}"} \
     "$FN?bookId=$1&page=$2"
 }
 

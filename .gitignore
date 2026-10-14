@@ -59,3 +59,5 @@ next-env.d.ts
 /supabase/diagnostics/out/
 # Cache local de la CLI Supabase (projet lié)
 /supabase/.temp/
+# Sauvegardes de la base (données personnelles) — jamais dans git
+/supabase/backups/

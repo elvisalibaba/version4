@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { BOOK_PUBLIC_COLUMNS } from "@/lib/supabase/columns";
 import type { ApiBook, ApiBookFormat } from "@/types/api";
 
 type PublicBook = ApiBook & { cover_signed_url?: string | null };
@@ -8,7 +9,7 @@ const numeric = (v: unknown) => Number(v ?? 0) || 0;
 export async function getSupabaseBooks(options: { searchQuery?:string; category?:string; status?: "published"|"coming_soon"; bookId?:string; education?:string; educationAudience?:"school"|"university"; page?:number; perPage?:number } = {}) {
   const supabase = await createClient();
   const status = options.status ?? "published";
-  let query = supabase.from("books").select("*", { count: "exact" }).eq("status",status).neq("copyright_status","blocked");
+  let query = supabase.from("books").select(BOOK_PUBLIC_COLUMNS, { count: "exact" }).eq("status",status).neq("copyright_status","blocked");
   if(options.bookId) query=query.eq("id", options.bookId);
   if(options.education){
     const {data: taxonomy, error:taxError}=await supabase.from("academic_taxonomies")
@@ -37,7 +38,7 @@ export async function getSupabaseBooks(options: { searchQuery?:string; category?
   const page=Math.max(1,options.page??1),perPage=Math.min(100,options.perPage??24);
   const response=await query.order("published_at",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false}).range((page-1)*perPage,page*perPage-1);
   if(response.error) throw new Error("Supabase catalogue: "+response.error.message);
-  const rows=(response.data ?? []) as Array<Record<string,unknown>>;
+  const rows=(response.data ?? []) as unknown as Array<Record<string,unknown>>;
   const ids=rows.map(row=>String(row.id));
   const formats=ids.length?await supabase.from("book_formats").select("id,book_id,format,price,currency_code,downloadable,is_published").in("book_id",ids):{data:[],error:null};
   if(formats.error)throw new Error("Formats: "+formats.error.message);
@@ -72,7 +73,7 @@ export async function getSupabaseBooks(options: { searchQuery?:string; category?
 }
 export async function getSupabaseBookById(id:string):Promise<ApiBook|null>{
  const client=await createClient();
- const {data,error}=await client.from("books").select("*").eq("id",id).maybeSingle();
+ const {data,error}=await client.from("books").select("id,status,copyright_status").eq("id",id).maybeSingle();
  if(error||!data||data.copyright_status==="blocked"||!["published","coming_soon"].includes(data.status))return null;
  const all=await getSupabaseBooks({status:data.status,bookId:id,perPage:1});
  return all.books.find(book=>book.id===id)??null;
