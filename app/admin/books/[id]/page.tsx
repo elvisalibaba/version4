@@ -15,7 +15,10 @@ export default async function EditSupabaseBook({params}:{params:Promise<{id:stri
  const {data:book,error}=await db.from("books").select("id,title,subtitle,description,author_display_name,publisher,isbn,language,price,categories,tags,cover_url,cover_thumbnail_url,cover_bucket,status,review_status,copyright_status,review_note").eq("id",id).maybeSingle();
  if(error||!book)notFound();
  // file_url est une colonne privée : lue par RPC (admin ou auteur), en direct avant la migration.
- const privateFields=await db.rpc("hb_book_private_fields",{p_book_id:id});
+ const [privateFields,addedByAdmin]=await Promise.all([
+  db.rpc("hb_book_private_fields",{p_book_id:id}),
+  db.rpc("hb_book_added_by_admin",{p_book_id:id}),
+ ]);
  const fileUrl:string|null=!privateFields.error
   ?((privateFields.data as {file_url:string|null}[]|null)?.[0]?.file_url??null)
   :privateFields.error.code===PGRST_FUNCTION_NOT_FOUND
@@ -42,7 +45,7 @@ export default async function EditSupabaseBook({params}:{params:Promise<{id:stri
     {book.review_note?<p className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">Dernier commentaire : {book.review_note}</p>:null}
    </div>
   </div>
-  <BookWorkflowControls book={{id:book.id,status:book.status,review_status:book.review_status,copyright_status:book.copyright_status,cover_url:book.cover_url,file_url:fileUrl}}/>
+  <BookWorkflowControls book={{id:book.id,status:book.status,review_status:book.review_status,copyright_status:book.copyright_status,cover_url:book.cover_url,file_url:fileUrl}} addedByAdmin={addedByAdmin.data===true}/>
   <section className="space-y-4">
    <h2 className="text-xl font-black text-night-900">Métadonnées et fichiers</h2>
    <SupabaseBookEditor book={book} area="admin"/>

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { getBookCoverUrl } from "@/lib/supabase/book-covers";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { BulkPublishForm, BULK_FORM_ID } from "@/components/admin/bulk-publish-form";
 
 export const dynamic = "force-dynamic";
 type Filters = { filter?: string; q?: string; page?: string };
@@ -30,17 +31,22 @@ export default async function AdminBooksPage({searchParams}:{searchParams:Promis
  const currentPage=Math.max(1,Math.min(500,Number.parseInt(page,10)||1));
  const size=24;
  const db=await createClient();
- let booksQuery=db.from("books").select("id,title,author_display_name,status,review_status,copyright_status,price,currency_code,created_at,cover_url,cover_thumbnail_url,cover_bucket",{count:"exact"});
+ let booksQuery=db.from("books").select("id,title,author_display_name,status,review_status,copyright_status,price,currency_code,created_at,cover_url,cover_thumbnail_url,cover_bucket,author_id,admin_imported_by",{count:"exact"});
  if(["submitted","draft","approved","rejected","changes_requested"].includes(selected))booksQuery=booksQuery.eq("review_status",selected);
  if(["published","coming_soon","archived"].includes(selected))booksQuery=booksQuery.eq("status",selected);
  if(query)booksQuery=booksQuery.or(`title.ilike.%${query}%,author_display_name.ilike.%${query}%`);
- const [{data,error,count},pending]=await Promise.all([
+ const [{data,error,count},pending,admins]=await Promise.all([
   booksQuery.order("created_at",{ascending:false}).range((currentPage-1)*size,currentPage*size-1),
   db.from("books").select("id",{head:true,count:"exact"}).eq("review_status","submitted"),
+  db.from("profiles").select("id").eq("role","admin"),
  ]);
+ // Livre ajouté par l'équipe (même règle que hb_book_added_by_admin en base) et encore publiable.
+ const adminIds=new Set(((admins.data??[]) as Array<{id:string}>).map(a=>a.id));
  const items=await Promise.all((data??[]).map(async book=>({
-  ...book,cover:await getBookCoverUrl(db,book,true)
+  ...book,cover:await getBookCoverUrl(db,book,true),
+  quickPublish:(!!book.admin_imported_by||!book.author_id||adminIds.has(book.author_id))&&book.status!=="published"&&book.copyright_status!=="blocked",
  })));
+ const eligibleCount=items.filter(book=>book.quickPublish).length;
  const total=count??0,lastPage=Math.max(1,Math.ceil(total/size));
  function makeHref(nextFilter:string,nextPage=1){const qp=new URLSearchParams();if(nextFilter!=="all")qp.set("filter",nextFilter);if(query)qp.set("q",query);if(nextPage>1)qp.set("page",String(nextPage));return "/dashboard/admin/books"+(qp.size?"?"+qp.toString():"");}
  return <section className="space-y-5">
@@ -65,6 +71,7 @@ export default async function AdminBooksPage({searchParams}:{searchParams:Promis
    <button type="submit" className="h-11 rounded-sm bg-night-900 px-5 text-sm font-bold text-white">Rechercher</button>
    <Link href={makeHref(selected)} className="px-2 py-3 text-xs font-semibold text-slate-600">Réinitialiser</Link>
   </form>
+  <BulkPublishForm eligibleCount={eligibleCount}/>
   {error?<p role="alert" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800">Impossible de charger les livres : {error.message}</p>:null}
   <div className="flex items-center justify-between gap-3">
    <p className="text-sm font-semibold text-night-900">{error?"—":total} livres · Page {currentPage} / {lastPage}</p>
@@ -73,9 +80,10 @@ export default async function AdminBooksPage({searchParams}:{searchParams:Promis
   <div className="overflow-x-auto rounded-md border border-rule-strong bg-white">
    <table className="w-full min-w-[880px] text-left text-sm">
     <thead className="bg-paper-deep text-xs uppercase tracking-wide text-slate-600">
-     <tr><th className="p-4">Couverture</th><th className="p-4">Livre</th><th className="p-4">Révision</th><th className="p-4">Publication</th><th className="p-4">Droits</th><th className="p-4">Prix</th><th className="p-4">Décision</th></tr>
+     <tr><th className="w-10 p-4"><span className="sr-only">Sélection</span></th><th className="p-4">Couverture</th><th className="p-4">Livre</th><th className="p-4">Révision</th><th className="p-4">Publication</th><th className="p-4">Droits</th><th className="p-4">Prix</th><th className="p-4">Décision</th></tr>
     </thead>
     <tbody>{items.map(book=><tr key={book.id} className="border-t border-rule align-middle">
+      <td className="p-3 text-center">{book.quickPublish?<input type="checkbox" name="bulk" value={book.id} form={BULK_FORM_ID} aria-label={`Sélectionner « ${book.title} » pour publication groupée`} className="h-5 w-5"/>:null}</td>
       <td className="p-3"><div className="flex h-20 w-14 items-center justify-center overflow-hidden rounded-sm border border-rule bg-paper">
        {book.cover?<Image src={book.cover} alt={`Couverture du livre ${book.title}`} width={80} height={112} className="h-full w-full object-cover" unoptimized/>:<span className="px-1 text-center text-[10px] text-slate-500">Image indisponible</span>}
       </div></td>
@@ -86,7 +94,7 @@ export default async function AdminBooksPage({searchParams}:{searchParams:Promis
       <td className="p-4 text-xs">{book.copyright_status}</td>
       <td className="p-4 tabular-nums">{book.price} {book.currency_code}</td>
       <td className="p-4"><Link href={`/dashboard/admin/books/${book.id}`} className="inline-flex rounded-sm bg-night-900 px-3 py-2 text-xs font-bold text-white">
-       {book.review_status==="submitted"?"Examiner":"Gérer"}
+       {book.quickPublish?"Valider et publier":book.review_status==="submitted"?"Examiner":"Gérer"}
       </Link></td>
      </tr>)}</tbody>
    </table>
