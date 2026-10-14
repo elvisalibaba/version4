@@ -1,8 +1,12 @@
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createServiceRoleClient } from "@/lib/supabase/service";
 export const dynamic="force-dynamic";
 export default async function AdminAuthors(){
- await requireAdmin();const c=await createClient();
+ await requireAdmin();
+ // rights_status est une colonne privée : lecture serveur après contrôle du rôle admin.
+ // types/database.ts ne connaît pas encore ces colonnes (types générés à régénérer).
+ const c=createServiceRoleClient() as unknown as SupabaseClient;
  const {data,error}=await c.from("author_profiles").select("id,display_name,professional_headline,location,rights_status,catalog_origin").order("display_name").limit(100);
  return <section className="space-y-5"><h2 className="text-3xl font-bold">Auteurs</h2>
    <p className="text-sm text-slate-600">100 profils d&apos;auteurs enregistrés dans Supabase. Les références internationales n&apos;impliquent pas une autorisation de publication.</p>
