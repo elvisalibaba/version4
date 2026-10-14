@@ -54,3 +54,6 @@ dev-server*.log
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Phase 0 : sorties du diagnostic Supabase (métadonnées de sécurité)
+/supabase/diagnostics/out/

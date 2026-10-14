@@ -1,3 +1,9 @@
+-- STATUT (14/10/2026) : DÉJÀ APPLIQUÉE en production, confirmé par le propriétaire du projet.
+-- Déplacée depuis supabase/pending/ vers l'historique. NE PAS REJOUER : les CREATE POLICY
+-- ne sont pas idempotents. Elle se place avant 20261013_1315_academic_author_editing.sql, qui
+-- modifie les tables créées ici (ordre exact à confirmer par la section 01 du diagnostic Phase 0).
+-- Le corps SQL ci-dessous est inchangé ; la mention « NON appliquée » est historique.
+--
 -- HolisticBooks / dev-ancien / compare Laravel 2026-10-13
 -- Migration additive pour le catalogue auteur et les taxonomies académiques.
 -- NON appliquée : revue obligatoire des contraintes et tests sur copie de base.
