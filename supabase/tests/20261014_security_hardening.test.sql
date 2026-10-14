@@ -254,13 +254,48 @@ SELECT throws_ok($$ DELETE FROM public.platform_audit_events WHERE id = '0000000
 -- ---------------------------------------------------------------------------
 -- #12 Avis
 -- ---------------------------------------------------------------------------
+-- Le lecteur a1 : entrée « purchase » de b1 expirée plus haut, entrée « purchase » sur le brouillon b3.
 SELECT hb_test.act_as('authenticated', '00000000-0000-0000-0000-0000000000a1');
 SELECT throws_ok(
   $$ INSERT INTO public.ratings (user_id, book_id, rating) VALUES ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b3', 5) $$,
   '42501', NULL, 'pas d''avis sur un livre non publié');
+SELECT throws_ok(
+  $$ INSERT INTO public.ratings (user_id, book_id, rating) VALUES ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b1', 5) $$,
+  '42501', NULL, 'pas d''avis sur un livre payant sans accès');
+SELECT lives_ok(
+  $$ INSERT INTO public.ratings (user_id, book_id, rating) VALUES ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b2', 4) $$,
+  'avis sur un livre gratuit');
+SELECT hb_test.reset_actor();
+
+-- a5 : essai mobile actif (accès en lecture) mais l'essai ne permet pas de noter.
+SELECT hb_test.act_as('authenticated', '00000000-0000-0000-0000-0000000000a5');
+SELECT throws_ok(
+  $$ INSERT INTO public.ratings (user_id, book_id, rating) VALUES ('00000000-0000-0000-0000-0000000000a5', '00000000-0000-0000-0000-0000000000b1', 5) $$,
+  '42501', NULL, 'l''essai mobile ne suffit pas pour noter');
+SELECT hb_test.reset_actor();
+
+-- L'auteur ne note pas son propre livre, même gratuit.
+SELECT hb_test.act_as('authenticated', '00000000-0000-0000-0000-0000000000a2');
+SELECT throws_ok(
+  $$ INSERT INTO public.ratings (user_id, book_id, rating) VALUES ('00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000b2', 5) $$,
+  '42501', NULL, 'un auteur ne note pas son propre livre');
+SELECT hb_test.reset_actor();
+
+-- Achat actif : avis autorisé et badge « Achat vérifié ».
+UPDATE public.library SET expires_at = NULL
+ WHERE user_id = '00000000-0000-0000-0000-0000000000a1' AND book_id = '00000000-0000-0000-0000-0000000000b1';
+SELECT hb_test.act_as('authenticated', '00000000-0000-0000-0000-0000000000a1');
 SELECT lives_ok(
   $$ INSERT INTO public.ratings (user_id, book_id, rating) VALUES ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b1', 5) $$,
-  'avis sur un livre publié');
+  'avis après achat');
+SELECT hb_test.reset_actor();
+SELECT hb_test.act_as('anon');
+SELECT is(
+  (SELECT array_agg(user_id) FROM public.hb_review_verified_purchasers('00000000-0000-0000-0000-0000000000b1')),
+  ARRAY['00000000-0000-0000-0000-0000000000a1'::uuid], 'badge « Achat vérifié » pour l''acheteur');
+SELECT is(
+  (SELECT count(*)::int FROM public.hb_review_verified_purchasers('00000000-0000-0000-0000-0000000000b2')),
+  0, 'pas de badge pour un avis sur un livre gratuit');
 SELECT hb_test.reset_actor();
 
 -- ---------------------------------------------------------------------------
@@ -276,6 +311,7 @@ SELECT is(
      FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
     WHERE n.nspname = 'public' AND p.prosecdef AND has_function_privilege('anon', p.oid, 'EXECUTE')),
   ARRAY['has_book_access', 'hb_book_cover_is_public', 'hb_book_is_public', 'hb_book_is_published',
+        'hb_review_verified_purchasers',
         'is_admin', 'is_current_user_admin', 'owns_book', 'owns_order', 'track_book_engagement'],
   'anon n''exécute que les fonctions SECURITY DEFINER prévues');
 

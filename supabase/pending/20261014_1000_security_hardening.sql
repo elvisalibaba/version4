@@ -355,17 +355,20 @@ CREATE POLICY "hb_books_owner_delete_own_folder" ON storage.objects
 -- -----------------------------------------------------------------------------
 -- G. Accès au livre aligné sur BookAccessService::canRead (#8)
 -- -----------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public.user_has_access_to_book(p_user_id uuid, p_book_id uuid)
-RETURNS boolean
+-- Motif d'accès unique : 'purchase' | 'library_free' | 'subscription' | 'free' | 'mobile_trial' | NULL.
+-- Servira aussi à la RPC hb_book_access (Phase 2) et aux avis (§ J).
+CREATE OR REPLACE FUNCTION public.hb_book_access_reason(p_user_id uuid, p_book_id uuid)
+RETURNS text
 LANGUAGE plpgsql STABLE SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
   v_book record;
   v_price numeric;
+  v_library_type text;
 BEGIN
   IF p_user_id IS NULL OR p_book_id IS NULL THEN
-    RETURN false;
+    RETURN NULL;
   END IF;
 
   -- Pas d'oracle : on n'interroge que ses propres droits, sauf serveur ou admin.
@@ -374,7 +377,7 @@ BEGIN
      AND auth.role() IS NOT NULL
      AND auth.role() <> 'service_role'
      AND NOT public.is_admin() THEN
-    RETURN false;
+    RETURN NULL;
   END IF;
 
   SELECT b.status, b.copyright_status, b.is_single_sale_enabled, b.price
@@ -384,35 +387,26 @@ BEGIN
 
   -- canRead : status = published ET copyright_status = clear.
   IF NOT FOUND OR v_book.status <> 'published' OR v_book.copyright_status IS DISTINCT FROM 'clear' THEN
-    RETURN false;
+    RETURN NULL;
   END IF;
 
-  -- 1. Gratuit : vente unitaire active et format publié préféré (holistique_store puis ebook) à 0,
-  --    à défaut books.price (comme `$preferredFormat?->price ?? $book->price`).
-  SELECT bf.price INTO v_price
-    FROM public.book_formats bf
-   WHERE bf.book_id = p_book_id
-     AND bf.is_published
-     AND bf.format IN ('holistique_store', 'ebook')
-   ORDER BY CASE bf.format WHEN 'holistique_store' THEN 0 ELSE 1 END
+  -- 1. Bibliothèque : achat ou gratuit, entrée active et non expirée.
+  SELECT l.access_type INTO v_library_type
+    FROM public.library l
+   WHERE l.user_id = p_user_id
+     AND l.book_id = p_book_id
+     AND l.status = 'active'
+     AND l.access_type IN ('purchase', 'free')
+     AND (l.expires_at IS NULL OR l.expires_at > now())
+   ORDER BY CASE l.access_type WHEN 'purchase' THEN 0 ELSE 1 END
    LIMIT 1;
-  IF v_book.is_single_sale_enabled AND COALESCE(v_price, v_book.price, 0) <= 0 THEN
-    RETURN true;
+  IF v_library_type = 'purchase' THEN
+    RETURN 'purchase';
+  ELSIF v_library_type = 'free' THEN
+    RETURN 'library_free';
   END IF;
 
-  -- 2. Bibliothèque : achat ou gratuit, entrée active et non expirée.
-  IF EXISTS (
-    SELECT 1 FROM public.library l
-    WHERE l.user_id = p_user_id
-      AND l.book_id = p_book_id
-      AND l.status = 'active'
-      AND l.access_type IN ('purchase', 'free')
-      AND (l.expires_at IS NULL OR l.expires_at > now())
-  ) THEN
-    RETURN true;
-  END IF;
-
-  -- 3. Abonnement en cours (Subscription::currentlyActive) couvrant le livre.
+  -- 2. Abonnement en cours (Subscription::currentlyActive) couvrant le livre.
   IF EXISTS (
     SELECT 1
       FROM public.user_subscriptions us
@@ -422,7 +416,20 @@ BEGIN
        AND us.status = 'active'
        AND (us.expires_at IS NULL OR us.expires_at > now())
   ) THEN
-    RETURN true;
+    RETURN 'subscription';
+  END IF;
+
+  -- 3. Gratuit : vente unitaire active et format publié préféré (holistique_store puis ebook) à 0,
+  --    à défaut books.price (comme `$preferredFormat?->price ?? $book->price`).
+  SELECT bf.price INTO v_price
+    FROM public.book_formats bf
+   WHERE bf.book_id = p_book_id
+     AND bf.is_published
+     AND bf.format IN ('holistique_store', 'ebook')
+   ORDER BY CASE bf.format WHEN 'holistique_store' THEN 0 ELSE 1 END
+   LIMIT 1;
+  IF v_book.is_single_sale_enabled AND COALESCE(v_price, v_book.price, 0) <= 0 THEN
+    RETURN 'free';
   END IF;
 
   -- 4. Essai de l'application mobile (spécifique Supabase, absent de canRead).
@@ -433,11 +440,20 @@ BEGIN
     SELECT 1 FROM public.book_formats bf
     WHERE bf.book_id = p_book_id AND bf.is_published AND bf.format IN ('holistique_store', 'ebook')
   ) THEN
-    RETURN true;
+    RETURN 'mobile_trial';
   END IF;
 
-  RETURN false;
+  RETURN NULL;
 END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.user_has_access_to_book(p_user_id uuid, p_book_id uuid)
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = ''
+AS $$
+  -- Le contrôle d'appelant est fait dans hb_book_access_reason.
+  SELECT public.hb_book_access_reason(p_user_id, p_book_id) IS NOT NULL;
 $$;
 
 -- Une seule source de vérité : l'auteur et l'admin, puis la règle de lecture.
@@ -451,8 +467,10 @@ AS $$
       OR public.user_has_access_to_book((SELECT auth.uid()), p_book_id);
 $$;
 
-REVOKE ALL ON FUNCTION public.user_has_access_to_book(uuid, uuid) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.user_has_access_to_book(uuid, uuid) TO authenticated, service_role;
+REVOKE ALL ON FUNCTION public.hb_book_access_reason(uuid, uuid), public.user_has_access_to_book(uuid, uuid)
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.hb_book_access_reason(uuid, uuid), public.user_has_access_to_book(uuid, uuid)
+  TO authenticated, service_role;
 REVOKE ALL ON FUNCTION public.has_book_access(uuid) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.has_book_access(uuid) TO anon, authenticated, service_role;
 
@@ -570,24 +588,59 @@ CREATE TRIGGER hb_audit_no_truncate
   FOR EACH STATEMENT EXECUTE FUNCTION public.hb_audit_append_only();
 
 -- -----------------------------------------------------------------------------
--- J. Avis : livre public, pas d'avis sur son propre livre ni en co-auteur (#12)
+-- J. Avis : livre publié, accès au livre requis, pas d'avis sur son propre livre (#12)
 -- -----------------------------------------------------------------------------
--- Règle Laravel (ReviewController::store) : livre publié + droits clear, pas son
--- propre livre (auteur principal ou book_authors), un avis par lecteur. Laravel
--- n'exige PAS d'achat (simple badge « achat vérifié ») : décision en attente.
+-- Décision du propriétaire (14/10/2026) : un avis exige l'accès au livre (achat,
+-- abonnement actif ou livre gratuit ; l'essai mobile ne suffit pas). Plus strict
+-- que Laravel (ReviewController::store n'exige aucun accès).
+-- Badge « Achat vérifié » : achats uniquement (Laravel l'accordait aussi au gratuit
+-- et à l'abonnement).
+CREATE OR REPLACE FUNCTION public.hb_can_review_book(p_book_id uuid)
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT (SELECT auth.uid()) IS NOT NULL
+     AND public.hb_book_is_published(p_book_id)
+     AND NOT EXISTS (
+       SELECT 1 FROM public.books b WHERE b.id = p_book_id AND b.author_id = (SELECT auth.uid())
+     )
+     AND NOT EXISTS (
+       SELECT 1 FROM public.book_authors ba WHERE ba.book_id = p_book_id AND ba.author_id = (SELECT auth.uid())
+     )
+     AND public.hb_book_access_reason((SELECT auth.uid()), p_book_id)
+         IN ('purchase', 'library_free', 'subscription', 'free');
+$$;
+
+-- Auteurs d'avis ayant un achat actif : ne révèle que ce que le badge affiche déjà.
+CREATE OR REPLACE FUNCTION public.hb_review_verified_purchasers(p_book_id uuid)
+RETURNS TABLE (user_id uuid)
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT r.user_id
+    FROM public.ratings r
+   WHERE r.book_id = p_book_id
+     AND NOT r.is_hidden
+     AND EXISTS (
+       SELECT 1 FROM public.library l
+        WHERE l.user_id = r.user_id
+          AND l.book_id = r.book_id
+          AND l.status = 'active'
+          AND l.access_type = 'purchase'
+          AND (l.expires_at IS NULL OR l.expires_at > now())
+     );
+$$;
+
+REVOKE ALL ON FUNCTION public.hb_can_review_book(uuid), public.hb_review_verified_purchasers(uuid)
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.hb_can_review_book(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.hb_review_verified_purchasers(uuid) TO anon, authenticated, service_role;
+
 DROP POLICY IF EXISTS "hb_ratings_public_book_insert" ON public.ratings;
 CREATE POLICY "hb_ratings_public_book_insert" ON public.ratings
   AS RESTRICTIVE FOR INSERT TO authenticated
-  WITH CHECK (
-    public.is_current_user_admin()
-    OR (
-      public.hb_book_is_published(book_id)
-      AND NOT EXISTS (
-        SELECT 1 FROM public.book_authors ba
-        WHERE ba.book_id = ratings.book_id AND ba.author_id = (SELECT auth.uid())
-      )
-    )
-  );
+  WITH CHECK (public.is_current_user_admin() OR public.hb_can_review_book(book_id));
 
 DROP POLICY IF EXISTS "hb_ratings_public_book_update" ON public.ratings;
 CREATE POLICY "hb_ratings_public_book_update" ON public.ratings

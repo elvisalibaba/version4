@@ -62,16 +62,28 @@ export default {
   if(!supaUrl||!key||!service)return reply({error:"Service indisponible"},503);
   const db=createClient(supaUrl,service,{auth:{autoRefreshToken:false,persistSession:false}});
   const auth=createClient(supaUrl,key,{auth:{autoRefreshToken:false,persistSession:false}});
-  let signedIn=false;
+  let userId:string|null=null;
   const token=req.headers.get("authorization")?.match(/^Bearer\s+(\S+)$/i)?.[1];
   if(token&&token!==key){
    const {data:{user},error}=await auth.auth.getUser(token);
-   signedIn=!error&&!!user?.id;
+   if(!error&&user?.id)userId=user.id;
   }
-  if(mode==="page"&&!signedIn&&page>10)return reply({error:"Connexion requise après la dixième page",code:"LOGIN_REQUIRED"},401);
-  const {data:book,error}=await db.from("books").select("status,review_status,copyright_status,file_url,file_format").eq("id",id).maybeSingle();
+  const {data:book,error}=await db.from("books").select("status,review_status,copyright_status,file_url,file_format,sample_pages").eq("id",id).maybeSingle();
   if(error||!book)return reply({error:"Livre introuvable"},404);
   if(book.status!=="published"||book.review_status!=="approved"||book.copyright_status!=="clear")return reply({error:"Livre non accessible"},403);
+  // Droits évalués en base avec le JWT de l'utilisateur (jamais avec la clé service role).
+  let hasAccess=false;
+  if(userId&&token){
+   const asUser=createClient(supaUrl,key,{auth:{autoRefreshToken:false,persistSession:false},global:{headers:{Authorization:"Bearer "+token}}});
+   const {data:allowed,error:accessError}=await asUser.rpc("user_has_access_to_book",{p_user_id:userId,p_book_id:id});
+   if(accessError)return reply({error:"Vérification des droits impossible"},503);
+   hasAccess=allowed===true;
+  }
+  const samplePages=Number.isSafeInteger(book.sample_pages)&&book.sample_pages>0?Math.min(book.sample_pages,6000):10;
+  if(mode==="page"&&!hasAccess&&page>samplePages){
+   if(!userId)return reply({error:"Connexion requise après l'extrait gratuit",code:"LOGIN_REQUIRED"},401);
+   return reply({error:"Achetez ce livre pour lire la suite",code:"ACCESS_REQUIRED"},403);
+  }
   const path=book.file_url;
   if(typeof path!=="string"||!path.startsWith("files/")||path.includes("..")||/^https?:/i.test(path))return reply({error:"Fichier manquant"},422);
   const {data:file,error:downloadError}=await db.storage.from("books").download(path);
@@ -83,7 +95,7 @@ export default {
    if(format==="pdf"){
     const pdf=await PDFDocument.load(bytes,{ignoreEncryption:true,updateMetadata:false});
     const count=pdf.getPageCount();
-    if(mode==="info")return reply({fileType:"pdf",pageCount:count,previewPageLimit:Math.min(10,count),deliveryMode:"pdf_pages"});
+    if(mode==="info")return reply({fileType:"pdf",pageCount:count,previewPageLimit:hasAccess?count:Math.min(samplePages,count),deliveryMode:"pdf_pages",hasFullAccess:hasAccess});
     if(page>count)return reply({error:"Page introuvable"},404);
     const single=await PDFDocument.create();
     const [selected]=await single.copyPages(pdf,[page-1]);single.addPage(selected);
@@ -91,7 +103,7 @@ export default {
     return new Response(new Uint8Array(content),{headers:{"Content-Type":"application/pdf","Content-Disposition":"inline; filename=page.pdf","Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff"}});
    }
    const pages=epubPages(bytes);
-   if(mode==="info")return reply({fileType:"epub",pageCount:pages.length,previewPageLimit:Math.min(10,pages.length),deliveryMode:"epub_pages"});
+   if(mode==="info")return reply({fileType:"epub",pageCount:pages.length,previewPageLimit:hasAccess?pages.length:Math.min(samplePages,pages.length),deliveryMode:"epub_pages",hasFullAccess:hasAccess});
    if(page>pages.length)return reply({error:"Page introuvable"},404);
    return reply({page,text:pages[page-1],pageCount:pages.length});
   }catch(err){return reply({error:err instanceof Error?err.message:"Format invalide"},422);}

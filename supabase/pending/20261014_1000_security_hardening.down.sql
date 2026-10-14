@@ -299,6 +299,9 @@ END;
 $$;
 
 DROP FUNCTION IF EXISTS public.hb_book_storage_path_guard();
+DROP FUNCTION IF EXISTS public.hb_can_review_book(uuid);
+DROP FUNCTION IF EXISTS public.hb_review_verified_purchasers(uuid);
+DROP FUNCTION IF EXISTS public.hb_book_access_reason(uuid, uuid);
 DROP FUNCTION IF EXISTS public.hb_audit_append_only();
 DROP FUNCTION IF EXISTS public.hb_book_private_fields(uuid);
 DROP FUNCTION IF EXISTS public.hb_book_format_files(uuid);
