@@ -6,7 +6,12 @@ import { AUTH_COOKIE_NAME } from "@/lib/api/session";
 
 export function proxy(request: NextRequest) {
   if (isSupabaseMode()) {
-    if (request.nextUrl.pathname.startsWith("/api/payments/")) return NextResponse.json({ message: "Paiement désactivé pendant la migration Supabase." }, { status: 503 });
+    // Dons : flux pas encore conforme (order_ref EasyPay), fermé en attendant sa reprise.
+    if (/^\/api\/payments\/[^/]+\/donate\//.test(request.nextUrl.pathname)) {
+      return NextResponse.json({ message: "Les dons en ligne sont momentanément indisponibles." }, { status: 503 });
+    }
+    // Paiements : pas de session à rafraîchir (le rappel EasyPay arrive sans cookie).
+    if (request.nextUrl.pathname.startsWith("/api/payments/")) return NextResponse.next();
     return supabaseProxy(request);
   }
   const pathname = request.nextUrl.pathname;

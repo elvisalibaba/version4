@@ -1,162 +1,125 @@
 import Link from "next/link";
-import { CheckCircle2, XCircle } from "lucide-react";
-import { PaymentReturnEffects } from "@/components/cart/payment-return-effects";
-import { getBookFormatLabel } from "@/lib/book-formats";
 import { redirect } from "next/navigation";
-import { ApiError } from "@/lib/api/client";
-import { apiServer } from "@/lib/api/server";
-import { getCurrentUserProfile } from "@/lib/auth";
-import { isSupabaseMode } from "@/lib/data-source";
-import SupabasePaymentReturn from "@/components/payments/supabase-payment-return";
-import type { ApiOrder, OrderPaymentStatus } from "@/types/api";
-
-type SearchParams = Promise<{
-  orderId?: string;
-}>;
+import { CheckCircle2, Clock3, ShieldAlert, XCircle } from "lucide-react";
+import { PaymentReturnEffects } from "@/components/cart/payment-return-effects";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { getBookFormatLabel } from "@/lib/book-formats";
+import type { BookFormatType } from "@/types/api";
+import { reconcileOrder } from "@/lib/payments/checkout";
+import { createServiceRoleClient } from "@/lib/supabase/service";
+import { getSupabaseUser } from "@/lib/supabase/user";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Paiement | Holistique Books", robots: { index: false } };
 
-function getStatusCopy(status: OrderPaymentStatus) {
-  switch (status) {
-    case "paid":
-      return {
-        title: "Paiement confirmé",
-        description: "Votre commande est payée. Les achats numériques sont disponibles dans votre bibliothèque.",
-        accent: "bg-emerald-50 text-emerald-800 border-emerald-200",
-      };
-    case "failed":
-      return {
-        title: "Paiement échoué",
-        description: "La transaction a été refusée ou n’a pas abouti. Vous pouvez relancer un paiement.",
-        accent: "bg-brand-50 text-brand-800 border-brand-100",
-      };
-    case "refunded":
-      return {
-        title: "Paiement remboursé",
-        description: "Cette commande a été marquée comme remboursée.",
-        accent: "bg-amber-50 text-amber-700 border-amber-200",
-      };
-    default:
-      return {
-        title: "Vérification du paiement",
-        description: "Nous confirmons votre paiement. Cette page se met à jour automatiquement.",
-        accent: "bg-paper-deep text-slate-700 border-rule",
-      };
-  }
+type SearchParams = Promise<{ o?: string; etat?: string; orderId?: string }>;
+
+const ORDER_REF = /^HB[A-Z2-7]{12}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Message d'attente selon l'URL de retour ; le statut final vient TOUJOURS de checking-status. */
+function waitingCopy(etat: string | undefined) {
+  if (etat === "annule") return "Vous avez annulé le paiement chez EasyPay. Nous vérifions l'état de la transaction.";
+  if (etat === "erreur") return "EasyPay a signalé un problème. Nous vérifions l'état réel de la transaction.";
+  return "Nous confirmons votre paiement auprès d'EasyPay. Cette page se met à jour automatiquement.";
 }
 
-async function loadOrder(orderId: string) {
-  return (await apiServer<{ data: ApiOrder }>(`orders/${encodeURIComponent(orderId)}`)).data;
+function statusCopy(status: string, etat: string | undefined) {
+  switch (status) {
+    case "paid":
+      return { icon: CheckCircle2, tone: "border-emerald-200 bg-emerald-50 text-emerald-900", title: "Paiement confirmé", text: "Merci ! Le livre est dans votre bibliothèque." };
+    case "failed":
+      return { icon: XCircle, tone: "border-rose-200 bg-rose-50 text-rose-900", title: "Paiement non abouti", text: "Aucun montant n'a été validé pour cette commande. Vous pouvez réessayer." };
+    case "needs_review":
+      return { icon: ShieldAlert, tone: "border-amber-200 bg-amber-50 text-amber-900", title: "Paiement en cours de vérification", text: "EasyPay a répondu, mais un contrôle manuel est nécessaire. Notre équipe valide votre commande au plus vite ; vous serez prévenu." };
+    case "expired":
+      return { icon: Clock3, tone: "border-rule bg-paper-deep text-night-900", title: "Commande expirée", text: "Cette commande n'a pas été payée à temps. Relancez l'achat depuis la fiche du livre." };
+    case "refunded":
+      return { icon: Clock3, tone: "border-rule bg-paper-deep text-night-900", title: "Paiement remboursé", text: "Cette commande a été remboursée." };
+    default:
+      return { icon: Clock3, tone: "border-rule bg-paper-deep text-night-900", title: "Vérification du paiement", text: waitingCopy(etat) };
+  }
 }
 
 export default async function PaymentReturnPage({ searchParams }: { searchParams: SearchParams }) {
-  const { orderId } = await searchParams;
+  const { o, etat, orderId } = await searchParams;
+  const ref = typeof o === "string" && ORDER_REF.test(o) ? o : null;
+  const legacyId = !ref && typeof orderId === "string" && UUID.test(orderId) ? orderId : null;
+  if (!ref && !legacyId) redirect("/dashboard/reader/purchases");
 
-  if (!orderId) {
-    redirect("/dashboard/reader/purchases");
-  }
-  if(isSupabaseMode()){
-    return <SupabasePaymentReturn orderId={orderId}/>;
-  }
-
-  const profile = await getCurrentUserProfile();
-  if (!profile) {
-    redirect(`/login?next=${encodeURIComponent(`/payment/return?orderId=${orderId}`)}`);
+  const user = await getSupabaseUser();
+  if (!user) {
+    const back = ref ? `/payment/return?o=${ref}${etat ? `&etat=${encodeURIComponent(etat)}` : ""}` : `/payment/return?orderId=${legacyId}`;
+    redirect(`/login?next=${encodeURIComponent(back)}`);
   }
 
-  let order: ApiOrder;
+  // types/database.ts ne connaît pas encore payment_order_ref (types générés à régénérer).
+  const db = createServiceRoleClient() as unknown as SupabaseClient;
+  const { data: order } = await (ref
+    ? db.from("orders").select("id,user_id,payment_status,payment_order_ref,total_price,currency_code").eq("payment_order_ref", ref).maybeSingle()
+    : db.from("orders").select("id,user_id,payment_status,payment_order_ref,total_price,currency_code").eq("id", legacyId!).maybeSingle());
+  // Une commande d'un autre compte est traitée comme introuvable.
+  if (!order || order.user_id !== user.id) redirect("/dashboard/reader/purchases");
 
-  try {
-    order = await loadOrder(orderId);
-
-    if (order.payment_status === "pending" && (order.payment_provider === "easypay" || order.payment_provider === "cinetpay")) {
-      try {
-        await apiServer(`payments/easypay/orders/${encodeURIComponent(orderId)}/reconcile`, {
-          method: "POST",
-        });
-        order = await loadOrder(orderId);
-      } catch {
-        // Le provider peut être momentanément indisponible. On conserve le statut pending.
-      }
+  let status = order.payment_status as string;
+  if (status === "pending") {
+    try {
+      status = (await reconcileOrder({ orderId: order.id }, "return")).status;
+    } catch (error) {
+      console.error("[Paiement] Vérification au retour impossible :", error);
     }
-  } catch (error) {
-    if (error instanceof ApiError && [401, 403, 404].includes(error.status)) {
-      redirect("/dashboard/reader/purchases");
-    }
-    throw error;
   }
 
-  const statusCopy = getStatusCopy(order.payment_status);
-  const money = (amount: number | string, currency: string) =>
-    new Intl.NumberFormat("fr-FR", { style: "currency", currency }).format(Number(amount));
+  const { data: items } = await db
+    .from("order_items")
+    .select("id,book_id,book_format,price,currency_code,books(title)")
+    .eq("order_id", order.id);
+  const lines = (items ?? []) as unknown as Array<{ id: string; book_id: string; book_format: string; price: number; currency_code: string; books: { title?: string } | null }>;
+  const firstBookId = lines[0]?.book_id ?? null;
+  const money = (amount: number, currency: string) => new Intl.NumberFormat("fr-FR", { style: "currency", currency }).format(Number(amount));
+  const copy = statusCopy(status, etat);
+  const Icon = copy.icon;
 
   return (
-    <div className="hb-fullbleed bg-paper">
-      <PaymentReturnEffects orderId={order.id} status={order.payment_status} />
-      <section className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
-        <div className="hb-fade-up rounded-md border border-rule bg-white">
-          <div className={`flex items-start gap-4 border-b px-6 py-6 ${statusCopy.accent}`}>
-            <StatusIcon status={order.payment_status} />
-            <div>
-              <h1 className="text-2xl font-bold">{statusCopy.title}</h1>
-              <p className="mt-1.5 text-sm leading-6">{statusCopy.description}</p>
-            </div>
-          </div>
-
-          <dl className="grid gap-4 border-b border-rule px-6 py-5 text-sm sm:grid-cols-3">
-            <div>
-              <dt className="text-slate-500">Commande</dt>
-              <dd className="mt-1 font-mono text-xs font-semibold text-slate-900">{order.id.slice(0, 8).toUpperCase()}</dd>
-            </div>
-            <div>
-              <dt className="text-slate-500">Statut</dt>
-              <dd className="mt-1 font-semibold text-slate-900">{STATUS_LABELS[order.payment_status] ?? order.payment_status}</dd>
-            </div>
-            <div>
-              <dt className="text-slate-500">Montant</dt>
-              <dd className="mt-1 font-semibold text-slate-900">{money(order.total_price, order.currency_code)}</dd>
-            </div>
-          </dl>
-
-          <ul className="divide-y divide-rule px-6">
-            {(order.items ?? []).map((item) => (
-              <li key={item.id} className="flex items-center justify-between gap-3 py-3.5 text-sm">
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-slate-900">{item.title ?? "Livre Holistique Books"}</p>
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    {getBookFormatLabel(item.book_format)}
-                    {item.quantity && item.quantity > 1 ? ` · Qté ${item.quantity}` : ""}
-                  </p>
-                </div>
-                <p className="shrink-0 font-semibold text-slate-900">{money(item.price, item.currency_code)}</p>
-              </li>
-            ))}
-          </ul>
-
-          <div className="flex flex-col gap-2 border-t border-rule px-6 py-5 sm:flex-row">
-            {order.payment_status === "failed" ? (
-              <Link href="/cart" className="cta-primary inline-flex min-h-11 items-center justify-center px-5 text-sm">Revenir au panier</Link>
-            ) : (
-              <Link href="/dashboard/reader/library" className="cta-primary inline-flex min-h-11 items-center justify-center px-5 text-sm">Ouvrir ma bibliothèque</Link>
-            )}
-            <Link href="/dashboard/reader/purchases" className="cta-secondary inline-flex min-h-11 items-center justify-center px-5 text-sm">Voir mes achats</Link>
-            <Link href="/books" className="inline-flex min-h-11 items-center justify-center px-3 text-sm font-medium text-slate-700 hover:text-brand-700 sm:ml-auto">Continuer mes achats</Link>
+    <section className="mx-auto max-w-2xl px-4 py-12 sm:py-16">
+      <PaymentReturnEffects orderId={order.id} status={status} />
+      <div className={`rounded-md border p-6 ${copy.tone}`} role="status" aria-live="polite">
+        <div className="flex items-start gap-4">
+          <Icon aria-hidden="true" className="mt-1 h-7 w-7 shrink-0" />
+          <div>
+            <h1 className="font-display text-2xl font-semibold">{copy.title}</h1>
+            <p className="mt-2 text-sm leading-6">{copy.text}</p>
           </div>
         </div>
-      </section>
-    </div>
+      </div>
+
+      <div className="mt-6 rounded-md border border-rule bg-white p-5">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Commande {order.payment_order_ref ?? ""}</p>
+        <ul className="mt-3 divide-y divide-rule">
+          {lines.map((line) => (
+            <li key={line.id} className="flex items-center justify-between gap-4 py-3 text-sm">
+              <span>
+                <span className="font-semibold text-night-900">{line.books?.title ?? "Livre"}</span>
+                <span className="ml-2 text-slate-500">{getBookFormatLabel(line.book_format as BookFormatType)}</span>
+              </span>
+              <span className="tabular-nums text-night-900">{money(line.price, line.currency_code)}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 flex justify-between border-t border-rule pt-3 text-sm font-semibold text-night-900">
+          <span>Total</span><span className="tabular-nums">{money(order.total_price, order.currency_code)}</span>
+        </p>
+      </div>
+
+      <div className="mt-6 flex flex-wrap gap-3">
+        {status === "paid" && firstBookId ? (
+          <Link href={`/book/${firstBookId}`} className="cta-primary px-5 py-3 text-sm">Lire maintenant</Link>
+        ) : null}
+        {(status === "failed" || status === "expired") && firstBookId ? (
+          <Link href={`/book/${firstBookId}`} className="cta-primary px-5 py-3 text-sm">Réessayer</Link>
+        ) : null}
+        <Link href="/dashboard/reader/library" className="cta-secondary px-5 py-3 text-sm">Ma bibliothèque</Link>
+      </div>
+    </section>
   );
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  paid: "Payée",
-  pending: "En cours de vérification",
-  failed: "Échouée",
-  refunded: "Remboursée",
-};
-
-function StatusIcon({ status }: { status: OrderPaymentStatus }) {
-  if (status === "paid") return <CheckCircle2 className="hb-check-pop h-9 w-9 shrink-0" aria-hidden="true" />;
-  if (status === "failed") return <XCircle className="h-9 w-9 shrink-0" aria-hidden="true" />;
-  return <span className="hb-spinner mt-1 h-7 w-7 shrink-0 border-[3px]" aria-hidden="true" />;
 }
