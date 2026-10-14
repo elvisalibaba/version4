@@ -5,9 +5,10 @@
 export const COVERS_BUCKET = "covers";
 
 /**
- * Transformations d'image Supabase (/render/image/...). Elles exigent le plan Pro :
- * tant qu'elles ne sont pas confirmées sur le projet, les couvertures sont servies
- * telles quelles (`unoptimized`), sans passer par l'optimiseur Vercel (quota épuisé : 402).
+ * Transformations d'image Supabase (/render/image/...). Testées le 14/10/2026 :
+ * 403 FeatureNotEnabled (plan Pro requis). Les couvertures sont donc servies telles
+ * quelles (`unoptimized`), déjà optimisées à la copie (WebP ≤ 1200 px, miniature 400 px),
+ * sans passer par l'optimiseur Vercel (quota épuisé : 402). Passer à true après un passage en Pro.
  */
 export const COVER_TRANSFORMS_ENABLED = false;
 

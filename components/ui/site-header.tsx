@@ -56,7 +56,7 @@ export async function SiteHeader() {
               className="grid h-11 w-11 place-items-center rounded-full border border-line text-ink transition-colors hover:border-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-deep"
             >
               {user.avatarUrl ? (
-                <Image src={user.avatarUrl} alt="" width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
+                <Image src={user.avatarUrl} alt="" width={32} height={32} unoptimized className="h-8 w-8 rounded-full object-cover" />
               ) : (
                 <UserRound aria-hidden="true" className="h-5 w-5" />
               )}

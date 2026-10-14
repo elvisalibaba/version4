@@ -150,7 +150,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
               <h1 className="mt-4 font-display text-[2.2rem] font-semibold leading-[1.1] tracking-tight text-night-900 sm:text-[2.7rem]">{book.title}</h1>
               {book.subtitle ? <p className="mt-3 font-display text-xl italic leading-snug text-slate-600">{book.subtitle}</p> : null}
               <Link href={`/authors/${book.author_id}`} className="group mt-5 inline-flex items-center gap-3">
-                {book.author_avatar_url ? <Image src={book.author_avatar_url} alt="" width={40} height={40} className="h-10 w-10 rounded-full object-cover ring-1 ring-rule-strong" /> : <span className="grid h-10 w-10 place-items-center rounded-full bg-night-900 font-display text-sm text-white">{book.author_name.slice(0, 1)}</span>}
+                {book.author_avatar_url ? <Image src={book.author_avatar_url} alt="" width={40} height={40} unoptimized className="h-10 w-10 rounded-full object-cover ring-1 ring-rule-strong" /> : <span className="grid h-10 w-10 place-items-center rounded-full bg-night-900 font-display text-sm text-white">{book.author_name.slice(0, 1)}</span>}
                 <span className="text-[0.95rem] text-slate-600">par <span className="font-semibold text-night-900 group-hover:text-brand-700 group-hover:underline">{book.author_name}</span></span>
               </Link>
               {book.rating_avg ? (

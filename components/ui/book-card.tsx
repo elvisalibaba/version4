@@ -20,6 +20,7 @@ export type BookCardBook = {
   title: string;
   author_name?: string | null;
   cover_signed_url?: string | null;
+  cover_thumb_url?: string | null;
   price: number;
   currency_code?: string;
   rating_avg?: number | null;
@@ -81,7 +82,7 @@ export function BookCard({ book, priority = false, tone = "light" }: { book: Boo
         className="hb-card-cover relative block aspect-[2/3] overflow-hidden rounded-xl shadow-[var(--shadow-cover)]"
       >
         <BookCover
-          src={book.cover_signed_url}
+          src={book.cover_thumb_url ?? book.cover_signed_url}
           alt=""
           seed={book.id}
           title={book.title}

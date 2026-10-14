@@ -56,10 +56,12 @@ export async function getSupabaseBooks(options: { searchQuery?:string; category?
     const price=numeric(publishedFormats[0]?.price??row.price);
     // Bucket public « covers » : URL stable sans appel réseau ; ancien bucket : URL signée (transition).
     const cover=await getBookCoverUrl(supabase,row as CoverSource);
+    // Miniature 400 px pour les cartes ; la fiche garde la couverture pleine taille.
+    const coverThumb=await getBookCoverUrl(supabase,row as CoverSource,true);
     const mapped={
       ...row,id:String(row.id),title:String(row.title??""),subtitle:row.subtitle??null,
       author_id:String(row.author_id??""),author_display_name:row.author_display_name??null,
-      cover_url:cover,cover_signed_url:cover,cover_alt_text:row.cover_alt_text??null,
+      cover_url:cover,cover_signed_url:cover,cover_thumb_url:coverThumb,cover_alt_text:row.cover_alt_text??null,
       price,currency_code:String(row.currency_code??"USD"),is_free:price<=0,
       purchases_count:numeric(row.purchases_count),rating_avg:row.rating_avg===null?null:numeric(row.rating_avg),
       ratings_count:numeric(row.ratings_count),is_single_sale_enabled:row.is_single_sale_enabled!==false,

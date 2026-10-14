@@ -71,7 +71,7 @@ export default async function AuthorPage({ params }: Props) {
             </div>
             <div className="relative mx-auto w-full max-w-[300px] lg:mx-0 lg:justify-self-end">
               <div className="aspect-[0.82] overflow-hidden rounded-md bg-slate-300 ring-1 ring-white/20">
-                {author.avatar_signed_url ? <Image src={author.avatar_signed_url} alt={`Portrait de ${author.display_name}`} width={600} height={730} priority className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center bg-white font-display text-6xl font-extrabold text-white">{initials(author.display_name)}</div>}
+                {author.avatar_signed_url ? <Image src={author.avatar_signed_url} alt={`Portrait de ${author.display_name}`} width={600} height={730} unoptimized priority className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center bg-white font-display text-6xl font-extrabold text-white">{initials(author.display_name)}</div>}
               </div>
             </div>
           </div>

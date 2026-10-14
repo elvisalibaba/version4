@@ -38,7 +38,7 @@ export default async function AuthorProfileEditorPage({ searchParams }: { search
         <aside className="self-start rounded-md border border-rule-strong bg-night-900 p-6 text-white xl:sticky xl:top-8">
           <p className="text-xs font-bold text-brand-300">Votre portrait</p>
           <div className="mx-auto mt-6 grid aspect-[0.82] max-w-[250px] place-items-center overflow-hidden rounded-md bg-white/10 ring-1 ring-white/15">
-            {author.avatar_url ? <Image src={author.avatar_url} alt={author.display_name} width={500} height={610} className="h-full w-full object-cover" priority /> : <UserRound className="h-20 w-20 text-white/30" />}
+            {author.avatar_url ? <Image src={author.avatar_url} alt={author.display_name} width={500} height={610} unoptimized className="h-full w-full object-cover" priority /> : <UserRound className="h-20 w-20 text-white/30" />}
           </div>
           <label className="mt-5 flex cursor-pointer items-center justify-center gap-2 rounded-sm bg-brand-600 px-4 py-3 text-sm font-extrabold text-white">
             <Camera className="h-4 w-4" /> Choisir une photo
