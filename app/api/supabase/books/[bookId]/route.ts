@@ -13,9 +13,9 @@ function safePath(value: unknown, folder: "covers"|"files", userId: string, isAd
   return value;
 }
 
-export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: Request, context: { params: Promise<{ bookId: string }> }) {
   if (!isSupabaseMode()) return NextResponse.json({ message: "Route indisponible." }, { status: 404 });
-  const { id } = await context.params;
+  const { bookId: id } = await context.params;
   if (!UUID.test(id)) return NextResponse.json({ message: "Identifiant invalide." }, { status: 422 });
   const current = await getSupabaseUser();
   if (!current || !["admin", "author"].includes(current.profile.role))

@@ -1,25 +1,25 @@
 import { NextResponse } from "next/server";
 import { isSupabaseMode } from "@/lib/data-source";
-import { createClient } from "@/lib/supabase/server";
 import { getSupabaseConfig } from "@/lib/supabase/config";
+import { getSupabaseRequestAuth } from "@/lib/supabase/request";
 import { ApiError } from "@/lib/api/client";
 import { apiServer, getServerAuthToken } from "@/lib/api/server";
 import type { ApiBook } from "@/types/api";
 
 export const dynamic = "force-dynamic";
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-export async function GET(_request:Request, context:{params:Promise<{bookId:string}>}){
+export async function GET(request:Request, context:{params:Promise<{bookId:string}>}){
  const {bookId}=await context.params;
  if(!UUID.test(bookId))return NextResponse.json({error:"Livre invalide"},{status:422});
  if(isSupabaseMode()){
-  const db=await createClient();
-  const {data:{user}}=await db.auth.getUser();
-  const {data:{session}}=user?await db.auth.getSession():{data:{session:null}};
+  const auth=await getSupabaseRequestAuth(request);
+  if(auth.bearerAttempted&&auth.error)return NextResponse.json({error:"Session mobile invalide ou expirée."},{status:401});
+  const user=auth.user;
   const {url,key}=getSupabaseConfig();
   let edge:Response;
   try{
    edge=await fetch(url+"/functions/v1/holistic-reader-page?"+new URLSearchParams({bookId,mode:"info"}),{
-    headers:{"apikey":key,...(user&&session?.access_token?{"Authorization":"Bearer "+session.access_token}:{})},
+    headers:{"apikey":key,...(user&&auth.accessToken?{"Authorization":"Bearer "+auth.accessToken}:{})},
     cache:"no-store",
    });
   }catch{return NextResponse.json({error:"Le service de lecture n'est pas joignable."},{status:503});}

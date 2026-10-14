@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isSupabaseMode } from "@/lib/data-source";
-import { createClient } from "@/lib/supabase/server";
 import { getSupabaseConfig } from "@/lib/supabase/config";
+import { getSupabaseRequestAuth } from "@/lib/supabase/request";
 import { getApiBaseUrl } from "@/lib/api/client";
 import { getServerAuthToken } from "@/lib/api/server";
 import { cookies } from "next/headers";
@@ -17,15 +17,15 @@ export async function GET(request:Request,context:{params:Promise<{bookId:string
  if(!UUID.test(bookId)||!raw||!Number.isSafeInteger(page)||page<1||page>6000)
   return NextResponse.json({error:"Page invalide."},{status:422});
  if(isSupabaseMode()){
-  const db=await createClient();
-  const {data:{user}}=await db.auth.getUser();
+  const auth=await getSupabaseRequestAuth(request);
+  if(auth.bearerAttempted&&auth.error)return NextResponse.json({error:"Session mobile invalide ou expirée."},{status:401});
+  const user=auth.user;
   if(!user&&page>10)return NextResponse.json({error:"Créez un compte pour lire la suite.",code:"LOGIN_REQUIRED"},{status:401});
-  const {data:{session}}=user?await db.auth.getSession():{data:{session:null}};
   const {url:base,key}=getSupabaseConfig();
   let upstream:Response;
   try{
    upstream=await fetch(base+"/functions/v1/holistic-reader-page?"+new URLSearchParams({bookId,page:String(page)}),{
-    headers:{"apikey":key,...(user&&session?.access_token?{"Authorization":"Bearer "+session.access_token}:{})},
+    headers:{"apikey":key,...(user&&auth.accessToken?{"Authorization":"Bearer "+auth.accessToken}:{})},
     cache:"no-store",
    });
   }catch{return NextResponse.json({error:"Service lecteur momentanément indisponible."},{status:503});}
