@@ -1,7 +1,7 @@
--- Tests pgTAP de supabase/pending/20261014_1000_security_hardening.sql
+-- Tests pgTAP de supabase/migrations/20261014100000_security_hardening.sql
 -- Exécution sur une base locale (jamais la production) :
---   supabase start && supabase db reset && psql … -f supabase/pending/20261014_1000_security_hardening.sql
---   supabase test db
+--   supabase start && supabase db reset && supabase test db
+-- Passé en production le 14/10/2026 (52/52) via une version sans pgTAP, terminée par ROLLBACK.
 -- Tout se déroule dans une transaction annulée à la fin.
 
 BEGIN;
@@ -22,7 +22,7 @@ BEGIN
 END $$;
 CREATE FUNCTION hb_test.reset_actor() RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
-  RESET ROLE;
+  SET LOCAL ROLE postgres;  -- RESET ROLE reviendrait au rôle de session, pas forcément postgres
   PERFORM set_config('request.jwt.claims', '', true);
 END $$;
 GRANT USAGE ON SCHEMA hb_test TO anon, authenticated;
@@ -64,8 +64,8 @@ INSERT INTO public.book_formats (book_id, format, price, currency_code, is_publi
   ('00000000-0000-0000-0000-0000000000b2', 'ebook', 0, 'USD', true),
   ('00000000-0000-0000-0000-0000000000b4', 'ebook', 5, 'USD', true);
 
-INSERT INTO public.subscription_plans (id, name, monthly_price, currency_code, is_active)
-VALUES ('00000000-0000-0000-0000-0000000000c1', 'Plus test', 3, 'USD', true);
+INSERT INTO public.subscription_plans (id, name, slug, monthly_price, currency_code, is_active)
+VALUES ('00000000-0000-0000-0000-0000000000c1', 'Plus test', 'hb-test-plus', 3, 'USD', true);
 INSERT INTO public.subscription_plan_books (plan_id, book_id)
 VALUES ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000b4');
 
@@ -142,13 +142,13 @@ SELECT is(
 -- ---------------------------------------------------------------------------
 SELECT hb_test.act_as('authenticated', '00000000-0000-0000-0000-0000000000a1');
 SELECT throws_ok(
-  $$ INSERT INTO public.books (title, author_id, review_status) VALUES ('Pirate', '00000000-0000-0000-0000-0000000000a1', 'draft') $$,
+  $$ INSERT INTO public.books (title, price, author_id, review_status) VALUES ('Pirate', 0, '00000000-0000-0000-0000-0000000000a1', 'draft') $$,
   '42501', NULL, 'un lecteur ne peut pas créer de livre');
 SELECT hb_test.reset_actor();
 
 SELECT hb_test.act_as('authenticated', '00000000-0000-0000-0000-0000000000a2');
 SELECT lives_ok(
-  $$ INSERT INTO public.books (title, author_id, review_status) VALUES ('Nouveau', '00000000-0000-0000-0000-0000000000a2', 'draft') $$,
+  $$ INSERT INTO public.books (title, price, author_id, review_status) VALUES ('Nouveau', 0, '00000000-0000-0000-0000-0000000000a2', 'draft') $$,
   'un auteur crée un brouillon');
 SELECT throws_ok(
   $$ UPDATE public.books SET cover_url = 'covers/00000000-0000-0000-0000-0000000000a3/other.png'

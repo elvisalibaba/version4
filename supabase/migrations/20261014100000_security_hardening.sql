@@ -1,11 +1,12 @@
 -- =============================================================================
 -- HolisticBooks — Phase 1 : durcissement de sécurité de la base
 -- =============================================================================
--- STATUT : PROPOSITION, NON APPLIQUÉE. Dans supabase/pending/ pour qu'aucun
--- `db push` ne la prenne par erreur. Relecture du propriétaire obligatoire.
+-- STATUT : APPLIQUÉE en production le 14/10/2026 (psql, une transaction), puis
+-- enregistrée dans l'historique par `supabase migration repair --status applied 20261014100000`.
+-- Vérifiée par 52 assertions (supabase/tests/20261014_security_hardening.test.sql).
 --
 -- Référence : docs/supabase-security-baseline.md (écarts numérotés #1 à #19).
--- Annulation : supabase/pending/20261014_1000_security_hardening.down.sql
+-- Annulation : supabase/rollbacks/20261014100000_security_hardening.down.sql
 -- Tests     : supabase/tests/20261014_security_hardening.test.sql (pgTAP)
 --
 -- ORDRE DE DÉPLOIEMENT IMPOSÉ :

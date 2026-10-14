@@ -11,10 +11,8 @@
 -- transactionnel (exception assumée pour une baseline : CREATE POLICY et
 -- ADD CONSTRAINT échoueraient sur une base existante).
 --
--- Décision en attente (propriétaire du projet) : enregistrer cette version comme
--- appliquée (`supabase migration repair --status applied …`) après relecture.
--- Remarque : la CLI lit la version jusqu'au premier « _ » ; ce fichier (comme les
--- 20261013_xxxx existants) devra probablement être renommé 20261014090000_… à ce moment-là.
+-- Enregistrée comme appliquée le 14/10/2026 (`supabase migration repair --status applied
+-- 20261014090000`) : jamais exécutée sur la production.
 -- =============================================================================
 
 

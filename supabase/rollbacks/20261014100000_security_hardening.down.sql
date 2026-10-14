@@ -1,5 +1,5 @@
 -- =============================================================================
--- ANNULATION de 20261014_1000_security_hardening.sql — restaure l'état du 14/10/2026
+-- ANNULATION de supabase/migrations/20261014100000_security_hardening.sql — restaure l'état du 14/10/2026
 -- =============================================================================
 -- ATTENTION : rejouer ce fichier RÉOUVRE les failles décrites dans
 -- docs/supabase-security-baseline.md (abonnements auto-attribués, file_url public…).
