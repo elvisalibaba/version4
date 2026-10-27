@@ -5,6 +5,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { ChevronLeft, ChevronRight, Maximize2, Settings2, X } from "lucide-react";
 import { PdfReaderSurface } from "@/components/reader/pdf-reader-surface";
 import { SupabasePdfPage } from "@/components/reader/supabase-pdf-page";
+import { FullDocumentPdf } from "@/components/reader/full-document-pdf";
 import { SupabaseEpubPage } from "@/components/reader/supabase-epub-page";
 
 type EpubTheme = "light" | "sepia" | "dark";
@@ -176,7 +177,7 @@ export function ReaderPopup({
   const dialogTitleId = useId();
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<"epub" | "pdf" | null>(null);
-  const [deliveryMode, setDeliveryMode] = useState<"page_images" | "pdf_pages" | "epub_pages">("page_images");
+  const [deliveryMode, setDeliveryMode] = useState<"page_images" | "pdf_pages" | "epub_pages" | "full_document">("page_images");
   const [error, setError] = useState<string | null>(null);
   const [readerProfileId, setReaderProfileId] = useState<string | null>(null);
   const [highlights, setHighlights] = useState<ReaderHighlight[]>([]);
@@ -419,7 +420,7 @@ export function ReaderPopup({
         if (!user || guestPreview) return;
 
         setReaderProfileId(user.id);
-        if(readerPayload.deliveryMode === "pdf_pages" || readerPayload.deliveryMode === "epub_pages"){
+        if(readerPayload.deliveryMode === "pdf_pages" || readerPayload.deliveryMode === "epub_pages" || readerPayload.deliveryMode === "full_document"){
           setProgressHydrated(true);
           return;
         }
@@ -864,7 +865,15 @@ export function ReaderPopup({
             <div className="relative grid h-full min-h-0 grid-cols-1 gap-0">
               <div className="relative min-h-0 overflow-hidden rounded-none border-0 bg-slate-100 p-1 sm:p-2">
                 {fileType === "pdf" ? (
-                  deliveryMode === "pdf_pages" ? (
+                  deliveryMode === "full_document" ? (
+                     <FullDocumentPdf
+                       fileUrl={fileUrl}
+                       pageNumbers={pdfVisiblePages}
+                       scale={pdfScale}
+                       onPageCount={setPdfPageCount}
+                       onError={setError}
+                     />
+                   ) : deliveryMode === "pdf_pages" ? (
                     <div className="h-full min-h-0 overflow-auto rounded-lg bg-slate-200 p-3 sm:p-5">
                       <div className={pdfSpreadMode && pdfVisiblePages.length > 1 ? "mx-auto grid max-w-[1500px] gap-6 xl:grid-cols-2" : "mx-auto max-w-[950px]"}>
                         {pdfVisiblePages.map(page => <SupabasePdfPage key={page} fileUrl={fileUrl} pageNumber={page} scale={pdfScale} onError={setError}/>)}

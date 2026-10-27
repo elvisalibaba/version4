@@ -38,6 +38,18 @@ export async function GET(request:Request, context:{params:Promise<{bookId:strin
  try{
   const token=await getServerAuthToken();
   const {data:book}=await apiServer<{data:ApiBook&{file_format?:string|null}}>("books/"+encodeURIComponent(bookId),{authenticated:false});
+  // A published, licensed free title is read as one local PDF/EPUB document.
+  // The Laravel endpoint rechecks the entitlement before returning any bytes.
+  if(book.is_free){
+   return NextResponse.json({
+    readerUrl:"/api/read/"+encodeURIComponent(bookId)+"/full",
+    fileType:book.file_format==="epub"?"epub":"pdf",
+    deliveryMode:"full_document",
+    pageCount:book.page_count??null,
+    isGuestPreview:false,
+    previewPageLimit:null,
+   },{headers:{"Cache-Control":"private, no-store"}});
+  }
   let guest=!token;
   let readerToken:string|null=null;
   if(token){

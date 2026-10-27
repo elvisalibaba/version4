@@ -14,7 +14,10 @@ import { FavoriteBookButton } from "@/components/books/favorite-book-button";
 import { BookReviews } from "@/components/books/book-reviews";
 import { CinetPayButtons } from "@/components/payments/cinetpay-buttons";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
-import { ReaderPopup } from "@/components/reader/reader-popup";
+import dynamic from "next/dynamic";
+
+// The PDF/EPUB reader and its dependencies load only after clicking Lire.
+const ReaderPopup = dynamic(() => import("@/components/reader/reader-popup").then((mod) => mod.ReaderPopup), { ssr: false });
 import { getLibraryAccessLabel } from "@/lib/access-labels";
 import { getBookFormatLabel, isPhysicalBookFormat, type CheckoutBookFormat } from "@/lib/book-formats";
 
@@ -303,7 +306,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
           </div>
         </div>
       </div>
-      <ReaderPopup bookId={book.id} open={readerOpen} onClose={() => setReaderOpen(false)} />
+      {readerOpen ? <ReaderPopup bookId={book.id} open={readerOpen} onClose={() => setReaderOpen(false)} /> : null}
     </>
   );
 }

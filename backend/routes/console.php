@@ -20,6 +20,11 @@ Schedule::command('reader-sessions:cleanup')
     ->hourly()
     ->withoutOverlapping();
 
+// Limit disk usage of protected reader JPEG cache on small cPanel plans.
+Schedule::command('reader-cache:prune --days=7 --limit=500')
+    ->dailyAt('03:15')
+    ->withoutOverlapping();
+
 // cPanel sans SSH : pas de worker permanent possible. La file d'attente
 // (e-mails de bienvenue, reçus de paiement…) est vidée chaque minute par le
 // cron unique `cpanel-cron.sh` → schedule:run.
