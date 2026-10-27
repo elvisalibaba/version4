@@ -36,7 +36,7 @@ function readApiError(payload: unknown) {
   return undefined;
 }
 
-export function CartView({ isAuthenticated, customer, supabaseMode = false }: { isAuthenticated: boolean; customer: Customer | null; supabaseMode?: boolean }) {
+export function CartView({ isAuthenticated, customer }: { isAuthenticated: boolean; customer: Customer | null }) {
   const items = useCart();
   const [removing, setRemoving] = useState<string | null>(null);
   const subtotals = useMemo(() => subtotalsByCurrency(items), [items]);
@@ -49,7 +49,6 @@ export function CartView({ isAuthenticated, customer, supabaseMode = false }: { 
   const [error, setError] = useState<string | null>(null);
   const count = cartCount(items);
   const hasPhysical = items.some((item) => isPhysicalBookFormat(item.format));
-  const hasDigitalSale = supabaseMode && items.some((item) => !isPhysicalBookFormat(item.format));
   // Toute modification du panier invalide la commande préparée.
   const activeOrder = order && order.signature === signature ? order : null;
 
@@ -62,11 +61,10 @@ export function CartView({ isAuthenticated, customer, supabaseMode = false }: { 
   }
 
   async function prepareOrder() {
-    if(hasDigitalSale){setError("La lecture numérique est gratuite. Retirez les formats numériques du panier et utilisez le lecteur.");return;}
     setBusy(true);
     setError(null);
     try {
-      const response = await fetch(supabaseMode ? "/api/supabase/orders" : "/api/backend/orders", {
+      const response = await fetch("/api/backend/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({

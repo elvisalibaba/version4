@@ -1,5 +1,3 @@
-import { isSupabaseMode } from "@/lib/data-source";
-import { getLegacyReaderLibrary,getLegacyReaderFavorites,getLegacyReaderOrders,getLegacyReaderSubscriptions,getLegacyPlans } from "@/lib/supabase/reader";
 import { apiServer } from "@/lib/api/server";
 import type { ApiBook, ApiLibraryEntry, ApiOrder, ApiPagination, ApiSubscription, ApiSubscriptionPlan } from "@/types/api";
 
@@ -32,32 +30,26 @@ export type ReaderAffiliatePayload = {
 };
 
 export async function getReaderDashboard() {
- if(isSupabaseMode()){ const [library,orders,subscriptions,favorites]=await Promise.all([getLegacyReaderLibrary(),getLegacyReaderOrders(),getLegacyReaderSubscriptions(),getLegacyReaderFavorites()]);return {library,orders,subscriptions,stats:{library:library.length,favorites:favorites.length,orders:orders.length,active_subscriptions:subscriptions.filter(s=>s.status==="active").length,audiobooks:0,videos:0}};}
   return (await apiServer<{ data: ReaderDashboardPayload }>("reader/dashboard")).data;
 }
 
 export async function getReaderLibrary() {
- if(isSupabaseMode())return getLegacyReaderLibrary();
   return (await apiServer<ApiPagination<ApiLibraryEntry>>("library")).data ?? [];
 }
 
 export async function getReaderFavorites() {
- if(isSupabaseMode())return getLegacyReaderFavorites();
   return (await apiServer<ApiPagination<ApiBook>>("favorites")).data ?? [];
 }
 
 export async function getReaderOrders() {
- if(isSupabaseMode())return getLegacyReaderOrders();
   return (await apiServer<ApiPagination<ApiOrder>>("orders")).data ?? [];
 }
 
 export async function getReaderSubscriptions() {
- if(isSupabaseMode())return getLegacyReaderSubscriptions();
   return (await apiServer<ApiPagination<ApiSubscription>>("subscriptions")).data ?? [];
 }
 
 export async function getActivePlans() {
- if(isSupabaseMode())return getLegacyPlans();
   return (await apiServer<{ data: ApiSubscriptionPlan[] }>("plans", { authenticated: false })).data ?? [];
 }
 

@@ -1,5 +1,3 @@
-import { isSupabaseMode } from "@/lib/data-source";
-import { getLegacyAuthorBooks,getLegacyAuthorProfile } from "@/lib/supabase/author";
 import { apiServer } from "@/lib/api/server";
 import type { ApiAuthorBook, ApiAuthorProfile, ApiSubscriptionPlan } from "@/types/api";
 
@@ -208,7 +206,6 @@ export async function getAuthorDashboard() {
 }
 
 export async function getAuthorBooks() {
- if(isSupabaseMode())return getLegacyAuthorBooks();
   return (await apiServer<{ data: ApiAuthorBook[] }>("author/books")).data ?? [];
 }
 
@@ -219,7 +216,6 @@ export async function getAuthorBook(bookId: string) {
 }
 
 export async function getAuthorProfile() {
- if(isSupabaseMode())return getLegacyAuthorProfile();
   return (await apiServer<{ data: ApiAuthorProfile }>("author/profile")).data;
 }
 
@@ -272,6 +268,5 @@ export async function getAuthorDistribution(bookId: string) {
 }
 
 export async function getSubscriptionPlans() {
- if(isSupabaseMode()){ const {getLegacyPlans}=await import("@/lib/supabase/reader");return getLegacyPlans(); }
   return (await apiServer<{ data: ApiSubscriptionPlan[] }>("plans", { authenticated: false })).data ?? [];
 }
