@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Book\StoreBookRequest;
 use App\Http\Requests\Book\UpdateBookRequest;
+use App\Http\Resources\BookCardResource;
 use App\Http\Resources\BookResource;
 use App\Models\AcademicTaxonomy;
 use App\Models\AuthorProfile;
@@ -22,6 +23,8 @@ class BookController extends Controller
 {
     public function index(): AnonymousResourceCollection
     {
+        $compact = request()->query('view') === 'card';
+
         $books = Book::query()
             ->publiclyAvailable()
             ->withAvg([
@@ -30,7 +33,11 @@ class BookController extends Controller
             ->withCount([
                 'ratings as visible_ratings_count' => fn ($query) => $query->where('is_hidden', false),
             ])
-            ->with([
+            ->with($compact ? [
+                'author',
+                'mediaEditions' => fn ($query) => $query->where('status', 'published')->select('id', 'book_id', 'media_type', 'status'),
+                'formats' => fn ($query) => $query->where('is_published', true),
+            ] : [
                 'author',
                 'publishingHouse',
                 'imprint',
@@ -96,7 +103,7 @@ class BookController extends Controller
             ->orderByDesc('id')
             ->paginate(24);
 
-        return BookResource::collection($books);
+        return $compact ? BookCardResource::collection($books) : BookResource::collection($books);
     }
 
     public function store(
