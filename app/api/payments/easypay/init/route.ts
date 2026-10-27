@@ -22,8 +22,8 @@ export async function POST(request: Request) {
       currency_code: input.currency,
       customer: input.customer,
     };
-    const result = await apiClient("payments/easypay/init", { method: "POST", token, body: payload });
-    return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
+    const result = await apiClient<{ data: { paymentUrl: string; orderId: string } }>("payments/easypay/init", { method: "POST", token, body: payload });
+    return NextResponse.json(result.data, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (error instanceof ApiError) return NextResponse.json(error.payload ?? { error: "Paiement impossible." }, { status: error.status });
     if (error instanceof SyntaxError) return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
