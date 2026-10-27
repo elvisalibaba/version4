@@ -1,25 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isSupabaseMode } from "@/lib/data-source";
-import { getSupabaseConfig } from "@/lib/supabase/config";
-import { createServerClient } from "@supabase/ssr";
 import { AUTH_COOKIE_NAME } from "@/lib/api/session";
+import { getApiBaseUrl } from "@/lib/api/client";
 
+/** The public storefront uses Laravel Sanctum exclusively. */
 export function proxy(request: NextRequest) {
-  if (isSupabaseMode()) {
-    // Dons : flux pas encore conforme (order_ref EasyPay), fermé en attendant sa reprise.
-    if (/^\/api\/payments\/[^/]+\/donate\//.test(request.nextUrl.pathname)) {
-      return NextResponse.json({ message: "Les dons en ligne sont momentanément indisponibles." }, { status: 503 });
-    }
-    // Paiements : pas de session à rafraîchir (le rappel EasyPay arrive sans cookie).
-    if (request.nextUrl.pathname.startsWith("/api/payments/")) return NextResponse.next();
-    return supabaseProxy(request);
-  }
   const pathname = request.nextUrl.pathname;
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
 
-  if (pathname.startsWith("/admin")) {
-    const backend = (process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
-    return NextResponse.redirect(new URL("/admin", backend));
+  // Filament is hosted on Laravel, not in a parallel Next.js admin console.
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    return NextResponse.redirect(new URL("/admin", getApiBaseUrl()));
+  }
+
+  if ((pathname === "/dashboard/admin" || pathname.startsWith("/dashboard/admin/")) && token) {
+    return NextResponse.redirect(new URL("/admin", getApiBaseUrl()));
   }
 
   if (pathname.startsWith("/dashboard") && !token) {
@@ -32,29 +26,6 @@ export function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
-async function supabaseProxy(request: NextRequest) {
-  let response = NextResponse.next({ request });
-  const { url, key } = getSupabaseConfig();
-  const supabase = createServerClient(url, key, {
-    cookies: {
-      getAll: () => request.cookies.getAll(),
-      setAll(changes) {
-        changes.forEach(({ name, value }) => request.cookies.set(name, value));
-        response = NextResponse.next({ request });
-        changes.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-      },
-    },
-  });
-  const { data: { user } } = await supabase.auth.getUser();
-  const pathname = request.nextUrl.pathname;
-  if ((pathname.startsWith("/dashboard") || pathname.startsWith("/admin")) && !user) {
-    const destination = new URL("/login", request.url);
-    destination.searchParams.set("next", pathname);
-    return NextResponse.redirect(destination);
-  }
-  return response;
-}
-
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*", "/api/payments/:path*"],
+  matcher: ["/dashboard/:path*", "/admin/:path*"],
 };
