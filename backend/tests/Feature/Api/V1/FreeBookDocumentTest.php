@@ -27,7 +27,7 @@ class FreeBookDocumentTest extends TestCase
         $response->assertHeader('Content-Type', 'application/pdf');
         $response->assertHeader('X-Holistique-Free-Reader', '1');
         $this->assertStringContainsString('%PDF-1.4', $response->streamedContent());
-        $this->assertDatabaseMissing('libraries', ['book_id' => $book->id]);
+        $this->assertDatabaseMissing('library', ['book_id' => $book->id]);
     }
 
     public function test_paid_books_do_not_expose_their_full_source(): void

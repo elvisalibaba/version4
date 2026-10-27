@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useState } from "react";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 
 type Props = {
