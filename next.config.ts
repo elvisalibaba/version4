@@ -1,10 +1,6 @@
 import type { NextConfig } from "next";
 
-// Hôte Supabase dérivé de l'unique variable d'URL du projet (repli : ancien nom pendant la transition).
-const supabaseHost = new URL(
-  process.env.NEXT_PUBLIC_HOLISTIC_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://wgsvzhhzsmioihjwcwcs.supabase.co",
-).hostname;
-
+// Laravel API handles all book data and authentication.
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
@@ -19,10 +15,6 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/covers/**" },
-      { protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/render/image/public/covers/**" },
-      // Ancien emplacement des couvertures (URL signées), le temps de la migration.
-      { protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/sign/books/**" },
       {
         protocol: "https",
         hostname: "images.unsplash.com",
@@ -61,7 +53,7 @@ const nextConfig: NextConfig = {
           {
             key: "Content-Security-Policy",
             value:
-              "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://*.cinetpay.com https://*.e-com-easypay.com; img-src 'self' data: blob: https: http://127.0.0.1:8000 http://localhost:8000; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://api.aba.cd http://127.0.0.1:8000 http://localhost:8000 https://*.cinetpay.com https://*.e-com-easypay.com https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:; media-src 'self' blob: https: http://127.0.0.1:8000 http://localhost:8000; upgrade-insecure-requests",
+              "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://*.cinetpay.com https://*.e-com-easypay.com; img-src 'self' data: blob: https: http://127.0.0.1:8000 http://localhost:8000; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://api.aba.cd http://127.0.0.1:8000 http://localhost:8000 https://*.cinetpay.com https://*.e-com-easypay.com; worker-src 'self' blob:; media-src 'self' blob: https: http://127.0.0.1:8000 http://localhost:8000; upgrade-insecure-requests",
           },
         ],
       },
