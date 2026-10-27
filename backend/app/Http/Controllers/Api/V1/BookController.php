@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Book\IndexBookRequest;
 use App\Http\Requests\Book\StoreBookRequest;
 use App\Http\Requests\Book\UpdateBookRequest;
+use App\Http\Resources\BookCardResource;
 use App\Http\Resources\BookResource;
 use App\Http\Resources\PublicBookResource;
 use App\Models\AcademicTaxonomy;
@@ -27,6 +28,7 @@ class BookController extends Controller
     {
         $filters = $request->validated();
         $formats = $request->formats();
+        $compact = $request->query('view') === 'card';
 
         $books = Book::query()
             ->publiclyAvailable()
@@ -36,7 +38,11 @@ class BookController extends Controller
             ->withCount([
                 'ratings as visible_ratings_count' => fn ($query) => $query->where('is_hidden', false),
             ])
-            ->with([
+            ->with($compact ? [
+                'author',
+                'mediaEditions' => fn ($query) => $query->where('status', 'published')->select('id', 'book_id', 'media_type', 'status'),
+                'formats' => fn ($query) => $query->where('is_published', true),
+            ] : [
                 'author',
                 'publishingHouse',
                 'imprint',
@@ -115,7 +121,7 @@ class BookController extends Controller
             ->paginate($request->perPage())
             ->withQueryString();
 
-        return PublicBookResource::collection($books);
+        return $compact ? BookCardResource::collection($books) : PublicBookResource::collection($books);
     }
 
     public function store(

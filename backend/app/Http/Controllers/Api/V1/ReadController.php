@@ -38,7 +38,7 @@ class ReadController extends Controller
             [
                 'Content-Type' => $source['mime'],
                 'Content-Disposition' => 'inline',
-                'Cache-Control' => 'public, max-age=300, s-maxage=1800',
+                'Cache-Control' => 'public, max-age=60, s-maxage=300',
                 'X-Content-Type-Options' => 'nosniff',
                 'X-Holistique-Free-Reader' => '1',
             ],
