@@ -2,7 +2,10 @@ name: Production package
 
 on:
   push:
-    branches: [production]
+    branches: [main, production]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/production-package.yml'
   workflow_dispatch:
 
 concurrency:
