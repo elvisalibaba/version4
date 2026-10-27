@@ -1,23 +1,11 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { isSupabaseMode } from "@/lib/data-source";
-import { SupabaseBookEditor } from "@/components/supabase/book-editor";
 import { AuthorBookImportForm } from "@/components/author/author-book-import-form";
 import { requireRole } from "@/lib/auth";
 import { getAuthorProfile, getSubscriptionPlans } from "@/lib/author-api";
 
 export default async function AddBookPage() {
   const profile = await requireRole(["author"]);
-  if (isSupabaseMode()) {
-    return <section className="space-y-6">
-      <header className="rounded-md bg-night-900 p-6 text-white sm:p-8">
-        <Link href="/dashboard/author/books" className="text-sm text-white/70">Retour aux livres</Link>
-        <h1 className="mt-5 text-3xl font-bold">Créer un livre sur Supabase</h1>
-        <p className="mt-3 text-sm text-white/65">Le dépôt reste privé jusqu&apos;à validation des droits et publication.</p>
-      </header>
-      <SupabaseBookEditor area="author" />
-    </section>;
-  }
   const [authorProfile, subscriptionPlans] = await Promise.all([
     getAuthorProfile(),
     getSubscriptionPlans(),
