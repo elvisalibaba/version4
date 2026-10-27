@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { CartView } from "@/components/cart/cart-view";
 import { getCurrentUserProfile } from "@/lib/auth";
-import { isSupabaseMode } from "@/lib/data-source";
 
 export const metadata: Metadata = {
   title: "Panier",
@@ -24,7 +23,6 @@ export default async function CartPage() {
     <div className="hb-fullbleed bg-paper">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <CartView
-          supabaseMode={isSupabaseMode()}
           isAuthenticated={Boolean(profile)}
           customer={
             profile

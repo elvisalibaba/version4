@@ -40,7 +40,7 @@ type AccessState = {
   isSubscriptionEntitlementExpired: boolean;
 } | null;
 type Props = {
-  book: BookDetailView; accessState: AccessState; isAuthenticated: boolean; autoOpenReader?: boolean; supabaseReaderMode?: boolean;
+  book: BookDetailView; accessState: AccessState; isAuthenticated: boolean; autoOpenReader?: boolean;
   checkoutCustomer: { customerId?: string | null; firstName?: string | null; lastName?: string | null; email?: string | null; phoneNumber?: string | null; city?: string | null; country?: string | null } | null;
 };
 
@@ -49,12 +49,12 @@ const LANGUAGES: Record<string, string> = { fr: "Français", en: "Anglais", ln: 
 function firstOf<T>(value: T | T[] | null | undefined) { return Array.isArray(value) ? value[0] ?? null : value ?? null; }
 function money(amount: number, currency: string) { return amount <= 0 ? "Gratuit" : new Intl.NumberFormat("fr-FR", { style: "currency", currency }).format(amount); }
 
-export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenReader = false, checkoutCustomer, supabaseReaderMode = false }: Props) {
+export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenReader = false, checkoutCustomer }: Props) {
   const [readerOpen, setReaderOpen] = useState(autoOpenReader);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const activePlanName = firstOf(accessState?.activeSubscription?.subscription_plans)?.name ?? null;
   const accessType = accessState?.libraryEntry?.access_type;
-  const canRead = supabaseReaderMode || book.is_free || Boolean(accessState?.hasAccess);
+  const canRead = book.is_free || Boolean(accessState?.hasAccess);
   const paidFormats = book.purchase_formats.filter((format) => format.price > 0);
   // Formats que l'on peut mettre au panier : tout format payant tant que le livre n'est pas lu,
   // puis seulement les éditions imprimées (un lecteur peut vouloir le papier en plus).
@@ -71,24 +71,17 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
   const selectedCartFormat = cartFormats.find((format) => format.format === cartFormat) ?? cartFormats[0] ?? null;
   const returnPath = `/book/${book.id}`;
   const loginHref = `/login?next=${encodeURIComponent(returnPath)}`;
-  const registerHref = `/register?role=reader&next=${encodeURIComponent(returnPath)}`;
   const subscriptionHref = isAuthenticated ? "/dashboard/reader/subscriptions" : loginHref;
-  const accessMessage = supabaseReaderMode
-    ? isAuthenticated
-      ? "Lecture intégrale gratuite avec votre compte lecteur HolisticBooks."
-      : "Lisez les dix premières pages sans inscription. Créez un compte gratuit pour lire la suite."
-    : book.is_free
-    ? isAuthenticated
-      ? "Cette édition numérique est offerte. Vous pouvez lire le livre complet avec votre compte."
-      : "Lisez les 10 premières pages immédiatement, sans compte. Créez ensuite un compte lecteur gratuit pour continuer le livre complet."
+  const accessMessage = book.is_free
+    ? "Cette édition numérique est gratuite : ouvrez-la et lisez toutes les pages sans compte."
     : accessState?.hasPurchaseAccess
       ? "Ce livre vous appartient et reste accessible dans votre bibliothèque."
       : accessState?.hasSubscriptionAccess
         ? `Inclus dans votre abonnement${activePlanName ? ` ${activePlanName}` : " Premium"}.`
         : accessState?.isSubscriptionEntitlementExpired
-          ? "Votre accès Premium à expiré. Réactivez votre abonnement pour continuer."
+          ? "Votre accès Premium a expiré. Réactivez votre abonnement pour continuer."
           : book.is_subscription_available
-            ? "Disponible à l’unité ou avec un abonnement Holistique Plus."
+            ? "Disponible à l'unité ou avec un abonnement Holistique Plus."
             : "Achetez ce titre et retrouvez-le dans votre bibliothèque personnelle.";
 
   const primaryCategory = book.categories[0] ?? null;
@@ -133,7 +126,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
                   />
                 </div>
                 <div className="mx-auto mt-5 flex w-[11.5rem] items-center justify-center gap-2 sm:w-[13rem] lg:w-full">
-                  <FavoriteBookButton bookId={book.id} initialIsFavorite={book.is_favorite} supabaseMode={supabaseReaderMode} />
+                  <FavoriteBookButton bookId={book.id} initialIsFavorite={book.is_favorite} />
                   <ShareButton title={book.title} bookId={book.id} />
                 </div>
                 {canPreview ? (
@@ -189,11 +182,11 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
             {/* Accès et achat */}
             <aside className="[grid-area:buy]">
               <div className="border border-rule-strong bg-white p-6 lg:sticky lg:top-40">
-                <p className="font-display text-[2rem] font-semibold leading-none tabular-nums text-night-900">{supabaseReaderMode ? "Lecture numérique gratuite" : book.display_price_label}</p>
+                <p className="font-display text-[2rem] font-semibold leading-none tabular-nums text-night-900">{book.display_price_label}</p>
                 <p className="mt-3 text-sm leading-6 text-slate-600">{accessMessage}</p>
-                {(book.is_free || supabaseReaderMode) ? (
+                {book.is_free ? (
                   <ul className="mt-4 space-y-1.5 text-sm text-slate-700">
-                    <li className="flex items-center gap-2"><Check aria-hidden="true" className="h-4 w-4 text-emerald-700" />{isAuthenticated ? "Livre complet avec votre compte" : "10 pages à lire sans compte"}</li>
+                    <li className="flex items-center gap-2"><Check aria-hidden="true" className="h-4 w-4 text-emerald-700" />{"Lecture intégrale sans compte"}</li>
                     <li className="flex items-center gap-2"><Check aria-hidden="true" className="h-4 w-4 text-emerald-700" />Aucun paiement</li>
                   </ul>
                 ) : null}
@@ -233,7 +226,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
                 <div className="mt-3 grid gap-3">
                   {canRead ? (
                     <button type="button" onClick={() => setReaderOpen(true)} className="cta-primary inline-flex min-h-12 items-center justify-center gap-2 px-6 text-sm">
-                      <BookOpen aria-hidden="true" className="h-4 w-4" /> {!isAuthenticated && (book.is_free || supabaseReaderMode) ? "Lire 10 pages gratuitement" : "Lire maintenant"}
+                      <BookOpen aria-hidden="true" className="h-4 w-4" /> {!isAuthenticated && book.is_free ? "Lire gratuitement" : "Lire maintenant"}
                     </button>
                   ) : null}
                   {!canRead && book.is_single_sale_enabled ? (
@@ -250,12 +243,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
                   {accessState?.hasLibraryEntry ? <Link href="/dashboard/reader/library" className="inline-flex min-h-11 items-center justify-center gap-2 text-sm font-semibold text-night-900 hover:text-brand-700"><Library aria-hidden="true" className="h-4 w-4" /> Ma bibliothèque</Link> : null}
                 </div>
 
-                {(book.is_free || supabaseReaderMode) && !isAuthenticated ? (
-                  <p className="mt-5 border-t border-rule pt-4 text-xs leading-5 text-slate-600">
-                    Aucun compte pour commencer : l’inscription n’est demandée qu’après les 10 premières pages.{" "}
-                    <Link href={registerHref} className="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline"><UserPlus aria-hidden="true" className="h-3.5 w-3.5" />Créer mon compte</Link>
-                  </p>
-                ) : null}
+
 
                 <ul className="mt-5 space-y-2 border-t border-rule pt-4 text-xs text-slate-600">
                   <li className="flex items-center gap-2"><LockKeyhole aria-hidden="true" className="h-3.5 w-3.5 text-night-700" /> Paiement sécurisé, mobile money ou carte</li>
@@ -302,7 +290,7 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
           ) : null}
 
           <div className="mt-6">
-            <BookReviews bookId={book.id} isAuthenticated={isAuthenticated} supabaseMode={supabaseReaderMode} ratingAvg={book.rating_avg} ratingsCount={book.ratings_count} />
+            <BookReviews bookId={book.id} isAuthenticated={isAuthenticated} ratingAvg={book.rating_avg} ratingsCount={book.ratings_count} />
           </div>
         </div>
       </div>

@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { isSupabaseMode } from "@/lib/data-source";
-import { createClient } from "@/lib/supabase/server";
-import { SupabaseBookEditor } from "@/components/supabase/book-editor";
 import { PublishLabForm } from "@/components/author/publish-lab-form";
 import { DashboardTopbar } from "@/components/ui/dashboard-topbar";
 import { requireRole } from "@/lib/auth";
@@ -17,19 +14,6 @@ type PageProps = {
 export default async function EditAuthorBookPage({ params }: PageProps) {
   const { bookId } = await params;
   const profile = await requireRole(["author"]);
-  if (isSupabaseMode()) {
-    const client = await createClient();
-    const { data } = await client.from("books")
-      .select("id,title,subtitle,description,author_id,author_display_name,publisher,isbn,language,price,categories,tags")
-      .eq("id", bookId).maybeSingle();
-    if (!data || data.author_id !== profile.id) notFound();
-    return <section className="space-y-6">
-      <DashboardTopbar kicker="Studio auteur" title={`Modifier « ${data.title} »`}
-        description="Modifier le brouillon et ses fichiers privés dans Supabase."
-        actions={<Link href="/dashboard/author/books" className="cta-secondary px-5 py-3 text-sm"><ArrowLeft className="h-4 w-4"/>Mes livres</Link>}/>
-      <SupabaseBookEditor book={data} area="author"/>
-    </section>;
-  }
   const [book, subscriptionPlans] = await Promise.all([
     getAuthorBook(bookId).catch(() => null),
     getSubscriptionPlans(),

@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { getServerAuthToken } from "@/lib/api/server";
-import { isSupabaseMode } from "@/lib/data-source";
-import { getSupabaseUser } from "@/lib/supabase/user";
 import { ApiError } from "@/lib/api/client";
 import { apiServer } from "@/lib/api/server";
 import type { ApiUser, UserRole } from "@/types/api";
@@ -43,9 +41,6 @@ function flattenUser(user: ApiUser): CurrentUserProfile {
 }
 
 export const getCurrentUserProfile = cache(async (): Promise<CurrentUserProfile | null> => {
-  if (isSupabaseMode()) {
-    try { const user = await getSupabaseUser(); return user ? flattenUser(user) : null; } catch { return null; }
-  }
   // Avoid HTTP 401 calls for anonymous visitors on every public page.
   if (!(await getServerAuthToken())) return null;
   try {

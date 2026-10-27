@@ -1,7 +1,4 @@
 import { NextResponse } from "next/server";
-import { isSupabaseMode } from "@/lib/data-source";
-import { getSupabaseConfig } from "@/lib/supabase/config";
-import { getSupabaseRequestAuth } from "@/lib/supabase/request";
 import { ApiError, getApiBaseUrl } from "@/lib/api/client";
 import { apiServer, getServerAuthToken } from "@/lib/api/server";
 import type { ApiBook } from "@/types/api";
@@ -11,30 +8,6 @@ const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export async function GET(request:Request, context:{params:Promise<{bookId:string}>}){
  const {bookId}=await context.params;
  if(!UUID.test(bookId))return NextResponse.json({error:"Livre invalide"},{status:422});
- if(isSupabaseMode()){
-  const auth=await getSupabaseRequestAuth(request);
-  if(auth.bearerAttempted&&auth.error)return NextResponse.json({error:"Session mobile invalide ou expirée."},{status:401});
-  const user=auth.user;
-  const {url,key}=getSupabaseConfig();
-  let edge:Response;
-  try{
-   edge=await fetch(url+"/functions/v1/holistic-reader-page?"+new URLSearchParams({bookId,mode:"info"}),{
-    headers:{"apikey":key,...(user&&auth.accessToken?{"Authorization":"Bearer "+auth.accessToken}:{})},
-    cache:"no-store",
-   });
-  }catch{return NextResponse.json({error:"Le service de lecture n'est pas joignable."},{status:503});}
-  const meta=await edge.json().catch(()=>({error:"Réponse du lecteur invalide."}));
-  if(!edge.ok)return NextResponse.json({error:meta.error??"Lecture indisponible"},{status:edge.status});
-  const guest=!user;
-  return NextResponse.json({
-   readerUrl:"/api/read/"+encodeURIComponent(bookId)+"/file",
-   fileType:meta.fileType,
-   deliveryMode:meta.deliveryMode,
-   pageCount:meta.pageCount,
-   isGuestPreview:guest,
-   previewPageLimit:guest?Math.min(10,meta.pageCount):null,
-  },{headers:{"Cache-Control":"private, no-store"}});
- }
  try{
   const token=await getServerAuthToken();
   const {data:book}=await apiServer<{data:ApiBook&{file_format?:string|null}}>("books/"+encodeURIComponent(bookId),{authenticated:false});
