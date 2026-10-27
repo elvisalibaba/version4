@@ -71,7 +71,6 @@ export function BookDetailClient({ book, accessState, isAuthenticated, autoOpenR
   const selectedCartFormat = cartFormats.find((format) => format.format === cartFormat) ?? cartFormats[0] ?? null;
   const returnPath = `/book/${book.id}`;
   const loginHref = `/login?next=${encodeURIComponent(returnPath)}`;
-  const registerHref = `/register?role=reader&next=${encodeURIComponent(returnPath)}`;
   const subscriptionHref = isAuthenticated ? "/dashboard/reader/subscriptions" : loginHref;
   const accessMessage = book.is_free
     ? "Cette édition numérique est gratuite : ouvrez-la et lisez toutes les pages sans compte."
