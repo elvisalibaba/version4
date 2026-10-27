@@ -96,7 +96,7 @@ class BookResource extends JsonResource
             'views_count' => $this->views_count,
             'clicks_count' => $this->clicks_count,
             'purchases_count' => $this->purchases_count,
-            'is_free' => $this->is_single_sale_enabled && (float) $this->price <= 0,
+            'is_free' => app(\App\Services\BookAccessService::class)->isFreeTitle($this->resource),
             'rating_avg' => $hasVisibleAggregates
                 ? ($this->getAttribute('visible_rating_avg') !== null ? (float) $this->getAttribute('visible_rating_avg') : null)
                 : ($this->rating_avg !== null ? (float) $this->rating_avg : null),

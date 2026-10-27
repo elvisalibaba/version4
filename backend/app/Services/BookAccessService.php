@@ -9,13 +9,21 @@ use App\Models\Subscription;
 
 class BookAccessService
 {
-    public function canRead(Profile $profile, Book $book): bool
+    /**
+     * Pure access check for a public free-to-read title.
+     * Never creates a Library row or a reader session for anonymous visitors.
+     */
+    public function isFreeTitle(Book $book): bool
     {
-        if ($book->status !== 'published' || $book->copyright_status !== 'clear') {
+        if ($book->status !== 'published'
+            || $book->copyright_status !== 'clear'
+            || ! $book->can_read_on_platform
+            || $book->reading_access_mode === 'preview_only'
+            || ! $book->is_single_sale_enabled) {
             return false;
         }
 
-        $book->loadMissing(['formats', 'subscriptionPlans:id']);
+        $book->loadMissing('formats');
 
         $preferredFormat = $book->formats
             ->where('is_published', true)
@@ -23,7 +31,18 @@ class BookAccessService
             ->sortBy(fn ($format): int => $format->format === 'holistique_store' ? 0 : 1)
             ->first();
 
-        $isFree = $book->is_single_sale_enabled && (float) ($preferredFormat?->price ?? $book->price) <= 0;
+        return (float) ($preferredFormat?->price ?? $book->price) <= 0;
+    }
+
+    public function canRead(Profile $profile, Book $book): bool
+    {
+        if ($book->status !== 'published' || $book->copyright_status !== 'clear') {
+            return false;
+        }
+
+        $book->loadMissing('subscriptionPlans:id');
+
+        $isFree = $this->isFreeTitle($book);
 
         $libraryEntry = Library::query()
             ->whereBelongsTo($profile, 'profile')
