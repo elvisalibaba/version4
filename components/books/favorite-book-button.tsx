@@ -10,7 +10,6 @@ type FavoriteBookButtonProps = {
   label?: string;
   className?: string;
   compact?: boolean;
-  supabaseMode?: boolean;
 };
 
 function joinClassNames(...values: Array<string | undefined | false>) {
@@ -23,7 +22,6 @@ export function FavoriteBookButton({
   label,
   className,
   compact = false,
-  supabaseMode = true,
 }: FavoriteBookButtonProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -46,12 +44,10 @@ export function FavoriteBookButton({
       }
 
       const method = isFavorite ? "DELETE" : "POST";
-      let response = await fetch(`/api/${supabaseMode ? "supabase" : "backend"}/favorites/${encodeURIComponent(bookId)}`, {
-        method, headers: { Accept: "application/json" },
+      const response = await fetch(`/api/backend/favorites/${encodeURIComponent(bookId)}`, {
+        method,
+        headers: { Accept: "application/json" },
       });
-      if (supabaseMode && response.status === 404) {
-        response = await fetch(`/api/backend/favorites/${encodeURIComponent(bookId)}`, { method, headers: { Accept: "application/json" } });
-      }
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
         console.error("[Favorites]", payload?.message ?? response.status);
