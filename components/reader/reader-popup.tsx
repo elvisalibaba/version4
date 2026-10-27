@@ -383,10 +383,8 @@ export function ReaderPopup({
       setEpubToc([]);
 
       try {
-        const [readerResponse, authResponse] = await Promise.all([
-          fetch(`/api/read/${bookId}`, { cache: "no-store" }),
-          fetch("/api/auth/me", { cache: "no-store" }),
-        ]);
+        // A free full-document session is local after the initial file fetch.
+        const readerResponse = await fetch(`/api/read/${bookId}`, { cache: "no-store" });
         const readerPayload = await readerResponse.json();
 
         if (!readerResponse.ok) {
@@ -411,6 +409,12 @@ export function ReaderPopup({
           typeof readerPayload.previewPageLimit === "number" ? readerPayload.previewPageLimit : null,
         );
 
+        if (readerPayload.deliveryMode === "full_document") {
+          setProgressHydrated(true);
+          return;
+        }
+
+        const authResponse = await fetch("/api/auth/me", { cache: "no-store" });
         const authPayload = authResponse.ok ? await authResponse.json() : { data: null };
         const user = authPayload.data ?? null;
 
@@ -480,7 +484,7 @@ export function ReaderPopup({
         import("epubjs"),
         fetch(readerFileUrl, {
           headers: READER_FETCH_HEADERS,
-          cache: "no-store",
+          cache: deliveryMode === "full_document" ? "force-cache" : "no-store",
           credentials: "same-origin",
         }),
       ]);

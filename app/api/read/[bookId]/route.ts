@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { isSupabaseMode } from "@/lib/data-source";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 import { getSupabaseRequestAuth } from "@/lib/supabase/request";
-import { ApiError } from "@/lib/api/client";
+import { ApiError, getApiBaseUrl } from "@/lib/api/client";
 import { apiServer, getServerAuthToken } from "@/lib/api/server";
 import type { ApiBook } from "@/types/api";
 
@@ -42,7 +42,8 @@ export async function GET(request:Request, context:{params:Promise<{bookId:strin
   // The Laravel endpoint rechecks the entitlement before returning any bytes.
   if(book.is_free){
    return NextResponse.json({
-    readerUrl:"/api/read/"+encodeURIComponent(bookId)+"/full",
+    // Fetch directly from the Laravel CDN domain, bypassing the Next.js Worker.
+    readerUrl:getApiBaseUrl()+"/api/v1/books/"+encodeURIComponent(bookId)+"/read-free",
     fileType:book.file_format==="epub"?"epub":"pdf",
     deliveryMode:"full_document",
     pageCount:book.page_count??null,

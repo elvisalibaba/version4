@@ -1,7 +1,8 @@
 import { ApiError } from "@/lib/api/client";
 import { isSupabaseMode } from "@/lib/data-source";
 import { getSupabaseBooks, getSupabaseBookById } from "@/lib/supabase/catalog";
-import { apiServer } from "@/lib/api/server";
+import { apiServer, getServerAuthToken } from "@/lib/api/server";
+import { cache } from "react";
 import { resolveBookOfferDetails } from "@/lib/book-offers";
 import { resolveBookAuthorName } from "@/lib/book-authors";
 import {
@@ -59,6 +60,7 @@ function mapBook(book: ApiBook, favoriteIds = new Set<string>()) {
     author_name: resolveBookAuthorName(book.author_display_name, book.author_display_name),
     author_avatar_url: null,
     cover_signed_url: book.cover_url,
+    cover_thumb_url: book.cover_thumbnail_url ?? null,
     is_favorite: favoriteIds.has(book.id),
     is_free: apiIsFree,
     offer_mode: offer.offerMode,
@@ -69,6 +71,7 @@ function mapBook(book: ApiBook, favoriteIds = new Set<string>()) {
 }
 
 async function getFavoriteIds() {
+  if (!(await getServerAuthToken())) return new Set<string>();
   try {
     const favorites = await apiServer<ApiPagination<ApiFavoriteBook>>("favorites");
     return new Set((favorites.data ?? []).map((book) => book.id));
@@ -85,6 +88,7 @@ export async function getPublishedBooks(options: GetPublishedBooksOptions = {}) 
   if (options.category?.trim() && options.category.trim().toLowerCase() !== "all") params.set("category", options.category.trim());
   if (options.education?.trim()) params.set("education", options.education.trim());
   if (options.educationAudience) params.set("education_audience", options.educationAudience);
+  params.set("view", "card");
 
   try {
     const [response, favoriteIds] = await Promise.all([
@@ -102,7 +106,7 @@ export async function getComingSoonBooks() {
   if (isSupabaseMode()) { const result=await getSupabaseBooks({status:"coming_soon",perPage:100}); return result.books.map(book=>mapBook(book)); }
   try {
     const [response, favoriteIds] = await Promise.all([
-      apiServer<ApiPagination<ApiBook>>("books", { authenticated: false }),
+      apiServer<ApiPagination<ApiBook>>("books?view=card", { authenticated: false }),
       getFavoriteIds(),
     ]);
     return (response.data ?? []).filter((book) => book.status === "coming_soon").map((book) => mapBook(book, favoriteIds));
@@ -111,11 +115,11 @@ export async function getComingSoonBooks() {
   }
 }
 
-export async function getBookById(bookId: string) {
+export const getBookById = cache(async (bookId: string) => {
   if (isSupabaseMode()) { const book=await getSupabaseBookById(bookId); if(!book)return null;const mapped=mapBook(book);return {...mapped,digital_format:null,purchase_formats:[],subscription_plans:[]}; }
   try {
     const [response, favoriteIds] = await Promise.all([
-      apiServer<{ data: ApiBook }>(`books/${encodeURIComponent(bookId)}`),
+      apiServer<{ data: ApiBook }>(`books/${encodeURIComponent(bookId)}`, { authenticated: false }),
       getFavoriteIds(),
     ]);
     const book = response.data;
@@ -146,7 +150,7 @@ export async function getBookById(bookId: string) {
     if (error instanceof ApiError && error.status === 404) return null;
     return null;
   }
-}
+});
 
 export type PublishedBook = Awaited<ReturnType<typeof getPublishedBooks>>[number];
 export type BookDetail = Awaited<ReturnType<typeof getBookById>>;
@@ -173,7 +177,7 @@ export async function getCataloguePage(query: string): Promise<CatalogueResult> 
   if (isSupabaseMode()) {try { const params=new URLSearchParams(query);const result=await getSupabaseBooks({searchQuery:params.get("search")??params.get("q")??undefined,category:params.get("category")??undefined,page:Number(params.get("page")??1),perPage:Number(params.get("per_page")??24)});return {status:"ok",books:result.books.map(book=>mapBook(book)),total:result.total,currentPage:result.page,lastPage:result.lastPage};}catch{return {status:"error"};}}
   try {
     const [response, favoriteIds] = await Promise.all([
-      apiServer<ApiPagination<ApiBook>>(`books?${query}`, { authenticated: false }),
+      apiServer<ApiPagination<ApiBook>>(`books?${query}${query ? "&" : ""}view=card`, { authenticated: false }),
       getFavoriteIds(),
     ]);
     const books = (response.data ?? []).map((book) => mapBook(book, favoriteIds));
