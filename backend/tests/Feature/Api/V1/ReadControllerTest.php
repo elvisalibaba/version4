@@ -26,7 +26,7 @@ class ReadControllerTest extends TestCase
         $this->getJson("/api/v1/read/{$book->id}")->assertUnauthorized();
     }
 
-    public function test_legacy_public_full_file_endpoint_is_gone(): void
+    public function test_public_free_file_is_streamed_once_without_login(): void
     {
         $book = $this->createBookWithPrivateFile([
             'price' => 0,
@@ -35,12 +35,12 @@ class ReadControllerTest extends TestCase
             'is_single_sale_enabled' => true,
         ], withSample: true);
 
-        $this->getJson("/api/v1/books/{$book->id}/read-free")
-            ->assertStatus(410)
-            ->assertJsonPath(
-                'message',
-                'Le transfert public du fichier est désactivé. Utilisez l’aperçu protégé page par page.',
-            );
+        $response = $this->get("/api/v1/books/{$book->id}/read-free")
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf');
+
+        $this->assertStringContainsString('%PDF-1.4 full-book', $response->streamedContent());
+        $this->assertDatabaseMissing('library', ['book_id' => $book->id]);
     }
 
     public function test_legacy_authenticated_full_file_endpoint_is_gone(): void
