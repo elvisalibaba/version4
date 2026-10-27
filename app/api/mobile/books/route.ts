@@ -1,36 +1,24 @@
 import { NextResponse } from "next/server";
-import { getSupabaseBooks } from "@/lib/supabase/catalog";
+import { apiClient, ApiError } from "@/lib/api/client";
+import type { ApiBook, ApiPagination } from "@/types/api";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const params = new URL(request.url).searchParams;
-  const requestedPage = Number(params.get("page") ?? 1);
-  const requestedPerPage = Number(params.get("per_page") ?? 24);
-  const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
-  const perPage = Number.isSafeInteger(requestedPerPage) && requestedPerPage > 0
-    ? Math.min(requestedPerPage, 100)
-    : 24;
-
+  const requested = new URL(request.url).searchParams;
+  const params = new URLSearchParams();
+  for (const field of ["search", "category", "page", "per_page", "sort", "language", "work_type"]) {
+    const value = requested.get(field);
+    if (value) params.set(field, value);
+  }
   try {
-    const result = await getSupabaseBooks({
-      searchQuery: params.get("search") ?? undefined,
-      category: params.get("category") ?? undefined,
-      page,
-      perPage,
-    });
-    // Réponse mise en cache publiquement (CDN) : aucun champ propre au visiteur (favoris).
+    const response = await apiClient<ApiPagination<ApiBook>>(`books?${params.toString()}`, { cache: "no-store" });
     return NextResponse.json({
-      data: result.books.map((book) => ({ ...book, is_favorite: false })),
-      meta: {
-        current_page: result.page,
-        last_page: result.lastPage,
-        per_page: perPage,
-        total: result.total,
-      },
+      ...response,
+      data: (response.data ?? []).map((book) => ({ ...book, is_favorite: false })),
     }, { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } });
   } catch (error) {
-    console.error("[Mobile catalogue]", error);
-    return NextResponse.json({ message: "Catalogue momentanément indisponible." }, { status: 503 });
+    if (error instanceof ApiError) return NextResponse.json(error.payload ?? { message: "Catalogue indisponible." }, { status: error.status });
+    return NextResponse.json({ message: "Catalogue indisponible." }, { status: 503 });
   }
 }

@@ -1,50 +1,32 @@
 import { NextResponse } from "next/server";
-import { CheckoutError, createOrder, startEasyPayCheckout } from "@/lib/payments/checkout";
+import { getServerAuthToken } from "@/lib/api/server";
+import { apiClient, ApiError } from "@/lib/api/client";
 import { validateCinetPayInitPayload } from "@/lib/payments/validation";
-import { getSupabaseRequestAuth } from "@/lib/supabase/request";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Lance un paiement EasyPay : « Acheter maintenant » (bookId + format) ou panier (orderId).
- * La commande est créée en base (prix relus par hb_create_order), puis initialisée côté serveur.
- */
+/** Existing checkout entry point now delegates all payment creation to Laravel. */
 export async function POST(request: Request) {
   const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) {
-    return NextResponse.json({ error: "Origine non autorisée." }, { status: 403 });
-  }
-  const auth = await getSupabaseRequestAuth(request);
-  if (!auth.user) return NextResponse.json({ error: "Connectez-vous pour lancer un paiement." }, { status: 401 });
-
-  let payload: ReturnType<typeof validateCinetPayInitPayload>;
-  try {
-    payload = validateCinetPayInitPayload(await request.json());
-  } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Demande de paiement invalide." }, { status: 422 });
-  }
+  if (origin && origin !== new URL(request.url).origin) return NextResponse.json({ error: "Origine non autorisée." }, { status: 403 });
+  const token = await getServerAuthToken();
+  if (!token) return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
 
   try {
-    const orderId = payload.bookId
-      ? (await createOrder({
-          userId: auth.user.id,
-          items: [{ book_id: payload.bookId, book_format: payload.bookFormat ?? "ebook", quantity: 1 }],
-          currency: payload.currency,
-          source: "buy_now",
-        })).order_id
-      : payload.orderId!;
-    const result = await startEasyPayCheckout({
-      userId: auth.user.id,
-      userEmail: auth.user.email ?? null,
-      orderId,
-      channel: payload.channels,
-      customer: payload.customer,
-      origin: new URL(request.url).origin,
-    });
+    const input = validateCinetPayInitPayload(await request.json());
+    const payload = {
+      book_id: input.bookId,
+      order_id: input.orderId,
+      book_format: input.bookFormat,
+      channel: input.channels,
+      currency_code: input.currency,
+      customer: input.customer,
+    };
+    const result = await apiClient("payments/easypay/init", { method: "POST", token, body: payload });
     return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    if (error instanceof CheckoutError) return NextResponse.json({ error: error.message }, { status: error.status });
-    console.error("[EasyPay] Lancement du paiement :", error);
-    return NextResponse.json({ error: "Paiement momentanément indisponible. Réessayez dans quelques minutes." }, { status: 500 });
+    if (error instanceof ApiError) return NextResponse.json(error.payload ?? { error: "Paiement impossible." }, { status: error.status });
+    if (error instanceof SyntaxError) return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Service de paiement indisponible." }, { status: 422 });
   }
 }
