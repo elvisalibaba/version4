@@ -1,40 +1,29 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { coverImageLoader, publicCoverUrl, stableCoverUrl } from "./covers";
+import { describe, expect, it } from "vitest";
+import { coverImageLoader, stableCoverUrl } from "./covers";
 
-const BASE = "https://example.supabase.co";
+describe("couvertures publiques Laravel", () => {
+  const cover = "https://api.aba.cd/storage/covers/book/cover.jpg";
+  const thumb = "https://api.aba.cd/storage/covers/book/thumbnail.webp";
 
-describe("couvertures publiques", () => {
-  beforeEach(() => {
-    process.env.NEXT_PUBLIC_HOLISTIC_SUPABASE_URL = BASE + "/";
-  });
-  afterEach(() => {
-    delete process.env.NEXT_PUBLIC_HOLISTIC_SUPABASE_URL;
-  });
-
-  it("construit l'URL publique stable du bucket covers", () => {
-    expect(publicCoverUrl("abc/cover.jpg")).toBe(`${BASE}/storage/v1/object/public/covers/abc/cover.jpg`);
-    expect(publicCoverUrl("abc/ma couverture.png")).toBe(`${BASE}/storage/v1/object/public/covers/abc/ma%20couverture.png`);
+  it("utilise les URL HTTPS fournies par Laravel", () => {
+    expect(stableCoverUrl({ cover_url: cover })).toBe(cover);
+    expect(stableCoverUrl({ cover_url: thumb })).toBe(thumb);
   });
 
-  it("refuse les chemins remontants", () => {
-    expect(publicCoverUrl("../books/files/x.pdf")).toBeNull();
+  it("refuse les chemins internes et les URL non sécurisées", () => {
+    expect(stableCoverUrl({ cover_url: "../books/files/x.pdf" })).toBeNull();
+    expect(stableCoverUrl({ cover_url: "covers/author/x.jpg" })).toBeNull();
+    expect(stableCoverUrl({ cover_url: "http://example.com/x.jpg" })).toBeNull();
+    expect(stableCoverUrl({ cover_url: null })).toBeNull();
   });
 
-  it("n'utilise une URL stable que pour le bucket covers ou une URL absolue", () => {
-    expect(stableCoverUrl({ cover_url: "id/cover.jpg", cover_bucket: "covers" })).toContain("/object/public/covers/id/cover.jpg");
-    expect(stableCoverUrl({ cover_url: "covers/author/x.jpg", cover_bucket: "books" })).toBeNull();
-    expect(stableCoverUrl({ cover_url: "https://cdn.example/x.jpg", cover_bucket: "books" })).toBe("https://cdn.example/x.jpg");
-    expect(stableCoverUrl({ cover_url: null, cover_bucket: "covers" })).toBeNull();
+  it("préfère la miniature lorsque Laravel l'a fournie", () => {
+    const book = { cover_url: cover, cover_thumbnail_url: thumb };
+    expect(stableCoverUrl(book, true)).toBe(thumb);
+    expect(stableCoverUrl({ ...book, cover_thumbnail_url: null }, true)).toBe(cover);
   });
 
-  it("préfère la miniature quand elle est demandée et présente", () => {
-    const book = { cover_url: "id/cover.jpg", cover_thumbnail_url: "id/thumbnail.jpg", cover_bucket: "covers" };
-    expect(stableCoverUrl(book, true)).toContain("id/thumbnail.jpg");
-    expect(stableCoverUrl({ ...book, cover_thumbnail_url: null }, true)).toContain("id/cover.jpg");
-  });
-
-  it("laisse l'URL inchangée tant que les transformations Supabase sont désactivées", () => {
-    const src = `${BASE}/storage/v1/object/public/covers/id/cover.jpg`;
-    expect(coverImageLoader({ src, width: 320 })).toBe(src);
+  it("ne transforme pas les URL de couvertures", () => {
+    expect(coverImageLoader({ src: thumb, width: 320 })).toBe(thumb);
   });
 });
