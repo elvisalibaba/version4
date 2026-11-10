@@ -7,6 +7,7 @@ use App\Filament\Resources\MediaChapters\Pages\CreateMediaChapter;
 use App\Filament\Resources\MediaChapters\Pages\EditMediaChapter;
 use App\Filament\Resources\MediaChapters\Pages\ListMediaChapters;
 use App\Models\MediaChapter;
+use App\Support\UploadLimit;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
@@ -62,7 +63,8 @@ class MediaChapterResource extends Resource
                     'audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/aac',
                     'video/mp4', 'video/webm', 'application/octet-stream',
                 ])
-                ->maxSize(262144)
+                ->maxSize(UploadLimit::kilobytes())
+                ->validationMessages(['max' => UploadLimit::message()])
                 ->helperText('Importez le fichier du chapitre. Le streaming externe n’est plus demandé.')
                 ->columnSpanFull(),
             Toggle::make('is_preview')->label('Extrait gratuit'),

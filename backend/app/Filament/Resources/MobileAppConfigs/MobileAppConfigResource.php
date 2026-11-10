@@ -7,6 +7,7 @@ use App\Filament\Resources\MobileAppConfigs\Pages\CreateMobileAppConfig;
 use App\Filament\Resources\MobileAppConfigs\Pages\EditMobileAppConfig;
 use App\Filament\Resources\MobileAppConfigs\Pages\ListMobileAppConfigs;
 use App\Models\MobileAppConfig;
+use App\Support\UploadLimit;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
@@ -77,7 +78,8 @@ class MobileAppConfigResource extends Resource
                             'application/vnd.android.package-archive',
                             'application/octet-stream',
                         ])
-                        ->maxSize(512000),
+                        ->maxSize(UploadLimit::kilobytes())
+                        ->validationMessages(['max' => UploadLimit::message()]),
                     TextInput::make('apk_file_name')->label('Nom de téléchargement')->maxLength(255),
                     TextInput::make('version_label')->label('Version affichée')->maxLength(80),
                     Textarea::make('release_notes')->label('Notes de version')->rows(4)->columnSpanFull(),

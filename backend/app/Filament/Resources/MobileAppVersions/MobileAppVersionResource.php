@@ -7,6 +7,7 @@ use App\Filament\Resources\MobileAppVersions\Pages\CreateMobileAppVersion;
 use App\Filament\Resources\MobileAppVersions\Pages\EditMobileAppVersion;
 use App\Filament\Resources\MobileAppVersions\Pages\ListMobileAppVersions;
 use App\Models\MobileAppVersion;
+use App\Support\UploadLimit;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
@@ -71,7 +72,8 @@ class MobileAppVersionResource extends Resource
                             'application/vnd.android.package-archive',
                             'application/octet-stream',
                         ])
-                        ->maxSize(512000)
+                        ->maxSize(UploadLimit::kilobytes())
+                        ->validationMessages(['max' => UploadLimit::message()])
                         ->required()
                         ->columnSpanFull(),
                     TextInput::make('checksum_sha256')->label('SHA-256')->maxLength(64)->columnSpan(2),

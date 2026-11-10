@@ -7,6 +7,7 @@ use App\Filament\Resources\MediaEditions\Pages\CreateMediaEdition;
 use App\Filament\Resources\MediaEditions\Pages\EditMediaEdition;
 use App\Filament\Resources\MediaEditions\Pages\ListMediaEditions;
 use App\Models\MediaEdition;
+use App\Support\UploadLimit;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
@@ -68,7 +69,8 @@ class MediaEditionResource extends Resource
                         'audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/aac',
                         'video/mp4', 'video/webm', 'application/octet-stream',
                     ])
-                    ->maxSize(524288)
+                    ->maxSize(UploadLimit::kilobytes())
+                    ->validationMessages(['max' => UploadLimit::message()])
                     ->helperText('MP3, M4A/AAC, MP4 ou WebM. Le fichier est stocké en privé et diffusé par le lecteur sécurisé HolisticBooks.')
                     ->columnSpanFull(),
                 FileUpload::make('preview_url')
@@ -80,7 +82,8 @@ class MediaEditionResource extends Resource
                         'audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/aac',
                         'video/mp4', 'video/webm', 'application/octet-stream',
                     ])
-                    ->maxSize(262144)
+                    ->maxSize(UploadLimit::kilobytes())
+                    ->validationMessages(['max' => UploadLimit::message()])
                     ->helperText('Importez directement l’extrait audio ou vidéo. Aucun lien YouTube ou URL externe n’est nécessaire.')
                     ->columnSpanFull(),
                 TextInput::make('mime_type')->label('MIME'),

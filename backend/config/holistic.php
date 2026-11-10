@@ -7,5 +7,7 @@ return [
     'verification_ttl_minutes' => max(5, (int) env('EMAIL_VERIFICATION_TTL_MINUTES', 15)),
     'verification_max_attempts' => max(3, (int) env('EMAIL_VERIFICATION_MAX_ATTEMPTS', 5)),
     'support_email' => env('SUPPORT_EMAIL', env('MAIL_FROM_ADDRESS')),
+    // Taille maximale des fichiers envoyés, en kilo-octets (voir App\Support\UploadLimit).
+    'upload_max_kilobytes' => (int) env('UPLOAD_MAX_KILOBYTES', 51200),
     'api_version' => 'v1',
 ];

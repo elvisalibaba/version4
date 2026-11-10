@@ -12,6 +12,7 @@ use App\Models\Category;
 use App\Services\AdminBookPublicationService;
 use App\Services\BookDocumentMetadataService;
 use App\Support\StaffAccess;
+use App\Support\UploadLimit;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -380,8 +381,9 @@ class BookResource extends Resource
                             'application/msword',
                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         ])
-                        ->maxSize(460800)
-                        ->helperText('Jusqu’à 450 Mo. Le catalogue peut être créé même si le fichier final n’est pas encore disponible.'),
+                        ->maxSize(UploadLimit::kilobytes())
+                        ->validationMessages(['max' => UploadLimit::message()])
+                        ->helperText(UploadLimit::helperText().' Le catalogue peut être créé même si le fichier final n’est pas encore disponible.'),
 
                     TextInput::make('page_count')
                         ->label('Nombre de pages')

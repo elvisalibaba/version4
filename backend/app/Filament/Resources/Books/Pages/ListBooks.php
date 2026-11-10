@@ -8,6 +8,7 @@ use App\Models\Book;
 use App\Services\AdminBookImportService;
 use App\Services\AdminBookPublicationService;
 use App\Services\BookDocumentMetadataService;
+use App\Support\UploadLimit;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Checkbox;
@@ -111,7 +112,8 @@ class ListBooks extends ListRecords
                         ->directory('admin-imports/prepared')
                         ->visibility('private')
                         ->acceptedFileTypes(['application/zip', 'application/x-zip-compressed', 'multipart/x-zip'])
-                        ->maxSize(460800)
+                        ->maxSize(UploadLimit::kilobytes())
+                        ->validationMessages(['max' => UploadLimit::message()])
                         ->getUploadedFileNameForStorageUsing(fn (TemporaryUploadedFile $file): string => Str::uuid().'-lot-holistique-books.zip')
                         ->helperText('Le ZIP peut contenir manifest.json, catalogue.csv, ou simplement books/. covers/ est facultatif : le système associe les covers par nom ou en génère automatiquement.')
                         ->required(),
@@ -168,7 +170,8 @@ class ListBooks extends ListRecords
                             'application/x-mobipocket-ebook',
                             'application/octet-stream',
                         ])
-                        ->maxSize(460800)
+                        ->maxSize(UploadLimit::kilobytes())
+                        ->validationMessages(['max' => UploadLimit::message()])
                         ->getUploadedFileNameForStorageUsing(function (TemporaryUploadedFile $file): string {
                             $title = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
                             $extension = mb_strtolower($file->getClientOriginalExtension() ?: 'pdf');

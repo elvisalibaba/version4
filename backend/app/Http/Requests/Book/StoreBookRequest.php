@@ -4,6 +4,7 @@ namespace App\Http\Requests\Book;
 
 use App\Models\Book;
 use App\Support\BookEditorialWorkflow;
+use App\Support\UploadLimit;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBookRequest extends FormRequest
@@ -77,10 +78,21 @@ class StoreBookRequest extends FormRequest
 
             // Catalogue ingestion is deliberately permissive. Unsupported source
             // formats may be stored for the editorial team and converted later.
-            'file' => ['nullable', 'file', 'max:460800'],
+            'file' => ['nullable', 'file', UploadLimit::rule()],
             'file_format' => ['nullable', 'string', 'max:30'],
             'cover' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,avif', 'max:20480'],
-            'sample' => ['nullable', 'file', 'max:102400'],
+            'sample' => ['nullable', 'file', UploadLimit::rule()],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'file.max' => UploadLimit::message(),
+            'sample.max' => UploadLimit::message(),
         ];
     }
 }
