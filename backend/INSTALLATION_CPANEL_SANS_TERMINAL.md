@@ -58,5 +58,5 @@ Les livres gratuits utilisent `GET https://api.aba.cd/api/v1/books/{UUID}/read-f
 - Un PDF réellement gratuit publié s'ouvre sans compte ; après son chargement initial, chaque page se lit localement.
 - Un PDF payant doit refuser l'accès direct à `/read-free` (HTTP 403).
 - Les couvertures, le catalogue, les authentifications, EasyPay, les sessions et la console Filament fonctionnent.
-- Ne supprimez aucune donnée Supabase avant d'avoir vérifié les livres/comptes/fichiers éventuellement encore hébergés là-bas.
+- Supabase n'est plus utilisé par le site : le projet d'essai a été abandonné (voir `docs/SUPABASE-PROJET-ABANDONNE.md`).
 - En cas de blocage, envoyer le contenu de `STATUS.txt` et les extraits pertinents de `deploy.log`, **jamais le fichier `.env` ni vos mots de passe**.
