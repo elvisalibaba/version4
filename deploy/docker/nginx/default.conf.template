@@ -1,0 +1,82 @@
+# HolisticBooks — nginx devant PHP-FPM (image holisticbooks-nginx).
+#
+# Chaîne : Cloudflare → Caddy (TLS, certificat d'origine) → nginx → app:9000.
+# Caddy remplace X-Forwarded-For par l'IP réelle du visiteur (CF-Connecting-IP) ;
+# nginx ne la croit que si la requête vient d'un réseau Docker privé.
+#
+# ${API_PUBLIC_HOST} est fourni par docker compose (nom public de l'API). Laravel
+# voit toujours https://${API_PUBLIC_HOST}, y compris pour les appels internes du
+# serveur Next (http://hb-nginx) : les URL signées et les liens restent publics.
+
+server {
+    listen 80 default_server;
+    server_name _;
+    server_tokens off;
+
+    root /var/www/html/public;
+    index index.php;
+    charset utf-8;
+
+    # 50 Mo côté Laravel (UPLOAD_MAX_KILOBYTES) + marge pour l'enveloppe multipart.
+    client_max_body_size 55m;
+    client_body_timeout 120s;
+
+    set_real_ip_from 172.16.0.0/12;
+    set_real_ip_from 10.0.0.0/8;
+    set_real_ip_from 192.168.0.0/16;
+    real_ip_header X-Forwarded-For;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    error_page 413 = @too_large;
+    location @too_large {
+        default_type application/json;
+        return 413 '{"message":"Le fichier dépasse la taille maximale acceptée (50 Mo). Réduisez sa taille puis renvoyez-le."}';
+    }
+
+    location = /nginx-health {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    location ^~ /build/ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ ^/index\.php(/|$) {
+        fastcgi_pass app:9000;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_param HTTP_HOST ${API_PUBLIC_HOST};
+        fastcgi_param SERVER_NAME ${API_PUBLIC_HOST};
+        fastcgi_param SERVER_PORT 443;
+        fastcgi_param HTTPS on;
+        fastcgi_param HTTP_X_FORWARDED_PROTO https;
+        fastcgi_read_timeout 130s;
+        fastcgi_buffers 16 16k;
+        fastcgi_buffer_size 32k;
+        internal;
+    }
+
+    # Aucun autre script PHP n'est exécutable.
+    location ~ \.php$ {
+        return 404;
+    }
+
+    location ~ /\.(?!well-known) {
+        deny all;
+    }
+}

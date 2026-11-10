@@ -1,0 +1,26 @@
+# Contexte de build de l'API Laravel (racine du dépôt) : seuls backend/ et
+# deploy/docker/ sont utiles. Aucun .env réel, aucune dépendance locale.
+*
+!backend
+!deploy/docker
+!deploy/vps
+deploy/vps/**/*.env
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/vendor
+backend/node_modules
+backend/public/build
+backend/public/hot
+backend/public/storage
+backend/storage/app/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/storage/logs/*
+backend/storage/*.key
+backend/bootstrap/cache/*.php
+backend/.phpunit.cache
+backend/.agents
+backend/.claude
+**/.DS_Store

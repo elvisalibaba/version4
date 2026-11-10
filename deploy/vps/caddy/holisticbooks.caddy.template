@@ -1,0 +1,53 @@
+# HolisticBooks — sites servis par le Caddy partagé (projet Ibala Pay).
+# Fichier GÉNÉRÉ par /opt/holisticbooks/deploy.sh à partir de
+# deploy/vps/caddy/holisticbooks.caddy.template : ne pas le modifier à la main.
+#
+# Chaque nom est proxifié par Cloudflare (mode SSL « Full (strict) ») et présente un
+# certificat d'origine Cloudflare : aucune demande Let's Encrypt n'est faite ici.
+# Les connexions qui ne viennent pas de Cloudflare sont refusées, ce qui rend fiable
+# l'en-tête CF-Connecting-IP (IP réelle du visiteur) transmis à Next et à nginx.
+
+(hb_common) {
+	@hb_not_cloudflare not remote_ip __CF_RANGES__
+	respond @hb_not_cloudflare "Accès direct refusé." 403
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		-Server
+	}
+	encode zstd gzip
+	request_body {
+		max_size 55MB
+	}
+}
+
+(hb_upstream_headers) {
+	header_up X-Forwarded-For {http.request.header.CF-Connecting-IP}
+	header_up X-Real-IP {http.request.header.CF-Connecting-IP}
+}
+
+# Front Next.js
+__FRONT_HOST__ {
+	tls /etc/caddy/sites.d/certs/holisticbooks/__FRONT_CERT__.pem /etc/caddy/sites.d/certs/holisticbooks/__FRONT_CERT__.key
+	import hb_common
+	reverse_proxy hb-web:3000 {
+		import hb_upstream_headers
+	}
+}
+
+# API Laravel (nginx → PHP-FPM)
+__API_HOST__ {
+	tls /etc/caddy/sites.d/certs/holisticbooks/__API_CERT__.pem /etc/caddy/sites.d/certs/holisticbooks/__API_CERT__.key
+	import hb_common
+	reverse_proxy hb-nginx:80 {
+		import hb_upstream_headers
+	}
+}
+
+# Domaine sans www (en test : nom dédié) : redirection permanente vers le front.
+__REDIRECT_HOST__ {
+	tls /etc/caddy/sites.d/certs/holisticbooks/__FRONT_CERT__.pem /etc/caddy/sites.d/certs/holisticbooks/__FRONT_CERT__.key
+	import hb_common
+	redir https://__FRONT_HOST__{uri} permanent
+}

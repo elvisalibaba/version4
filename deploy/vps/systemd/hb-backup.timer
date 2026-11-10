@@ -1,0 +1,11 @@
+# 03:45 à Kinshasa : après la sauvegarde d'Ibala Pay (03:15), pour ne pas les superposer.
+[Unit]
+Description=HolisticBooks : sauvegarde quotidienne
+
+[Timer]
+OnCalendar=*-*-* 03:45:00 Africa/Kinshasa
+RandomizedDelaySec=10min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
