@@ -1,0 +1,113 @@
+# HolisticBooks sur le VPS — installé dans /opt/holisticbooks par deploy.sh.
+#
+# Réseaux :
+#   data    : interne, sans accès à Internet ni à l'hôte (MySQL n'est joignable que par PHP)
+#   backend : PHP, nginx et Next (sortie Internet pour SMTP et EasyPay)
+#   edge    : réseau partagé « shared-edge », créé par le projet Ibala Pay ; son Caddy y joint
+#             hb-web et hb-nginx. Aucun port n'est publié sur l'hôte.
+#
+# Variables lues dans /opt/holisticbooks/.env (voir deploy/vps/env/compose.env.example) :
+#   HB_IMAGE_TAG, HB_WEB_IMAGE_TAG, HB_API_HOST.
+
+name: holisticbooks
+
+x-api: &api
+  image: ghcr.io/elvisalibaba/holisticbooks-api:${HB_IMAGE_TAG:?HB_IMAGE_TAG manquant}
+  env_file: ./env/api.env
+  restart: unless-stopped
+  volumes:
+    - hb_storage:/var/www/html/storage
+  networks:
+    - data
+    - backend
+  depends_on:
+    db:
+      condition: service_healthy
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "5" }
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    env_file: ./env/db.env
+    command:
+      - --innodb-buffer-pool-size=512M
+      - --max-connections=60
+      - --performance-schema=OFF
+      - --skip-name-resolve
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - hb_mysql:/var/lib/mysql
+    networks:
+      - data
+    mem_limit: 900m
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_ROOT_PASSWORD\" mysqladmin ping -h 127.0.0.1 -uroot --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  app:
+    <<: *api
+    mem_limit: 1g
+
+  worker:
+    <<: *api
+    command: ["php", "artisan", "queue:work", "database", "--sleep=3", "--tries=3", "--backoff=30", "--max-time=3600", "--memory=192"]
+    stop_grace_period: 60s
+    mem_limit: 320m
+
+  scheduler:
+    <<: *api
+    command: ["php", "artisan", "schedule:work"]
+    mem_limit: 384m
+
+  nginx:
+    image: ghcr.io/elvisalibaba/holisticbooks-nginx:${HB_IMAGE_TAG:?HB_IMAGE_TAG manquant}
+    restart: unless-stopped
+    environment:
+      API_PUBLIC_HOST: ${HB_API_HOST:?HB_API_HOST manquant}
+    depends_on:
+      - app
+    networks:
+      backend: {}
+      edge:
+        aliases: [hb-nginx]
+    mem_limit: 64m
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "5" }
+
+  web:
+    image: ghcr.io/elvisalibaba/holisticbooks-web:${HB_WEB_IMAGE_TAG:?HB_WEB_IMAGE_TAG manquant}
+    restart: unless-stopped
+    env_file: ./env/web.env
+    depends_on:
+      - nginx
+    networks:
+      backend: {}
+      edge:
+        aliases: [hb-web]
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "5" }
+
+networks:
+  data:
+    internal: true
+  backend: {}
+  edge:
+    name: shared-edge
+    external: true
+
+volumes:
+  hb_mysql:
+  hb_storage:

@@ -28,11 +28,15 @@ Schedule::command('reader-cache:prune --days=7 --limit=500')
 // cPanel sans SSH : pas de worker permanent possible. La file d'attente
 // (e-mails de bienvenue, reçus de paiement…) est vidée chaque minute par le
 // cron unique `cpanel-cron.sh` → schedule:run.
-Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3 --backoff=30')
-    ->everyMinute()
-    ->withoutOverlapping(5)
-    // En arrière-plan : schedule:run rend la main tout de suite au cron.
-    ->runInBackground();
+// Sur le VPS (Docker), un conteneur `worker` dédié traite la file en continu :
+// QUEUE_SCHEDULED_WORKER=false y désactive ce lancement minute par minute.
+if (config('queue.scheduled_worker')) {
+    Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3 --backoff=30')
+        ->everyMinute()
+        ->withoutOverlapping(5)
+        // En arrière-plan : schedule:run rend la main tout de suite au cron.
+        ->runInBackground();
+}
 
 Schedule::command('sanctum:prune-expired --hours=24')
     ->daily();

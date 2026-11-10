@@ -4,6 +4,7 @@ namespace App\Http\Requests\Book;
 
 use App\Models\Book;
 use App\Support\BookEditorialWorkflow;
+use App\Support\UploadLimit;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateBookRequest extends FormRequest
@@ -77,10 +78,21 @@ class UpdateBookRequest extends FormRequest
             'subscription_plan_ids' => ['sometimes', 'array'],
             'subscription_plan_ids.*' => ['uuid', 'exists:subscription_plans,id'],
 
-            'file' => ['sometimes', 'nullable', 'file', 'max:460800'],
+            'file' => ['sometimes', 'nullable', 'file', UploadLimit::rule()],
             'file_format' => ['sometimes', 'nullable', 'string', 'max:30'],
             'cover' => ['sometimes', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,avif', 'max:20480'],
-            'sample' => ['sometimes', 'nullable', 'file', 'max:102400'],
+            'sample' => ['sometimes', 'nullable', 'file', UploadLimit::rule()],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'file.max' => UploadLimit::message(),
+            'sample.max' => UploadLimit::message(),
         ];
     }
 }

@@ -7,6 +7,7 @@ use App\Filament\Author\Resources\Books\Pages\EditBook;
 use App\Filament\Author\Resources\Books\Pages\ListBooks;
 use App\Models\Book;
 use App\Services\PublicationReadinessService;
+use App\Support\UploadLimit;
 use BackedEnum;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -144,10 +145,11 @@ class BookResource extends Resource
                             'application/epub+zip',
                             'application/octet-stream',
                         ])
-                        ->maxSize(460800)
+                        ->maxSize(UploadLimit::kilobytes())
+                        ->validationMessages(['max' => UploadLimit::message()])
                         ->helperText(fn (?Book $record): string => $record?->status === 'published'
                             ? 'Livre publié : un nouveau fichier est envoyé en relecture, la version en ligne reste inchangée jusqu’à validation.'
-                            : 'Le manuscrit peut être ajouté maintenant ou plus tard. Maximum 450 Mo.'),
+                            : 'Le manuscrit peut être ajouté maintenant ou plus tard. '.UploadLimit::helperText()),
                 ]),
 
             Section::make('Atelier d’écriture')

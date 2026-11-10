@@ -56,7 +56,7 @@ Le dépôt possède déjà un workflow GitHub `.github/workflows/production-pack
 1. Sauvegarder le dossier backend, l'environnement `.env`, les fichiers privés et MySQL.
 2. Mettre le backend Laravel à jour **en premier** (PR #34), tester un livre gratuit (HTTP 200, PDF complet) puis un payant (HTTP 403). Confirmer que le ZIP ou l'extraction n'écrase pas `storage/`, `.env` ni les données.
 3. Activer la règle cache CDN **uniquement** sur `read-free`; tester le second accès `CF-Cache-Status: HIT`.
-4. Mettre ensuite le frontend à jour (PR #33). Sur Cloudflare, sélectionner `HOLISTIC_DATA_SOURCE=laravel` et des URL d'API HTTPS correctes dans les **Build variables** et **Runtime variables** ; ne pas supprimer les données Supabase avant inventaire.
+4. Mettre ensuite le frontend à jour (PR #33). Sur Cloudflare, renseigner des URL d'API HTTPS correctes dans les **Build variables** et **Runtime variables**. Supabase n'est plus utilisé (voir `docs/SUPABASE-PROJET-ABANDONNE.md`).
 5. Tester une session de lecture sans compte, le changement de 20 pages et l'absence de nouvelles requêtes PDF dans DevTools → Network.
 6. Vérifier lecture EPUB, payant, panier/paiements, admin, auteurs, catalogue et affichage des miniatures.
 7. Mesurer Lighthouse/LCP, TTFB, tailles `_next/static`, PHP-FPM et DB, latence p95. Faire un test de charge progressif et **autorisé** sur un environnement adapté avant d'affirmer le support de 200 connexions.

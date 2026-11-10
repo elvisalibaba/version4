@@ -1,0 +1,123 @@
+name: VPS images
+
+# Construit les images Docker du VPS et les publie sur GHCR (paquets privés).
+#   holisticbooks-api:<sha>          PHP-FPM (API, worker, planificateur)
+#   holisticbooks-nginx:<sha>        nginx + fichiers publics de Laravel
+#   holisticbooks-web:<env>-<sha>    Next.js, une image par environnement, car les
+#                                    variables NEXT_PUBLIC_* sont figées au build
+# Déploiement ensuite sur le serveur : /opt/holisticbooks/deploy.sh <sha>
+
+on:
+  push:
+    branches: [main, deploy/vps-docker]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: vps-images-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io/elvisalibaba
+
+jobs:
+  laravel-tests:
+    name: Laravel tests (image PHP 8.3 du VPS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@v3
+      - name: Build test image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/api.Dockerfile
+          target: test
+          load: true
+          tags: holisticbooks-api-test:ci
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+      - name: Run Laravel tests
+        run: docker run --rm holisticbooks-api-test:ci php artisan test
+
+  api:
+    name: API and nginx images
+    needs: laravel-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push holisticbooks-api
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/api.Dockerfile
+          target: app
+          push: true
+          provenance: false
+          tags: ${{ env.REGISTRY }}/holisticbooks-api:${{ github.sha }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+      - name: Build and push holisticbooks-nginx
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/api.Dockerfile
+          target: nginx
+          push: true
+          provenance: false
+          tags: ${{ env.REGISTRY }}/holisticbooks-nginx:${{ github.sha }}
+          cache-from: type=gha,scope=api
+
+  web:
+    name: Next.js image (${{ matrix.env }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - env: test
+            app_url: https://vps.holistique-books.com
+            api_url: https://vps-api.aba.cd
+          - env: prod
+            app_url: https://www.holistique-books.com
+            api_url: https://api.aba.cd
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push holisticbooks-web
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/web.Dockerfile
+          push: true
+          provenance: false
+          build-args: |
+            NEXT_PUBLIC_APP_URL=${{ matrix.app_url }}
+            NEXT_PUBLIC_API_URL=${{ matrix.api_url }}
+            NEXT_PUBLIC_ANDROID_APK_URL=${{ vars.NEXT_PUBLIC_ANDROID_APK_URL }}
+          tags: ${{ env.REGISTRY }}/holisticbooks-web:${{ matrix.env }}-${{ github.sha }}
+          cache-from: type=gha,scope=web-${{ matrix.env }}
+          cache-to: type=gha,scope=web-${{ matrix.env }},mode=max

@@ -1,0 +1,14 @@
+# Sauvegarde quotidienne de HolisticBooks (voir /opt/holisticbooks/backup.sh).
+# Journal : journalctl -u hb-backup
+[Unit]
+Description=HolisticBooks : sauvegarde chiffrée de la base et des fichiers
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/holisticbooks
+ExecStart=/opt/holisticbooks/backup.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

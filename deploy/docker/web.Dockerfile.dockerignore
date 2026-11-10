@@ -1,0 +1,25 @@
+# Contexte de build du front Next.js (racine du dépôt).
+# Aucun fichier .env ne doit entrer dans l'image : Next lirait .env.production
+# au build et figerait ses valeurs.
+**/.env
+**/.env.*
+!.env.example
+.git
+.github
+.idea
+.next
+node_modules
+backend
+mobile
+Mobile
+supabase
+docs
+nm
+deploy
+production-packages
+*.log
+*.tmp
+*.PNG
+*.docx
+coverage
+tsconfig.tsbuildinfo

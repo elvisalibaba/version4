@@ -16,6 +16,13 @@ return [
     'default' => env('QUEUE_CONNECTION', 'database'),
 
     /*
+    | Lancer `queue:work --stop-when-empty` chaque minute depuis le planificateur
+    | (hébergement cPanel sans worker permanent). À désactiver quand un worker
+    | dédié tourne (conteneur `worker` du VPS).
+    */
+    'scheduled_worker' => (bool) env('QUEUE_SCHEDULED_WORKER', true),
+
+    /*
     |--------------------------------------------------------------------------
     | Queue Connections
     |--------------------------------------------------------------------------
